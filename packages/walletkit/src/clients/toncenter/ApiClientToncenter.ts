@@ -11,7 +11,8 @@ import { Address } from '@ton/core';
 
 import { Base64ToBigInt, Base64Normalize, Base64ToHex } from '../../utils/base64';
 import type { FullAccountState } from '../../types/toncenter/api';
-import type { JettonInfo, ToncenterEmulationResponse } from '../../types';
+import type { JettonInfo } from '../../types';
+import type { ToncenterEmulationResponse } from './types/raw-emulation';
 import type {
     ApiClient,
     GetJettonsByOwnerRequest,
@@ -23,21 +24,17 @@ import type {
     TransactionsByAddressRequest,
     GetEventsResponse,
     GetEventsRequest,
-} from '../../types/toncenter/ApiClient';
-import type { NftItemsResponseV3 } from '../../types/toncenter/v3/NftItemsResponseV3';
-import { toNftItemsResponse } from '../../types/toncenter/v3/NftItemsResponseV3';
-import type {
-    ToncenterResponseJettonMasters,
-    ToncenterResponseJettonWallets,
-    ToncenterTracesResponse,
-    ToncenterTransactionsResponse,
-    EmulationTokenInfoMasters,
-} from '../../types/toncenter/emulation';
-import { toTransactionsResponse } from '../../types/toncenter/emulation';
+} from '../../api/interfaces/ApiClient';
+import type { NftItemsResponseV3 } from './types/v3/NftItemsResponseV3';
+import { toNftItemsResponse } from './types/v3/NftItemsResponseV3';
+import type { ToncenterTracesResponse, ToncenterTransactionsResponse } from '../../types/toncenter/emulation';
+import type { ToncenterResponseJettonMasters, ToncenterResponseJettonWallets } from './types/jettons';
+import type { EmulationTokenInfoMasters } from './types/metadata';
+import { toTransactionsResponse } from './mappers/map-transactions';
 import { CallForSuccess } from '../../utils/retry';
 import { globalLogger } from '../../core/Logger';
-import type { DNSRecordsResponseV3 } from '../../types/toncenter/v3/DNSRecordsResponseV3';
-import { toDnsRecords } from '../../types/toncenter/v3/DNSRecordsResponseV3';
+import type { DNSRecordsResponseV3 } from './types/v3/DNSRecordsResponseV3';
+import { toDnsRecords } from './types/v3/DNSRecordsResponseV3';
 import { toAddressBook, toEvent } from '../../types/toncenter/AccountEvent';
 import { Network } from '../../api/models';
 import type {
@@ -55,10 +52,11 @@ import type {
     MasterchainInfo,
 } from '../../api/models';
 import { asAddressFriendly } from '../../utils/address';
-import type { ToncenterEmulationResult } from '../../utils/toncenterEmulation';
+import type { EmulationResult } from '../../api/models/emulation';
+import { mapToncenterEmulationResponse } from './mappers/map-emulation';
 import { BaseApiClient } from '../BaseApiClient';
 import type { BaseApiClientConfig } from '../BaseApiClient';
-import type { V2AddressInformation, V2SendMessageResult, V3RunGetMethodRequest, TonBlockIdExt } from './types';
+import type { V2AddressInformation, V2SendMessageResult, V3RunGetMethodRequest, TonBlockIdExt } from './types/internal';
 import { padBase64, parseInternalTransactionId, prepareAddress } from './utils';
 import { TonClientError } from '../TonClientError';
 import { isHex } from '../../utils';
@@ -102,7 +100,7 @@ export class ApiClientToncenter extends BaseApiClient implements ApiClient {
         return formattedResponse;
     }
 
-    async fetchEmulation(messageBoc: Base64String, ignoreSignature?: boolean): Promise<ToncenterEmulationResult> {
+    async fetchEmulation(messageBoc: Base64String, ignoreSignature?: boolean): Promise<EmulationResult> {
         const props: Record<string, unknown> = {
             boc: messageBoc,
             ignore_chksig: ignoreSignature === true,
@@ -114,7 +112,7 @@ export class ApiClientToncenter extends BaseApiClient implements ApiClient {
         const response = await this.postJson<ToncenterEmulationResponse>('/api/emulate/v1/emulateTrace', props);
         return {
             result: 'success',
-            emulationResult: response,
+            emulationResult: mapToncenterEmulationResponse(response),
         };
     }
 

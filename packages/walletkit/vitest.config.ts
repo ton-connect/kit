@@ -19,7 +19,16 @@ const config: ViteUserConfig = defineConfig({
         globals: true,
         environment: 'node',
         include: ['src/**/*.spec.ts', 'src/**/*.test.ts'],
-        exclude: ['node_modules', 'dist', 'build', 'coverage', '.stryker-tmp', '**/*.config.ts', '**/*.config.js'],
+        exclude: [
+            'node_modules',
+            'dist',
+            'build',
+            'coverage',
+            '.stryker-tmp',
+            '**/*.config.ts',
+            '**/*.config.js',
+            '**/*.integration.spec.ts',
+        ],
         // WebStorm compatibility
         reporter: process.env.JETBRAINS_IDE ? ['verbose'] : ['default'],
         // Disable WebStorm-specific reporter

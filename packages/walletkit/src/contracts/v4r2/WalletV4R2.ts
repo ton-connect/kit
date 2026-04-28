@@ -12,7 +12,7 @@ import type { Address, Cell, Contract, ContractProvider, Sender, MessageRelaxed 
 import { beginCell, contractAddress, SendMode, storeMessageRelaxed } from '@ton/core';
 import type { Maybe } from '@ton/core/dist/utils/maybe';
 
-import type { ApiClient } from '../../types/toncenter/ApiClient';
+import type { ApiClient } from '../../api/interfaces/ApiClient';
 import { ParseStack } from '../../utils/tvmStack';
 import { asAddressFriendly } from '../../utils';
 

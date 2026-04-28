@@ -111,6 +111,7 @@
     "build:esm": "tsc -p tsconfig.esm.json",
     "dev": "tsc -p tsconfig.esm.json --watch",
     "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:coverage": "vitest run --coverage",
     "test:mutation": "stryker run stryker.config.js",
     "quality": "pnpm test:coverage",

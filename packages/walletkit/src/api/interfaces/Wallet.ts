@@ -6,7 +6,7 @@
  *
  */
 
-import type { ApiClient } from '../../types/toncenter/ApiClient';
+import type { ApiClient } from './ApiClient';
 import type {
     TokenAmount,
     TONTransferRequest,

@@ -9,7 +9,7 @@
 import { Address, beginCell } from '@ton/core';
 
 import type { Base64String, TokenAmount, TransactionRequestMessage, UserFriendlyAddress } from '../../../api/models';
-import type { ApiClient } from '../../../types/toncenter/ApiClient';
+import type { ApiClient } from '../../../api/interfaces/ApiClient';
 import { CONTRACT } from './constants';
 import { asAddressFriendly, ReaderStack, SerializeStack } from '../../../utils';
 

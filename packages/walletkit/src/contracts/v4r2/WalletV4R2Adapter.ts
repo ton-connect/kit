@@ -27,7 +27,7 @@ import type { WalletV4R2Config } from './WalletV4R2';
 import { WalletV4R2 } from './WalletV4R2';
 import { WalletV4R2CodeCell } from './WalletV4R2.source';
 import { defaultWalletIdV4R2 } from './constants';
-import type { ApiClient } from '../../types/toncenter/ApiClient';
+import type { ApiClient } from '../../api/interfaces/ApiClient';
 import { HexToBigInt, HexToUint8Array } from '../../utils/base64';
 import { asAddressFriendly, formatWalletAddress } from '../../utils/address';
 import { CallForSuccess } from '../../utils/retry';

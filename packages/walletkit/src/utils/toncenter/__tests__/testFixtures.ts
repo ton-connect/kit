@@ -10,7 +10,7 @@ import { vi } from 'vitest';
 import type { Mock } from 'vitest';
 
 import type { ToncenterTransaction, ToncenterTracesResponse } from '../../../types/toncenter/emulation';
-import type { ApiClient } from '../../../types/toncenter/ApiClient';
+import type { ApiClient } from '../../../api/interfaces/ApiClient';
 
 export const JETTON_TRANSFER = '0x0f8a7ea5';
 export const JETTON_NOTIFY = '0x7362d09c';

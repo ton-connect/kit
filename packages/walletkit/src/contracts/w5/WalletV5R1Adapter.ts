@@ -31,7 +31,7 @@ import { FakeSignature } from '../../utils/sign';
 import { asAddressFriendly, formatWalletAddress } from '../../utils/address';
 import { CallForSuccess } from '../../utils/retry';
 import { ActionSendMsg, packActionsList } from './actions';
-import type { ApiClient } from '../../types/toncenter/ApiClient';
+import type { ApiClient } from '../../api/interfaces/ApiClient';
 import { HexToBigInt, HexToUint8Array } from '../../utils/base64';
 import { CreateTonProofMessageBytes } from '../../utils/tonProof';
 import type { WalletId } from '../../utils/walletId';

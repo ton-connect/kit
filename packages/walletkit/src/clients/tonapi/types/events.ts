@@ -26,7 +26,7 @@ export interface TonApiAccountEvent {
     event_id: string;
     timestamp: number;
     actions: TonApiAction[];
-    account: string;
+    account: { address: string };
     is_scam?: boolean;
     lt?: string | number;
     in_progress?: boolean;

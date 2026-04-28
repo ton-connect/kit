@@ -6,6 +6,8 @@
  *
  */
 
-export interface AddressBookRow {
-    domain: string | null;
+export interface EmulationTraceNode {
+    txHash: string;
+    inMsgHash?: string;
+    children: EmulationTraceNode[];
 }

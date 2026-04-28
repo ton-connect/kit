@@ -6,9 +6,8 @@
  *
  */
 
-import type { TokenInfo } from './TokenInfo';
-
-export interface AddressMetadata {
-    isIndexed: boolean;
-    tokenInfo: TokenInfo[];
+export interface EmulationAddressBookEntry {
+    domain?: string;
+    userFriendly: string;
+    interfaces: string[];
 }

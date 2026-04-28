@@ -8,7 +8,7 @@
 
 import type { AddressBook, AddressBookEntry } from '../../../api/models';
 import { asAddressFriendly } from '../../../utils/address';
-import type { EmulationAddressMetadata } from '../emulation';
+import type { EmulationAddressMetadata } from '../../../clients/toncenter/types/metadata';
 
 export interface MetadataV3 {
     address_book: Record<string, AddressBookRowV3>;
