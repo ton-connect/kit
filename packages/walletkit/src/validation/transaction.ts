@@ -10,7 +10,7 @@ import { Cell } from '@ton/core';
 
 import type { ValidationResult } from './types';
 import { validateTonAddress } from './address';
-import { isFriendlyTonAddress } from '../utils/address';
+import { isFriendlyTonAddress, isValidAddress } from '../utils/address';
 
 /**
  * Human-readable transaction message
@@ -36,8 +36,12 @@ export interface HumanReadableTx {
 /**
  * Validate transaction messages array
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function validateTransactionMessages(messages: any[], isTonConnect: boolean = true): ValidationResult {
+
+export function validateTransactionMessages(
+    messages: unknown[],
+    isTonConnect: boolean = true,
+    requireFriendlyAddress: boolean = true,
+): ValidationResult {
     const errors: string[] = [];
 
     if (!Array.isArray(messages)) {
@@ -52,7 +56,7 @@ export function validateTransactionMessages(messages: any[], isTonConnect: boole
 
     // Validate each message
     messages.forEach((msg, index) => {
-        const msgErrors = validateTransactionMessage(msg, isTonConnect).errors;
+        const msgErrors = validateTransactionMessage(msg, isTonConnect, requireFriendlyAddress).errors;
         msgErrors.forEach((error) => {
             errors.push(`message[${index}]: ${error}`);
         });
@@ -67,8 +71,12 @@ export function validateTransactionMessages(messages: any[], isTonConnect: boole
 /**
  * Validate individual transaction message
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function validateTransactionMessage(message: any, isTonConnect: boolean = true): ValidationResult {
+
+export function validateTransactionMessage(
+    message: unknown,
+    isTonConnect: boolean = true,
+    requireFriendlyAddress: boolean = true,
+): ValidationResult {
     const errors: string[] = [];
 
     if (typeof message !== 'object') {
@@ -79,12 +87,12 @@ export function validateTransactionMessage(message: any, isTonConnect: boolean =
         return { isValid: false, errors: ['Invalid message'] };
     }
 
-    if (isTonConnect && typeof message.mode !== 'undefined') {
+    if (isTonConnect && 'mode' in message && typeof message.mode !== 'undefined') {
         errors.push('mode must be undefined for tonconnect!');
     }
 
     // Object format - validate required fields
-    const objErrors = validateMessageObject(message).errors;
+    const objErrors = validateMessageObject(message, requireFriendlyAddress).errors;
     errors.push(...objErrors);
 
     return {
@@ -97,15 +105,19 @@ export function validateTransactionMessage(message: any, isTonConnect: boolean =
  * Validate message object structure
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function validateMessageObject(message: any): ValidationResult {
+export function validateMessageObject(message: any, requireFriendlyAddress: boolean = true): ValidationResult {
     const errors: string[] = [];
 
     // Required fields
     if (!message.address || typeof message.address !== 'string') {
         errors.push('to address is required and must be a string');
     } else {
-        if (!isFriendlyTonAddress(message.address)) {
-            errors.push('to address must be a valid friendly TON address');
+        if (requireFriendlyAddress ? !isFriendlyTonAddress(message.address) : !isValidAddress(message.address)) {
+            errors.push(
+                requireFriendlyAddress
+                    ? 'to address must be a valid friendly TON address'
+                    : 'to address must be a valid TON address',
+            );
         }
     }
 
@@ -205,6 +217,74 @@ export function validateBOC(bocString: string): ValidationResult {
 
     // Additional BOC-specific validations could go here
     // For example, checking magic bytes, cell structure, etc.
+
+    return {
+        isValid: errors.length === 0,
+        errors,
+    };
+}
+
+/**
+ * Validate structured items array (ton/jetton/nft)
+ */
+export function validateStructuredItems(items: unknown[]): ValidationResult {
+    const errors: string[] = [];
+
+    if (!Array.isArray(items)) {
+        errors.push('items must be an array');
+        return { isValid: false, errors };
+    }
+
+    if (items.length === 0) {
+        errors.push('items array cannot be empty');
+        return { isValid: false, errors };
+    }
+
+    items.forEach((item, index) => {
+        if (!item || typeof item !== 'object') {
+            errors.push(`item[${index}]: must be an object`);
+            return;
+        }
+
+        const obj = item as Record<string, unknown>;
+
+        if (!obj.type || typeof obj.type !== 'string') {
+            errors.push(`item[${index}]: type is required`);
+            return;
+        }
+
+        switch (obj.type) {
+            case 'ton':
+                if (!obj.address || typeof obj.address !== 'string') {
+                    errors.push(`item[${index}]: ton item requires address`);
+                }
+                if (!obj.amount || typeof obj.amount !== 'string') {
+                    errors.push(`item[${index}]: ton item requires amount`);
+                }
+                break;
+            case 'jetton':
+                if (!obj.master || typeof obj.master !== 'string') {
+                    errors.push(`item[${index}]: jetton item requires master`);
+                }
+                if (!obj.destination || typeof obj.destination !== 'string') {
+                    errors.push(`item[${index}]: jetton item requires destination`);
+                }
+                if (!obj.amount || typeof obj.amount !== 'string') {
+                    errors.push(`item[${index}]: jetton item requires amount`);
+                }
+                break;
+            case 'nft':
+                if (!obj.nftAddress || typeof obj.nftAddress !== 'string') {
+                    errors.push(`item[${index}]: nft item requires nftAddress`);
+                }
+                if (!obj.newOwner || typeof obj.newOwner !== 'string') {
+                    errors.push(`item[${index}]: nft item requires newOwner`);
+                }
+                break;
+            default:
+                errors.push(`item[${index}]: unknown item type '${obj.type}'`);
+        }
+    });
 
     return {
         isValid: errors.length === 0,

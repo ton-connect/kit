@@ -35,3 +35,4 @@ packages/walletkit-android-bridge/*.sh
 
 release-artifacts
 *.tgz
+apps/appkit-minter/Caddyfile

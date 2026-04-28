@@ -22,7 +22,25 @@ import type { Network } from '../api/models';
 import { asMaybeAddressFriendly } from '../utils';
 
 const log = globalLogger.createChild('JettonsManager');
+const TON_ADDRESS = 'TON';
 
+function isTonAddress(address: string): boolean {
+    return address.toLowerCase() === 'ton';
+}
+
+const TON_INFO: JettonInfo = {
+    address: TON_ADDRESS,
+    name: 'TON',
+    symbol: 'TON',
+    description: 'The Open Network native token',
+    decimals: 9,
+    totalSupply: '5000000000000000000',
+    // image: 'https://asset.ston.fi/img/EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c/ee9fb21d17bc8d75c2a5f7b5f5f62d2bacec6b128f58b63cb841e98f7b74c4fc',
+    verification: {
+        verified: true,
+        source: 'manual' as const,
+    },
+};
 /**
  * Creates a cache key that includes the network ID
  */
@@ -73,20 +91,8 @@ export class JettonsManager implements JettonsAPI {
      * Add TON native token to cache for a specific network
      */
     private addTonToCache(network: Network): void {
-        const cacheKey = createCacheKey(network, 'TON');
-        this.cache.set(cacheKey, {
-            address: 'TON',
-            name: 'TON',
-            symbol: 'TON',
-            description: 'The Open Network native token',
-            decimals: 9,
-            totalSupply: '5000000000000000000',
-            image: 'https://asset.ston.fi/img/EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c/ee9fb21d17bc8d75c2a5f7b5f5f62d2bacec6b128f58b63cb841e98f7b74c4fc',
-            verification: {
-                verified: true,
-                source: 'manual' as const,
-            },
-        });
+        const cacheKey = createCacheKey(network, TON_ADDRESS);
+        this.cache.set(cacheKey, TON_INFO);
     }
 
     /**
@@ -96,6 +102,10 @@ export class JettonsManager implements JettonsAPI {
      */
     async getJettonInfo(jettonAddress: string, network: Network): Promise<JettonInfo | null> {
         const targetNetwork = network;
+
+        if (isTonAddress(jettonAddress)) {
+            return TON_INFO;
+        }
 
         try {
             const cacheKey = this.normalizedCacheKey(targetNetwork, jettonAddress);
@@ -290,8 +300,8 @@ export class JettonsManager implements JettonsAPI {
      * Normalize jetton address for consistent caching
      */
     private normalizedCacheKey(network: Network, address: string): string {
-        if (address === 'TON') {
-            return createCacheKey(network, address);
+        if (isTonAddress(address)) {
+            return createCacheKey(network, TON_ADDRESS);
         }
         return createCacheKey(network, Address.parse(address).toString());
     }
@@ -311,7 +321,7 @@ export class JettonsManager implements JettonsAPI {
      */
     validateJettonAddress(address: string): boolean {
         try {
-            if (address === 'TON') {
+            if (isTonAddress(address)) {
                 return true;
             }
 

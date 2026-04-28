@@ -6,8 +6,8 @@
  *
  */
 
-import type { Slice } from '@ton/core';
-import { Address, Cell } from '@ton/core';
+import type { CommonMessageInfoInternal, Slice } from '@ton/core';
+import { Address, beginCell, Cell, loadMessageRelaxed, storeMessageRelaxed } from '@ton/core';
 
 import type { EmulationTokenInfoWallets, ToncenterEmulationResponse } from '../types/toncenter/emulation';
 import { toTransactionEmulatedTrace } from '../types/toncenter/emulation';
@@ -15,6 +15,7 @@ import type { ErrorInfo } from '../errors/WalletKitError';
 import { ERROR_CODES } from '../errors/codes';
 import { CallForSuccess } from './retry';
 import type {
+    Base64String,
     TransactionEmulatedPreview,
     TransactionTraceMoneyFlow,
     TransactionTraceMoneyFlowItem,
@@ -25,8 +26,14 @@ import { SendModeToValue } from './sendMode';
 import type { Wallet } from '../api/interfaces';
 import { asAddressFriendly, asMaybeAddressFriendly } from './address';
 import type { ApiClient } from '../types/toncenter/ApiClient';
+import type { TonWalletKitOptions } from '../types/config';
+import { globalLogger } from '../core/Logger';
 
-// import { ConnectMessageTransactionMessage } from '@/types/connect';
+const log = globalLogger.createChild('ToncenterEmulation');
+
+// For sign-message previews the wallet produces a relaxed internal message with value=0;
+// emulation needs a realistic coin balance to pay gas, so we inject 2 TON here.
+const SIGN_MODE_EMULATION_VALUE = 2_000_000_000n;
 
 export interface ToncenterMessage {
     method: string;
@@ -132,10 +139,19 @@ function parseJettonTransfer(slice: Slice): JettonTransfer {
     };
 }
 
+export interface ProcessMoneyFlowOptions {
+    // When true, the first transaction's incoming message is excluded from inputs
+    // (used for sign-message previews where that message is a synthetic 2-TON gasless-relay wrapper).
+    skipFirstTxInput?: boolean;
+}
+
 /**
  * Processes toncenter emulation result to extract money flow
  */
-export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse): TransactionTraceMoneyFlow {
+export function processToncenterMoneyFlow(
+    emulation: ToncenterEmulationResponse,
+    options: ProcessMoneyFlowOptions = {},
+): TransactionTraceMoneyFlow {
     if (!emulation || !emulation.transactions) {
         return {
             outputs: '0',
@@ -152,7 +168,8 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
     const ourTxes = Object.values(emulation.transactions).filter((t) => t.account === firstTx.account);
 
     const messagesFrom = ourTxes.flatMap((t) => t.out_msgs);
-    const messagesTo = ourTxes.flatMap((t) => t.in_msg).filter((m) => m !== null);
+    const incomingTxes = options.skipFirstTxInput ? ourTxes.filter((t) => t.hash !== firstTx.hash) : ourTxes;
+    const messagesTo = incomingTxes.flatMap((t) => t.in_msg).filter((m) => m !== null);
 
     // Calculate TON outputs
     const outputs = messagesFrom
@@ -275,6 +292,25 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
     };
 }
 
+export type TransactionPreviewMode = 'send' | 'sign';
+
+export interface TransactionPreviewOptions {
+    // 'send' emulates the external message as-is; 'sign' emulates the internal body
+    mode?: TransactionPreviewMode;
+    relayGas?: bigint; // gas amount to inject for gasless relaying, by default 2 TON
+}
+
+function wrapInternalForSignEmulation(relaxedBoc: Base64String, options: TransactionPreviewOptions): Base64String {
+    const cell = Cell.fromBase64(relaxedBoc);
+    const message = loadMessageRelaxed(cell.beginParse());
+    if (message.info.type !== 'internal') {
+        throw new Error('Expected relaxed internal message for sign-mode emulation');
+    }
+    const info = message.info as CommonMessageInfoInternal;
+    info.value = { coins: options.relayGas ?? SIGN_MODE_EMULATION_VALUE };
+    return beginCell().store(storeMessageRelaxed(message)).endCell().toBoc().toString('base64') as Base64String;
+}
+
 /**
  * Creates a transaction preview by emulating the transaction
  */
@@ -282,10 +318,17 @@ export async function createTransactionPreview(
     client: ApiClient,
     request: TransactionRequest,
     wallet?: Wallet,
+    options: TransactionPreviewOptions = {},
 ): Promise<TransactionEmulatedPreview> {
-    const txData = await wallet?.getSignedSendTransaction(request, { fakeSignature: true });
+    const mode: TransactionPreviewMode = options.mode ?? 'send';
+    const isSignMode = mode === 'sign';
 
-    if (!txData) {
+    const signedBoc = await wallet?.getSignedSendTransaction(request, {
+        fakeSignature: true,
+        internal: isSignMode,
+    });
+
+    if (!signedBoc) {
         return {
             result: Result.failure,
             error: {
@@ -295,9 +338,11 @@ export async function createTransactionPreview(
         };
     }
 
+    const bocForEmulation = isSignMode ? wrapInternalForSignEmulation(signedBoc, options) : signedBoc;
+
     let emulationResult: ToncenterEmulationResponse;
     try {
-        const emulatedResult = await CallForSuccess(() => client.fetchEmulation(txData, true));
+        const emulatedResult = await CallForSuccess(() => client.fetchEmulation(bocForEmulation, true));
         if (emulatedResult.result === 'success') {
             emulationResult = emulatedResult.emulationResult;
         } else {
@@ -319,11 +364,39 @@ export async function createTransactionPreview(
         };
     }
 
-    const moneyFlow = processToncenterMoneyFlow(emulationResult);
+    const moneyFlow = processToncenterMoneyFlow(emulationResult, { skipFirstTxInput: isSignMode });
 
     return {
         result: Result.success,
         trace: toTransactionEmulatedTrace(emulationResult),
         moneyFlow,
     };
+}
+
+export async function createTransactionPreviewIfPossible(
+    config: TonWalletKitOptions,
+    client: ApiClient,
+    request: TransactionRequest,
+    wallet?: Wallet,
+    options: TransactionPreviewOptions = {},
+): Promise<TransactionEmulatedPreview | undefined> {
+    if (config.eventProcessor?.disableTransactionEmulation) {
+        return undefined;
+    }
+
+    let preview: TransactionEmulatedPreview | undefined;
+    try {
+        preview = await CallForSuccess(() => createTransactionPreview(client, request, wallet, options));
+    } catch (error) {
+        log.error('Failed to create transaction preview', { error });
+        preview = {
+            error: {
+                code: ERROR_CODES.UNKNOWN_EMULATION_ERROR,
+                message: 'Unknown emulation error',
+            },
+            result: Result.failure,
+        };
+    }
+
+    return preview;
 }

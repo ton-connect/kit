@@ -24,6 +24,7 @@ import type {
     NFTRawTransferRequest,
 } from '../models';
 import type { WalletAdapter } from './WalletAdapter';
+import type { TransactionPreviewOptions } from '../../utils/toncenterEmulation';
 
 export type Wallet = WalletAdapter &
     WalletTonInterface &
@@ -34,7 +35,10 @@ export interface WalletTonInterface {
     createTransferTonTransaction(params: TONTransferRequest): Promise<TransactionRequest>;
     createTransferMultiTonTransaction(params: [TONTransferRequest]): Promise<TransactionRequest>;
 
-    getTransactionPreview(data: TransactionRequest | Promise<TransactionRequest>): Promise<TransactionEmulatedPreview>;
+    getTransactionPreview(
+        data: TransactionRequest | Promise<TransactionRequest>,
+        options?: TransactionPreviewOptions,
+    ): Promise<TransactionEmulatedPreview>;
 
     sendTransaction(request: TransactionRequest): Promise<SendTransactionResponse>;
 

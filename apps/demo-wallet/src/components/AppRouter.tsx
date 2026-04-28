@@ -22,6 +22,7 @@ import {
     TransactionDetail,
     Swap,
     Staking,
+    TonConnectRoute,
 } from '../pages';
 
 import { useWalletDataUpdater } from '@/hooks/useWalletDataUpdater';
@@ -141,6 +142,14 @@ export const AppRouter: React.FC = () => {
                     element={
                         <ProtectedRoute requiresWallet>
                             <TracePage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/ton-connect"
+                    element={
+                        <ProtectedRoute requiresWallet>
+                            <TonConnectRoute />
                         </ProtectedRoute>
                     }
                 />

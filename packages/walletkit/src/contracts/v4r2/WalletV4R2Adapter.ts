@@ -45,6 +45,7 @@ import type {
     UserFriendlyAddress,
     Hex,
     Base64String,
+    SignedSendTransactionOptions,
 } from '../../api/models';
 
 const log = globalLogger.createChild('WalletV4R2Adapter');
@@ -142,8 +143,11 @@ export class WalletV4R2Adapter implements WalletAdapter {
 
     async getSignedSendTransaction(
         input: TransactionRequest,
-        _options: { fakeSignature: boolean },
+        options?: SignedSendTransactionOptions,
     ): Promise<Base64String> {
+        if (options?.internal) {
+            throw new Error('WalletV4R2 does not support internal message signing (gasless). Use WalletV5R1.');
+        }
         if (input.messages.length === 0) {
             throw new Error('Ledger does not support empty messages');
         }
@@ -165,9 +169,13 @@ export class WalletV4R2Adapter implements WalletAdapter {
         try {
             const messages: MessageRelaxed[] = input.messages.map((m) => {
                 let bounce = true;
-                const parsedAddress = Address.parseFriendly(m.address);
-                if (parsedAddress.isBounceable === false) {
-                    bounce = false;
+                try {
+                    const parsedAddress = Address.parseFriendly(m.address);
+                    if (parsedAddress.isBounceable === false) {
+                        bounce = false;
+                    }
+                } catch {
+                    // raw address — no bounceable flag, keep default true
                 }
 
                 return internal({
@@ -284,11 +292,11 @@ export class WalletV4R2Adapter implements WalletAdapter {
             {
                 name: 'SendTransaction',
                 maxMessages: 4,
+                extraCurrencySupported: true,
+                itemTypes: ['ton', 'jetton', 'nft'],
             },
-            {
-                name: 'SignData',
-                types: ['binary', 'cell', 'text'],
-            },
-        ];
+            { name: 'SignData', types: ['text', 'binary', 'cell'] },
+            { name: 'EmbeddedRequest' },
+        ] as Feature[];
     }
 }

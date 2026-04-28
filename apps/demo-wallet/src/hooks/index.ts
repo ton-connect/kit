@@ -6,4 +6,8 @@
  *
  */
 
+export * from './useFormattedJetton';
+export * from './useJettonInfo';
+export * from './usePasteHandler';
 export * from './useTonWallet';
+export * from './useWalletDataUpdater';
