@@ -6,7 +6,6 @@
  *
  */
 
-import type { StateInit } from '@ton/core';
 import {
     Address,
     beginCell,
@@ -208,9 +207,7 @@ export class AgenticWalletAdapter implements WalletAdapter {
             );
         }
 
-        const stateInit = beginCell()
-            .store(storeStateInit(walletInit as unknown as StateInit))
-            .endCell();
+        const stateInit = beginCell().store(storeStateInit(walletInit)).endCell();
         return stateInit.toBoc().toString('base64') as Base64String;
     }
 

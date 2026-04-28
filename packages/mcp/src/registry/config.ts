@@ -581,13 +581,6 @@ export async function persistAgenticWalletNftIndex(walletId: string, walletNftIn
     if (!config) {
         return false;
     }
-    const wallet = config.wallets.find((item) => item.id === walletId);
-    if (!wallet || wallet.type !== 'agentic' || isWalletRemoved(wallet)) {
-        return false;
-    }
-    if (wallet.wallet_nft_index === walletNftIndex) {
-        return false;
-    }
     const nextConfig = updateAgenticWalletNftIndex(config, walletId, walletNftIndex);
     if (nextConfig === config) {
         return false;

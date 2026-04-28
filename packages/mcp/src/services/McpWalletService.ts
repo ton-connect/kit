@@ -1126,9 +1126,10 @@ export class McpWalletService {
         const timestamp = Math.floor(Date.now() / 1000);
         const domainLengthBytes = Buffer.byteLength(domain, 'utf-8');
 
+        const addressHash = Uint8ArrayToHex(address.hash);
         const proofMessage: ProofMessage = {
             workchain: address.workChain,
-            addressHash: Uint8ArrayToHex(address.hash),
+            addressHash: addressHash,
             domain: { lengthBytes: domainLengthBytes, value: domain },
             payload,
             stateInit,
@@ -1139,7 +1140,7 @@ export class McpWalletService {
         const signatureBase64 = HexToBase64(signatureHex);
 
         return {
-            address: `${address.workChain}:${address.hash.toString('hex')}`,
+            address: address.toRawString(),
             chain: this.wallet.getNetwork().chainId === Network.mainnet().chainId ? '-239' : '-3',
             walletStateInit: stateInit,
             publicKey,
