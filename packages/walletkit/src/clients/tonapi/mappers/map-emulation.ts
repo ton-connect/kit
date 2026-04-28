@@ -218,6 +218,26 @@ function mapAction(action: TonApiAction, event: TonApiAccountEvent, rootHash: st
     } else if (type === 'JettonTransfer' && payload) {
         type = 'jetton_transfer';
         details = normalizeJettonTransferDetails(payload);
+    } else if (type === 'NftItemTransfer' && payload) {
+        type = 'nft_transfer';
+        const sender = payload.sender as { address?: string } | undefined;
+        const recipient = payload.recipient as { address?: string } | undefined;
+        details = {
+            nft_collection: null,
+            nft_item: (payload.nft as string | undefined) ?? null,
+            nft_item_index: null,
+            old_owner: sender?.address ?? null,
+            new_owner: recipient?.address ?? null,
+            is_purchase: false,
+            query_id: '0',
+            response_destination: null,
+            custom_payload: null,
+            forward_payload: null,
+            forward_amount: '0',
+            comment: null,
+            is_encrypted_comment: false,
+            marketplace: null,
+        };
     } else if (type === 'JettonSwap' && payload) {
         type = 'jetton_swap';
         const inAsset = payload.in as { jetton?: { address?: string }; amount?: string } | undefined;

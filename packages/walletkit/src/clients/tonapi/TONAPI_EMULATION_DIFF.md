@@ -99,7 +99,7 @@ TonAPI вычисляет детали действий на сервере из
 | `ton_transfer` | `TonTransfer` | ✓ | Поля совпадают после нормализации |
 | `jetton_transfer` | `JettonTransfer` | ✓ | `response_destination` и `forward_amount` отсутствуют в TonAPI |
 | `jetton_swap` | `JettonSwap` | ✓ | Частично — детали peer swap недоступны |
-| `nft_transfer` | `NftItemTransfer` | ✗ | Ещё не маппится; коллекция, индекс, response_destination недоступны |
+| `nft_transfer` | `NftItemTransfer` | ~ | `nft_item`, `old_owner`, `new_owner` маппятся; `nft_collection`, `nft_item_index`, `response_destination`, `forward_amount`, `query_id` недоступны |
 | все остальные типы | разные | ✗ | Передаются как есть с сырым payload TonAPI |
 
 Даже для нормализованных типов ряд полей просто отсутствует в ответе TonAPI и не может быть
