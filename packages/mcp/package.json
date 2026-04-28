@@ -71,7 +71,7 @@
     "@ston-fi/omniston-sdk": "^0.7.9",
     "@ton/walletkit": "workspace:*",
     "https-proxy-agent": "^9.0.0",
-    "undici": "^8.1.0",
+    "undici": "8.0.2",
     "ws": "^8.20.0",
     "zod": "^3.25.76"
   },
