@@ -17,6 +17,7 @@ import { Card, Layout } from '@/core/components';
 import { SwapButton } from '@/features/swap';
 import { StakingCard } from '@/features/staking';
 import { SignMessageCard } from '@/features/signing';
+import { TacCard } from '@/features/tac';
 
 export const MinterPage: React.FC = () => {
     const [wallet] = useSelectedWallet();
@@ -53,6 +54,7 @@ export const MinterPage: React.FC = () => {
                         </Card>
 
                         <StakingCard />
+                        <TacCard />
                     </div>
                 )}
             </div>

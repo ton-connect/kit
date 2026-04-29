@@ -13,7 +13,7 @@ import type { Connector, ConnectorFactoryContext, ConnectorInput } from '../../.
 import { StakingManager } from '../../../staking';
 import type { StakingProviderInterface } from '../../../staking';
 import { CustomProvidersManager } from '../../providers';
-import type { CustomProvider, CustomProviderInput, SwapProviderInterface } from '../../providers';
+import type { CustomProvider, SwapProviderInterface } from '../../providers';
 import { EventEmitter } from '../../emitter';
 import { CONNECTOR_EVENTS, WALLETS_EVENTS } from '../constants/events';
 import type { AppKitEmitter, AppKitEvents } from '../types/events';
@@ -111,7 +111,7 @@ export class AppKit {
     /**
      * Register a provider (swap, staking, or custom)
      */
-    registerProvider(input: ProviderInput | CustomProviderInput): void {
+    registerProvider(input: ProviderInput): void {
         const provider = typeof input === 'function' ? input(this.createFactoryContext()) : input;
         switch (provider.type) {
             case 'swap':
