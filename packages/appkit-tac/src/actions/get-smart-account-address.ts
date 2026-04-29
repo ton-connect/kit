@@ -37,5 +37,6 @@ export const getSmartAccountAddress = async (
         throw new Error('Wallet is not selected');
     }
 
-    return provider.sdk.getSmartAccountAddressForTvmWallet(selectedWallet.getAddress(), options.applicationAddress);
+    const sdk = await provider.sdk;
+    return sdk.getSmartAccountAddressForTvmWallet(selectedWallet.getAddress(), options.applicationAddress);
 };

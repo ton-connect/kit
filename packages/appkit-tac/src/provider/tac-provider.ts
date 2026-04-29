@@ -7,16 +7,17 @@
  */
 
 import type { CustomProvider } from '@ton/appkit';
-import type { TacSdk } from '@tonappchain/sdk';
+import { TacSdk } from '@tonappchain/sdk';
+import type { SDKParams } from '@tonappchain/sdk';
 
 export interface TacProvider extends CustomProvider {
     readonly providerId: 'tac';
     readonly type: 'custom';
-    readonly sdk: TacSdk;
+    readonly sdk: Promise<TacSdk>;
 }
 
-export const createTacProvider = (sdk: TacSdk): TacProvider => ({
+export const createTacProvider = (params: SDKParams): TacProvider => ({
     providerId: 'tac',
     type: 'custom',
-    sdk,
+    sdk: TacSdk.create(params),
 });
