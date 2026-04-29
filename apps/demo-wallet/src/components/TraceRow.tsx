@@ -9,7 +9,7 @@
 import React, { memo, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
-import { Base64NormalizeUrl } from '@ton/walletkit';
+import { Base64ToHex } from '@ton/walletkit';
 import type { ToncenterTraceItem } from '@ton/walletkit';
 import { useWalletKit, useWalletStore, getChainNetwork } from '@demo/wallet-core';
 
@@ -420,7 +420,7 @@ export const TraceRow: React.FC<TraceRowProps> = memo(
         const firstTxHash = trace.transactions_order?.[0] || Object.keys(trace.transactions)[0];
         const firstTx = trace.transactions[firstTxHash];
         const linkTo = firstTx?.in_msg?.hash
-            ? `/wallet/trace/${Base64NormalizeUrl(firstTx.in_msg.hash)}`
+            ? `/wallet/trace/${Base64ToHex(firstTx.in_msg.hash)}`
             : `/wallet/trace/${traceId}`;
 
         const orderedTransactions = trace.transactions_order

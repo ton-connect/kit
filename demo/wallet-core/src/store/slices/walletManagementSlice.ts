@@ -6,7 +6,7 @@
  *
  */
 
-import { compareAddress, Base64NormalizeUrl, HexToBase64, Network } from '@ton/walletkit';
+import { compareAddress, Base64ToHex, Network } from '@ton/walletkit';
 import type { ITonWalletKit, Transaction, TransactionsUpdate, Wallet, WalletAdapter } from '@ton/walletkit';
 import { createLedgerPath } from '@demo/v4ledger-adapter';
 
@@ -678,7 +678,7 @@ export const createWalletManagementSlice =
 
             // Derive a stable identifier: prefer traceExternalHash, fall back to hash of first tx
             const externalHash = firstTx.traceExternalHash || undefined;
-            const traceId = firstTx.traceId || firstTx.hash;
+            const traceId = firstTx.traceId ? Base64ToHex(firstTx.traceId) : firstTx.hash;
 
             // Build preview from the first tx's messages
             const hasExternalInMessage = firstTx.inMessage && !firstTx.inMessage.source;
@@ -772,15 +772,11 @@ export const createWalletManagementSlice =
                 set((state) => {
                     state.walletManagement.events = response.events;
                     state.walletManagement.hasNextEvents = response.hasNext;
-                    // Remove pending that now appear in history. trace_id and trace_external_hash are different - match each to its own.
                     const eventTraceIds = new Set<string>();
                     const eventExtHashes = new Set<string>();
                     for (const ev of response.events as Array<{ eventId?: string; traceExternalHash?: string }>) {
-                        if (ev.eventId)
-                            eventTraceIds.add(
-                                Base64NormalizeUrl(HexToBase64(ev.eventId as Parameters<typeof HexToBase64>[0])),
-                            );
-                        if (ev.traceExternalHash) eventExtHashes.add(Base64NormalizeUrl(ev.traceExternalHash));
+                        if (ev.eventId) eventTraceIds.add(ev.eventId);
+                        if (ev.traceExternalHash) eventExtHashes.add(Base64ToHex(ev.traceExternalHash));
                     }
                     state.walletManagement.confirmedTraceIds = [
                         ...state.walletManagement.confirmedTraceIds,
@@ -792,9 +788,8 @@ export const createWalletManagementSlice =
                     ].slice(-50);
                     state.walletManagement.pendingTransactions = state.walletManagement.pendingTransactions.filter(
                         (p) =>
-                            !(p.traceIdFromFirstTx && eventTraceIds.has(Base64NormalizeUrl(p.traceIdFromFirstTx))) &&
-                            !(p.traceId && eventTraceIds.has(Base64NormalizeUrl(p.traceId))) &&
-                            !(p.externalHash && eventExtHashes.has(Base64NormalizeUrl(p.externalHash))),
+                            !(p.traceId && eventTraceIds.has(p.traceId)) &&
+                            !(p.externalHash && eventExtHashes.has(p.externalHash)),
                     );
                 });
 
