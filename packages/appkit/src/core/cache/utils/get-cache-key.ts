@@ -6,6 +6,7 @@
  *
  */
 
-export const isString = (value: unknown): value is string => {
-    return typeof value === 'string';
-};
+export const getCacheKey =
+    (prefix: string) =>
+    (...params: string[]): string =>
+        `${prefix}:${params.join(':')}`;

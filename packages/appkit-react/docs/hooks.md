@@ -182,7 +182,6 @@ const {
 } = useJettonBalanceByAddress({
     ownerAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
     jettonAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiXme1Xc56Iwobkzgnjj',
-    jettonDecimals: 9,
 });
 
 if (isLoading) {
@@ -264,7 +263,6 @@ const handleTransfer = () => {
         recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
         amount: '100', // 100 USDT
         jettonAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
-        jettonDecimals: 6,
     });
 };
 

@@ -5,6 +5,7 @@ packages:
 
 catalog:
   '@tanstack/query-core': 5.99.0
+  lru-cache: 11.3.5
   '@tanstack/react-query': 5.99.0
   '@ton/core': 0.63.1
   '@ton/crypto': 3.3.0
