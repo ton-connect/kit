@@ -307,6 +307,11 @@ export interface KotlinProviderDispatchArgs {
     updateJson: string;
 }
 
+export interface RegisterKotlinStakingProviderArgs {
+    providerId: string;
+    supportedUnstakeModes: string[];
+}
+
 export interface HandleTonConnectUrlArgs {
     url: string;
 }
@@ -385,6 +390,10 @@ export interface CreateDeDustSwapProviderArgs {
 }
 
 export interface RegisterSwapProviderArgs {
+    providerId: string;
+}
+
+export interface RegisterKotlinSwapProviderArgs {
     providerId: string;
 }
 
@@ -491,6 +500,7 @@ export interface WalletKitBridgeApi {
         providerId: string;
     }>;
     getSupportedUnstakeModes(args: GetSupportedUnstakeModesArgs): PromiseOrValue<string[]>;
+    registerKotlinStakingProvider(args: RegisterKotlinStakingProviderArgs): PromiseOrValue<void>;
     createOmnistonSwapProvider(args: CreateOmnistonSwapProviderArgs): PromiseOrValue<{ providerId: string }>;
     createDeDustSwapProvider(args: CreateDeDustSwapProviderArgs): PromiseOrValue<{ providerId: string }>;
     registerSwapProvider(args: RegisterSwapProviderArgs): PromiseOrValue<void>;
@@ -499,4 +509,5 @@ export interface WalletKitBridgeApi {
     hasSwapProvider(args: HasSwapProviderArgs): PromiseOrValue<{ result: boolean }>;
     getSwapQuote(args: GetSwapQuoteArgs): PromiseOrValue<unknown>;
     buildSwapTransaction(args: BuildSwapTransactionArgs): PromiseOrValue<unknown>;
+    registerKotlinSwapProvider(args: RegisterKotlinSwapProviderArgs): PromiseOrValue<void>;
 }

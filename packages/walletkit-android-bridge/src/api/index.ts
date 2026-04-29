@@ -104,6 +104,7 @@ export const api = {
     getStakedBalance: staking.getStakedBalance,
     getStakingProviderInfo: staking.getStakingProviderInfo,
     getSupportedUnstakeModes: staking.getSupportedUnstakeModes,
+    registerKotlinStakingProvider: staking.registerKotlinStakingProvider,
 
     createOmnistonSwapProvider: swap.createOmnistonSwapProvider,
     createDeDustSwapProvider: swap.createDeDustSwapProvider,
@@ -113,4 +114,5 @@ export const api = {
     hasSwapProvider: swap.hasSwapProvider,
     getSwapQuote: swap.getSwapQuote,
     buildSwapTransaction: swap.buildSwapTransaction,
+    registerKotlinSwapProvider: swap.registerKotlinSwapProvider,
 } as unknown as WalletKitBridgeApi;

@@ -1,5 +1,16 @@
 # @ton/appkit
 
+## 0.0.5-alpha.2
+
+### Patch Changes
+
+- 1f552f7: Added new connector and provider factory options
+- 4a060fb: Implemented staking infrastructure including \`StakingManager\` and \`TonStakersStakingProvider\` with support for multiple unstake modes (delayed, instant, best rate). Added core type updates and exported staking features from the package root.
+- Updated dependencies [74e0b78]
+- Updated dependencies [1f552f7]
+- Updated dependencies [4a060fb]
+    - @ton/walletkit@0.0.12-alpha.2
+
 ## 0.0.5-alpha.1
 
 ### Patch Changes

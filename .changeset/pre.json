@@ -21,8 +21,14 @@
     "cli-help-flag",
     "fix-jetton-balance-exit-code",
     "fix-jetton-param-naming",
+    "late-cups-argue",
+    "move-domain-from-signer-to-wallets",
+    "rename-transaction-action-to-send",
     "short-kings-flow",
+    "smart-toys-remain",
     "tricky-bags-retire",
-    "update-agentic-dashboard-url"
+    "tricky-tools-create",
+    "update-agentic-dashboard-url",
+    "wet-peas-beam"
   ]
 }
