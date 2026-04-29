@@ -6,4 +6,4 @@
  *
  */
 
-export { PluginManager } from './services/plugin-manager';
+export { useCustomProvider } from './hooks/use-custom-provider';

@@ -7,13 +7,14 @@
  */
 
 import { SwapManager, StreamingManager } from '@ton/walletkit';
-import type { ProviderInput, SwapProviderInterface, StakingProviderInterface } from '@ton/walletkit';
+import type { ProviderInput } from '@ton/walletkit';
 
-import { StakingManager } from '../../../staking';
 import type { Connector, ConnectorFactoryContext, ConnectorInput } from '../../../types/connector';
-import type { AppKitPlugin, PluginInput } from '../../../types/plugin';
+import { StakingManager } from '../../../staking';
+import type { StakingProviderInterface } from '../../../staking';
+import { CustomProvidersManager } from '../../providers';
+import type { CustomProvider, CustomProviderInput, SwapProviderInterface } from '../../providers';
 import { EventEmitter } from '../../emitter';
-import { PluginManager } from '../../plugin-manager';
 import { CONNECTOR_EVENTS, WALLETS_EVENTS } from '../constants/events';
 import type { AppKitEmitter, AppKitEvents } from '../types/events';
 import type { WalletInterface } from '../../../types/wallet';
@@ -32,7 +33,7 @@ export class AppKit {
     readonly walletsManager: WalletsManager;
     readonly swapManager: SwapManager;
     readonly stakingManager: StakingManager;
-    readonly pluginManager: PluginManager;
+    readonly customProvidersManager: CustomProvidersManager;
 
     readonly networkManager: AppKitNetworkManager;
     readonly streamingManager: StreamingManager;
@@ -55,8 +56,8 @@ export class AppKit {
 
         this.swapManager = new SwapManager(() => this.createFactoryContext());
         this.stakingManager = new StakingManager(() => this.createFactoryContext());
+        this.customProvidersManager = new CustomProvidersManager(() => this.createFactoryContext());
         this.streamingManager = new StreamingManager(() => this.createFactoryContext());
-        this.pluginManager = new PluginManager(this.emitter);
 
         if (config.connectors) {
             config.connectors.forEach((input) => {
@@ -67,12 +68,6 @@ export class AppKit {
         if (config.providers) {
             config.providers.forEach((input) => {
                 this.registerProvider(input);
-            });
-        }
-
-        if (config.plugins) {
-            config.plugins.forEach((input) => {
-                this.addPlugin(input);
             });
         }
     }
@@ -114,18 +109,9 @@ export class AppKit {
     }
 
     /**
-     * Add a plugin
+     * Register a provider (swap, staking, or custom)
      */
-    addPlugin(input: PluginInput): void {
-        const plugin: AppKitPlugin = typeof input === 'function' ? input(this.createFactoryContext()) : input;
-        plugin.init(this.createFactoryContext());
-        this.pluginManager.register(plugin.id, plugin);
-    }
-
-    /**
-     * Add a provider
-     */
-    registerProvider(input: ProviderInput): void {
+    registerProvider(input: ProviderInput | CustomProviderInput): void {
         const provider = typeof input === 'function' ? input(this.createFactoryContext()) : input;
         switch (provider.type) {
             case 'swap':
@@ -134,8 +120,11 @@ export class AppKit {
             case 'staking':
                 this.stakingManager.registerProvider(provider as StakingProviderInterface);
                 break;
+            case 'custom':
+                this.customProvidersManager.registerProvider(provider as CustomProvider);
+                break;
             default:
-                throw new Error('Unknown provider type');
+                throw new Error(`Unknown provider type: ${provider.type}`);
         }
     }
 

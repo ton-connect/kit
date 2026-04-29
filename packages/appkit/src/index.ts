@@ -28,7 +28,7 @@
 // Core
 export * from './core/app-kit';
 export * from './core/emitter';
-export * from './core/plugin-manager';
+export * from './core/providers';
 export * from './core/network';
 export * from './core/streaming';
 export * from './connectors/tonconnect';
@@ -41,7 +41,6 @@ export * from './actions';
 
 // Types
 export * from './types/connector';
-export * from './types/plugin';
 export * from './types/balance';
 export * from './types/wallet';
 export * from './types/query';

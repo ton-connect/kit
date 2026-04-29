@@ -28,3 +28,4 @@ export * from './features/wallets';
 export * from './features/swap';
 export * from './features/signing';
 export * from './features/staking';
+export * from './features/providers';
