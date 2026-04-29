@@ -9,6 +9,7 @@ A Model Context Protocol (MCP) server for TON blockchain wallet operations. Buil
 - **Swaps**: Get quotes for token swaps via DEX aggregators.
 - **NFTs**: List, inspect, and transfer NFTs.
 - **DNS**: Resolve TON DNS-compatible domains and reverse-lookup addresses.
+- **TonProof Authentication**: Generate signed TonConnect proof-of-ownership payloads for third-party services.
 - **Known Jettons**: Built-in directory of popular tokens.
 - **Agentic Wallets**: Manage agentic wallets. Create, import, or manage your agentic wallets.
 - **Multiple Transports**: Stdio (default), multi-session HTTP server, and serverless modes.
@@ -198,7 +199,7 @@ List Jettons held by any address with balances and metadata.
 Get metadata for a Jetton master contract.
 
 **Parameters:**
-- `address` (required): Jetton master contract address
+- `jettonAddress` (required): Jetton master contract address
 
 #### `get_transactions`
 Get recent transaction history for the wallet (TON transfers, Jetton transfers, swaps, etc.).
@@ -244,6 +245,13 @@ Send a raw transaction with full control over messages. Supports multiple messag
   - `payload` (optional): Message payload data (Base64)
 - `validUntil` (optional): Unix timestamp after which the transaction becomes invalid
 - `fromAddress` (optional): Sender wallet address
+
+#### `emulate_transaction`
+Dry-run a raw transaction without broadcasting it. Accepts the same `messages` format as `send_raw_transaction` and returns the expected TON and Jetton balance changes, fees, and high-level actions so agents can verify a transaction before sending.
+
+**Parameters:**
+- `messages` (required): Array of messages, each with `address`, `amount` in nanotons, and optional `stateInit` / `payload`
+- `validUntil` (optional): Unix timestamp after which the transaction becomes invalid
 
 ### Swaps
 
@@ -300,6 +308,19 @@ Reverse-resolve a TON wallet address to its associated DNS domain when available
 
 **Parameters:**
 - `address` (required): TON wallet address to reverse resolve
+
+### Authentication
+
+#### `generate_ton_proof`
+Generate a signed TonConnect proof-of-ownership payload for the active wallet. Use it to authenticate with third-party services that accept TonProof, such as APIs that ask for a domain and challenge payload.
+
+**Parameters:**
+- `domain` (required): Domain to generate the proof for (for example, `"getgems.io"`)
+- `payload` (required): Challenge or payload string provided by the verifying service
+
+**Returns:** Address, chain id, wallet state init, public key, timestamp, domain, payload, and base64 signature ready to submit to the verifying service.
+
+TonProof does not broadcast a transaction, but it does require signing access to the selected wallet. Imported read-only agentic wallets need operator key rotation completed before this tool can generate a proof.
 
 ### Utility
 

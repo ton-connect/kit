@@ -59,6 +59,7 @@ export interface StoredAgenticWallet extends StoredWalletBase {
     operator_public_key?: string;
     source?: string;
     collection_address?: string;
+    wallet_nft_index?: string;
     origin_operator_public_key?: string;
     deployed_by_user?: boolean;
 }
@@ -548,6 +549,46 @@ export function removeWallet(config: TonConfig, selector: string): { config: Ton
     };
 }
 
+export function updateAgenticWalletNftIndex(config: TonConfig, walletId: string, walletNftIndex: string): TonConfig {
+    let changed = false;
+    const nextWallets = config.wallets.map((item) => {
+        if (item.id !== walletId || item.type !== 'agentic' || isWalletRemoved(item)) {
+            return item;
+        }
+        if (item.wallet_nft_index === walletNftIndex) {
+            return item;
+        }
+        changed = true;
+        return {
+            ...item,
+            wallet_nft_index: walletNftIndex,
+            updated_at: nowIso(),
+        };
+    });
+
+    if (!changed) {
+        return config;
+    }
+
+    return {
+        ...config,
+        wallets: nextWallets,
+    };
+}
+
+export async function persistAgenticWalletNftIndex(walletId: string, walletNftIndex: string): Promise<boolean> {
+    const config = await loadConfigWithMigration();
+    if (!config) {
+        return false;
+    }
+    const nextConfig = updateAgenticWalletNftIndex(config, walletId, walletNftIndex);
+    if (nextConfig === config) {
+        return false;
+    }
+    saveConfig(nextConfig);
+    return true;
+}
+
 export function setActiveWallet(
     config: TonConfig,
     selector: string,
@@ -874,6 +915,7 @@ export function createAgenticWalletRecord(input: {
     operatorPublicKey?: string;
     source?: string;
     collectionAddress?: string;
+    walletNftIndex?: string;
     originOperatorPublicKey?: string;
     deployedByUser?: boolean;
     idPrefix?: string;
@@ -892,6 +934,7 @@ export function createAgenticWalletRecord(input: {
         ...(input.collectionAddress
             ? { collection_address: formatAssetAddress(input.collectionAddress, input.network) }
             : {}),
+        ...(input.walletNftIndex ? { wallet_nft_index: input.walletNftIndex } : {}),
         ...(input.originOperatorPublicKey ? { origin_operator_public_key: input.originOperatorPublicKey } : {}),
         ...(typeof input.deployedByUser === 'boolean' ? { deployed_by_user: input.deployedByUser } : {}),
         created_at: now,

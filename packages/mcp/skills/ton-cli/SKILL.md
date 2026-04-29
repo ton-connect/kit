@@ -33,6 +33,7 @@ npx @ton/mcp@alpha get_jetton_balance --jettonAddress EQAbc...
 # All values are passed as plain strings; JSON objects/arrays are also accepted
 npx @ton/mcp@alpha get_transactions --limit 10
 npx @ton/mcp@alpha send_ton --toAddress UQA... --amount 0.1 --comment "hi"
+npx @ton/mcp@alpha generate_ton_proof --domain getgems.io --payload getgems-llm
 ```
 
 Arguments are passed as `--key value` pairs. Objects/arrays (`{...}` / `[...]`) are JSON-parsed; everything else is kept as a plain string.
@@ -119,6 +120,12 @@ Without `MNEMONIC` or `PRIVATE_KEY`, the CLI uses the local config registry at `
 | `resolve_dns` | `--domain` | `--walletSelector` |
 | `back_resolve_dns` | `--address` | `--walletSelector` |
 
+### Authentication
+
+| Tool | Required args | Optional args |
+| ---- | ------------- | ------------- |
+| `generate_ton_proof` | `--domain`, `--payload` | `--walletSelector` |
+
 ## Example Session
 
 ```bash
@@ -151,11 +158,16 @@ npx @ton/mcp@alpha send_ton --toAddress UQA... --amount 0.5 --comment "payment"
 
 # Swap quote
 npx @ton/mcp@alpha get_swap_quote --fromToken TON --toToken EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs --amount 1
+
+# Generate a TonProof for a service challenge
+npx @ton/mcp@alpha generate_ton_proof --domain getgems.io --payload getgems-llm
 ```
 
 ## Notes
 
 - Use `emulate_transaction` to dry-run any transaction before sending — it returns expected balance changes, fees, and high-level actions
+- Use `generate_ton_proof` only with the exact domain and payload supplied by the user or verifying service; do not alter the payload before signing
+- `generate_ton_proof` requires signing access even though it does not broadcast a transaction
 - Always confirm with the user before running `send_ton`, `send_jetton`, `send_nft`, or `send_raw_transaction`;
 - For confirmations and small option sets, prefer the host client's structured confirmation/choice UI when available; otherwise use a short natural-language yes/no prompt and never require an exact magic word;
 - After sending, poll `get_transaction_status --normalizedHash <hash>` until status is `completed` or `failed` (unless the user asks to skip).
