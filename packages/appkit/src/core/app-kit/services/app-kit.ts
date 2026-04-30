@@ -7,10 +7,13 @@
  */
 
 import { SwapManager, StreamingManager } from '@ton/walletkit';
-import type { ProviderInput, SwapProviderInterface, StakingProviderInterface } from '@ton/walletkit';
+import type { ProviderInput } from '@ton/walletkit';
 
-import { StakingManager } from '../../../staking';
 import type { Connector, ConnectorFactoryContext, ConnectorInput } from '../../../types/connector';
+import { StakingManager } from '../../../staking';
+import type { StakingProviderInterface } from '../../../staking';
+import { CustomProvidersManager } from '../../providers';
+import type { CustomProvider, SwapProviderInterface } from '../../providers';
 import { EventEmitter } from '../../emitter';
 import { CONNECTOR_EVENTS, WALLETS_EVENTS } from '../constants/events';
 import type { AppKitEmitter, AppKitEvents } from '../types/events';
@@ -30,6 +33,7 @@ export class AppKit {
     readonly walletsManager: WalletsManager;
     readonly swapManager: SwapManager;
     readonly stakingManager: StakingManager;
+    readonly customProvidersManager: CustomProvidersManager;
 
     readonly networkManager: AppKitNetworkManager;
     readonly streamingManager: StreamingManager;
@@ -52,6 +56,7 @@ export class AppKit {
 
         this.swapManager = new SwapManager(() => this.createFactoryContext());
         this.stakingManager = new StakingManager(() => this.createFactoryContext());
+        this.customProvidersManager = new CustomProvidersManager(() => this.createFactoryContext());
         this.streamingManager = new StreamingManager(() => this.createFactoryContext());
 
         if (config.connectors) {
@@ -104,7 +109,7 @@ export class AppKit {
     }
 
     /**
-     * Add a provider
+     * Register a provider (swap, staking, or custom)
      */
     registerProvider(input: ProviderInput): void {
         const provider = typeof input === 'function' ? input(this.createFactoryContext()) : input;
@@ -115,8 +120,11 @@ export class AppKit {
             case 'staking':
                 this.stakingManager.registerProvider(provider as StakingProviderInterface);
                 break;
+            case 'custom':
+                this.customProvidersManager.registerProvider(provider as CustomProvider);
+                break;
             default:
-                throw new Error('Unknown provider type');
+                throw new Error(`Unknown provider type: ${provider.type}`);
         }
     }
 

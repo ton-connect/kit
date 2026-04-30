@@ -252,4 +252,10 @@ Hook to get and set the currently selected wallet.
 
 %%demo/examples/src/appkit/hooks/wallets#USE_SELECTED_WALLET%%
 
+### `useCustomProvider`
+
+Hook to get a registered custom provider by id.
+
+%%demo/examples/src/appkit/hooks/providers#USE_CUSTOM_PROVIDER%%
+
 

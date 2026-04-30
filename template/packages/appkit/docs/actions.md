@@ -339,3 +339,9 @@ Watch for changes in the list of connected wallets.
 Watch for changes in the selected wallet.
 
 %%demo/examples/src/appkit/actions/wallets#WATCH_SELECTED_WALLET%%
+
+### `getCustomProvider`
+
+Get a registered custom provider by id.
+
+%%demo/examples/src/appkit/actions/providers#GET_CUSTOM_PROVIDER%%

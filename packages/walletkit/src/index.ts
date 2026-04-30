@@ -172,4 +172,5 @@ export type { TonApiStreamingProviderConfig } from './streaming/tonapi';
 export { StreamingManager } from './streaming';
 export type { StreamingProvider, StreamingProviderFactory } from './api/interfaces/StreamingProvider';
 export type { StreamingAPI } from './api/interfaces/StreamingAPI';
-export type { ProviderFactoryContext } from './types/factory';
+export { createProvider } from './types/factory';
+export type { ProviderFactoryContext, ProviderInput, ProviderFactory } from './types/factory';

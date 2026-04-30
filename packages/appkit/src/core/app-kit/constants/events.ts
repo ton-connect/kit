@@ -29,10 +29,3 @@ export const NETWORKS_EVENTS = {
     UPDATED: 'networks:updated',
     DEFAULT_CHANGED: 'networks:default-changed',
 } as const;
-
-/**
- * Plugin events
- */
-export const PLUGIN_EVENTS = {
-    REGISTERED: 'plugin:registered',
-} as const;

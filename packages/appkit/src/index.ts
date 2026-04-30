@@ -28,6 +28,7 @@
 // Core
 export * from './core/app-kit';
 export * from './core/emitter';
+export * from './core/providers';
 export * from './core/network';
 export * from './core/streaming';
 export * from './connectors/tonconnect';
