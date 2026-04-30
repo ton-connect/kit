@@ -154,7 +154,7 @@ function mapTransaction(tx: RawTransaction): EmulationTransaction {
 function mapAction(action: RawAction): EmulationAction {
     return {
         traceId: action.trace_id,
-        actionId: action.action_id,
+        actionId: Base64ToHex(action.action_id),
         startLt: action.start_lt,
         endLt: action.end_lt,
         startUtime: action.start_utime,

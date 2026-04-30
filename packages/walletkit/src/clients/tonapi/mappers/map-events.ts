@@ -7,10 +7,10 @@
  */
 
 import { toAccount } from '../../../types/toncenter/AccountEvent';
-import type { TonApiAccountEvent, TonApiAccountRef } from '../types/events';
+import type { TonApiAccountEvent, TonApiSimplePreviewAccount } from '../types/events';
 import { toHex } from './map-transactions';
 
-export function normalizeTonApiAccountAddress(account: TonApiAccountRef): string {
+export function normalizeTonApiAccountAddress(account: TonApiSimplePreviewAccount): string {
     if (typeof account === 'string') {
         return account;
     }

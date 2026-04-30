@@ -6,7 +6,7 @@
  *
  */
 
-import type { TonApiMessage, TonApiTransaction } from '../types/transactions';
+import type { TonApiMessage, TonApiAccountRef } from '../types/transactions';
 import type { TonApiTrace } from '../types/traces';
 import type { TonApiMessageConsequences, TonApiRisk } from '../types/emulation';
 import type { TonApiAction, TonApiAccountEvent } from '../types/events';
@@ -16,6 +16,7 @@ import type {
     EmulationTransaction,
     EmulationMessage,
     EmulationAction,
+    EmulationAddressBookEntry,
 } from '../../../api/models/emulation';
 import type {
     TransactionTraceMoneyFlow,
@@ -33,26 +34,30 @@ function mapTraceNode(trace: TonApiTrace): EmulationTraceNode {
     };
 }
 
-function mapMessage(raw: TonApiMessage): EmulationMessage {
+function mapMessage(raw: TonApiMessage, kind: 'in' | 'out'): EmulationMessage {
     const extraCurrencies: Record<string, string> = {};
     for (const c of raw.value_extra ?? []) {
         extraCurrencies[String(c.id)] = String(c.amount ?? 0);
     }
+    // External in_msgs have no source; TonAPI returns 0 for value/fees on them, but correct value is null
+    const isExternal = !raw.source;
     return {
         hash: raw.hash ? toHex(raw.hash) : '',
         source: raw.source?.address ? asAddressFriendly(raw.source.address) : null,
         destination: raw.destination?.address ? (asAddressFriendly(raw.destination.address) ?? '') : '',
-        value: raw.value != null ? String(raw.value) : null,
+        value: isExternal ? null : raw.value != null ? String(raw.value) : null,
         valueExtraCurrencies: extraCurrencies,
-        fwdFee: raw.fwd_fee != null ? String(raw.fwd_fee) : null,
-        ihrFee: raw.ihr_fee != null ? String(raw.ihr_fee) : null,
-        createdLt: raw.created_lt != null ? String(raw.created_lt) : null,
-        createdAt: raw.created_at != null ? Number(raw.created_at) : null,
+        fwdFee: isExternal ? null : raw.fwd_fee != null ? String(raw.fwd_fee) : null,
+        ihrFee: isExternal ? null : raw.ihr_fee != null ? String(raw.ihr_fee) : null,
+        // ext_in messages don't have created_lt/created_at/ihr_disabled/bounce/bounced in TON protocol
+        createdLt: isExternal ? null : raw.created_lt != null ? String(raw.created_lt) : null,
+        createdAt: isExternal ? null : raw.created_at != null ? Number(raw.created_at) : null,
         opcode: raw.op_code ?? null,
-        ihrDisabled: raw.ihr_disabled ?? null,
-        isBounce: raw.bounce ?? null,
-        isBounced: raw.bounced ?? null,
-        importFee: raw.import_fee != null ? String(raw.import_fee) : null,
+        ihrDisabled: isExternal ? null : (raw.ihr_disabled ?? null),
+        isBounce: isExternal ? null : (raw.bounce ?? null),
+        isBounced: isExternal ? null : (raw.bounced ?? null),
+        // importFee only applies to external in_msgs; internal in_msgs and out_msgs have null
+        importFee: kind === 'out' || !isExternal ? null : raw.import_fee != null ? String(raw.import_fee) : null,
         messageContent: {
             hash: '',
             body: '',
@@ -87,7 +92,14 @@ function normalizeStatusChange(status: string | undefined): string {
     return status.startsWith('acst_') ? status.slice(5) : status;
 }
 
-function mapTransaction(raw: TonApiTransaction, rootHash: string): EmulationTransaction {
+function mapTransaction(traceNode: TonApiTrace, rootHash: string): EmulationTransaction {
+    const raw = traceNode.transaction;
+    // TonAPI omits out_msgs for child transactions — derive them from children's in_msg
+    const childInMsgs = (traceNode.children ?? [])
+        .map((c) => c.transaction.in_msg)
+        .filter((m): m is TonApiMessage => m != null);
+    const outMsgs = raw.out_msgs && raw.out_msgs.length > 0 ? raw.out_msgs : childInMsgs;
+
     const blockRef = parseBlockRef(raw.block);
     return {
         account: asAddressFriendly(raw.account.address),
@@ -106,7 +118,10 @@ function mapTransaction(raw: TonApiTransaction, rootHash: string): EmulationTran
             type: normalizeTransactionType(raw.transaction_type),
             isAborted: raw.aborted ?? !(raw.success ?? true),
             isDestroyed: raw.destroyed ?? false,
-            isCreditFirst: false,
+            // TonAPI doesn't expose credit_first; derive from bounce flag:
+            // external (bounce=false/null) and internal bounce=false → credit_first=true
+            // internal bounce=true → credit_first=false
+            isCreditFirst: !raw.in_msg?.bounce,
             isTock: false,
             isInstalled: false,
             storagePhase: {
@@ -138,14 +153,14 @@ function mapTransaction(raw: TonApiTransaction, rootHash: string): EmulationTran
                       totalActions: raw.action_phase.total_actions ?? 0,
                       specActions: 0,
                       skippedActions: raw.action_phase.skipped_actions ?? 0,
-                      msgsCreated: raw.out_msgs?.length ?? 0,
+                      msgsCreated: outMsgs.length,
                       totalMsgSize: { cells: '0', bits: '0' },
                   }
                 : undefined,
         },
         blockRef,
-        inMsg: raw.in_msg ? mapMessage(raw.in_msg) : null,
-        outMsgs: (raw.out_msgs ?? []).map(mapMessage),
+        inMsg: raw.in_msg ? mapMessage(raw.in_msg, 'in') : null,
+        outMsgs: outMsgs.map((m) => mapMessage(m, 'out')),
         accountStateBefore: {
             hash: '',
             balance: String(raw.end_balance ?? 0),
@@ -169,8 +184,37 @@ function mapTransaction(raw: TonApiTransaction, rootHash: string): EmulationTran
     };
 }
 
-function flattenTrace(trace: TonApiTrace): TonApiTransaction[] {
-    return [trace.transaction, ...(trace.children ?? []).flatMap(flattenTrace)];
+function flattenTrace(trace: TonApiTrace): TonApiTrace[] {
+    return [trace, ...(trace.children ?? []).flatMap(flattenTrace)];
+}
+
+function buildAddressBook(traces: TonApiTrace[]): Record<string, EmulationAddressBookEntry> {
+    const book: Record<string, EmulationAddressBookEntry> = {};
+
+    function addRef(ref: TonApiAccountRef | undefined) {
+        if (!ref?.address) return;
+        const key = ref.address.toUpperCase();
+        if (!book[key]) {
+            book[key] = {
+                userFriendly: asAddressFriendly(ref.address),
+                domain: ref.name ?? undefined,
+                interfaces: [],
+            };
+        }
+    }
+
+    for (const node of traces) {
+        const tx = node.transaction;
+        addRef(tx.account);
+        if (tx.in_msg?.source) addRef(tx.in_msg.source);
+        if (tx.in_msg?.destination) addRef(tx.in_msg.destination);
+        for (const msg of tx.out_msgs ?? []) {
+            if (msg.source) addRef(msg.source);
+            if (msg.destination) addRef(msg.destination);
+        }
+    }
+
+    return book;
 }
 
 function normalizeJettonTransferDetails(payload: Record<string, unknown>): Record<string, unknown> {
@@ -211,7 +255,7 @@ function mapAction(action: TonApiAction, event: TonApiAccountEvent, rootHash: st
             source: (payload.sender as { address?: string } | undefined)?.address ?? '',
             destination: (payload.recipient as { address?: string } | undefined)?.address ?? '',
             value: String(payload.amount ?? 0),
-            value_extra_currencies: {},
+            value_extra_currencies: null,
             comment: (payload.comment as string | undefined) ?? null,
             encrypted: false,
         };
@@ -264,6 +308,13 @@ function mapAction(action: TonApiAction, event: TonApiAccountEvent, rootHash: st
                 amount: String(payload.amount_out ?? payload.ton_out ?? outAsset?.amount ?? 0),
             },
             peer_swaps: [],
+        };
+    } else if (type === 'ContractDeploy' && payload) {
+        type = 'contract_deploy';
+        const addr = payload.address as string | undefined;
+        details = {
+            opcode: null,
+            destination: addr ?? null,
         };
     } else if (payload) {
         details = payload;
@@ -356,13 +407,19 @@ function computeMoneyFlow(
 }
 
 export function mapTonApiEmulationResponse(result: TonApiMessageConsequences): EmulationResponse {
-    const rootHash = toHex(result.trace.transaction.hash);
-    const allTxs = flattenTrace(result.trace);
-    const transactions = Object.fromEntries(allTxs.map((tx) => [toHex(tx.hash), mapTransaction(tx, rootHash)]));
-    const actions = (result.event.actions ?? []).map((a) => mapAction(a, result.event, rootHash));
+    const rootTxHash = toHex(result.trace.transaction.hash);
+    // Use the external in_msg hash as the trace identifier — matches Toncenter's traceExternalHash convention.
+    const externalHash = result.trace.transaction.in_msg?.hash
+        ? toHex(result.trace.transaction.in_msg.hash)
+        : rootTxHash;
+    const allTraces = flattenTrace(result.trace);
+    const transactions = Object.fromEntries(
+        allTraces.map((traceNode) => [toHex(traceNode.transaction.hash), mapTransaction(traceNode, externalHash)]),
+    );
+    const actions = (result.event.actions ?? []).map((a) => mapAction(a, result.event, externalHash));
 
     return {
-        mcBlockSeqno: transactions[rootHash]?.mcBlockSeqno ?? 0,
+        mcBlockSeqno: transactions[rootTxHash]?.mcBlockSeqno ?? 0,
         trace: mapTraceNode(result.trace),
         transactions,
         actions,
@@ -370,7 +427,7 @@ export function mapTonApiEmulationResponse(result: TonApiMessageConsequences): E
         isIncomplete: false,
         codeCells: {},
         dataCells: {},
-        addressBook: {},
+        addressBook: buildAddressBook(allTraces),
         moneyFlow: computeMoneyFlow(
             result.risk,
             result.event.account.address,

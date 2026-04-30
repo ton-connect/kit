@@ -96,7 +96,7 @@ function emulationMsgToTransactionMessage(msg: DomainEmulationMessage): Transact
         source: msg.source ?? undefined,
         destination: msg.destination ?? undefined,
         value: msg.value ?? undefined,
-        valueExtraCurrencies: msg.valueExtraCurrencies,
+        valueExtraCurrencies: msg.valueExtraCurrencies ?? undefined,
         fwdFee: msg.fwdFee ?? undefined,
         ihrFee: msg.ihrFee ?? undefined,
         creationLogicalTime: msg.createdLt ?? undefined,

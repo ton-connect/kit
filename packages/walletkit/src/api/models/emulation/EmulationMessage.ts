@@ -12,7 +12,7 @@ export interface EmulationMessage {
     source: string | null;
     destination: string;
     value: string | null;
-    valueExtraCurrencies: Record<string, string>;
+    valueExtraCurrencies: Record<string, string> | null;
     fwdFee: string | null;
     ihrFee: string | null;
     createdLt: string | null;

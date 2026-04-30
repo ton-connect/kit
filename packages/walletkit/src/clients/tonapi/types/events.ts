@@ -11,7 +11,7 @@ export interface TonApiActionSimplePreview {
     description?: string;
     value?: string;
     value_image?: string;
-    accounts?: TonApiAccountRef[];
+    accounts?: TonApiSimplePreviewAccount[];
 }
 
 export interface TonApiAction {
@@ -37,4 +37,4 @@ export interface TonApiAccountEventsResponse {
     next_from?: number;
 }
 
-export type TonApiAccountRef = string | { address: string };
+export type TonApiSimplePreviewAccount = string | { address: string };
