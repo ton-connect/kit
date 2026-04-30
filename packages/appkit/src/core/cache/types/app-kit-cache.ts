@@ -7,8 +7,8 @@
  */
 
 export interface AppKitCache {
-    get<T = unknown>(key: string): T | undefined;
-    set(key: string, value: unknown): void;
-    remove(key: string): void;
-    clear(): void;
+    get<T = unknown>(key: string): T | undefined | Promise<T | undefined>;
+    set(key: string, value: unknown): void | Promise<void>;
+    remove(key: string): void | Promise<void>;
+    clear(): void | Promise<void>;
 }

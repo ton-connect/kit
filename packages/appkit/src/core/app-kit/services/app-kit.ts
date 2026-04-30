@@ -40,7 +40,7 @@ export class AppKit {
 
     constructor(config: AppKitConfig) {
         this.config = config;
-        this.cache = config.customCache ?? new LruAppKitCache();
+        this.cache = config.cache ?? new LruAppKitCache();
 
         this.emitter = new EventEmitter<AppKitEvents>();
         this.emitter.on(CONNECTOR_EVENTS.CONNECTED, this.updateWalletsFromConnectors.bind(this));

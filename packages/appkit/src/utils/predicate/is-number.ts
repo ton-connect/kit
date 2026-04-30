@@ -7,5 +7,13 @@
  */
 
 export const isNumber = (value: unknown): value is number => {
-    return typeof value === 'number';
+    if (typeof value !== 'number') {
+        return false;
+    }
+
+    if (Number.isNaN(value)) {
+        return false;
+    }
+
+    return Number.isFinite(value);
 };

@@ -43,7 +43,7 @@ export interface AppKitConfig {
      * Custom cache implementation.
      * Defaults to an LRU cache with a 10-minute TTL and a maximum of 1000 entries.
      */
-    customCache?: AppKitCache;
+    cache?: AppKitCache;
 
     /**
      * Enable server-side rendering support
