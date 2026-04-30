@@ -28,6 +28,8 @@ import type {
     Wallet,
     WalletResponse,
 } from '@ton/walletkit';
+import type { DeDustSwapProviderConfig } from '@ton/walletkit/swap/dedust';
+import type { OmnistonSwapProviderConfig } from '@ton/walletkit/swap/omniston';
 
 /**
  * TonConnect event payload types that can be returned from processInternalBrowserRequest.
@@ -382,11 +384,11 @@ export interface GetSupportedUnstakeModesArgs {
 }
 
 export interface CreateOmnistonSwapProviderArgs {
-    config?: Record<string, unknown>;
+    config?: OmnistonSwapProviderConfig;
 }
 
 export interface CreateDeDustSwapProviderArgs {
-    config?: Record<string, unknown>;
+    config?: DeDustSwapProviderConfig;
 }
 
 export interface RegisterSwapProviderArgs {
