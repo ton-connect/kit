@@ -18,7 +18,9 @@ import type {
     EmulationAction,
     EmulationAddressBookEntry,
 } from '../../../api/models/emulation';
+import type { Hex } from '../../../api/models';
 import { parseBlockRef, toHex } from './map-transactions';
+import { asHex } from '../../../utils/hex';
 import { asAddressFriendly, asMaybeAddressFriendly } from '../../../utils/address';
 
 function mapTraceNode(trace: TonApiTrace): EmulationTraceNode {
@@ -37,7 +39,7 @@ function mapMessage(raw: TonApiMessage, kind: 'in' | 'out'): EmulationMessage {
     // External in_msgs have no source; TonAPI returns 0 for value/fees on them, but correct value is null
     const isExternal = !raw.source;
     return {
-        hash: raw.hash ? toHex(raw.hash) : '',
+        hash: toHex(raw.hash),
         source: raw.source?.address ? asAddressFriendly(raw.source.address) : null,
         destination: raw.destination?.address ? (asAddressFriendly(raw.destination.address) ?? '') : '',
         value: isExternal ? null : raw.value != null ? String(raw.value) : null,
@@ -54,8 +56,8 @@ function mapMessage(raw: TonApiMessage, kind: 'in' | 'out'): EmulationMessage {
         // importFee only applies to external in_msgs; internal in_msgs and out_msgs have null
         importFee: kind === 'out' || !isExternal ? null : raw.import_fee != null ? String(raw.import_fee) : null,
         messageContent: {
-            hash: '',
-            body: '',
+            hash: null,
+            body: null,
             decoded: raw.decoded_body ?? null,
         },
         initState: null,
@@ -87,7 +89,7 @@ function normalizeStatusChange(status: string | undefined): string {
     return status.startsWith('acst_') ? status.slice(5) : status;
 }
 
-function mapTransaction(traceNode: TonApiTrace, rootHash: string): EmulationTransaction {
+function mapTransaction(traceNode: TonApiTrace, rootHash: Hex): EmulationTransaction {
     const raw = traceNode.transaction;
     // TonAPI omits out_msgs for child transactions — derive them from children's in_msg
     const childInMsgs = (traceNode.children ?? [])
@@ -103,7 +105,7 @@ function mapTransaction(traceNode: TonApiTrace, rootHash: string): EmulationTran
         now: Number(raw.utime ?? 0),
         mcBlockSeqno: blockRef.seqno,
         traceExternalHash: rootHash,
-        prevTransHash: raw.prev_trans_hash ?? null,
+        prevTransHash: raw.prev_trans_hash ? toHex(raw.prev_trans_hash) : null,
         prevTransLt: raw.prev_trans_lt != null ? String(raw.prev_trans_lt) : null,
         origStatus: mapAccountStatus(raw.orig_status),
         endStatus: mapAccountStatus(raw.end_status),
@@ -157,7 +159,7 @@ function mapTransaction(traceNode: TonApiTrace, rootHash: string): EmulationTran
         inMsg: raw.in_msg ? mapMessage(raw.in_msg, 'in') : null,
         outMsgs: outMsgs.map((m) => mapMessage(m, 'out')),
         accountStateBefore: {
-            hash: '',
+            hash: null,
             balance: String(raw.end_balance ?? 0),
             extraCurrencies: null,
             accountStatus: mapAccountStatus(raw.orig_status),
@@ -166,7 +168,7 @@ function mapTransaction(traceNode: TonApiTrace, rootHash: string): EmulationTran
             codeHash: null,
         },
         accountStateAfter: {
-            hash: '',
+            hash: null,
             balance: String(raw.end_balance ?? 0),
             extraCurrencies: null,
             accountStatus: mapAccountStatus(raw.end_status),
@@ -233,7 +235,7 @@ function normalizeJettonTransferDetails(payload: Record<string, unknown>): Recor
     };
 }
 
-function mapAction(action: TonApiAction, event: TonApiAccountEvent, rootHash: string): EmulationAction {
+function mapAction(action: TonApiAction, event: TonApiAccountEvent, rootHash: Hex): EmulationAction {
     const lt = String(event.lt ?? 0);
     const utime = Number(event.timestamp ?? 0);
     const actionId = toHex(String(action.base_transactions?.[0] ?? event.event_id));
@@ -354,7 +356,7 @@ export function mapTonApiEmulationResponse(result: TonApiMessageConsequences): E
         trace: mapTraceNode(result.trace),
         transactions,
         actions,
-        randSeed: '0x' + '0'.repeat(64),
+        randSeed: asHex('0x' + '0'.repeat(64)),
         isIncomplete: false,
         codeCells: {},
         dataCells: {},

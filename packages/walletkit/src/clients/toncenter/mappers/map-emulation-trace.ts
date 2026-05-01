@@ -20,9 +20,7 @@ import type {
     TransactionTraceActionTONTransferDetails,
     TransactionEmulatedTrace,
     UserFriendlyAddress,
-    Base64String,
     AddressBook,
-    Hex,
 } from '../../../api/models';
 import { asMaybeAddressFriendly } from '../../../utils/address';
 import type {
@@ -49,14 +47,10 @@ export function toTransactionEmulatedTrace(response: EmulationResponse): Transac
             Object.entries(response.transactions ?? {}).map(([hash, tx]) => [hash, emulationTxToTransaction(tx)]),
         ),
         actions: response.actions.map(emulationActionToTransactionTraceAction),
-        randSeed: response.randSeed as Hex,
+        randSeed: response.randSeed,
         isIncomplete: response.isIncomplete,
-        codeCells: Object.fromEntries(
-            Object.entries(response.codeCells ?? {}).map(([hash, cell]) => [hash, cell as Base64String]),
-        ),
-        dataCells: Object.fromEntries(
-            Object.entries(response.dataCells ?? {}).map(([hash, cell]) => [hash, cell as Base64String]),
-        ),
+        codeCells: Object.fromEntries(Object.entries(response.codeCells ?? {}).map(([hash, cell]) => [hash, cell])),
+        dataCells: Object.fromEntries(Object.entries(response.dataCells ?? {}).map(([hash, cell]) => [hash, cell])),
         metadata: {},
         addressBook: emulationAddressBookToAddressBook(response.addressBook),
     };
@@ -64,15 +58,15 @@ export function toTransactionEmulatedTrace(response: EmulationResponse): Transac
 
 function domainTraceNodeToTransactionTraceNode(node: DomainEmulationTraceNode): TransactionTraceNode {
     return {
-        txHash: node.txHash as Hex | undefined,
-        inMsgHash: node.inMsgHash as Hex | undefined,
+        txHash: node.txHash,
+        inMsgHash: node.inMsgHash,
         children: node.children?.map(domainTraceNodeToTransactionTraceNode) ?? [],
     };
 }
 
 function emulationAccountStateToAccountState(state: DomainEmulationAccountState): AccountState {
     return {
-        hash: state.hash,
+        hash: state.hash ?? undefined,
         balance: state.balance,
         extraCurrencies: state.extraCurrencies ?? undefined,
         accountStatus: stringToAccountStatus(state.accountStatus),
@@ -91,8 +85,8 @@ function stringToAccountStatus(status: string): AccountStatus {
 
 function emulationMsgToTransactionMessage(msg: DomainEmulationMessage): TransactionMessage {
     return {
-        hash: msg.hash as Hex,
-        normalizedHash: msg.normalizedHash as Hex | undefined,
+        hash: msg.hash,
+        normalizedHash: msg.normalizedHash,
         source: msg.source ?? undefined,
         destination: msg.destination ?? undefined,
         value: msg.value ?? undefined,
@@ -107,8 +101,8 @@ function emulationMsgToTransactionMessage(msg: DomainEmulationMessage): Transact
         importFee: msg.importFee ?? undefined,
         opcode: msg.opcode ?? undefined,
         messageContent: {
-            hash: (msg.messageContent.hash || undefined) as Hex | undefined,
-            body: (msg.messageContent.body || undefined) as Base64String | undefined,
+            hash: msg.messageContent.hash ?? undefined,
+            body: msg.messageContent.body ?? undefined,
             decoded: msg.messageContent.decoded ?? undefined,
         },
     };
@@ -139,8 +133,8 @@ function emulationDescToTransactionDescription(desc: DomainEmulationTransactionD
             mode: desc.computePhase.mode,
             exitCode: desc.computePhase.exitCode,
             vmStepsNumber: desc.computePhase.vmSteps,
-            vmInitStateHash: desc.computePhase.vmInitStateHash as Hex | undefined,
-            vmFinalStateHash: desc.computePhase.vmFinalStateHash as Hex | undefined,
+            vmInitStateHash: desc.computePhase.vmInitStateHash,
+            vmFinalStateHash: desc.computePhase.vmFinalStateHash,
         },
         action: desc.actionPhase
             ? {
@@ -155,7 +149,7 @@ function emulationDescToTransactionDescription(desc: DomainEmulationTransactionD
                   specActionsNumber: desc.actionPhase.specActions,
                   skippedActionsNumber: desc.actionPhase.skippedActions,
                   messagesCreatedNumber: desc.actionPhase.msgsCreated,
-                  actionListHash: desc.actionPhase.actionListHash as Hex | undefined,
+                  actionListHash: desc.actionPhase.actionListHash,
                   totalMessagesSize: {
                       cells: desc.actionPhase.totalMsgSize.cells,
                       bits: desc.actionPhase.totalMsgSize.bits,
@@ -168,11 +162,11 @@ function emulationDescToTransactionDescription(desc: DomainEmulationTransactionD
 function emulationTxToTransaction(tx: DomainEmulationTransaction): Transaction {
     return {
         account: tx.account,
-        hash: tx.hash as Hex,
+        hash: tx.hash,
         logicalTime: tx.lt,
         now: tx.now,
         mcBlockSeqno: tx.mcBlockSeqno,
-        traceExternalHash: tx.traceExternalHash as Hex,
+        traceExternalHash: tx.traceExternalHash,
         traceId: tx.traceId,
         previousTransactionHash: tx.prevTransHash ?? undefined,
         previousTransactionLogicalTime: tx.prevTransLt ?? undefined,
@@ -201,9 +195,9 @@ function emulationActionToTransactionTraceAction(action: DomainEmulationAction):
         traceEndLt: action.traceEndLt,
         traceEndUtime: action.traceEndUtime,
         traceMcSeqnoEnd: action.traceMcSeqnoEnd,
-        transactions: action.transactions as Hex[],
+        transactions: action.transactions,
         isSuccess: action.isSuccess,
-        traceExternalHash: action.traceExternalHash as Hex,
+        traceExternalHash: action.traceExternalHash,
         accounts: action.accounts as UserFriendlyAddress[],
         details: domainActionDetailsToTransactionTraceActionDetails(action.type, action.details),
     };

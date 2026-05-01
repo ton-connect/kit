@@ -8,6 +8,36 @@
 
 import type { EmulationResponse } from './EmulationResponse';
 
+/**
+ * Result of a transaction emulation attempt.
+ * @discriminator result
+ */
 export type EmulationResult =
-    | { result: 'success'; emulationResult: EmulationResponse }
-    | { result: 'error'; emulationError: { code: number; message: string } };
+    | {
+          /** Emulation completed successfully */
+          result: 'success';
+          /** The emulation response data */
+          emulationResult: EmulationResponse;
+      }
+    | {
+          /** Emulation failed */
+          result: 'error';
+          /** Error details */
+          emulationError: EmulationError;
+      };
+
+/**
+ * Error returned when transaction emulation fails.
+ */
+export interface EmulationError {
+    /**
+     * Numeric error code
+     * @format int
+     */
+    code: number;
+
+    /**
+     * Human-readable error message
+     */
+    message: string;
+}

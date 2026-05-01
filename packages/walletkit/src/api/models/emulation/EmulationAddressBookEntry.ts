@@ -6,8 +6,24 @@
  *
  */
 
+import type { UserFriendlyAddress } from '../core/Primitives';
+
+/**
+ * Address book entry providing human-readable metadata for an on-chain address.
+ */
 export interface EmulationAddressBookEntry {
+    /**
+     * DNS domain name associated with the address, if any
+     */
     domain?: string;
-    userFriendly: string;
+
+    /**
+     * User-friendly representation of the address
+     */
+    userFriendly: UserFriendlyAddress;
+
+    /**
+     * List of known interfaces implemented by the contract
+     */
     interfaces: string[];
 }

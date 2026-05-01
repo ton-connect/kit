@@ -8,9 +8,9 @@
 
 export type { EmulationAction } from './EmulationAction';
 export type { EmulationAddressBookEntry } from './EmulationAddressBookEntry';
-export type { EmulationMessage } from './EmulationMessage';
+export type { EmulationMessage, EmulationMessageContent } from './EmulationMessage';
 export type { EmulationResponse } from './EmulationResponse';
-export type { EmulationResult } from './EmulationResult';
+export type { EmulationResult, EmulationError } from './EmulationResult';
 export type { EmulationTraceNode } from './EmulationTraceNode';
 export type {
     EmulationTransaction,
@@ -18,4 +18,9 @@ export type {
     EmulationAccountStatus,
     EmulationBlockRef,
     EmulationTransactionDescription,
+    EmulationStoragePhase,
+    EmulationCreditPhase,
+    EmulationComputePhase,
+    EmulationActionPhase,
+    EmulationActionMessageSize,
 } from './EmulationTransaction';

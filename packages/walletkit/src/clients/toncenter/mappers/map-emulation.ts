@@ -14,6 +14,7 @@ import type {
     EmulationTransactionDescription as RawDescription,
     ToncenterTransaction as RawTransaction,
 } from '../../../types/toncenter/emulation';
+import type { Base64String } from '../../../api/models';
 import type {
     EmulationResponse,
     EmulationTraceNode,
@@ -24,7 +25,7 @@ import type {
     EmulationAction,
     EmulationAddressBookEntry,
 } from '../../../api/models/emulation';
-import { Base64ToHex } from '../../../utils/base64';
+import { Base64ToHex, asBase64 } from '../../../utils/base64';
 import { asAddressFriendly, asMaybeAddressFriendly } from '../../../utils/address';
 
 function mapTraceNode(node: RawTraceNode): EmulationTraceNode {
@@ -117,8 +118,8 @@ function mapMessage(msg: RawMessage): EmulationMessage {
         isBounced: msg.bounced,
         importFee: msg.import_fee,
         messageContent: {
-            hash: msg.message_content?.hash ? Base64ToHex(msg.message_content.hash) : '',
-            body: msg.message_content?.body ?? '',
+            hash: msg.message_content?.hash ? Base64ToHex(msg.message_content.hash) : null,
+            body: msg.message_content?.body ? asBase64(msg.message_content.body) : null,
             decoded: msg.message_content?.decoded ?? null,
         },
         initState: msg.init_state,
@@ -132,7 +133,7 @@ function mapTransaction(tx: RawTransaction): EmulationTransaction {
         lt: tx.lt,
         now: tx.now,
         mcBlockSeqno: tx.mc_block_seqno,
-        traceExternalHash: tx.trace_external_hash ? Base64ToHex(tx.trace_external_hash) : '',
+        traceExternalHash: Base64ToHex(tx.trace_external_hash),
         prevTransHash: tx.prev_trans_hash ? Base64ToHex(tx.prev_trans_hash) : null,
         prevTransLt: tx.prev_trans_lt,
         origStatus: tx.orig_status,
@@ -186,12 +187,12 @@ export function mapToncenterEmulationResponse(raw: ToncenterEmulationResponse): 
         ]),
     );
 
-    const codeCells: Record<string, string> = Object.fromEntries(
-        Object.entries(raw.code_cells ?? {}).map(([hash, cell]) => [Base64ToHex(hash), cell]),
+    const codeCells: Record<string, Base64String> = Object.fromEntries(
+        Object.entries(raw.code_cells ?? {}).map(([hash, cell]) => [Base64ToHex(hash), asBase64(cell)]),
     );
 
-    const dataCells: Record<string, string> = Object.fromEntries(
-        Object.entries(raw.data_cells ?? {}).map(([hash, cell]) => [Base64ToHex(hash), cell]),
+    const dataCells: Record<string, Base64String> = Object.fromEntries(
+        Object.entries(raw.data_cells ?? {}).map(([hash, cell]) => [Base64ToHex(hash), asBase64(cell)]),
     );
 
     return {
