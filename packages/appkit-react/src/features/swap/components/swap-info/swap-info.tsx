@@ -7,35 +7,42 @@
  */
 
 import type { ComponentProps, FC } from 'react';
+import type { SwapQuote, SwapProvider } from '@ton/appkit';
 
 import { InfoBlock } from '../../../../components/info-block';
-
-export interface SwapInfoRowProps {
-    label: string;
-    value: string;
-}
+import { useI18n } from '../../../settings/hooks/use-i18n';
+import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
+import { getDisplayAmount } from '../../utils/get-display-amount';
 
 export interface SwapInfoProps extends ComponentProps<typeof InfoBlock.Container> {
-    rows: SwapInfoRowProps[];
-    isLoading?: boolean;
+    toToken: AppkitUIToken | null;
+    slippage: number;
+    provider?: SwapProvider;
+    quote?: SwapQuote;
+    isQuoteLoading?: boolean;
 }
 
-export const SwapInfo: FC<SwapInfoProps> = ({ rows, isLoading, ...props }) => {
+export const SwapInfo: FC<SwapInfoProps> = ({ quote, provider, toToken, slippage, isQuoteLoading, ...props }) => {
+    const { t } = useI18n();
+
+    const minReceived = `${getDisplayAmount(quote?.minReceived, toToken?.decimals)} ${toToken?.symbol || ''}`;
+    const providerName = provider?.getMetadata().name;
+    const slippagePercent = `${(slippage / 100).toFixed(2)}%`;
+
     return (
         <InfoBlock.Container {...props}>
-            {isLoading
-                ? Array.from({ length: 3 }).map((_, idx) => (
-                      <InfoBlock.Row key={idx}>
-                          <InfoBlock.LabelSkeleton />
-                          <InfoBlock.ValueSkeleton />
-                      </InfoBlock.Row>
-                  ))
-                : rows.map((row, idx) => (
-                      <InfoBlock.Row key={idx}>
-                          <InfoBlock.Label>{row.label}</InfoBlock.Label>
-                          <InfoBlock.Value>{row.value}</InfoBlock.Value>
-                      </InfoBlock.Row>
-                  ))}
+            <InfoBlock.Row>
+                <InfoBlock.Label>{t('swap.minReceived')}</InfoBlock.Label>
+                {isQuoteLoading ? <InfoBlock.ValueSkeleton /> : <InfoBlock.Value>{minReceived}</InfoBlock.Value>}
+            </InfoBlock.Row>
+            <InfoBlock.Row>
+                <InfoBlock.Label>{t('swap.slippage')}</InfoBlock.Label>
+                <InfoBlock.Value>{slippagePercent}</InfoBlock.Value>
+            </InfoBlock.Row>
+            <InfoBlock.Row>
+                <InfoBlock.Label>{t('swap.provider')}</InfoBlock.Label>
+                {providerName ? <InfoBlock.Value>{providerName}</InfoBlock.Value> : <InfoBlock.ValueSkeleton />}
+            </InfoBlock.Row>
         </InfoBlock.Container>
     );
 };

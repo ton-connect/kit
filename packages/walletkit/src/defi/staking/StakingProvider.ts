@@ -30,6 +30,8 @@ export abstract class StakingProvider implements StakingProviderInterface {
         this.providerId = providerId;
     }
 
+    abstract getSupportedNetworks(): Network[];
+
     /**
      * Get a quote for staking or unstaking
      * @param params - Quote parameters including direction and amount

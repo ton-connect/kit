@@ -13,6 +13,7 @@ import type {
     CryptoOnrampQuoteParams,
     CryptoOnrampStatus,
     CryptoOnrampStatusParams,
+    Network,
 } from '../../api/models';
 import type { CryptoOnrampProviderInterface } from '../../api/interfaces';
 
@@ -41,6 +42,7 @@ export abstract class CryptoOnrampProvider<
 > implements CryptoOnrampProviderInterface<TQuoteOptions, TDepositOptions> {
     readonly type = 'crypto-onramp';
     abstract readonly providerId: string;
+    abstract getSupportedNetworks(): Network[];
 
     /**
      * Get a quote for onramping from another crypto asset into a TON asset

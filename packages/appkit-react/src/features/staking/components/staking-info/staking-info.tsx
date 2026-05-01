@@ -80,6 +80,16 @@ export const StakingInfo: FC<StakingInfoProps> = ({
                     )}
                 </InfoBlock.Row>
             )}
+
+            <InfoBlock.Row>
+                <InfoBlock.Label>{t('staking.provider')}</InfoBlock.Label>
+
+                {providerMetadata?.name ? (
+                    <InfoBlock.Value>{providerMetadata.name}</InfoBlock.Value>
+                ) : (
+                    <InfoBlock.ValueSkeleton />
+                )}
+            </InfoBlock.Row>
         </InfoBlock.Container>
     );
 };

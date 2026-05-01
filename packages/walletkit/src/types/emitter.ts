@@ -6,11 +6,9 @@
  *
  */
 
-import type { TransactionEmulatedTrace } from '../api/models';
+import type { TransactionEmulatedTrace, StreamingEvents, BaseProviderEvents } from '../api/models';
 import type { RawBridgeEventRestoreConnection, RawBridgeEventTransaction } from './internal';
 import type { EventEmitter } from '../core/EventEmitter';
-import type { StreamingEvents } from '../api/models';
-import type { BaseProviderEvents } from '../api/interfaces';
 
 /**
  * Events shared between all walletkit and appkit.

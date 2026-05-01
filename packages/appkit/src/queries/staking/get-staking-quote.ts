@@ -30,7 +30,9 @@ export const getStakingQuoteQueryOptions = <selectData = GetStakingQuoteData>(
 
     return {
         ...options.query,
-        enabled: Boolean(options.amount && options.direction && (options.query?.enabled ?? true)),
+        enabled: Boolean(
+            options.amount && options.amount !== '0' && options.direction && (options.query?.enabled ?? true),
+        ),
         queryFn: async (context) => {
             const [, parameters] = context.queryKey as [string, GetStakingQuoteOptions];
             if (!parameters.amount || !parameters.direction) {

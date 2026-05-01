@@ -8,14 +8,15 @@
 
 import type { AppKit } from '@ton/appkit';
 import { registerProvider } from '@ton/appkit';
-import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
+import { createOmnistonProvider } from '@ton/walletkit/swap/omniston';
 
 export const registerProviderExample = (appKit: AppKit) => {
     // SAMPLE_START: REGISTER_PROVIDER
-    const omnistonProvider = new OmnistonSwapProvider({
-        defaultSlippageBps: 100, // 1%
-    });
-
-    registerProvider(appKit, omnistonProvider);
+    registerProvider(
+        appKit,
+        createOmnistonProvider({
+            defaultSlippageBps: 100, // 1%
+        }),
+    );
     // SAMPLE_END: REGISTER_PROVIDER
 };

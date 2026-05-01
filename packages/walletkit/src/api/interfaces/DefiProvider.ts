@@ -6,7 +6,7 @@
  *
  */
 
-import type { BaseProvider } from './BaseProvider';
+import type { Network, BaseProvider } from '../models';
 
 /**
  * Type of provider
@@ -18,4 +18,11 @@ export type DefiProviderType = 'swap' | 'staking' | 'onramp' | 'crypto-onramp';
  */
 export interface DefiProvider extends BaseProvider {
     readonly type: DefiProviderType;
+
+    /**
+     * Networks this provider can operate on. Consumers should check before calling provider methods.
+     * Implementations may return a static list or compute it dynamically (e.g. from runtime config).
+     * @returns Array of networks supported by this provider
+     */
+    getSupportedNetworks(): Network[];
 }

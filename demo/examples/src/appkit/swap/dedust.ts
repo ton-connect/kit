@@ -9,16 +9,17 @@
 import type { AppKit } from '@ton/appkit';
 import { Network, getSwapQuote } from '@ton/appkit';
 import type { DeDustProviderOptions } from '@ton/walletkit/swap/dedust';
-import { DeDustSwapProvider } from '@ton/appkit/swap/dedust';
+import { createDeDustProvider } from '@ton/appkit/swap/dedust';
 
 export const dedustQuickStartExample = (kit: AppKit) => {
     // SAMPLE_START: DEDUST_QUICK_START
-    const provider = new DeDustSwapProvider({
-        defaultSlippageBps: 100, // 1%
-        referralAddress: 'EQ...',
-        referralFeeBps: 50, // 0.5%
-    });
-    kit.registerProvider(provider);
+    kit.registerProvider(
+        createDeDustProvider({
+            defaultSlippageBps: 100, // 1%
+            referralAddress: 'EQ...',
+            referralFeeBps: 50, // 0.5%
+        }),
+    );
     // SAMPLE_END: DEDUST_QUICK_START
 };
 
@@ -72,11 +73,12 @@ export const dedustOverridingReferralExample = async (appKit: AppKit) => {
     const USDT = { address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs', decimals: 6 };
 
     // Global referrer in config
-    const provider = new DeDustSwapProvider({
-        referralAddress: 'EQ...global',
-        referralFeeBps: 50,
-    });
-    appKit.registerProvider(provider);
+    appKit.registerProvider(
+        createDeDustProvider({
+            referralAddress: 'EQ...global',
+            referralFeeBps: 50,
+        }),
+    );
 
     // Override for specific quote
     const quote = await getSwapQuote(appKit, {

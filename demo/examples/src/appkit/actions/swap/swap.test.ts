@@ -43,6 +43,7 @@ describe('Swap Actions Examples', () => {
         vi.spyOn(appKit.swapManager, 'getQuote').mockImplementation(mockGetQuote);
         // @ts-expect-error - internal access
         vi.spyOn(appKit.swapManager, 'buildSwapTransaction').mockImplementation(mockBuildSwapTransaction);
+        vi.spyOn(appKit.swapManager, 'setDefaultProvider').mockImplementation(() => {});
     });
 
     afterEach(() => {

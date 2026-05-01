@@ -38,6 +38,25 @@ export default {
         onSale: 'On Sale',
     },
 
+    // Token select modal (shared between swap, etc.)
+    tokenSelect: {
+        emptyNoMatch: "We didn't find any tokens.",
+        emptyTryAddress: 'Try searching by address.',
+        emptyForNetwork: 'No tokens available for the selected network.',
+        otherTokens: 'Other Tokens',
+        otherCurrencies: 'Other Currencies',
+    },
+
+    // Shared DeFi error messages (rendered by `mapDefiError`)
+    defi: {
+        unsupportedNetwork: 'Network is not supported',
+        networkError: 'Network error, please try again',
+        providerNotFound: 'Provider not found',
+        noDefaultProvider: 'No provider configured',
+        invalidProvider: 'Invalid provider',
+        invalidParams: 'Invalid parameters',
+    },
+
     // Swap
     swap: {
         title: 'Swap',
@@ -49,19 +68,31 @@ export default {
         insufficientBalance: 'Insufficient balance',
         tooManyDecimals: 'Too many decimal places',
         quoteError: 'Unable to get a quote',
+        invalidQuote: 'Quote is invalid',
+        insufficientLiquidity: 'Insufficient liquidity for this swap',
+        quoteExpired: 'Quote expired, please try again',
+        buildTxFailed: "Couldn't build the swap transaction",
         selectToken: 'Select Token',
         searchToken: 'Search...',
-        settings: 'Settings',
+        settings: 'Swap settings',
         slippage: 'Slippage',
         slippageError: 'The maximum slippage tolerance cannot be more than 50%. The recommended range is 1%',
         slippageWarning: 'High slippage tolerance increases the risk of an unfavorable trade',
         provider: 'Provider',
+        save: 'Save',
+        minReceived: 'Min Received',
     },
 
-    // Token select
-    tokenSelect: {
-        otherTokens: 'Other Tokens',
-        otherCurrencies: 'Other Currencies',
+    // Low balance modal (shared between swap, staking, etc.)
+    lowBalance: {
+        title: 'Not enough TON',
+        messageReduce:
+            'This operation requires ~{{ amount }} TON which exceeds your TON balance. Reduce the amount to continue.',
+        messageTopup:
+            'This operation needs ~{{ amount }} TON to cover network fees. Top up your TON balance to continue.',
+        change: 'Change amount',
+        cancel: 'Cancel',
+        close: 'Close',
     },
 
     // Crypto Onramp
@@ -125,6 +156,8 @@ export default {
         insufficientBalance: 'Insufficient balance',
         tooManyDecimals: 'Too many decimal places',
         quoteError: 'Unable to get a quote',
+        invalidParams: 'Invalid staking parameters',
+        unsupportedOperation: 'Operation not supported by this provider',
         youGet: 'You get',
         currentApy: 'Current APY',
         max: 'MAX',
@@ -138,5 +171,6 @@ export default {
         whenAvailable: 'When available',
         whenAvailableLimit: 'No limits',
         yourBalance: 'Your balance',
+        provider: 'Provider',
     },
 } as const;

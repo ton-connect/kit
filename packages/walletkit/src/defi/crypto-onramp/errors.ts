@@ -6,9 +6,9 @@
  *
  */
 
-import { DefiManagerError } from '../errors';
+import { DefiError } from '../errors';
 
-export class CryptoOnrampError extends DefiManagerError {
+export class CryptoOnrampError extends DefiError {
     static readonly PROVIDER_ERROR = 'PROVIDER_ERROR';
     static readonly QUOTE_FAILED = 'QUOTE_FAILED';
     static readonly DEPOSIT_FAILED = 'DEPOSIT_FAILED';

@@ -21,6 +21,9 @@ export interface StakingTokenInfo {
  * Static metadata for a staking provider
  */
 export interface StakingProviderMetadata {
+    /** Human-readable provider name (e.g. "Tonstakers") */
+    name: string;
+
     /** Supported unstake modes for this provider */
     supportedUnstakeModes: UnstakeModes[];
 
@@ -41,6 +44,7 @@ export interface StakingProviderMetadata {
  * Used in provider configuration to override fields of the provider's metadata.
  */
 export interface StakingProviderMetadataOverride {
+    name?: string;
     stakeToken?: StakingTokenInfo;
     receiveToken?: StakingTokenInfo;
     contractAddress?: UserFriendlyAddress;

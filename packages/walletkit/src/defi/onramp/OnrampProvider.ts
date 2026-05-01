@@ -6,7 +6,7 @@
  *
  */
 
-import type { OnrampParams, OnrampQuote, OnrampQuoteParams } from '../../api/models';
+import type { Network, OnrampParams, OnrampQuote, OnrampQuoteParams } from '../../api/models';
 import type { OnrampProviderInterface } from '../../api/interfaces';
 
 /**
@@ -34,6 +34,7 @@ export abstract class OnrampProvider<
 > implements OnrampProviderInterface<TQuoteOptions, TOnrampOptions> {
     readonly type = 'onramp';
     abstract readonly providerId: string;
+    abstract getSupportedNetworks(): Network[];
 
     /**
      * Get a quote for onramping fiat to crypto

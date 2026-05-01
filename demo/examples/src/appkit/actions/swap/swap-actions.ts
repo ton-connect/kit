@@ -11,6 +11,8 @@ import { Network } from '@ton/appkit';
 import {
     getSwapManager,
     getSwapProvider,
+    getSwapProviders,
+    setDefaultSwapProvider,
     watchSwapProviders,
     getSwapQuote,
     buildSwapTransaction,
@@ -25,6 +27,18 @@ export const swapExample = async (appKit: AppKit) => {
     // SAMPLE_START: GET_SWAP_PROVIDER
     const swapProvider = getSwapProvider(appKit, { id: 'stonfi' });
     // SAMPLE_END: GET_SWAP_PROVIDER
+
+    // SAMPLE_START: GET_SWAP_PROVIDERS
+    const swapProviders = getSwapProviders(appKit);
+    console.log(
+        'Registered providers:',
+        swapProviders.map((p) => p.providerId),
+    );
+    // SAMPLE_END: GET_SWAP_PROVIDERS
+
+    // SAMPLE_START: SET_DEFAULT_SWAP_PROVIDER
+    setDefaultSwapProvider(appKit, { providerId: 'stonfi' });
+    // SAMPLE_END: SET_DEFAULT_SWAP_PROVIDER
 
     // SAMPLE_START: WATCH_SWAP_PROVIDERS
     const unsubscribe = watchSwapProviders(appKit, {

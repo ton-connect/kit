@@ -6,7 +6,7 @@
  *
  */
 
-export { OmnistonSwapProvider } from './OmnistonSwapProvider';
+export { OmnistonSwapProvider, createOmnistonProvider } from './OmnistonSwapProvider';
 export type {
     OmnistonSwapProviderConfig,
     OmnistonProviderOptions,

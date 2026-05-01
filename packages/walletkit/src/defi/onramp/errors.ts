@@ -6,9 +6,9 @@
  *
  */
 
-import { DefiManagerError } from '../errors';
+import { DefiError } from '../errors';
 
-export class OnrampError extends DefiManagerError {
+export class OnrampError extends DefiError {
     static readonly PROVIDER_ERROR = 'PROVIDER_ERROR';
     static readonly InvalidParams = 'INVALID_ONRAMP_PARAMS';
     static readonly QUOTE_FAILED = 'QUOTE_FAILED';

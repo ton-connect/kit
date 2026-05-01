@@ -13,6 +13,8 @@ export * from './amount/calc-fiat-value';
 export * from './amount/format-large-value';
 export * from './amount/truncate-decimals';
 export * from './amount/validate-numeric-string';
+export * from './balance/calc-max-spendable';
+export * from './balance/get-ton-shortfall';
 export * from './arrays/key-by';
 export * from './arrays/random-from-array';
 export * from './errors/get-error-message';

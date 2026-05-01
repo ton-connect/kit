@@ -14,6 +14,7 @@ import type {
     CryptoOnrampStatus,
     CryptoOnrampStatusParams,
 } from '../../../api/models';
+import { Network } from '../../../api/models';
 import { CryptoOnrampProvider } from '../CryptoOnrampProvider';
 import { CryptoOnrampError } from '../errors';
 import type { LayerswapCreateSwapResponse, LayerswapGetSwapResponse } from './types';
@@ -77,6 +78,10 @@ export interface LayerswapQuoteMetadata {
  */
 export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<LayerswapQuoteOptions, LayerswapQuoteMetadata> {
     readonly providerId = 'layerswap';
+
+    getSupportedNetworks(): Network[] {
+        return [Network.mainnet()];
+    }
 
     private readonly apiKey: string | undefined;
     private readonly apiUrl: string;

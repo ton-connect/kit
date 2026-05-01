@@ -7,7 +7,7 @@
  */
 
 /**
- * Token type for swap
+ * Static metadata for a swap provider.
  */
 export interface SwapProviderMetadata {
     name: string;

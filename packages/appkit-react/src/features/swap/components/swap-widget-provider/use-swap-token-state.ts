@@ -6,25 +6,45 @@
  *
  */
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { validateNumericString, truncateDecimals } from '@ton/appkit';
 
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
 
 interface UseSwapTokenStateOptions {
     mappedTokens: AppkitUIToken[];
-    defaultFromId?: string;
-    defaultToId?: string;
+    defaultFromSymbol?: string;
+    defaultToSymbol?: string;
 }
 
-export const useSwapTokenState = ({ mappedTokens, defaultFromId, defaultToId }: UseSwapTokenStateOptions) => {
-    const [fromToken, setFromToken] = useState<AppkitUIToken | null>(
-        mappedTokens.find((t) => t.id === defaultFromId) ?? mappedTokens[0] ?? null,
+const pickFromToken = (tokens: AppkitUIToken[], defaultSymbol?: string): AppkitUIToken | null =>
+    tokens.find((t) => t.symbol.toLowerCase() === defaultSymbol?.toLowerCase()) ?? tokens[0] ?? null;
+
+const pickToToken = (tokens: AppkitUIToken[], defaultSymbol?: string): AppkitUIToken | null =>
+    tokens.find((t) => t.symbol.toLowerCase() === defaultSymbol?.toLowerCase()) ?? tokens[1] ?? null;
+
+export const useSwapTokenState = ({ mappedTokens, defaultFromSymbol, defaultToSymbol }: UseSwapTokenStateOptions) => {
+    const [fromToken, setFromToken] = useState<AppkitUIToken | null>(() =>
+        pickFromToken(mappedTokens, defaultFromSymbol),
     );
-    const [toToken, setToToken] = useState<AppkitUIToken | null>(
-        mappedTokens.find((t) => t.id === defaultToId) ?? mappedTokens[1] ?? null,
-    );
+    const [toToken, setToToken] = useState<AppkitUIToken | null>(() => pickToToken(mappedTokens, defaultToSymbol));
     const [fromAmount, setFromAmountRaw] = useState('');
+
+    // Re-select tokens whenever the available list changes (e.g. wallet network switches and
+    // `mappedTokens` is filtered down to a different set). Keep the current selection if it's still
+    // valid; otherwise fall back to defaults.
+    useEffect(() => {
+        setFromToken((prev) =>
+            prev && mappedTokens.some((t) => t.address === prev.address)
+                ? prev
+                : pickFromToken(mappedTokens, defaultFromSymbol),
+        );
+        setToToken((prev) =>
+            prev && mappedTokens.some((t) => t.address === prev.address)
+                ? prev
+                : pickToToken(mappedTokens, defaultToSymbol),
+        );
+    }, [mappedTokens, defaultFromSymbol, defaultToSymbol]);
 
     const setFromAmount = useCallback(
         (value: string) => {

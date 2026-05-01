@@ -11,7 +11,7 @@ import type { DefiProvider } from '../api/interfaces';
 import { resolveProvider } from '../types';
 import type { ProviderInput } from '../types';
 import type { ProviderFactoryContext } from '../types/factory';
-import { DefiManagerError } from './errors';
+import { DefiError } from './errors';
 import type { SharedKitEvents } from '../types/emitter';
 import type { EventEmitter } from '../core/EventEmitter';
 
@@ -21,11 +21,9 @@ export abstract class DefiManager<
 > implements DefiManagerAPI<T> {
     public createFactoryContext: () => ProviderFactoryContext<E>;
 
-    protected providers: Map<string, T> = new Map();
+    protected providers: T[] = [];
     protected defaultProviderId?: string;
-    private providersSnapshot: T[] = [];
-    private providerIdsSnapshot: string[] = [];
-    protected abstract createError(message: string, code: string, details?: unknown): DefiManagerError;
+    protected abstract createError(message: string, code: string, details?: unknown): DefiError;
     protected eventEmitter: EventEmitter<E>;
 
     constructor(createFactoryContext: () => ProviderFactoryContext<E>) {
@@ -34,19 +32,27 @@ export abstract class DefiManager<
     }
 
     /**
-     * Register a swap provider
-     * @param provider - Provider instance
+     * Register a provider. If another provider with the same id is already registered,
+     * it is removed first and replaced by the new instance. Emits `provider:registered`,
+     * and `provider:default-changed` when the first provider becomes the default.
+     * @param input - Provider instance or factory that produces one
+     * @throws DefiError if the resolved provider has no providerId
      */
     registerProvider(input: ProviderInput<T>): void {
         const provider = resolveProvider(input, this.createFactoryContext());
         const providerId = provider.providerId;
 
         if (!providerId) {
-            throw this.createError('Provider must have a providerId', DefiManagerError.INVALID_PROVIDER);
+            throw this.createError('Provider must have a providerId', DefiError.INVALID_PROVIDER);
         }
 
-        this.providers.set(providerId, provider);
-        this.refreshSnapshots();
+        const oldProvider = this.providers.find((p) => p.providerId === providerId);
+        if (oldProvider) {
+            this.removeProvider(oldProvider);
+        }
+
+        this.providers = [...this.providers, provider];
+
         this.eventEmitter.emit('provider:registered', { providerId, type: provider.type }, 'defi-manager');
 
         if (!this.defaultProviderId) {
@@ -55,23 +61,31 @@ export abstract class DefiManager<
         }
     }
 
-    private refreshSnapshots(): void {
-        this.providersSnapshot = Array.from(this.providers.values());
-        this.providerIdsSnapshot = Array.from(this.providers.keys());
+    /**
+     * Remove a previously registered provider. No-op if the provider is not registered.
+     * The provider is matched by its `providerId`, so any instance with the same id will match.
+     * @param provider - Provider instance to remove
+     */
+    removeProvider(provider: T): void {
+        const oldProvider = this.providers.find((p) => p.providerId === provider.providerId);
+
+        if (oldProvider) {
+            this.providers = this.providers.filter((p) => p !== oldProvider);
+        }
     }
 
     /**
      * Set the default provider to use when none is specified
      * @param providerId - Provider name
-     * @throws DefiManagerError if provider not found
+     * @throws DefiError if provider not found
      */
     setDefaultProvider(providerId: string): void {
-        const provider = this.providers.get(providerId);
+        const provider = this.providers.find((p) => p.providerId === providerId);
 
         if (!provider) {
-            throw this.createError(`Provider '${providerId}' not found`, DefiManagerError.PROVIDER_NOT_FOUND, {
+            throw this.createError(`Provider '${providerId}' not found`, DefiError.PROVIDER_NOT_FOUND, {
                 provider: providerId,
-                registered: Array.from(this.providers.keys()),
+                registered: this.providers.map((p) => p.providerId),
             });
         }
 
@@ -83,7 +97,7 @@ export abstract class DefiManager<
      * Get a provider by name, or the default provider
      * @param providerId - Optional provider name
      * @returns Provider instance
-     * @throws DefiManagerError if provider not found or no default set
+     * @throws DefiError if provider not found or no default set
      */
     getProvider(providerId?: string): T {
         const providerName = providerId || this.defaultProviderId;
@@ -91,15 +105,15 @@ export abstract class DefiManager<
         if (!providerName) {
             throw this.createError(
                 'No default provider set. Register a provider first.',
-                DefiManagerError.NO_DEFAULT_PROVIDER,
+                DefiError.NO_DEFAULT_PROVIDER,
             );
         }
 
-        const provider = this.providers.get(providerName);
+        const provider = this.providers.find((p) => p.providerId === providerName);
         if (!provider) {
-            throw this.createError(`Provider '${providerName}' not found`, DefiManagerError.PROVIDER_NOT_FOUND, {
+            throw this.createError(`Provider '${providerName}' not found`, DefiError.PROVIDER_NOT_FOUND, {
                 provider: providerName,
-                registered: Array.from(this.providers.keys()),
+                registered: this.providers.map((p) => p.providerId),
             });
         }
 
@@ -107,19 +121,12 @@ export abstract class DefiManager<
     }
 
     /**
-     * Get list of registered provider names
-     * @returns Array of provider names
-     */
-    getRegisteredProviders(): string[] {
-        return this.providerIdsSnapshot;
-    }
-
-    /**
-     * Get list of registered provider instances
-     * @returns Array of provider instances
+     * Get all registered providers. The returned array keeps a stable reference
+     * until the provider list changes, so it can be safely used with React
+     * subscription APIs like `useSyncExternalStore`.
      */
     getProviders(): T[] {
-        return this.providersSnapshot;
+        return this.providers;
     }
 
     /**
@@ -128,6 +135,6 @@ export abstract class DefiManager<
      * @returns True if provider exists
      */
     hasProvider(providerId: string): boolean {
-        return this.providers.has(providerId);
+        return this.providers.some((p) => p.providerId === providerId);
     }
 }

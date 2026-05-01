@@ -7,6 +7,7 @@
  */
 
 import type { OnrampParams, OnrampQuote, OnrampQuoteParams } from '../../../api/models';
+import { Network } from '../../../api/models';
 import { OnrampProvider } from '../OnrampProvider';
 import { OnrampError } from '../errors';
 
@@ -32,6 +33,10 @@ export interface TonPayOnrampOptions {
  */
 export class TonPayProvider extends OnrampProvider<TonPayQuoteOptions, TonPayOnrampOptions> {
     readonly providerId = 'ton-pay';
+
+    getSupportedNetworks(): Network[] {
+        return [Network.mainnet()];
+    }
 
     private readonly apiUrl = 'https://pay.ton.org/api/merchant/v1/create-moonpay-transfer';
     private readonly moonpayApiUrl = 'https://api.moonpay.com';

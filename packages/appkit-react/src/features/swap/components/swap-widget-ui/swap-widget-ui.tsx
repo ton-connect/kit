@@ -6,7 +6,7 @@
  *
  */
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { FC, ComponentProps } from 'react';
 import clsx from 'clsx';
 
@@ -18,10 +18,9 @@ import { SwapInfo } from '../swap-info';
 import { SwapSettingsButton } from '../swap-settings-button';
 import { SwapSettingsModal } from '../swap-settings-modal';
 import { SwapTokenSelectModal } from '../swap-token-select-modal';
+import { LowBalanceModal } from '../../../../components/low-balance-modal';
 import styles from './swap-widget-ui.module.css';
-import { getInfoFromQuote } from '../../utils/get-info-from-quote';
 import type { SwapContextType } from '../swap-widget-provider';
-import { useSwapProvider } from '../../hooks/use-swap-provider';
 import { ButtonWithConnect } from '../../../../components/button-with-connect';
 
 export type SwapWidgetRenderProps = SwapContextType & ComponentProps<'div'>;
@@ -33,14 +32,19 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     tokenSections,
     fromAmount,
     toAmount,
+    fiatSymbol,
     fromBalance,
     toBalance,
+    isFromBalanceLoading,
+    isToBalanceLoading,
     canSubmit,
     quote,
     isQuoteLoading,
     error,
-    fiatSymbol,
     slippage,
+    swapProvider,
+    swapProviders,
+    setSwapProviderId,
     onFlip,
     onMaxClick,
     setFromAmount,
@@ -49,6 +53,11 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     setSlippage,
     sendSwapTransaction,
     isSendingTransaction,
+    isLowBalanceWarningOpen,
+    lowBalanceMode,
+    lowBalanceRequiredTon,
+    onLowBalanceChange,
+    onLowBalanceCancel,
     className,
     ...props
 }) => {
@@ -67,8 +76,12 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
         onFlip();
     }, [onFlip]);
 
-    const provider = useSwapProvider({ id: quote?.providerId });
-    const infoRows = getInfoFromQuote({ quote, slippage, provider, toToken });
+    const buttonText = useMemo(() => {
+        if (error) return t(error);
+        if (!fromToken || !toToken) return t('swap.selectToken');
+        if (canSubmit) return t('swap.continue');
+        return t('swap.enterAmount');
+    }, [error, fromToken, toToken, canSubmit, t]);
 
     return (
         <div className={clsx(styles.widget, className)} {...props}>
@@ -85,6 +98,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                     fiatSymbol={fiatSymbol}
                     onAmountChange={setFromAmount}
                     balance={fromBalance}
+                    isBalanceLoading={isFromBalanceLoading}
                     onMaxClick={onMaxClick}
                     onTokenSelectorClick={() => setActiveField('from')}
                     isWalletConnected={isWalletConnected}
@@ -100,6 +114,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                     amount={toAmount}
                     fiatSymbol={fiatSymbol}
                     balance={toBalance}
+                    isBalanceLoading={isToBalanceLoading}
                     onTokenSelectorClick={() => setActiveField('to')}
                     loading={isQuoteLoading}
                     isWalletConnected={isWalletConnected}
@@ -122,9 +137,18 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                 onClose={() => setIsSettingsOpen(false)}
                 slippage={slippage}
                 onSlippageChange={setSlippage}
+                provider={swapProvider}
+                providers={swapProviders}
+                onProviderChange={setSwapProviderId}
             />
 
-            {fromAmount && <SwapInfo rows={infoRows} isLoading={isQuoteLoading || !quote || infoRows.length === 0} />}
+            <LowBalanceModal
+                open={isLowBalanceWarningOpen}
+                mode={lowBalanceMode}
+                requiredTon={lowBalanceRequiredTon}
+                onChange={onLowBalanceChange}
+                onCancel={onLowBalanceCancel}
+            />
 
             <ButtonWithConnect
                 className={styles.swapButton}
@@ -134,8 +158,16 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                 disabled={!canSubmit || isQuoteLoading || isSendingTransaction}
                 onClick={sendSwapTransaction}
             >
-                {error ? t(`swap.${error}`) : canSubmit ? t('swap.continue') : t('swap.enterAmount')}
+                {buttonText}
             </ButtonWithConnect>
+
+            <SwapInfo
+                quote={quote}
+                provider={swapProvider}
+                toToken={toToken}
+                slippage={slippage}
+                isQuoteLoading={isQuoteLoading}
+            />
         </div>
     );
 };

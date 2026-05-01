@@ -216,11 +216,11 @@ const appKit = new AppKit({
         },
     },
     providers: [
-        new OmnistonSwapProvider({
+        createOmnistonProvider({
             apiUrl: 'https://api.ston.fi',
             defaultSlippageBps: 100, // 1%
         }),
-        new DeDustSwapProvider({
+        createDeDustProvider({
             defaultSlippageBps: 100,
             referralAddress: 'EQ...', // Optional
         }),
@@ -240,27 +240,55 @@ AppKit supports staking through various providers (e.g., Tonstakers). The stakin
 
 ### Hooks
 
-Use `useStakingQuote` to get a staking/unstaking quote and `useBuildStakeTransaction` or `useBuildUnstakeTransaction` to build the transaction.
+Use `useStakingQuote` to get a staking/unstaking quote and `useBuildStakeTransaction` to build the transaction.
 
 [Read more about Staking](https://github.com/ton-connect/kit/tree/main/packages/appkit/docs/staking.md)
 
 ```tsx
-const { data: quote } = useStakingQuote({
-    amount: '1000000000',
+const {
+    data: quote,
+    isLoading,
+    error,
+} = useStakingQuote({
+    amount: '10',
     direction: 'stake',
 });
 
-const { data: balance } = useStakedBalance({
-    userAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+if (isLoading) return <div>Loading quote...</div>;
+if (error) return <div>Error: {error.message}</div>;
+
+return <div>Expected Output: {quote?.amountOut}</div>;
+```
+
+```tsx
+const { data: quote } = useStakingQuote({
+    amount: '10',
+    direction: 'stake',
 });
 
-const metadata = useStakingProviderMetadata();
+const { mutateAsync: buildTx, isPending: isBuilding } = useBuildStakeTransaction();
+const { mutateAsync: sendTx, isPending: isSending } = useSendTransaction();
+
+const handleStake = async () => {
+    if (!quote) return;
+    try {
+        const transaction = await buildTx({
+            quote,
+            userAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+        });
+        await sendTx(transaction);
+    } catch (e) {
+        console.error(e);
+    }
+};
+
+const isPending = isBuilding || isSending;
 
 return (
     <div>
-        <div>Staking Quote: {quote?.amountOut}</div>
-        <div>Staked Balance: {balance?.stakedBalance}</div>
-        <div>Receive Token Ticker: {metadata?.receiveToken?.ticker}</div>
+        <button onClick={handleStake} disabled={!quote || isPending}>
+            {isPending ? 'Processing...' : 'Stake'}
+        </button>
     </div>
 );
 ```

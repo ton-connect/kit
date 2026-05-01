@@ -495,11 +495,12 @@ console.log('Onramp URL:', url);
 Register a custom provider in AppKit (e.g., Swap or Streaming).
 
 ```ts
-const omnistonProvider = new OmnistonSwapProvider({
-    defaultSlippageBps: 100, // 1%
-});
-
-registerProvider(appKit, omnistonProvider);
+registerProvider(
+    appKit,
+    createOmnistonProvider({
+        defaultSlippageBps: 100, // 1%
+    }),
+);
 ```
 
 ## Signing
@@ -558,6 +559,26 @@ Get a specific swap provider by its ID.
 
 ```ts
 const swapProvider = getSwapProvider(appKit, { id: 'stonfi' });
+```
+
+### `getSwapProviders`
+
+Get all registered swap providers. The returned array keeps a stable reference until the provider list changes.
+
+```ts
+const swapProviders = getSwapProviders(appKit);
+console.log(
+    'Registered providers:',
+    swapProviders.map((p) => p.providerId),
+);
+```
+
+### `setDefaultSwapProvider`
+
+Set the default swap provider. Subsequent quote and swap-transaction calls will use this provider when none is specified.
+
+```ts
+setDefaultSwapProvider(appKit, { providerId: 'stonfi' });
 ```
 
 ### `watchSwapProviders`

@@ -10,6 +10,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { FC } from 'react';
 import { formatLargeValue, truncateDecimals } from '@ton/appkit';
 
+import type { AppkitUIToken } from '../../../../../types/appkit-ui-token';
 import { ButtonWithConnect } from '../../../../../components/button-with-connect';
 import { OnrampTokenSelectors } from '../../../components/onramp-token-selectors';
 import { CenteredAmountInput } from '../../../../../components/centered-amount-input';
@@ -192,9 +193,9 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
             <OnrampTokenSelectModal
                 open={isTokenSelectOpen}
                 onClose={() => setIsTokenSelectOpen(false)}
-                tokens={tokens}
+                tokens={tokens as unknown as AppkitUIToken[]}
                 tokenSections={tokenSections}
-                onSelect={setSelectedToken}
+                onSelect={setSelectedToken as (token: AppkitUIToken) => void}
             />
 
             <CryptoMethodSelectModal

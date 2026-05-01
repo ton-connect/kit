@@ -8,7 +8,6 @@
 
 import type { Network } from '../core/Network';
 import type { TokenAmount } from '../core/TokenAmount';
-import type { SwapFee } from './SwapFee';
 import type { SwapToken } from './SwapToken';
 
 /**
@@ -65,11 +64,6 @@ export interface SwapQuote {
      * @format int
      */
     priceImpact?: number;
-
-    /**
-     * Fees associated with the swap
-     */
-    fee?: SwapFee[];
 
     /**
      * Identifier of the swap provider

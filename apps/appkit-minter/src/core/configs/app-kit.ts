@@ -14,8 +14,8 @@ import {
     ApiClientToncenter,
     createTonCenterStreamingProvider,
 } from '@ton/appkit';
-import { DeDustSwapProvider } from '@ton/appkit/swap/dedust';
-import { OmnistonSwapProvider } from '@ton/appkit/swap/omniston';
+import { createDeDustProvider } from '@ton/appkit/swap/dedust';
+import { createOmnistonProvider } from '@ton/appkit/swap/omniston';
 import { createTonstakersProvider } from '@ton/appkit/staking/tonstakers';
 import { LayerswapCryptoOnrampProvider } from '@ton/appkit/crypto-onramp/layerswap';
 
@@ -50,9 +50,9 @@ export const appKit = new AppKit({
         }),
     ],
     providers: [
-        new DeDustSwapProvider(),
-        new OmnistonSwapProvider(),
-        createTonstakersProvider({}),
+        createOmnistonProvider(),
+        createDeDustProvider(),
+        createTonstakersProvider(),
         new LayerswapCryptoOnrampProvider(),
     ],
 });

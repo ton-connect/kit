@@ -7,6 +7,7 @@
  */
 
 import type { OnrampParams, OnrampQuote, OnrampQuoteParams } from '../../../api/models';
+import { Network } from '../../../api/models';
 import { OnrampProvider } from '../OnrampProvider';
 import { OnrampError } from '../errors';
 
@@ -35,6 +36,10 @@ export interface MoonpayOnrampOptions {
  */
 export class MoonpayProvider extends OnrampProvider<MoonpayQuoteOptions, MoonpayOnrampOptions> {
     readonly providerId = 'moonpay';
+
+    getSupportedNetworks(): Network[] {
+        return [Network.mainnet()];
+    }
 
     private readonly baseUrl = 'https://buy.moonpay.com';
     private readonly apiUrl = 'https://api.moonpay.com';

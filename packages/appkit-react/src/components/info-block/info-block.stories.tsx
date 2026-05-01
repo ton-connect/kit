@@ -38,21 +38,6 @@ export const Default: Story = {
     ),
 };
 
-export const Outline: Story = {
-    render: () => (
-        <InfoBlock.Container variant="outline">
-            <InfoBlock.Row>
-                <InfoBlock.Label>You get</InfoBlock.Label>
-                <InfoBlock.Value>0.913 tsTON</InfoBlock.Value>
-            </InfoBlock.Row>
-            <InfoBlock.Row>
-                <InfoBlock.Label>Current APY</InfoBlock.Label>
-                <InfoBlock.Value>4.2%</InfoBlock.Value>
-            </InfoBlock.Row>
-        </InfoBlock.Container>
-    ),
-};
-
 export const Loading: Story = {
     render: () => (
         <InfoBlock.Container>

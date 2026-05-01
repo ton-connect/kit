@@ -15,7 +15,7 @@ import { useAppKit } from '../../settings';
 export type UseStakingProvidersReturnType = GetStakingProvidersReturnType;
 
 /**
- * Hook to get available staking provider IDs
+ * Hook to get all registered staking providers.
  */
 export const useStakingProviders = (): UseStakingProvidersReturnType => {
     const appKit = useAppKit();
@@ -28,11 +28,7 @@ export const useStakingProviders = (): UseStakingProvidersReturnType => {
     );
 
     const getSnapshot = useCallback(() => {
-        try {
-            return getStakingProviders(appKit);
-        } catch {
-            return [];
-        }
+        return getStakingProviders(appKit);
     }, [appKit]);
 
     return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);

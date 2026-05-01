@@ -7,6 +7,7 @@
  */
 
 import type { OnrampParams, OnrampQuote, OnrampQuoteParams } from '../../../api/models';
+import { Network } from '../../../api/models';
 import { OnrampProvider } from '../OnrampProvider';
 import { OnrampError } from '../errors';
 
@@ -38,6 +39,10 @@ export interface MercuryoOnrampOptions {
  */
 export class MercuryoProvider extends OnrampProvider<MercuryoQuoteOptions, MercuryoOnrampOptions> {
     readonly providerId = 'mercuryo';
+
+    getSupportedNetworks(): Network[] {
+        return [Network.mainnet()];
+    }
 
     private readonly baseUrl = 'https://exchange.mercuryo.io/';
     private readonly apiUrl = 'https://api.mercuryo.io/v1.6';

@@ -184,9 +184,15 @@ Hook to build a transaction for a swap operation based on a quote.
 
 ### `useSwapProvider`
 
-Hook to get a specific swap provider. Returns the provider instance directly or `null` if not found.
+Hook to read and change the currently selected swap provider. Returns a tuple `[provider, setProviderId]` — mirrors `useSelectedWallet`.
 
 %%demo/examples/src/appkit/hooks/swap#USE_SWAP_PROVIDER%%
+
+### `useSwapProviders`
+
+Hook to get all registered swap providers. The returned array keeps a stable reference until the provider list changes, so it is safe to use with `useSyncExternalStore`.
+
+%%demo/examples/src/appkit/hooks/swap#USE_SWAP_PROVIDERS%%
 
 ## Onramp
 
@@ -212,20 +218,47 @@ Hook to build an onramp URL for redirecting the user to the provider.
 
 ## Staking
 
-### Staking Hooks
+### `useStakingProviders`
 
-These hooks allow you to interact with staking providers directly.
+Hook to get all registered staking providers. The returned array keeps a stable reference until the provider list changes.
 
-#### `useStakingQuote`
-Get a quote for staking or unstaking.
+%%demo/examples/src/appkit/hooks/staking#USE_STAKING_PROVIDERS%%
 
-#### `useStakedBalance`
-Get the user's staked balance.
+### `useStakingProvider`
 
-#### `useStakingProviderMetadata`
-Get static metadata about a specific staking provider.
+Hook to get a specific staking provider by id (or the default when no id is passed).
 
-%%demo/examples/src/appkit/hooks/staking#USE_STAKING%%
+%%demo/examples/src/appkit/hooks/staking#USE_STAKING_PROVIDER%%
+
+### `useStakingQuote`
+
+Hook to get a quote for staking or unstaking a given amount.
+
+%%demo/examples/src/appkit/hooks/staking#USE_STAKING_QUOTE%%
+
+### `useStakedBalance`
+
+Hook to get the user's currently staked balance.
+
+%%demo/examples/src/appkit/hooks/staking#USE_STAKED_BALANCE%%
+
+### `useStakingProviderInfo`
+
+Hook to get live info about a staking provider (APY, limits, etc.).
+
+%%demo/examples/src/appkit/hooks/staking#USE_STAKING_PROVIDER_INFO%%
+
+### `useStakingProviderMetadata`
+
+Hook to get static metadata about a staking provider (name, receive token, etc.).
+
+%%demo/examples/src/appkit/hooks/staking#USE_STAKING_PROVIDER_METADATA%%
+
+### `useBuildStakeTransaction`
+
+Hook to build a stake transaction from a previously fetched quote.
+
+%%demo/examples/src/appkit/hooks/staking#USE_BUILD_STAKE_TRANSACTION%%
 
 ## Transaction
 

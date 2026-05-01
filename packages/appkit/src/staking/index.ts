@@ -6,7 +6,14 @@
  *
  */
 
-export { StakingProvider, UnstakeMode, StakingError, StakingManager } from '@ton/walletkit';
+export {
+    DefiError,
+    StakingProvider,
+    UnstakeMode,
+    StakingError,
+    StakingErrorCode,
+    StakingManager,
+} from '@ton/walletkit';
 
 export type {
     UnstakeModes,

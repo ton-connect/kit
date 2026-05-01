@@ -51,8 +51,8 @@ export const SwapWidget: FC<SwapWidgetProps> = ({
     tokenSections,
     network,
     fiatSymbol,
-    defaultFromId,
-    defaultToId,
+    defaultFromSymbol,
+    defaultToSymbol,
     defaultSlippage,
     ...rest
 }) => {
@@ -62,8 +62,8 @@ export const SwapWidget: FC<SwapWidgetProps> = ({
             tokenSections={tokenSections}
             network={network}
             fiatSymbol={fiatSymbol}
-            defaultFromId={defaultFromId}
-            defaultToId={defaultToId}
+            defaultFromSymbol={defaultFromSymbol}
+            defaultToSymbol={defaultToSymbol}
             defaultSlippage={defaultSlippage}
         >
             <SwapWidgetContent {...rest}>{children}</SwapWidgetContent>

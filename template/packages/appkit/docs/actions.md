@@ -280,6 +280,18 @@ Get a specific swap provider by its ID.
 
 %%demo/examples/src/appkit/actions/swap#GET_SWAP_PROVIDER%%
 
+### `getSwapProviders`
+
+Get all registered swap providers. The returned array keeps a stable reference until the provider list changes.
+
+%%demo/examples/src/appkit/actions/swap#GET_SWAP_PROVIDERS%%
+
+### `setDefaultSwapProvider`
+
+Set the default swap provider. Subsequent quote and swap-transaction calls will use this provider when none is specified.
+
+%%demo/examples/src/appkit/actions/swap#SET_DEFAULT_SWAP_PROVIDER%%
+
 ### `watchSwapProviders`
 
 Watch for new swap providers registration.

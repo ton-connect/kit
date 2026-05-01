@@ -15,15 +15,17 @@ import { Input } from '../../../../components/input/input';
 import { Skeleton } from '../../../../components/skeleton';
 import { TokenSelector } from '../../../../components/token-selector';
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
+import { getDisplayAmount } from '../../utils/get-display-amount';
 import styles from './swap-field.module.css';
 
 export interface SwapFieldProps extends Omit<ComponentProps<typeof Input.Container>, 'children'> {
     type: 'pay' | 'receive';
     amount: string;
-    fiatSymbol: string;
+    fiatSymbol?: string;
     token?: AppkitUIToken;
     onAmountChange?: (value: string) => void;
     balance?: string;
+    isBalanceLoading?: boolean;
     loading?: boolean;
     onMaxClick?: () => void;
     onTokenSelectorClick?: () => void;
@@ -36,18 +38,19 @@ export const SwapField: FC<SwapFieldProps> = ({
     amount,
     onAmountChange,
     balance,
+    isBalanceLoading,
     loading,
     onMaxClick,
     onTokenSelectorClick,
     isWalletConnected,
+    fiatSymbol = '$',
     className,
-    fiatSymbol,
     ...props
 }) => {
     const { t } = useI18n();
 
-    const tokenSymbol = token?.symbol || '';
-    const displayDecimals = token ? Math.min(token.decimals, 5) : 5;
+    const tokenSymbol = token?.symbol;
+    const displayBalance = getDisplayAmount(balance, token?.decimals);
 
     return (
         <Input.Container
@@ -70,7 +73,7 @@ export const SwapField: FC<SwapFieldProps> = ({
                     disabled={type === 'receive'}
                 />
                 <Input.Slot side="right">
-                    <TokenSelector title={tokenSymbol} icon={token?.logo} onClick={onTokenSelectorClick} />
+                    <TokenSelector title={tokenSymbol ?? ''} icon={token?.logo} onClick={onTokenSelectorClick} />
                 </Input.Slot>
             </Input.Field>
 
@@ -78,29 +81,29 @@ export const SwapField: FC<SwapFieldProps> = ({
                 <div className={styles.balanceLine}>
                     <span>
                         {token?.rate &&
-                            `${fiatSymbol} ${formatLargeValue(calcFiatValue(amount || '0', token.rate), 2)}`}
+                            `${fiatSymbol} ${formatLargeValue(calcFiatValue(amount || '0', token.rate), 2, 2)}`}
                     </span>
-                    {type === 'pay' && (
+                    {type === 'pay' && token && (
                         <span className={styles.balanceWrapper}>
-                            {balance || !isWalletConnected ? (
+                            {isBalanceLoading ? (
+                                <Skeleton className={styles.skeletonText} />
+                            ) : (
                                 <>
                                     {t('swap.max')}
                                     <button className={styles.maxButton} onClick={onMaxClick} type="button">
-                                        {formatLargeValue(balance || '0', displayDecimals)} {tokenSymbol}
+                                        {displayBalance} {tokenSymbol}
                                     </button>
                                 </>
-                            ) : (
-                                <Skeleton className={styles.skeletonText} />
                             )}
                         </span>
                     )}
 
-                    {type === 'receive' && (
+                    {type === 'receive' && token && (
                         <span className={styles.balanceWrapper}>
-                            {balance || !isWalletConnected ? (
-                                `${formatLargeValue(balance || '0', displayDecimals)} ${tokenSymbol}`
-                            ) : (
+                            {isBalanceLoading ? (
                                 <Skeleton className={styles.skeletonText} />
+                            ) : (
+                                `${displayBalance} ${tokenSymbol}`
                             )}
                         </span>
                     )}

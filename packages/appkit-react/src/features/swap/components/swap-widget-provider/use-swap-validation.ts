@@ -9,7 +9,8 @@
 import { useMemo } from 'react';
 
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
-import type { SwapWidgetError } from './swap-widget-provider';
+import { hasTooManyDecimals, isAmountExceedingBalance } from '../../../../utils/validate-amount';
+import { mapSwapError } from '../../utils/map-swap-error';
 
 interface UseSwapValidationOptions {
     fromAmount: string;
@@ -18,6 +19,7 @@ interface UseSwapValidationOptions {
     toToken: AppkitUIToken | null;
     fromBalance: string | undefined;
     quoteError: Error | null;
+    isNetworkSupported: boolean;
 }
 
 export const useSwapValidation = ({
@@ -27,26 +29,21 @@ export const useSwapValidation = ({
     toToken,
     fromBalance,
     quoteError,
+    isNetworkSupported,
 }: UseSwapValidationOptions) => {
-    const error: SwapWidgetError = useMemo(() => {
-        const amount = parseFloat(fromAmount) || 0;
-        if (amount <= 0) return null;
+    const error: string | null = useMemo(() => {
+        if (!isNetworkSupported) return 'defi.unsupportedNetwork';
 
-        const fraction = fromAmount.split('.')[1];
-        if (fraction && fromToken && fraction.length > fromToken.decimals) {
-            return 'tooManyDecimals';
-        }
+        if ((parseFloat(fromAmount) || 0) <= 0) return null;
 
-        if (fromBalance !== undefined && amount > parseFloat(fromBalance)) {
-            return 'insufficientBalance';
-        }
+        if (hasTooManyDecimals(fromAmount, fromToken?.decimals)) return 'swap.tooManyDecimals';
 
-        if (quoteError && fromAmountDebounced) {
-            return 'quoteError';
-        }
+        if (isAmountExceedingBalance(fromAmount, fromBalance)) return 'swap.insufficientBalance';
+
+        if (quoteError && fromAmountDebounced) return mapSwapError(quoteError);
 
         return null;
-    }, [fromAmount, fromToken, fromBalance, quoteError, fromAmountDebounced]);
+    }, [isNetworkSupported, fromAmount, fromToken, fromBalance, quoteError, fromAmountDebounced]);
 
     const canSubmit = (parseFloat(fromAmount) || 0) > 0 && fromToken !== null && toToken !== null && error === null;
 

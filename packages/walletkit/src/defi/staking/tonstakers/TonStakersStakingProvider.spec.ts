@@ -442,6 +442,7 @@ describe('TonStakersStakingProvider', () => {
             const customProvider = createTonstakersProvider({
                 [customNetwork.chainId]: {
                     metadata: {
+                        name: 'Custom',
                         stakeToken: { ticker: 'TON', decimals: 9, address: 'ton' },
                         contractAddress: 'EQSomeContract' as UserFriendlyAddress,
                         supportedUnstakeModes: [UnstakeMode.INSTANT],

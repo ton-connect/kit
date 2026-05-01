@@ -28,6 +28,7 @@ export {
 export {
     useStakingProviderMetadata,
     type UseStakingProviderMetadataParameters,
+    type UseStakingProviderMetadataReturnType,
 } from './hooks/use-staking-provider-metadata';
 export { useBuildStakeTransaction, type UseBuildStakeTransactionReturnType } from './hooks/use-build-stake-transaction';
 

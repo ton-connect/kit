@@ -8,8 +8,8 @@
 
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { FC, PropsWithChildren } from 'react';
-import type { Network, StakingQuoteDirection } from '@ton/appkit';
-import { validateNumericString } from '@ton/appkit';
+import type { Network, StakingQuoteDirection, TonShortfall } from '@ton/appkit';
+import { calcMaxSpendable, formatUnits, getTonShortfall, validateNumericString } from '@ton/appkit';
 import type {
     StakingQuote,
     StakingProviderInfo,
@@ -18,12 +18,11 @@ import type {
     StakingProviderMetadata,
 } from '@ton/appkit';
 import { UnstakeMode } from '@ton/appkit';
-import { keepPreviousData } from '@tanstack/react-query';
 
 import { useNetwork } from '../../../network';
-import { convertByRate } from '../../utils/convert-by-rate';
 import { useStakingQuote } from '../../hooks/use-staking-quote';
 import type { UseStakingQuoteParameters } from '../../hooks/use-staking-quote';
+import { useStakingProvider } from '../../hooks/use-staking-provider';
 import { useStakingProviderInfo } from '../../hooks/use-staking-provider-info';
 import { useStakingProviderMetadata } from '../../hooks/use-staking-provider-metadata';
 import { useStakedBalance } from '../../hooks/use-staked-balance';
@@ -34,8 +33,6 @@ import { useJettonBalanceByAddress } from '../../../jettons/hooks/use-jetton-bal
 import { useSendTransaction } from '../../../transaction/hooks/use-send-transaction';
 import { useDebounceValue } from '../../../../hooks/use-debounce-value';
 import { useStakingValidation } from './use-staking-validation';
-
-export type StakingWidgetError = 'insufficientBalance' | 'tooManyDecimals' | 'quoteError' | null;
 
 /**
  * Context type for the StakingWidget.
@@ -51,7 +48,7 @@ export interface StakingContextType {
     /** True while the stake quote is being fetched */
     isQuoteLoading: boolean;
     /** Current validation/fetch error for staking, null when everything is ok */
-    error: StakingWidgetError;
+    error: string | null;
     /** Staking provider dynamic info (APY, instant unstake availability, etc.) */
     providerInfo: StakingProviderInfo | undefined;
     /** Staking provider static metadata */
@@ -86,6 +83,18 @@ export interface StakingContextType {
     toggleReversed: () => void;
     /** Amount displayed in the reversed (bottom) input */
     reversedAmount: string;
+    /** Sets the input amount to the maximum available balance (leaves room for TON gas on native stake) */
+    onMaxClick: () => void;
+    /** True when the built transaction outflow exceeds the user's TON balance */
+    isLowBalanceWarningOpen: boolean;
+    /** `reduce` when the outgoing token is TON (user can fix by changing amount), `topup` otherwise. */
+    lowBalanceMode: 'reduce' | 'topup';
+    /** Required TON amount for the pending operation, formatted as a decimal string. Empty when no pending op. */
+    lowBalanceRequiredTon: string;
+    /** Replace the input with a value that fits into the current TON balance and close the warning */
+    onLowBalanceChange: () => void;
+    /** Dismiss the low-balance warning without changing the input */
+    onLowBalanceCancel: () => void;
 }
 
 export const StakingContext = createContext<StakingContextType>({
@@ -111,6 +120,12 @@ export const StakingContext = createContext<StakingContextType>({
     isReversed: false,
     toggleReversed: () => {},
     reversedAmount: '0',
+    onMaxClick: () => {},
+    isLowBalanceWarningOpen: false,
+    lowBalanceMode: 'reduce',
+    lowBalanceRequiredTon: '',
+    onLowBalanceChange: () => {},
+    onLowBalanceCancel: () => {},
 });
 
 /**
@@ -137,18 +152,31 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
     const [unstakeMode, setUnstakeMode] = useState<UnstakeModes>(UnstakeMode.INSTANT);
     const [direction, setDirection] = useState<StakingQuoteDirection>('stake');
     const [isReversed, setIsReversed] = useState(false);
+    const [pendingStake, setPendingStake] = useState<TonShortfall | undefined>(undefined);
 
     const walletNetwork = useNetwork();
     const network = networkProp ?? walletNetwork;
 
     const address = useAddress();
+    const stakingProvider = useStakingProvider();
+
+    const isNetworkSupported = useMemo(
+        () =>
+            !stakingProvider ||
+            !network ||
+            stakingProvider.getSupportedNetworks().some((n) => n.chainId === network.chainId),
+        [stakingProvider, network],
+    );
 
     const { data: providerInfo, isLoading: isProviderInfoLoading } = useStakingProviderInfo({ network });
     const providerMetadata = useStakingProviderMetadata({ network });
 
     const isNativeTon = providerMetadata?.stakeToken.address === 'ton';
 
+    // Always fetch TON balance: even when the stake token is a jetton we need it to check whether the user has
+    // enough TON to cover network fees before sending.
     const { data: nativeBalanceData, isLoading: isNativeBalanceLoading } = useBalance({
+        network,
         query: { enabled: isNativeTon, refetchInterval: 5000 },
     });
 
@@ -192,40 +220,89 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
             unstakeMode,
             isReversed,
             network,
-            query: { placeholderData: keepPreviousData },
         },
         500,
     );
 
-    const { data: quote, isFetching: isQuoteLoading, error: quoteError } = useStakingQuote(quoteParamsDebounced);
+    const {
+        data: quote,
+        isFetching: isQuoteLoading,
+        error: quoteError,
+    } = useStakingQuote({ ...quoteParamsDebounced, query: { enabled: isNetworkSupported } });
 
     const reversedAmount = useMemo(() => {
-        if (direction === 'stake') return quote?.amountOut || '0';
-        if (isReversed) return quote?.amountIn || '0';
-        if (!quote?.amountIn) return '0';
-
-        return convertByRate(quote.amountIn, providerInfo?.exchangeRate, providerMetadata?.stakeToken.decimals) || '0';
-    }, [
-        direction,
-        isReversed,
-        quote?.amountOut,
-        quote?.amountIn,
-        providerInfo?.exchangeRate,
-        providerMetadata?.stakeToken.decimals,
-    ]);
+        if (direction === 'unstake' && isReversed) return quote?.amountIn || '0';
+        return quote?.amountOut || '0';
+    }, [direction, isReversed, quote?.amountOut, quote?.amountIn]);
 
     const toggleReversed = useCallback(() => {
         setAmountRaw(reversedAmount);
         setIsReversed((prev) => !prev);
     }, [reversedAmount]);
 
+    const handleMaxClick = useCallback(() => {
+        const outgoingToken = direction === 'stake' ? providerMetadata?.stakeToken : providerMetadata?.receiveToken;
+        const available = direction === 'stake' ? balance : stakedBalanceData?.stakedBalance;
+
+        if (direction === 'unstake') setIsReversed(false);
+
+        if (!available || !outgoingToken) {
+            setAmountRaw(available ?? '');
+            return;
+        }
+
+        setAmountRaw(calcMaxSpendable({ balance: available, token: outgoingToken, feeReserveNanos: 1_200_000_000n }));
+    }, [
+        direction,
+        balance,
+        stakedBalanceData?.stakedBalance,
+        providerMetadata?.stakeToken,
+        providerMetadata?.receiveToken,
+    ]);
+
     const handleSendTransaction = useCallback(async () => {
-        if (!quote || !address) return;
+        if (!quote || !address || !providerMetadata) return;
 
         const transactionParams = await buildTransaction({ quote, userAddress: address });
 
+        const outgoingTokenAddress =
+            direction === 'stake' ? providerMetadata.stakeToken.address : providerMetadata.receiveToken?.address;
+
+        if (outgoingTokenAddress) {
+            const shortfall = getTonShortfall({
+                messages: transactionParams.messages,
+                tonBalance: nativeBalanceData,
+                fromToken: { address: outgoingTokenAddress },
+                fromAmount: quote.amountIn,
+            });
+
+            if (shortfall) {
+                setPendingStake(shortfall);
+                return;
+            }
+        }
+
         await sendTransaction(transactionParams);
-    }, [quote, address, buildTransaction, sendTransaction]);
+    }, [quote, address, providerMetadata, direction, nativeBalanceData, buildTransaction, sendTransaction]);
+
+    const onLowBalanceChange = useCallback(() => {
+        if (!pendingStake || pendingStake.mode !== 'reduce') return;
+        // The suggested amount is always a direct (non-reversed) outgoing amount.
+        if (isReversed) setIsReversed(false);
+        setAmountRaw(pendingStake.suggestedFromAmount);
+        setPendingStake(undefined);
+    }, [pendingStake, isReversed]);
+
+    const onLowBalanceCancel = useCallback(() => {
+        setPendingStake(undefined);
+    }, []);
+
+    const isLowBalanceWarningOpen = pendingStake !== undefined;
+    const lowBalanceMode: 'reduce' | 'topup' = pendingStake?.mode ?? 'reduce';
+    const lowBalanceRequiredTon = useMemo(() => {
+        if (!pendingStake) return '';
+        return formatUnits(pendingStake.requiredNanos, 9);
+    }, [pendingStake]);
 
     const { error, canSubmit } = useStakingValidation({
         amount,
@@ -237,6 +314,7 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
         quote,
         isReversed,
         amountDecimals,
+        isNetworkSupported,
     });
 
     const value = useMemo(
@@ -262,7 +340,13 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
             isReversed,
             toggleReversed,
             reversedAmount,
+            onMaxClick: handleMaxClick,
             onChangeDirection: setDirection,
+            isLowBalanceWarningOpen,
+            lowBalanceMode,
+            lowBalanceRequiredTon,
+            onLowBalanceChange,
+            onLowBalanceCancel,
         }),
         [
             amount,
@@ -287,7 +371,13 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
             isReversed,
             toggleReversed,
             reversedAmount,
+            handleMaxClick,
             setDirection,
+            isLowBalanceWarningOpen,
+            lowBalanceMode,
+            lowBalanceRequiredTon,
+            onLowBalanceChange,
+            onLowBalanceCancel,
         ],
     );
 

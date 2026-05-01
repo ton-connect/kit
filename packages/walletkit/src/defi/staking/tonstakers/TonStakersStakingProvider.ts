@@ -405,6 +405,19 @@ export class TonStakersStakingProvider extends StakingProvider {
         });
     }
 
+    getSupportedNetworks(): Network[] {
+        return Object.keys(this.chainConfig).map((chainId) => {
+            switch (chainId) {
+                case Network.mainnet().chainId:
+                    return Network.mainnet();
+                case Network.testnet().chainId:
+                    return Network.testnet();
+                default:
+                    return Network.custom(chainId);
+            }
+        });
+    }
+
     getStakingProviderMetadata(network?: Network): StakingProviderMetadata {
         const targetNetwork = network ?? Network.mainnet();
         const metadata = this.metadataByNetwork[targetNetwork.chainId];
@@ -486,6 +499,7 @@ export class TonStakersStakingProvider extends StakingProvider {
         const m = meta as Record<string, unknown>;
 
         return (
+            typeof m.name === 'string' &&
             TonStakersStakingProvider.isValidTokenInfo(m.stakeToken) &&
             Array.isArray(m.supportedUnstakeModes) &&
             typeof m.supportsReversedQuote === 'boolean'
@@ -497,8 +511,8 @@ export class TonStakersStakingProvider extends StakingProvider {
  * Returns an AppKit / `ProviderInput` factory: pass to `providers: [createTonstakersProvider(config)]`.
  * At kit init, the factory receives context and builds the provider using `ctx.networkManager` for RPC.
  */
-export function createTonstakersProvider(
+export const createTonstakersProvider = (
     config: TonStakersProviderConfig = {},
-): (ctx: ProviderFactoryContext) => TonStakersStakingProvider {
+): ((ctx: ProviderFactoryContext) => TonStakersStakingProvider) => {
     return (ctx: ProviderFactoryContext) => TonStakersStakingProvider.createFromContext(ctx, config);
-}
+};
