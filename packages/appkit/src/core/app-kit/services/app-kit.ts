@@ -9,16 +9,16 @@
 import { SwapManager, StreamingManager } from '@ton/walletkit';
 import type { ProviderInput, SwapProviderInterface, StakingProviderInterface } from '@ton/walletkit';
 
+import type { AppKitConfig } from '../types/config';
+import { CONNECTOR_EVENTS, WALLETS_EVENTS } from '../constants/events';
 import { StakingManager } from '../../../staking';
 import type { Connector, ConnectorFactoryContext, ConnectorInput } from '../../../types/connector';
 import { EventEmitter } from '../../emitter';
-import { CONNECTOR_EVENTS, WALLETS_EVENTS } from '../constants/events';
 import type { AppKitEmitter, AppKitEvents } from '../types/events';
 import type { WalletInterface } from '../../../types/wallet';
 import { WalletsManager } from '../../wallets-manager';
 import { AppKitNetworkManager } from '../../network';
 import { Network } from '../../../types/network';
-import type { AppKitConfig } from '../types/config';
 
 /**
  * Central hub for wallet management.

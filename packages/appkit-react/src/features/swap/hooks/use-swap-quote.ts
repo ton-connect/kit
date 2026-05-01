@@ -11,9 +11,10 @@
 import { getSwapQuoteQueryOptions } from '@ton/appkit/queries';
 import type { GetSwapQuoteData, GetSwapQuoteErrorType, GetSwapQuoteQueryConfig } from '@ton/appkit/queries';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 import { useQuery } from '../../../libs/query';
 import type { UseQueryReturnType } from '../../../libs/query';
+import { useNetwork } from '../../network';
 
 export type UseSwapQuoteParameters<selectData = GetSwapQuoteData> = GetSwapQuoteQueryConfig<selectData>;
 
@@ -22,10 +23,14 @@ export type UseSwapQuoteReturnType<selectData = GetSwapQuoteData> = UseQueryRetu
     GetSwapQuoteErrorType
 >;
 
+/**
+ * Hook to get a swap quote for the given token pair and amount.
+ */
 export const useSwapQuote = <selectData = GetSwapQuoteData>(
     parameters: UseSwapQuoteParameters<selectData> = {},
 ): UseSwapQuoteReturnType<selectData> => {
     const appKit = useAppKit();
+    const walletNetwork = useNetwork();
 
-    return useQuery(getSwapQuoteQueryOptions(appKit, parameters));
+    return useQuery(getSwapQuoteQueryOptions(appKit, { ...parameters, network: parameters.network ?? walletNetwork }));
 };

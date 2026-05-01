@@ -6,10 +6,11 @@
  *
  */
 
-export class DefiManagerError extends Error {
+export class DefiError extends Error {
     static readonly PROVIDER_NOT_FOUND = 'PROVIDER_NOT_FOUND';
     static readonly NO_DEFAULT_PROVIDER = 'NO_DEFAULT_PROVIDER';
     static readonly NETWORK_ERROR = 'NETWORK_ERROR';
+    static readonly UNSUPPORTED_NETWORK = 'UNSUPPORTED_NETWORK';
     static readonly INVALID_PARAMS = 'INVALID_PARAMS';
     static readonly INVALID_PROVIDER = 'INVALID_PROVIDER';
 
@@ -18,7 +19,7 @@ export class DefiManagerError extends Error {
 
     constructor(message: string, code: string, details?: unknown) {
         super(message);
-        this.name = 'DefiManagerError';
+        this.name = 'DefiError';
         this.code = code;
         this.details = details;
     }

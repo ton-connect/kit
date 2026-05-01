@@ -9,9 +9,10 @@
 import { getStakingQuoteQueryOptions } from '@ton/appkit/queries';
 import type { GetStakingQuoteData, GetStakingQuoteErrorType, GetStakingQuoteQueryConfig } from '@ton/appkit/queries';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 import { useQuery } from '../../../libs/query';
 import type { UseQueryReturnType } from '../../../libs/query';
+import { useNetwork } from '../../network';
 
 export type UseStakingQuoteParameters<selectData = GetStakingQuoteData> = GetStakingQuoteQueryConfig<selectData>;
 export type UseStakingQuoteReturnType<selectData = GetStakingQuoteData> = UseQueryReturnType<
@@ -26,5 +27,9 @@ export const useStakingQuote = <selectData = GetStakingQuoteData>(
     parameters: UseStakingQuoteParameters<selectData> = {},
 ): UseStakingQuoteReturnType<selectData> => {
     const appKit = useAppKit();
-    return useQuery(getStakingQuoteQueryOptions(appKit, parameters));
+    const walletNetwork = useNetwork();
+
+    return useQuery(
+        getStakingQuoteQueryOptions(appKit, { ...parameters, network: parameters.network ?? walletNetwork }),
+    );
 };

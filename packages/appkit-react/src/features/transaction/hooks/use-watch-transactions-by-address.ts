@@ -10,7 +10,7 @@ import { useEffect } from 'react';
 import { watchTransactionsByAddress, hasStreamingProvider, resolveNetwork } from '@ton/appkit';
 import type { WatchTransactionsByAddressOptions, TransactionsUpdate } from '@ton/appkit';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 
 export type UseWatchTransactionsByAddressParameters = Partial<WatchTransactionsByAddressOptions>;
 

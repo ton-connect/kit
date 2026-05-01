@@ -6,17 +6,37 @@
  *
  */
 
-import { Network } from '../../../api/models';
-import type { UserFriendlyAddress } from '../../../api/models';
+import { Network, UnstakeMode } from '../../../api/models';
+import type { UserFriendlyAddress, StakingProviderMetadata } from '../../../api/models';
 import { parseUnits } from '../../../utils/units';
 
 export const CACHE_TIMEOUT = 30000;
 
-export const STAKING_CONTRACT_ADDRESS = {
-    // https://github.com/ton-blockchain/liquid-staking-contract/tree/35d676f6ac6e35e755ea3c4d7d7cf577627b1cf0
-    [Network.mainnet().chainId]: 'EQCkWxfyhAkim3g2DjKQQg8T5P4g-Q1-K_jErGcDJZ4i-vqR' as UserFriendlyAddress,
-    // https://github.com/ton-blockchain/liquid-staking-contract/tree/77f13c850890517a6b490ef5f109c31b4fa783e7
-    [Network.testnet().chainId]: 'kQANFsYyYn-GSZ4oajUJmboDURZU-udMHf9JxzO4vYM_hFP3' as UserFriendlyAddress,
+export const DEFAULT_METADATA: Record<string, StakingProviderMetadata> = {
+    [Network.mainnet().chainId]: {
+        name: 'Tonstakers',
+        stakeToken: { ticker: 'TON', decimals: 9, address: 'ton' },
+        receiveToken: {
+            ticker: 'tsTON',
+            decimals: 9,
+            address: 'EQC98_qAmNEptUtPc7W6xdHh_ZHrBUFpw5Ft_IzNU20QAJav' as UserFriendlyAddress,
+        },
+        contractAddress: 'EQCkWxfyhAkim3g2DjKQQg8T5P4g-Q1-K_jErGcDJZ4i-vqR' as UserFriendlyAddress,
+        supportedUnstakeModes: [UnstakeMode.INSTANT, UnstakeMode.WHEN_AVAILABLE, UnstakeMode.ROUND_END],
+        supportsReversedQuote: true,
+    },
+    [Network.testnet().chainId]: {
+        name: 'Tonstakers',
+        stakeToken: { ticker: 'TON', decimals: 9, address: 'ton' },
+        receiveToken: {
+            ticker: 'TUNA',
+            decimals: 9,
+            address: 'kQAiQ2XK7BXePLwemeo-u4wNyjg-wxGeySmaFGEP7R2Mhf4m' as UserFriendlyAddress,
+        },
+        contractAddress: 'kQANFsYyYn-GSZ4oajUJmboDURZU-udMHf9JxzO4vYM_hFP3' as UserFriendlyAddress,
+        supportedUnstakeModes: [UnstakeMode.INSTANT, UnstakeMode.WHEN_AVAILABLE, UnstakeMode.ROUND_END],
+        supportsReversedQuote: true,
+    },
 };
 
 // Contract-related constants
@@ -26,5 +46,4 @@ export const CONTRACT = {
     PAYLOAD_STAKE: 0x47d54391,
     STAKE_FEE_RES: parseUnits('1', 9),
     UNSTAKE_FEE_RES: parseUnits('1.05', 9),
-    RECOMMENDED_FEE_RESERVE: parseUnits('1.1', 9),
 };

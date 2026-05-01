@@ -12,6 +12,7 @@ export type { MasterchainInfo } from './blockchain/MasterchainInfo';
 // Core models
 export type { AddressBook, AddressBookEntry } from './core/AddressBook';
 export { AssetType } from './core/AssetType';
+export type { BaseProvider, BaseProviderEvents, BaseProviderUpdate } from './core/BaseProvider';
 export type { DAppInfo } from './core/DAppInfo';
 export type { ExtraCurrencies } from './core/ExtraCurrencies';
 export { Network } from './core/Network';
@@ -75,7 +76,7 @@ export type { TONTransferRequest } from './tons/TONTransferRequest';
 
 // Swap models
 export type { SwapToken } from './swaps/SwapToken';
-export type { SwapFee } from './swaps/SwapFee';
+export type { SwapProviderMetadata, SwapProviderMetadataOverride } from './swaps/SwapProviderMetadata';
 export type { SwapQuote } from './swaps/SwapQuote';
 export type { SwapQuoteParams } from './swaps/SwapQuoteParams';
 export type { SwapParams } from './swaps/SwapParams';
@@ -84,6 +85,11 @@ export type { SwapParams } from './swaps/SwapParams';
 export type { StakeParams } from './staking/StakeParams';
 export type { StakingBalance } from './staking/StakingBalance';
 export type { StakingProviderInfo } from './staking/StakingProviderInfo';
+export type {
+    StakingProviderMetadata,
+    StakingProviderMetadataOverride,
+    StakingTokenInfo,
+} from './staking/StakingProviderMetadata';
 export type { StakingQuote } from './staking/StakingQuote';
 export type { StakingQuoteDirection } from './staking/StakingQuoteDirection';
 export type { StakingQuoteParams } from './staking/StakingQuoteParams';

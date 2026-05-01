@@ -12,6 +12,7 @@ import { Sparkles, Coins, AlertCircle } from 'lucide-react';
 import { useSelectedWallet, Send } from '@ton/appkit-react';
 import { getErrorMessage } from '@ton/appkit';
 import { toast } from 'sonner';
+import { Button } from '@ton/appkit-react';
 
 import { CardPreview } from './card-preview';
 import { useCardGenerator } from '../hooks/use-card-generator';
@@ -19,7 +20,7 @@ import { useNftMintTransaction } from '../hooks/use-nft-mint-transaction';
 import { mintCard } from '../store/actions/mint-card';
 import { setMintError } from '../store/actions/set-mint-error';
 
-import { Button, Card } from '@/core/components';
+import { Card } from '@/core/components';
 
 interface CardGeneratorProps {
     className?: string;
@@ -86,8 +87,12 @@ export const CardGenerator: React.FC<CardGeneratorProps> = ({ className }) => {
 
                 {/* Action buttons */}
                 <div className="flex gap-2">
-                    <Button onClick={generate} isLoading={isGenerating} className="flex-1">
-                        <Sparkles className="w-4 h-4 mr-2" />
+                    <Button
+                        onClick={generate}
+                        loading={isGenerating}
+                        className="flex-1"
+                        icon={<Sparkles className="w-4 h-4" />}
+                    >
                         {currentCard ? 'New' : 'Generate'}
                     </Button>
 
@@ -111,11 +116,11 @@ export const CardGenerator: React.FC<CardGeneratorProps> = ({ className }) => {
                                 <Button
                                     onClick={onSubmit}
                                     disabled={disabled}
-                                    isLoading={isLoading}
+                                    loading={isLoading}
                                     variant="secondary"
                                     className="flex-1"
+                                    icon={<Coins className="w-4 h-4" />}
                                 >
-                                    <Coins className="w-4 h-4 mr-2" />
                                     Mint
                                 </Button>
                             )}

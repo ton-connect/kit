@@ -12,7 +12,7 @@ import type { GetStakingProviderInfoReturnType } from '../../actions/staking/get
 import type { AppKit } from '../../core/app-kit';
 import type { QueryOptions, QueryParameter } from '../../types/query';
 import type { Compute, ExactPartial } from '../../types/utils';
-import { filterQueryOptions } from '../../utils';
+import { filterQueryOptions, resolveNetwork } from '../../utils';
 
 export type GetStakingProviderInfoErrorType = Error;
 
@@ -28,8 +28,11 @@ export type GetStakingProviderInfoQueryConfig<selectData = GetStakingProviderInf
 
 export const getStakingProviderInfoQueryOptions = <selectData = GetStakingProviderInfoData>(
     appKit: AppKit,
-    options: GetStakingProviderInfoQueryConfig<selectData> = {},
+    initialOptions: GetStakingProviderInfoQueryConfig<selectData> = {},
 ): GetStakingProviderInfoQueryOptions<selectData> => {
+    const network = resolveNetwork(appKit, initialOptions.network);
+    const options = { ...initialOptions, network };
+
     return {
         ...options.query,
         queryFn: async (context) => {

@@ -7,8 +7,14 @@
  */
 
 // Common components
-export { Button, Card } from './common';
+export { Card } from './common';
 export { ToasterProvider } from './common/toaster-provider';
 
 // Layout components
 export { Layout, AppRouter, ThemeProvider } from './layout';
+
+// UI components
+export { Sidebar } from './sidebar';
+export { Sheet } from './sheet';
+export { Separator } from './separator';
+export { Tooltip } from './tooltip';

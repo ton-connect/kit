@@ -7,6 +7,4 @@
  */
 
 export { TonStakersStakingProvider, createTonstakersProvider } from './TonStakersStakingProvider';
-export { PoolContract } from './PoolContract';
-export { StakingCache } from './StakingCache';
 export type { TonStakersProviderConfig } from './models/TonStakersProviderConfig';

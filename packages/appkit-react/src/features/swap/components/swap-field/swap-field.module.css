@@ -1,0 +1,61 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 16px;
+  border-radius: var(--ta-border-radius-xl);
+  background-color: var(--ta-color-background-secondary);
+
+  width: 100%;
+  border: var(--ta-border-width-m) solid transparent;
+  transition: border-color 0.2s;
+  gap: 8px;
+}
+
+.container .header,
+.container .caption {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.container:focus-within {
+  border-color: var(--ta-color-primary);
+}
+
+.balanceLine {
+  composes: bodyRegular from "../../../../styles/typography.module.css";
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: var(--ta-body-regular-line-height);
+}
+
+.maxButton {
+  composes: bodyRegular from "../../../../styles/typography.module.css";
+
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: var(--ta-color-primary);
+  font-weight: 600;
+}
+
+.balanceWrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 1lh;
+}
+
+.skeletonText {
+  width: 5ch;
+  height: 1em;
+  height: 0.8lh;
+}
+
+.field {
+  min-height: var(--ta-input-l-line-height);
+}

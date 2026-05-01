@@ -10,8 +10,9 @@ import { useState } from 'react';
 import type { FC, ComponentProps } from 'react';
 import { useSignText, useSelectedWallet } from '@ton/appkit-react';
 import { toast } from 'sonner';
+import { Button } from '@ton/appkit-react';
 
-import { Card, Button } from '@/core/components';
+import { Card } from '@/core/components';
 
 export const SignMessageCard: FC<ComponentProps<'div'>> = (props) => {
     const [message, setMessage] = useState('');
@@ -64,10 +65,11 @@ export const SignMessageCard: FC<ComponentProps<'div'>> = (props) => {
 
                 {/* Sign Button */}
                 <Button
-                    className="w-full"
-                    variant="primary"
+                    fullWidth
+                    variant="fill"
                     onClick={handleSign}
                     disabled={!wallet || !message.trim() || isPending}
+                    loading={isPending}
                 >
                     {isPending ? 'Signing...' : 'Sign Message'}
                 </Button>
@@ -79,7 +81,7 @@ export const SignMessageCard: FC<ComponentProps<'div'>> = (props) => {
                         <div className="p-3 bg-muted border border-border rounded-lg">
                             <code className="text-xs text-foreground break-all">{signature}</code>
                         </div>
-                        <Button className="w-full" variant="secondary" size="sm" onClick={handleCopySignature}>
+                        <Button fullWidth variant="secondary" size="s" onClick={handleCopySignature}>
                             Copy Signature
                         </Button>
                     </div>

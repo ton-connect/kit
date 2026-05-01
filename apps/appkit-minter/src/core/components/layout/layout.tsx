@@ -8,42 +8,43 @@
 
 import type React from 'react';
 import { TonConnectButton } from '@ton/appkit-react';
-import { Layers } from 'lucide-react';
 
+import { AppSidebar } from './app-sidebar';
 import { ThemeSwitcher } from './theme-switcher';
 
-import { NetworkPicker } from '@/features/network';
+import { Separator } from '@/core/components/separator';
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/core/components/sidebar';
 
 interface LayoutProps {
-    children: React.ReactNode;
     title?: string;
+    children: React.ReactNode;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, title = 'NFT Minter' }) => {
+export const Layout: React.FC<LayoutProps> = ({ title, children }) => {
     return (
-        <div className="min-h-screen bg-background">
-            <header className="bg-card shadow-sm border-b border-border sticky top-0 z-10">
-                <div className="max-w-2xl mx-auto px-4 py-3 flex items-center">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                            <Layers className="w-5 h-5 text-white" />
-                        </div>
-                        <h1 className="text-xl font-bold text-foreground">{title}</h1>
-                    </div>
+        <SidebarProvider>
+            <AppSidebar />
+            <SidebarInset>
+                <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur">
+                    <SidebarTrigger />
 
-                    <div className="ml-auto flex items-center gap-2">
-                        <NetworkPicker />
-                        <TonConnectButton />
-                        <ThemeSwitcher />
-                    </div>
-                </div>
-            </header>
+                    {title && (
+                        <>
+                            <Separator orientation="vertical" className="!h-6" />
+                            <h1 className="text-base font-semibold text-foreground">{title}</h1>
+                        </>
+                    )}
 
-            <main className="max-w-2xl mx-auto px-4 py-4">{children}</main>
+                    <TonConnectButton className="ml-auto" />
+                    <ThemeSwitcher />
+                </header>
 
-            <footer className="text-center py-2 text-xs text-muted-foreground">
-                <p>Powered by AppKit & TonConnect</p>
-            </footer>
-        </div>
+                <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-4">{children}</main>
+
+                <footer className="text-center py-2 text-xs text-muted-foreground">
+                    <p>Powered by AppKit & TonConnect</p>
+                </footer>
+            </SidebarInset>
+        </SidebarProvider>
     );
 };

@@ -10,7 +10,7 @@ SwapManager provides a unified interface for token swaps across multiple DEX pro
 
 ```typescript
 import { TonWalletKit, Network } from '@ton/walletkit';
-import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
+import { createOmnistonProvider } from '@ton/walletkit/swap/omniston';
 
 const kit = new TonWalletKit({
     networks: {
@@ -20,12 +20,12 @@ const kit = new TonWalletKit({
     },
 });
 
-const omnistonProvider = new OmnistonSwapProvider({
-    defaultSlippageBps: 100, // 1%
-    quoteTimeoutMs: 10000,
-});
-
-kit.swap.registerProvider(omnistonProvider);
+kit.swap.registerProvider(
+    createOmnistonProvider({
+        defaultSlippageBps: 100, // 1%
+        quoteTimeoutMs: 10000,
+    }),
+);
 kit.swap.setDefaultProvider('omniston');
 ```
 

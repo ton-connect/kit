@@ -6,10 +6,8 @@
  *
  */
 
-import type { BalanceUpdate, TransactionsUpdate, JettonUpdate, Network } from '../models';
+import type { BalanceUpdate, TransactionsUpdate, JettonUpdate, Network, BaseProvider } from '../models';
 import type { ProviderFactoryContext } from '../../types/factory';
-import type { BaseProvider } from './BaseProvider';
-
 export interface StreamingProvider extends BaseProvider {
     readonly type: 'streaming';
     readonly network: Network;

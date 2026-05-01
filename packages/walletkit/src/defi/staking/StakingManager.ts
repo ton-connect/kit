@@ -11,6 +11,7 @@ import type {
     StakeParams,
     StakingBalance,
     StakingProviderInfo,
+    StakingProviderMetadata,
     StakingQuoteParams,
     StakingQuote,
 } from '../../api/models';
@@ -19,7 +20,6 @@ import { StakingError, StakingErrorCode } from './errors';
 import { globalLogger } from '../../core/Logger';
 import { DefiManager } from '../DefiManager';
 import type { ProviderFactoryContext } from '../../types/factory';
-import type { UnstakeModes } from '../../api/models/staking/UnstakeMode';
 
 const log = globalLogger.createChild('StakingManager');
 
@@ -114,12 +114,24 @@ export class StakingManager extends DefiManager<StakingProviderInterface> implem
     }
 
     /**
-     * Get supported unstake modes
-     * @param providerId Provider identifier (optional, uses default if not specified)
-     * @returns An array of supported unstake modes
+     * Get static staking provider metadata for a network
+     * @param network - Network to query
+     * @param providerId - Optional provider id to use
      */
-    getSupportedUnstakeModes(providerId?: string): UnstakeModes[] {
-        return this.getProvider(providerId).getSupportedUnstakeModes();
+    getStakingProviderMetadata(network?: Network, providerId?: string): StakingProviderMetadata {
+        log.debug('Getting staking metadata', {
+            network,
+            provider: providerId || this.defaultProviderId,
+        });
+
+        try {
+            return this.getProvider(providerId).getStakingProviderMetadata(network);
+        } catch (error) {
+            throw this.createError('Failed to get staking metadata', StakingErrorCode.InvalidParams, {
+                error,
+                network,
+            });
+        }
     }
 
     protected createError(message: string, code: string, details?: unknown): StakingError {

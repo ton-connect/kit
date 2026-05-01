@@ -81,10 +81,12 @@ export const StakeButton: FC<StakeButtonProps> = ({
 
     return (
         <Send
+            size="m"
             request={handleTransaction}
             disabled={!quoteEnabled || !quote || isLoading || isError}
             text={buttonText}
             className={className}
+            fullWidth
         />
     );
 };

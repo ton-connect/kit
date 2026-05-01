@@ -1,0 +1,20 @@
+.container {
+    width: 100%;
+    display: grid;
+    gap: 8px;
+    justify-content: center;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    margin: 0 auto;
+}
+
+.preset {
+    width: 100%;
+    padding: 8px 16px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.preset:hover {
+    background: var(--ta-color-background-secondary);
+    border-color: var(--ta-color-text-secondary);
+}

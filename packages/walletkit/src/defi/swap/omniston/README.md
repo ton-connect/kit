@@ -13,11 +13,12 @@ For detailed information about Omniston features and capabilities, see the [offi
 ## Quick Start
 
 ```ts
-const provider = new OmnistonSwapProvider({
-    defaultSlippageBps: 100, // 1%
-    quoteTimeoutMs: 10000,
-});
-kit.registerProvider(provider);
+kit.registerProvider(
+    createOmnistonProvider({
+        defaultSlippageBps: 100, // 1%
+        quoteTimeoutMs: 10000,
+    }),
+);
 ```
 
 ## Configuration
@@ -85,11 +86,12 @@ const USDT = {
 };
 
 // Global referrer in config
-const provider = new OmnistonSwapProvider({
-    referrerAddress: 'EQ...global',
-    referrerFeeBps: 10,
-});
-appKit.registerProvider(provider);
+appKit.registerProvider(
+    createOmnistonProvider({
+        referrerAddress: 'EQ...global',
+        referrerFeeBps: 10,
+    }),
+);
 
 // Override for specific quote
 const quote = await getSwapQuote(appKit, {

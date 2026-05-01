@@ -6,7 +6,7 @@
  *
  */
 
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { TonIcon, TonIconCircle } from './ton-icon';
 
@@ -53,7 +53,7 @@ export const Large: Story = {
 export const CustomColor: Story = {
     args: {
         size: 32,
-        style: { color: '#0098EB' },
+        style: { color: 'var(--ta-color-primary)' },
     },
 };
 

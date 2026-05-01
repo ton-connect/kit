@@ -10,7 +10,7 @@ import { useSyncExternalStore, useCallback } from 'react';
 import { getConnectedWallets, watchConnectedWallets } from '@ton/appkit';
 import type { GetConnectedWalletsReturnType } from '@ton/appkit';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 
 export type UseConnectedWalletsReturnType = GetConnectedWalletsReturnType;
 

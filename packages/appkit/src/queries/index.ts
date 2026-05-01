@@ -167,12 +167,6 @@ export {
 
 // Staking
 export {
-    getStakingProvidersQueryOptions,
-    type GetStakingProvidersData,
-    type GetStakingProvidersErrorType,
-    type GetStakingProvidersQueryConfig,
-} from './staking/get-staking-providers';
-export {
     getStakingQuoteQueryOptions,
     type GetStakingQuoteQueryConfig,
     type GetStakingQuoteQueryOptions,

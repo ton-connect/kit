@@ -12,13 +12,15 @@ import { Address } from '@ton/core';
 
 import type { OmnistonQuoteMetadata, OmnistonSwapProviderConfig, OmnistonProviderOptions } from './models';
 import { SwapProvider } from '../SwapProvider';
-import type { SwapQuoteParams, SwapQuote, SwapParams, SwapFee } from '../../../api/models';
+import type { SwapQuoteParams, SwapQuote, SwapParams, SwapProviderMetadata } from '../../../api/models';
+import { Network } from '../../../api/models';
 import { SwapError } from '../errors';
 import { globalLogger } from '../../../core/Logger';
 import { tokenToAddress, toOmnistonAddress, isOmnistonQuoteMetadata } from './utils';
 import type { TransactionRequest } from '../../../api/models';
 import { asBase64, getUnixtime } from '../../../utils';
 import { formatUnits, parseUnits } from '../../../utils/units';
+import type { ProviderFactoryContext } from '../../../types/factory';
 
 const log = globalLogger.createChild('OmnistonSwapProvider');
 
@@ -30,17 +32,17 @@ const log = globalLogger.createChild('OmnistonSwapProvider');
  *
  * @example
  * ```typescript
- * // Import from separate entry point to avoid bundling Omniston SDK
- * import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
+ * // Import from a separate entry point to avoid bundling the Omniston SDK
+ * import { createOmnistonProvider } from '@ton/walletkit/swap/omniston';
  *
- * const provider = new OmnistonSwapProvider({
- *     apiUrl: 'wss://omni-ws.ston.fi',
- *     defaultSlippageBps: 100, // 1%
- *     referrerAddress: 'EQ...',
- *     referrerFeeBps: 10, // 0.1%
- * });
- *
- * kit.swap.registerProvider(provider);
+ * kit.swap.registerProvider(
+ *     createOmnistonProvider({
+ *         apiUrl: 'wss://omni-ws.ston.fi',
+ *         defaultSlippageBps: 100, // 1%
+ *         referrerAddress: 'EQ...',
+ *         referrerFeeBps: 10, // 0.1%
+ *     }),
+ * );
  * ```
  */
 export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> {
@@ -51,6 +53,10 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
     private readonly referrerFeeBps?: number;
     private readonly flexibleReferrerFee: boolean;
     private omniston$?: Omniston;
+    private metadata: SwapProviderMetadata = {
+        name: 'Omniston',
+        url: 'https://ston.fi/omniston',
+    };
 
     readonly providerId: string;
 
@@ -66,10 +72,25 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
         this.referrerFeeBps = config?.referrerFeeBps;
         this.flexibleReferrerFee = config?.flexibleReferrerFee ?? false;
 
+        if (config?.metadata) {
+            this.metadata = {
+                ...this.metadata,
+                ...config.metadata,
+            };
+        }
+
         log.info('OmnistonSwapProvider initialized', {
             defaultSlippageBps: this.defaultSlippageBps,
             hasReferrer: !!this.referrerAddress,
         });
+    }
+
+    getSupportedNetworks(): Network[] {
+        return [Network.mainnet()];
+    }
+
+    getMetadata(): SwapProviderMetadata {
+        return this.metadata;
     }
 
     private get omniston(): Omniston {
@@ -279,8 +300,6 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
             omnistonQuote: quote,
         };
 
-        const fee: SwapFee[] = [];
-
         // if (quote.protocolFeeAsset) {
         //     fee.push({
         //         amount: formatUnits(quote.protocolFeeUnits, 9),
@@ -311,7 +330,16 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
 
             network: params.network,
             expiresAt: quote.tradeStartDeadline ? quote.tradeStartDeadline : undefined,
-            fee: fee?.length ? fee : undefined,
         };
     }
 }
+
+/**
+ * Returns an AppKit / `ProviderInput` factory for {@link OmnistonSwapProvider}:
+ * pass to `providers: [createOmnistonProvider(config)]`.
+ */
+export const createOmnistonProvider = (
+    config: OmnistonSwapProviderConfig = {},
+): ((ctx: ProviderFactoryContext) => OmnistonSwapProvider) => {
+    return () => new OmnistonSwapProvider(config);
+};

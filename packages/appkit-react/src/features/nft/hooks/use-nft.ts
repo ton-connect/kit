@@ -9,9 +9,10 @@
 import { getNftQueryOptions } from '@ton/appkit/queries';
 import type { GetNftData, GetNftErrorType, GetNftQueryConfig } from '@ton/appkit/queries';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 import { useQuery } from '../../../libs/query';
 import type { UseQueryReturnType } from '../../../libs/query';
+import { useNetwork } from '../../network';
 
 export type UseNftParameters<selectData = GetNftData> = GetNftQueryConfig<selectData>;
 
@@ -24,6 +25,7 @@ export const useNft = <selectData = GetNftData>(
     parameters: UseNftParameters<selectData> = {},
 ): UseNftReturnType<selectData> => {
     const appKit = useAppKit();
+    const walletNetwork = useNetwork();
 
-    return useQuery(getNftQueryOptions(appKit, parameters));
+    return useQuery(getNftQueryOptions(appKit, { ...parameters, network: parameters.network ?? walletNetwork }));
 };

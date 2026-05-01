@@ -7,6 +7,20 @@
 - For creating new UI components, use the `add-ui-component` skill.
 - Every component must have a Storybook story (`.stories.tsx`).
 
+## Hook ordering in components and custom hooks
+
+Where possible, group hooks in this order inside component/hook bodies. The goal is top-down dataflow: inputs → data → derivations → side-effects.
+
+1. **Local state** — `useState`, `useRef`, `useReducer`, `useDebounceValue`, and state-like wrappers.
+2. **Queries and external readers** — `useQuery`-based hooks, wallet/network selectors (`useAddress`, `useNetwork`, balance hooks, etc.).
+3. **Derivations** — `useMemo` and simple computed values derived from local state or query data (e.g. validation, formatted strings, flags).
+4. **Mutations** — `useMutation`-based hooks (`useBuildSwapTransaction`, `useSendTransaction`, etc.) and simple flags derived from them.
+5. **Callbacks / functions** — `useCallback` and inline handlers.
+6. **Effects** — `useEffect`, `useLayoutEffect`.
+
+Exception: tightly coupled values may sit next to each other even if the strict order is broken — e.g. a `useMemo` that exists
+only to prepare input for a hook right below it can live next to that hook.
+
 ## Styling
 
 - Always use CSS Modules (`.module.css`).

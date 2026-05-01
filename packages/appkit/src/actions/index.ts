@@ -115,7 +115,19 @@ export { signCell, type SignCellParameters, type SignCellReturnType } from './si
 
 // Swap
 export { getSwapManager, type GetSwapManagerReturnType } from './swap/get-swap-manager';
+export { getSwapProvider, type GetSwapProviderOptions, type GetSwapProviderReturnType } from './swap/get-swap-provider';
+export { getSwapProviders, type GetSwapProvidersReturnType } from './swap/get-swap-providers';
+export {
+    setDefaultSwapProvider,
+    type SetDefaultSwapProviderParameters,
+    type SetDefaultSwapProviderReturnType,
+} from './swap/set-default-swap-provider';
 export { getSwapQuote, type GetSwapQuoteOptions, type GetSwapQuoteReturnType } from './swap/get-swap-quote';
+export {
+    watchSwapProviders,
+    type WatchSwapProvidersParameters,
+    type WatchSwapProvidersReturnType,
+} from './swap/watch-swap-providers';
 export {
     buildSwapTransaction,
     type BuildSwapTransactionOptions,
@@ -125,6 +137,16 @@ export {
 // Staking
 export { getStakingManager, type GetStakingManagerReturnType } from './staking/get-staking-manager';
 export { getStakingProviders, type GetStakingProvidersReturnType } from './staking/get-staking-providers';
+export {
+    getStakingProvider,
+    type GetStakingProviderOptions,
+    type GetStakingProviderReturnType,
+} from './staking/get-staking-provider';
+export {
+    watchStakingProviders,
+    type WatchStakingProvidersParameters,
+    type WatchStakingProvidersReturnType,
+} from './staking/watch-staking-providers';
 export {
     getStakingQuote,
     type GetStakingQuoteOptions,
@@ -145,6 +167,11 @@ export {
     type GetStakingProviderInfoOptions,
     type GetStakingProviderInfoReturnType,
 } from './staking/get-staking-provider-info';
+export {
+    getStakingProviderMetadata,
+    type GetStakingProviderMetadataOptions,
+    type GetStakingProviderMetadataReturnType,
+} from './staking/get-staking-provider-metadata';
 
 // Transactions
 export {

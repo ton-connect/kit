@@ -51,11 +51,6 @@ export interface StakingQuote {
     providerId: string;
 
     /**
-     * Annual Percentage Yield in basis points (100 = 1%)
-     */
-    apy?: number;
-
-    /**
      * Mode of unstaking (if applicable)
      */
     unstakeMode?: UnstakeModes;

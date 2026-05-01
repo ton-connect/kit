@@ -182,6 +182,62 @@ Hook to build a transaction for a swap operation based on a quote.
 
 %%demo/examples/src/appkit/hooks/swap#USE_BUILD_SWAP_TRANSACTION%%
 
+### `useSwapProvider`
+
+Hook to read and change the currently selected swap provider. Returns a tuple `[provider, setProviderId]` — mirrors `useSelectedWallet`.
+
+%%demo/examples/src/appkit/hooks/swap#USE_SWAP_PROVIDER%%
+
+### `useSwapProviders`
+
+Hook to get all registered swap providers. The returned array keeps a stable reference until the provider list changes, so it is safe to use with `useSyncExternalStore`.
+
+%%demo/examples/src/appkit/hooks/swap#USE_SWAP_PROVIDERS%%
+
+## Staking
+
+### `useStakingProviders`
+
+Hook to get all registered staking providers. The returned array keeps a stable reference until the provider list changes.
+
+%%demo/examples/src/appkit/hooks/staking#USE_STAKING_PROVIDERS%%
+
+### `useStakingProvider`
+
+Hook to get a specific staking provider by id (or the default when no id is passed).
+
+%%demo/examples/src/appkit/hooks/staking#USE_STAKING_PROVIDER%%
+
+### `useStakingQuote`
+
+Hook to get a quote for staking or unstaking a given amount.
+
+%%demo/examples/src/appkit/hooks/staking#USE_STAKING_QUOTE%%
+
+### `useStakedBalance`
+
+Hook to get the user's currently staked balance.
+
+%%demo/examples/src/appkit/hooks/staking#USE_STAKED_BALANCE%%
+
+### `useStakingProviderInfo`
+
+Hook to get live info about a staking provider (APY, limits, etc.).
+
+%%demo/examples/src/appkit/hooks/staking#USE_STAKING_PROVIDER_INFO%%
+
+### `useStakingProviderMetadata`
+
+Hook to get static metadata about a staking provider (name, receive token, etc.).
+
+%%demo/examples/src/appkit/hooks/staking#USE_STAKING_PROVIDER_METADATA%%
+
+### `useBuildStakeTransaction`
+
+Hook to build a stake transaction from a previously fetched quote.
+
+%%demo/examples/src/appkit/hooks/staking#USE_BUILD_STAKE_TRANSACTION%%
+
 ## Transaction
 
 ### `useSendTransaction`

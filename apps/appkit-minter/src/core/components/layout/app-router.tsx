@@ -11,7 +11,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useWatchBalance, useWatchTransactions, useWatchJettons } from '@ton/appkit-react';
 import { toast } from 'sonner';
 
-import { MinterPage } from '@/pages';
+import { MinterPage, StakingPage, SwapPage, SignMessagePage } from '@/pages';
 
 export const AppRouter: React.FC = () => {
     // Enable global real-time balance updates
@@ -50,6 +50,9 @@ export const AppRouter: React.FC = () => {
         <BrowserRouter>
             <Routes>
                 <Route path="/" element={<MinterPage />} />
+                <Route path="/swap" element={<SwapPage />} />
+                <Route path="/staking" element={<StakingPage />} />
+                <Route path="/sign" element={<SignMessagePage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </BrowserRouter>

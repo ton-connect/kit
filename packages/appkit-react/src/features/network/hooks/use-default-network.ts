@@ -10,7 +10,7 @@ import { useSyncExternalStore, useCallback } from 'react';
 import { getDefaultNetwork, setDefaultNetwork, watchDefaultNetwork } from '@ton/appkit';
 import type { GetDefaultNetworkReturnType, Network } from '@ton/appkit';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 
 export type UseDefaultNetworkReturnType = [
     network: GetDefaultNetworkReturnType,

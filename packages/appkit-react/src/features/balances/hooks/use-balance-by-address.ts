@@ -9,9 +9,10 @@
 import { getBalanceByAddressQueryOptions } from '@ton/appkit/queries';
 import type { GetBalanceByAddressData, GetBalanceErrorType, GetBalanceByAddressQueryConfig } from '@ton/appkit/queries';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 import { useQuery } from '../../../libs/query';
 import type { UseQueryReturnType } from '../../../libs/query';
+import { useNetwork } from '../../network';
 
 export type UseBalanceByAddressParameters<selectData = GetBalanceByAddressData> =
     GetBalanceByAddressQueryConfig<selectData>;
@@ -28,6 +29,9 @@ export const useBalanceByAddress = <selectData = GetBalanceByAddressData>(
     parameters: UseBalanceByAddressParameters<selectData> = {},
 ): UseBalanceByAddressReturnType<selectData> => {
     const appKit = useAppKit();
+    const walletNetwork = useNetwork();
 
-    return useQuery(getBalanceByAddressQueryOptions(appKit, parameters));
+    return useQuery(
+        getBalanceByAddressQueryOptions(appKit, { ...parameters, network: parameters.network ?? walletNetwork }),
+    );
 };

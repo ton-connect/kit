@@ -1,0 +1,169 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+export interface DebounceOptions {
+    /**
+     * An optional AbortSignal to cancel the debounced function.
+     */
+    signal?: AbortSignal;
+
+    /**
+     * An optional array specifying whether the function should be invoked on the leading edge, trailing edge, or both.
+     * If `edges` include "leading", the function will be invoked at the start of the delay period.
+     * If `edges` include "trailing", the function will be invoked at the end of the delay period.
+     * If both "leading" and "trailing" are included, the function will be invoked at both the start and end of the delay period.
+     * @default ["trailing"]
+     */
+    edges?: Array<'leading' | 'trailing'>;
+}
+
+export interface DebouncedFunction<F extends (...args: unknown[]) => void> {
+    (...args: Parameters<F>): void;
+
+    /**
+     * Schedules the execution of the debounced function after the specified debounced delay.
+     * This method resets any existing timer, ensuring that the function is only invoked
+     * after the delay has elapsed since the last call to the debounced function.
+     * It is typically called internally whenever the debounced function is invoked.
+     *
+     * @returns {void}
+     */
+    schedule: () => void;
+
+    /**
+     * Cancels any pending execution of the debounced function.
+     * This method clears the active timer and resets any stored context or arguments.
+     */
+    cancel: () => void;
+
+    /**
+     * Immediately invokes the debounced function if there is a pending execution.
+     * This method executes the function right away if there is a pending execution.
+     */
+    flush: () => void;
+}
+
+/**
+ * Creates a debounced function that delays invoking the provided function until after `debounceMs` milliseconds
+ * have elapsed since the last time the debounced function was invoked. The debounced function also has a `cancel`
+ * method to cancel any pending execution.
+ *
+ * @template F - The type of function.
+ * @param {F} func - The function to debounce.
+ * @param {number} debounceMs - The number of milliseconds to delay.
+ * @param {DebounceOptions} options - The options object
+ * @param {AbortSignal} options.signal - An optional AbortSignal to cancel the debounced function.
+ * @returns A new debounced function with a `cancel` method.
+ *
+ * @example
+ * const debouncedFunction = debounce(() => {
+ *   console.log('Function executed');
+ * }, 1000);
+ *
+ * // Will log 'Function executed' after 1 second if not called again in that time
+ * debouncedFunction();
+ *
+ * // Will not log anything as the previous call is canceled
+ * debouncedFunction.cancel();
+ *
+ * // With AbortSignal
+ * const controller = new AbortController();
+ * const signal = controller.signal;
+ * const debouncedWithSignal = debounce(() => {
+ *  console.log('Function executed');
+ * }, 1000, { signal });
+ *
+ * debouncedWithSignal();
+ *
+ * // Will cancel the debounced function call
+ * controller.abort();
+ */
+export const debounce = <F extends (...args: unknown[]) => void>(
+    func: F,
+    debounceMs: number,
+    { signal, edges }: DebounceOptions = {},
+): DebouncedFunction<F> => {
+    let pendingThis: unknown = undefined;
+    let pendingArgs: Parameters<F> | null = null;
+
+    const leading = edges != null && edges.includes('leading');
+    const trailing = edges == null || edges.includes('trailing');
+
+    const invoke = () => {
+        if (pendingArgs !== null) {
+            func.apply(pendingThis, pendingArgs);
+            pendingThis = undefined;
+            pendingArgs = null;
+        }
+    };
+
+    const onTimerEnd = () => {
+        if (trailing) {
+            invoke();
+        }
+
+        cancel();
+    };
+
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    const schedule = () => {
+        if (timeoutId != null) {
+            clearTimeout(timeoutId);
+        }
+
+        timeoutId = setTimeout(() => {
+            timeoutId = null;
+
+            onTimerEnd();
+        }, debounceMs);
+    };
+
+    const cancelTimer = () => {
+        if (timeoutId !== null) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
+        }
+    };
+
+    const cancel = () => {
+        cancelTimer();
+        pendingThis = undefined;
+        pendingArgs = null;
+    };
+
+    const flush = () => {
+        invoke();
+    };
+
+    const debounced = function (this: unknown, ...args: Parameters<F>) {
+        if (signal?.aborted) {
+            return;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        pendingThis = this;
+        pendingArgs = args;
+
+        const isFirstCall = timeoutId == null;
+
+        schedule();
+
+        if (leading && isFirstCall) {
+            invoke();
+        }
+    };
+
+    debounced.schedule = schedule;
+    debounced.cancel = cancel;
+    debounced.flush = flush;
+
+    signal?.addEventListener('abort', cancel, { once: true });
+
+    return debounced;
+};

@@ -9,9 +9,10 @@
 import { getStakedBalanceQueryOptions } from '@ton/appkit/queries';
 import type { GetStakedBalanceData, GetStakedBalanceErrorType, GetStakedBalanceQueryConfig } from '@ton/appkit/queries';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 import { useQuery } from '../../../libs/query';
 import type { UseQueryReturnType } from '../../../libs/query';
+import { useNetwork } from '../../network';
 
 export type UseStakedBalanceParameters<selectData = GetStakedBalanceData> = GetStakedBalanceQueryConfig<selectData>;
 export type UseStakedBalanceReturnType<selectData = GetStakedBalanceData> = UseQueryReturnType<
@@ -26,5 +27,9 @@ export const useStakedBalance = <selectData = GetStakedBalanceData>(
     parameters: UseStakedBalanceParameters<selectData> = {},
 ): UseStakedBalanceReturnType<selectData> => {
     const appKit = useAppKit();
-    return useQuery(getStakedBalanceQueryOptions(appKit, parameters));
+    const walletNetwork = useNetwork();
+
+    return useQuery(
+        getStakedBalanceQueryOptions(appKit, { ...parameters, network: parameters.network ?? walletNetwork }),
+    );
 };
