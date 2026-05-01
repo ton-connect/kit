@@ -8,12 +8,6 @@
 
 export type { EmulationAction } from './EmulationAction';
 export type { EmulationAddressBookEntry } from './EmulationAddressBookEntry';
-export type {
-    EmulationAddressMetadata,
-    EmulationTokenInfo,
-    EmulationTokenInfoWallet,
-    EmulationTokenInfoMaster,
-} from './EmulationAddressMetadata';
 export type { EmulationMessage } from './EmulationMessage';
 export type { EmulationResponse } from './EmulationResponse';
 export type { EmulationResult } from './EmulationResult';

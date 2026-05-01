@@ -21,7 +21,7 @@ import type {
 import { validateTransactionMessages as validateTonConnectTransactionMessages } from '../validation/transaction';
 import { globalLogger } from '../core/Logger';
 import { isValidAddress } from '../utils/address';
-import { createTransactionPreview as createTransactionPreviewHelper } from '../utils/toncenterEmulation';
+import { createTransactionPreview as createTransactionPreviewHelper } from '../utils/transactionPreview';
 import { BasicHandler } from './BasicHandler';
 import { CallForSuccess } from '../utils/retry';
 import type { WalletKitEventEmitter } from '../types/emitter';

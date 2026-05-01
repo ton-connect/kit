@@ -13,63 +13,9 @@ import { ERROR_CODES } from '../errors/codes';
 import { CallForSuccess } from './retry';
 import type { TransactionEmulatedPreview, TransactionRequest } from '../api/models';
 import { Result } from '../api/models';
-import { SendModeToValue } from './sendMode';
 import type { Wallet } from '../api/interfaces';
 import type { ApiClient } from '../api/interfaces/ApiClient';
 
-export interface ToncenterMessage {
-    method: string;
-    headers: {
-        'Content-Type': string;
-    };
-    body: string;
-}
-
-export type { EmulationResult as ToncenterEmulationResult } from '../api/models/emulation';
-
-/**
- * Creates a toncenter message payload for emulation
- */
-export function createToncenterMessage(
-    walletAddress: string | undefined,
-    messages: TransactionRequest['messages'],
-): ToncenterMessage {
-    return {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            from: walletAddress,
-            valid_until: Math.floor(Date.now() / 1000) + 60,
-            include_code_data: true,
-            include_address_book: true,
-            include_metadata: true,
-            with_actions: true,
-            messages: messages.map((m) => ({
-                address: m.address,
-                amount: m.amount,
-                payload: m.payload,
-                stateInit: m.stateInit,
-                extraCurrency: m.extraCurrency,
-                mode: m.mode ? SendModeToValue(m.mode) : undefined,
-            })),
-        }),
-    };
-}
-
-export class FetchToncenterEmulationError extends Error {
-    response: Response;
-    constructor(message: string, response: Response) {
-        super(message);
-        this.name = 'fetchToncenterEmulationError';
-        this.response = response;
-    }
-}
-
-/**
- * Creates a transaction preview by emulating the transaction
- */
 export async function createTransactionPreview(
     client: ApiClient,
     request: TransactionRequest,
