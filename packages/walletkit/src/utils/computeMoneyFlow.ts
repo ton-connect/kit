@@ -13,8 +13,9 @@ import type {
 } from '../api/models/transactions/TransactionTraceMoneyFlow';
 import { AssetType } from '../api/models/core/AssetType';
 import { asMaybeAddressFriendly } from './address';
+import type { Hex } from '../api/models';
 
-const JETTON_TRANSFER_OPCODE = '0x0f8a7ea5';
+const JETTON_TRANSFER_OPCODE = '0x0f8a7ea5' as Hex;
 
 // pTON proxy contracts (STON.fi v1 and v2) — wrapped TON used in DEX swaps.
 // TON flow is already captured in outputs/inputs, so exclude these from ourTransfers.

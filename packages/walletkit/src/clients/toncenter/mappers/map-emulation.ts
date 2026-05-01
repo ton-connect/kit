@@ -26,6 +26,7 @@ import type {
     EmulationAddressBookEntry,
 } from '../../../api/models/emulation';
 import { Base64ToHex, asBase64 } from '../../../utils/base64';
+import { asHex } from '../../../utils/hex';
 import { asAddressFriendly, asMaybeAddressFriendly } from '../../../utils/address';
 
 function mapTraceNode(node: RawTraceNode): EmulationTraceNode {
@@ -112,7 +113,7 @@ function mapMessage(msg: RawMessage): EmulationMessage {
         ihrFee: msg.ihr_fee,
         createdLt: msg.created_lt,
         createdAt: msg.created_at !== null ? Number(msg.created_at) : null,
-        opcode: msg.opcode,
+        opcode: msg.opcode ? asHex(msg.opcode) : null,
         ihrDisabled: msg.ihr_disabled,
         isBounce: msg.bounce,
         isBounced: msg.bounced,

@@ -40,9 +40,9 @@ export interface EmulationMessage {
     value: TokenAmount | null;
 
     /**
-     * Extra currencies transferred with the message, or null for external inbound messages
+     * Extra currencies transferred with the message
      */
-    valueExtraCurrencies: ExtraCurrencies | null;
+    valueExtraCurrencies: ExtraCurrencies;
 
     /**
      * Forwarding fee in nanotons, or null for external inbound messages
@@ -66,9 +66,9 @@ export interface EmulationMessage {
     createdAt: number | null;
 
     /**
-     * Opcode encoded in the message body, if present
+     * Hex-encoded opcode from the message body, if present
      */
-    opcode: string | null;
+    opcode: Hex | null;
 
     /**
      * Whether IHR delivery is disabled, or null for external inbound messages

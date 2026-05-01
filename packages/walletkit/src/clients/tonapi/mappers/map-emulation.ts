@@ -49,7 +49,7 @@ function mapMessage(raw: TonApiMessage, kind: 'in' | 'out'): EmulationMessage {
         // ext_in messages don't have created_lt/created_at/ihr_disabled/bounce/bounced in TON protocol
         createdLt: isExternal ? null : raw.created_lt != null ? String(raw.created_lt) : null,
         createdAt: isExternal ? null : raw.created_at != null ? Number(raw.created_at) : null,
-        opcode: raw.op_code ?? null,
+        opcode: raw.op_code ? asHex(raw.op_code) : null,
         ihrDisabled: isExternal ? null : (raw.ihr_disabled ?? null),
         isBounce: isExternal ? null : (raw.bounce ?? null),
         isBounced: isExternal ? null : (raw.bounced ?? null),
