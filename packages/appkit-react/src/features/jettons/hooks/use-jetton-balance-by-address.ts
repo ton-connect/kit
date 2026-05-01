@@ -29,7 +29,7 @@ export type UseJettonBalanceByAddressReturnType<selectData = GetJettonBalanceByA
  * Hook to get jetton balance
  */
 export const useJettonBalanceByAddress = <selectData = GetJettonBalanceByAddressData>(
-    parameters: UseJettonBalanceByAddressParameters<selectData>,
+    parameters: UseJettonBalanceByAddressParameters<selectData> = {},
 ): UseJettonBalanceByAddressReturnType<selectData> => {
     const appKit = useAppKit();
 

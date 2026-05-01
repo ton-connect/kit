@@ -22,18 +22,19 @@ export type GetJettonBalanceErrorType = Error;
 
 export type GetJettonBalanceByAddressData = GetJettonBalanceQueryFnData;
 
-export type GetJettonBalanceByAddressQueryConfig<selectData = GetJettonBalanceByAddressData> =
-    GetJettonBalanceParameters &
-        QueryParameter<
-            GetJettonBalanceQueryFnData,
-            GetJettonBalanceErrorType,
-            selectData,
-            GetJettonBalanceByAddressQueryKey
-        >;
+export type GetJettonBalanceByAddressQueryConfig<selectData = GetJettonBalanceByAddressData> = Compute<
+    ExactPartial<GetJettonBalanceParameters>
+> &
+    QueryParameter<
+        GetJettonBalanceQueryFnData,
+        GetJettonBalanceErrorType,
+        selectData,
+        GetJettonBalanceByAddressQueryKey
+    >;
 
 export const getJettonBalanceByAddressQueryOptions = <selectData = GetJettonBalanceByAddressData>(
     appKit: AppKit,
-    initialOptions: GetJettonBalanceByAddressQueryConfig<selectData>,
+    initialOptions: GetJettonBalanceByAddressQueryConfig<selectData> = {},
 ): GetJettonBalanceByAddressQueryOptions<selectData> => {
     const network = resolveNetwork(appKit, initialOptions.network);
     const options = { ...initialOptions, network };
