@@ -14,7 +14,7 @@ import type { EmulationMessage } from './EmulationMessage';
 /**
  * Account status on the TON blockchain.
  */
-export type EmulationAccountStatus = 'active' | 'frozen' | 'uninit' | string;
+export type EmulationAccountStatus = 'active' | 'frozen' | 'uninit' | 'nonexist';
 
 /**
  * State of an account at a specific point in an emulated transaction.

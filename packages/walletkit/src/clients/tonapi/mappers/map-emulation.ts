@@ -17,6 +17,7 @@ import type {
     EmulationMessage,
     EmulationAction,
     EmulationAddressBookEntry,
+    EmulationAccountStatus,
 } from '../../../api/models/emulation';
 import type { Hex } from '../../../api/models';
 import { parseBlockRef, toHex } from './map-transactions';
@@ -64,9 +65,11 @@ function mapMessage(raw: TonApiMessage, kind: 'in' | 'out'): EmulationMessage {
     };
 }
 
-function mapAccountStatus(status: string | undefined): string {
-    if (!status || status === 'nonexist') return 'uninit';
-    return status;
+function mapAccountStatus(status: string | undefined): EmulationAccountStatus {
+    if (status === 'active') return 'active';
+    if (status === 'frozen') return 'frozen';
+    if (status === 'nonexist') return 'nonexist';
+    return 'uninit';
 }
 
 function normalizeTransactionType(type: string | undefined): string {

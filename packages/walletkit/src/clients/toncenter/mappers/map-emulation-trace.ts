@@ -32,6 +32,7 @@ import type {
     EmulationMessage as DomainEmulationMessage,
     EmulationAction as DomainEmulationAction,
     EmulationAddressBookEntry as DomainEmulationAddressBookEntry,
+    EmulationAccountStatus,
 } from '../../../api/models/emulation';
 import type {
     EmulationJettonSwapDetails,
@@ -69,18 +70,26 @@ function emulationAccountStateToAccountState(state: DomainEmulationAccountState)
         hash: state.hash ?? undefined,
         balance: state.balance,
         extraCurrencies: state.extraCurrencies ?? undefined,
-        accountStatus: stringToAccountStatus(state.accountStatus),
+        accountStatus: toAccountStatus(state.accountStatus),
         frozenHash: state.frozenHash ?? undefined,
         dataHash: state.dataHash ?? undefined,
         codeHash: state.codeHash ?? undefined,
     };
 }
 
-function stringToAccountStatus(status: string): AccountStatus {
-    if (status === 'active') return { type: 'active' };
-    if (status === 'frozen') return { type: 'frozen' };
-    if (status === 'uninit') return { type: 'uninit' };
-    return { type: 'unknown', value: status };
+function toAccountStatus(status: EmulationAccountStatus): AccountStatus {
+    switch (status) {
+        case 'active':
+            return { type: 'active' };
+        case 'frozen':
+            return { type: 'frozen' };
+        case 'uninit':
+            return { type: 'uninit' };
+        case 'nonexist':
+            return { type: 'nonexist' };
+        default:
+            return { type: 'unknown', value: status };
+    }
 }
 
 function emulationMsgToTransactionMessage(msg: DomainEmulationMessage): TransactionMessage {
@@ -170,8 +179,8 @@ function emulationTxToTransaction(tx: DomainEmulationTransaction): Transaction {
         traceId: tx.traceId,
         previousTransactionHash: tx.prevTransHash ?? undefined,
         previousTransactionLogicalTime: tx.prevTransLt ?? undefined,
-        origStatus: stringToAccountStatus(tx.origStatus),
-        endStatus: stringToAccountStatus(tx.endStatus),
+        origStatus: toAccountStatus(tx.origStatus),
+        endStatus: toAccountStatus(tx.endStatus),
         totalFees: tx.totalFees,
         totalFeesExtraCurrencies: tx.totalFeesExtraCurrencies,
         blockRef: tx.blockRef,

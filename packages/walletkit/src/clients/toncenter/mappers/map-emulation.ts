@@ -24,10 +24,18 @@ import type {
     EmulationMessage,
     EmulationAction,
     EmulationAddressBookEntry,
+    EmulationAccountStatus,
 } from '../../../api/models/emulation';
 import { Base64ToHex, asBase64 } from '../../../utils/base64';
 import { asHex } from '../../../utils/hex';
 import { asAddressFriendly, asMaybeAddressFriendly } from '../../../utils/address';
+
+function normalizeAccountStatus(status: string): EmulationAccountStatus {
+    if (status === 'active') return 'active';
+    if (status === 'frozen') return 'frozen';
+    if (status === 'nonexist') return 'nonexist';
+    return 'uninit';
+}
 
 function mapTraceNode(node: RawTraceNode): EmulationTraceNode {
     return {
@@ -42,7 +50,7 @@ function mapAccountState(state: RawAccountState): EmulationAccountState {
         hash: Base64ToHex(state.hash),
         balance: state.balance,
         extraCurrencies: state.extra_currencies,
-        accountStatus: state.account_status,
+        accountStatus: normalizeAccountStatus(state.account_status),
         frozenHash: state.frozen_hash ? Base64ToHex(state.frozen_hash) : null,
         dataHash: state.data_hash ? Base64ToHex(state.data_hash) : null,
         codeHash: state.code_hash ? Base64ToHex(state.code_hash) : null,
@@ -137,8 +145,8 @@ function mapTransaction(tx: RawTransaction): EmulationTransaction {
         traceExternalHash: Base64ToHex(tx.trace_external_hash),
         prevTransHash: tx.prev_trans_hash ? Base64ToHex(tx.prev_trans_hash) : null,
         prevTransLt: tx.prev_trans_lt,
-        origStatus: tx.orig_status,
-        endStatus: tx.end_status,
+        origStatus: normalizeAccountStatus(tx.orig_status),
+        endStatus: normalizeAccountStatus(tx.end_status),
         totalFees: tx.total_fees,
         totalFeesExtraCurrencies: tx.total_fees_extra_currencies,
         description: mapDescription(tx.description),
