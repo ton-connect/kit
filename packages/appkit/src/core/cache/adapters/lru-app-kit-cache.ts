@@ -20,19 +20,19 @@ export class LruAppKitCache implements AppKitCache {
         });
     }
 
-    get<T = unknown>(key: string): T | undefined {
+    async get<T = unknown>(key: string): Promise<T | undefined> {
         return this.cache.get(key)?.value as T | undefined;
     }
 
-    set(key: string, value: unknown): void {
+    async set(key: string, value: unknown): Promise<void> {
         this.cache.set(key, { value });
     }
 
-    remove(key: string): void {
+    async remove(key: string): Promise<void> {
         this.cache.delete(key);
     }
 
-    clear(): void {
+    async clear(): Promise<void> {
         this.cache.clear();
     }
 }

@@ -30,7 +30,7 @@ export const getJettonInfo = async (
     const network = resolveNetwork(appKit, options.network);
     const cacheKey = getJettonInfoCacheKey(address, network.chainId);
 
-    const cached = appKit.cache.get(cacheKey);
+    const cached = await appKit.cache.get(cacheKey);
     if (cached && isJettonInfo(cached)) return cached;
 
     const client = appKit.networkManager.getClient(network);
@@ -79,6 +79,7 @@ export const getJettonInfo = async (
         uri: tokenInfo?.extra?.uri,
     };
 
-    appKit.cache.set(cacheKey, result);
+    await appKit.cache.set(cacheKey, result);
+
     return result;
 };

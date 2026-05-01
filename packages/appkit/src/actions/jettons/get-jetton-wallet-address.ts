@@ -34,14 +34,14 @@ export const getJettonWalletAddress = async (
 
     const cacheKey = getJettonWalletCacheKey(network.chainId, ownerAddress, jettonAddress);
 
-    const cached = appKit.cache.get(cacheKey);
+    const cached = await appKit.cache.get(cacheKey);
     if (cached && isFriendlyTonAddress(cached)) {
         return cached;
     }
 
     const client = appKit.networkManager.getClient(network);
     const jettonWalletAddress = await getJettonWalletAddressFromClient(client, jettonAddress, ownerAddress);
-    appKit.cache.set(cacheKey, jettonWalletAddress);
+    await appKit.cache.set(cacheKey, jettonWalletAddress);
 
     return jettonWalletAddress;
 };

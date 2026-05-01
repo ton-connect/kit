@@ -11,67 +11,67 @@ import { describe, expect, it } from 'vitest';
 import { LruAppKitCache } from './lru-app-kit-cache';
 
 describe('LruAppKitCache', () => {
-    it('should return undefined for a missing key', () => {
+    it('should return undefined for a missing key', async () => {
         const cache = new LruAppKitCache();
-        expect(cache.get('missing')).toBeUndefined();
+        expect(await cache.get('missing')).toBeUndefined();
     });
 
-    it('should store and retrieve a value', () => {
+    it('should store and retrieve a value', async () => {
         const cache = new LruAppKitCache();
-        cache.set('key', 'value');
-        expect(cache.get('key')).toBe('value');
+        await cache.set('key', 'value');
+        expect(await cache.get('key')).toBe('value');
     });
 
-    it('should store and retrieve null', () => {
+    it('should store and retrieve null', async () => {
         const cache = new LruAppKitCache();
-        cache.set('key', null);
-        expect(cache.get('key')).toBeNull();
+        await cache.set('key', null);
+        expect(await cache.get('key')).toBeNull();
     });
 
-    it('should store and retrieve an object', () => {
+    it('should store and retrieve an object', async () => {
         const cache = new LruAppKitCache();
         const obj = { address: 'EQabc', name: 'Test', decimals: 6 };
-        cache.set('key', obj);
-        expect(cache.get('key')).toEqual(obj);
+        await cache.set('key', obj);
+        expect(await cache.get('key')).toEqual(obj);
     });
 
-    it('should overwrite an existing value', () => {
+    it('should overwrite an existing value', async () => {
         const cache = new LruAppKitCache();
-        cache.set('key', 'first');
-        cache.set('key', 'second');
-        expect(cache.get('key')).toBe('second');
+        await cache.set('key', 'first');
+        await cache.set('key', 'second');
+        expect(await cache.get('key')).toBe('second');
     });
 
-    it('should remove a key', () => {
+    it('should remove a key', async () => {
         const cache = new LruAppKitCache();
-        cache.set('key', 'value');
-        cache.remove('key');
-        expect(cache.get('key')).toBeUndefined();
+        await cache.set('key', 'value');
+        await cache.remove('key');
+        expect(await cache.get('key')).toBeUndefined();
     });
 
-    it('should clear all keys', () => {
+    it('should clear all keys', async () => {
         const cache = new LruAppKitCache();
-        cache.set('a', 1);
-        cache.set('b', 2);
-        cache.clear();
-        expect(cache.get('a')).toBeUndefined();
-        expect(cache.get('b')).toBeUndefined();
+        await cache.set('a', 1);
+        await cache.set('b', 2);
+        await cache.clear();
+        expect(await cache.get('a')).toBeUndefined();
+        expect(await cache.get('b')).toBeUndefined();
     });
 
-    it('should evict entries when max is exceeded', () => {
+    it('should evict entries when max is exceeded', async () => {
         const cache = new LruAppKitCache({ max: 2 });
-        cache.set('a', 1);
-        cache.set('b', 2);
-        cache.set('c', 3);
-        expect(cache.get('a')).toBeUndefined();
-        expect(cache.get('b')).toBe(2);
-        expect(cache.get('c')).toBe(3);
+        await cache.set('a', 1);
+        await cache.set('b', 2);
+        await cache.set('c', 3);
+        expect(await cache.get('a')).toBeUndefined();
+        expect(await cache.get('b')).toBe(2);
+        expect(await cache.get('c')).toBe(3);
     });
 
     it('should expire entries after ttl', async () => {
         const cache = new LruAppKitCache({ ttl: 10 });
-        cache.set('key', 'value');
+        await cache.set('key', 'value');
         await new Promise((resolve) => setTimeout(resolve, 20));
-        expect(cache.get('key')).toBeUndefined();
+        expect(await cache.get('key')).toBeUndefined();
     });
 });
