@@ -7,6 +7,7 @@
  */
 
 import { toTransactionEmulatedTrace } from '../clients/toncenter/mappers/map-emulation-trace';
+import { computeMoneyFlow } from './computeMoneyFlow';
 import type { EmulationResponse } from '../api/models/emulation';
 import { ERROR_CODES } from '../errors/codes';
 import { CallForSuccess } from './retry';
@@ -113,6 +114,6 @@ export async function createTransactionPreview(
     return {
         result: Result.success,
         trace: toTransactionEmulatedTrace(emulationResult),
-        moneyFlow: emulationResult.moneyFlow,
+        moneyFlow: computeMoneyFlow(emulationResult),
     };
 }

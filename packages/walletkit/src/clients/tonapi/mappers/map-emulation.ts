@@ -8,7 +8,7 @@
 
 import type { TonApiMessage, TonApiAccountRef } from '../types/transactions';
 import type { TonApiTrace } from '../types/traces';
-import type { TonApiMessageConsequences, TonApiRisk } from '../types/emulation';
+import type { TonApiMessageConsequences } from '../types/emulation';
 import type { TonApiAction, TonApiAccountEvent } from '../types/events';
 import type {
     EmulationResponse,
@@ -18,11 +18,6 @@ import type {
     EmulationAction,
     EmulationAddressBookEntry,
 } from '../../../api/models/emulation';
-import type {
-    TransactionTraceMoneyFlow,
-    TransactionTraceMoneyFlowItem,
-} from '../../../api/models/transactions/TransactionTraceMoneyFlow';
-import { AssetType } from '../../../api/models/core/AssetType';
 import { parseBlockRef, toHex } from './map-transactions';
 import { asAddressFriendly, asMaybeAddressFriendly } from '../../../utils/address';
 
@@ -342,70 +337,6 @@ function mapAction(action: TonApiAction, event: TonApiAccountEvent, rootHash: st
     };
 }
 
-function buildJettonRecipientMap(actions: TonApiAction[]): Map<string, string> {
-    const result = new Map<string, string>();
-    for (const action of actions) {
-        if (action.type !== 'JettonTransfer') continue;
-        const payload = action['JettonTransfer'] as Record<string, unknown> | undefined;
-        if (!payload) continue;
-        const jetton = payload.jetton as { address?: string } | undefined;
-        const recipient = payload.recipient as { address?: string } | undefined;
-        if (jetton?.address && recipient?.address) {
-            result.set(jetton.address, recipient.address);
-        }
-    }
-    return result;
-}
-
-function computeMoneyFlow(
-    risk: TonApiRisk,
-    ourAddress: string,
-    transactions: Record<string, EmulationTransaction>,
-    actions: TonApiAction[],
-): TransactionTraceMoneyFlow {
-    const ourFriendly = asAddressFriendly(ourAddress);
-    const jettonRecipients = buildJettonRecipientMap(actions);
-
-    let inputs = 0n;
-    for (const tx of Object.values(transactions)) {
-        if (tx.account === ourFriendly && tx.inMsg?.value) {
-            inputs += BigInt(tx.inMsg.value);
-        }
-    }
-
-    const allJettonTransfers: TransactionTraceMoneyFlowItem[] = risk.jettons.map((jq) => {
-        const friendlyTokenAddress = asMaybeAddressFriendly(jq.jetton.address) ?? undefined;
-        const recipientRaw = jettonRecipients.get(jq.jetton.address);
-        return {
-            assetType: AssetType.jetton,
-            tokenAddress: friendlyTokenAddress,
-            fromAddress: ourFriendly,
-            toAddress: recipientRaw ? (asMaybeAddressFriendly(recipientRaw) ?? undefined) : undefined,
-            amount: jq.quantity,
-        };
-    });
-
-    const outputs = BigInt(risk.ton);
-    const netTon = inputs - outputs;
-
-    const ourTransfers: TransactionTraceMoneyFlowItem[] = [
-        { assetType: AssetType.ton, amount: netTon.toString() },
-        ...risk.jettons.map((jq) => ({
-            assetType: AssetType.jetton,
-            tokenAddress: asMaybeAddressFriendly(jq.jetton.address) ?? undefined,
-            amount: (-BigInt(jq.quantity)).toString(),
-        })),
-    ];
-
-    return {
-        outputs: outputs.toString(),
-        inputs: inputs.toString(),
-        allJettonTransfers,
-        ourTransfers,
-        ourAddress: ourFriendly,
-    };
-}
-
 export function mapTonApiEmulationResponse(result: TonApiMessageConsequences): EmulationResponse {
     const rootTxHash = toHex(result.trace.transaction.hash);
     // Use the external in_msg hash as the trace identifier — matches Toncenter's traceExternalHash convention.
@@ -428,11 +359,5 @@ export function mapTonApiEmulationResponse(result: TonApiMessageConsequences): E
         codeCells: {},
         dataCells: {},
         addressBook: buildAddressBook(allTraces),
-        moneyFlow: computeMoneyFlow(
-            result.risk,
-            result.event.account.address,
-            transactions,
-            result.event.actions ?? [],
-        ),
     };
 }

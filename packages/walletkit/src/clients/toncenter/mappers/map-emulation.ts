@@ -26,7 +26,6 @@ import type {
 } from '../../../api/models/emulation';
 import { Base64ToHex } from '../../../utils/base64';
 import { asAddressFriendly, asMaybeAddressFriendly } from '../../../utils/address';
-import { computeMoneyFlow } from './map-emulation-money-flow';
 
 function mapTraceNode(node: RawTraceNode): EmulationTraceNode {
     return {
@@ -205,6 +204,5 @@ export function mapToncenterEmulationResponse(raw: ToncenterEmulationResponse): 
         codeCells,
         dataCells,
         addressBook,
-        moneyFlow: computeMoneyFlow(raw),
     };
 }
