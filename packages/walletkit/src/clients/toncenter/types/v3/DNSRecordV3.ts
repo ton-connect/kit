@@ -6,8 +6,8 @@
  *
  */
 
-import type { DnsRecord } from '../DnsRecord';
-import { asAddressFriendly, asMaybeAddressFriendly } from '../../../utils/address';
+import type { DnsRecord } from '../dns';
+import { asAddressFriendly, asMaybeAddressFriendly } from '../../../../utils/address';
 
 export interface DNSRecordV3 {
     dns_next_resolver: string | null;

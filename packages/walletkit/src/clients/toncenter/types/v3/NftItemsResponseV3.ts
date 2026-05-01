@@ -7,15 +7,15 @@
  */
 
 import type { NftItemV3 } from './NftItemV3';
-import type { AddressBookRowV3 } from './AddressBookRowV3';
+import type { AddressBookRowV3 } from '../../../../types/toncenter/v3/AddressBookRowV3';
 import type { AddressMetadataV3 } from './AddressMetadataV3';
 import { toNftItem } from './NftItemV3';
-import { asAddressFriendly } from '../../../utils';
+import { asAddressFriendly } from '../../../../utils';
 import { toTokenInfo } from './NftTokenInfoV3';
-import type { NftMetadata } from '../NftMetadata';
+import type { NftMetadata } from '../nfts';
 import { tokenMetaToNftCollection } from './NFTCollectionV3';
-import type { UserFriendlyAddress, NFTsResponse, NFTCollection } from '../../../api/models';
-import { toApiTokenInfo } from '../TokenInfo';
+import type { UserFriendlyAddress, NFTsResponse, NFTCollection } from '../../../../api/models';
+import { toApiTokenInfo } from '../nfts';
 
 export interface NftItemsResponseV3 {
     address_book?: { [key: string]: AddressBookRowV3 };

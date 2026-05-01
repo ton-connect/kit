@@ -123,6 +123,7 @@ export type AccountStatus =
     | { type: 'active' }
     | { type: 'frozen' }
     | { type: 'uninit' }
+    | { type: 'nonexist' }
     | { type: 'unknown'; value: string };
 
 /**

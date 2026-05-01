@@ -7,10 +7,10 @@
  */
 
 import { toAccount } from '../../../types/toncenter/AccountEvent';
-import type { TonApiAccountEvent, TonApiAccountRef } from '../types/events';
+import type { TonApiAccountEvent, TonApiSimplePreviewAccount } from '../types/events';
 import { toHex } from './map-transactions';
 
-export function normalizeTonApiAccountAddress(account: TonApiAccountRef): string {
+export function normalizeTonApiAccountAddress(account: TonApiSimplePreviewAccount): string {
     if (typeof account === 'string') {
         return account;
     }
@@ -20,7 +20,7 @@ export function normalizeTonApiAccountAddress(account: TonApiAccountRef): string
 export function mapTonApiEvent(raw: TonApiAccountEvent) {
     return {
         eventId: toHex(raw.event_id),
-        account: toAccount(raw.account, {}),
+        account: toAccount(raw.account.address, {}),
         timestamp: Number(raw.timestamp ?? 0),
         actions: (raw.actions ?? []).map((action) => {
             const status: 'success' | 'failure' = action.status === 'failed' ? 'failure' : 'success';

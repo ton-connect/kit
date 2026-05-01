@@ -25,12 +25,21 @@ export function mapTraceStatus(status: string | undefined): 'active' | 'frozen' 
     return status;
 }
 
-export function flattenTrace(trace: TonApiTrace): TonApiTransaction[] {
-    const out: TonApiTransaction[] = [trace.transaction];
+export function flattenTrace(trace: TonApiTrace): TonApiTrace[] {
+    const out: TonApiTrace[] = [trace];
     for (const child of trace.children ?? []) {
         out.push(...flattenTrace(child));
     }
     return out;
+}
+
+function resolveOutMsgs(node: TonApiTrace): TonApiTransaction {
+    const raw = node.transaction;
+    if (raw.out_msgs && raw.out_msgs.length > 0) return raw;
+    const childInMsgs = (node.children ?? [])
+        .map((c) => c.transaction.in_msg)
+        .filter((m): m is NonNullable<typeof m> => m != null);
+    return { ...raw, out_msgs: childInMsgs };
 }
 
 export function mapTonApiTraceNode(trace: TonApiTrace): EmulationTraceNode {
@@ -94,7 +103,7 @@ export function mapTonApiTraceTransaction(raw: TonApiTransaction): ToncenterTran
             type: raw.transaction_type ?? 'ord',
             aborted: raw.aborted ?? !(raw.success ?? true),
             destroyed: raw.destroyed ?? false,
-            credit_first: false,
+            credit_first: !raw.in_msg?.bounce,
             is_tock: false,
             installed: false,
             storage_ph: {
@@ -172,14 +181,19 @@ export function mapTonApiTrace(
     trace: TonApiTrace,
     mapTraceTransaction: (tx: TonApiTransaction) => ToncenterTransaction,
 ): ToncenterTracesResponse {
-    const traceTransactions = flattenTrace(trace);
-    const transactions = Object.fromEntries(traceTransactions.map((tx) => [tx.hash, mapTraceTransaction(tx)]));
-    const transactionsOrder = [...traceTransactions]
-        .sort((a, b) => (BigInt(a.lt ?? 0) < BigInt(b.lt ?? 0) ? -1 : 1))
-        .map((tx) => tx.hash);
+    const traceNodes = flattenTrace(trace);
+    const transactions = Object.fromEntries(
+        traceNodes.map((node) => {
+            const tx = resolveOutMsgs(node);
+            return [tx.hash, mapTraceTransaction(tx)];
+        }),
+    );
+    const transactionsOrder = [...traceNodes]
+        .sort((a, b) => (BigInt(a.transaction.lt ?? 0) < BigInt(b.transaction.lt ?? 0) ? -1 : 1))
+        .map((node) => node.transaction.hash);
 
-    const lts = traceTransactions.map((tx) => BigInt(tx.lt ?? 0));
-    const times = traceTransactions.map((tx) => Number(tx.utime ?? 0));
+    const lts = traceNodes.map((node) => BigInt(node.transaction.lt ?? 0));
+    const times = traceNodes.map((node) => Number(node.transaction.utime ?? 0));
 
     const startLt = lts.length > 0 ? lts.reduce((min, value) => (value < min ? value : min), lts[0]) : 0n;
     const endLt = lts.length > 0 ? lts.reduce((max, value) => (value > max ? value : max), lts[0]) : 0n;
@@ -187,9 +201,10 @@ export function mapTonApiTrace(
     const endUtime = times.length > 0 ? Math.max(...times) : 0;
 
     const traceId = trace.transaction.hash;
-    const rootTx = mapTraceTransaction(trace.transaction);
-    const messagesCount = traceTransactions.reduce(
-        (acc, tx) => acc + (tx.in_msg ? 1 : 0) + (tx.out_msgs?.length ?? 0),
+    const rootTx = mapTraceTransaction(resolveOutMsgs(trace));
+    const messagesCount = traceNodes.reduce(
+        (acc, node) =>
+            acc + (node.transaction.in_msg ? 1 : 0) + (node.transaction.out_msgs?.length ?? node.children?.length ?? 0),
         0,
     );
 
@@ -214,7 +229,7 @@ export function mapTonApiTrace(
                     messages: messagesCount,
                     pending_messages: 0,
                     trace_state: 'complete',
-                    transactions: traceTransactions.length,
+                    transactions: traceNodes.length,
                 },
                 transactions,
                 transactions_order: transactionsOrder,

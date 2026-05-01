@@ -6,7 +6,8 @@
  *
  */
 
-import type { UserFriendlyAddress } from '../../api/models';
+import type { UserFriendlyAddress } from '../../../api/models';
+import type { AddressBookRow } from './nfts';
 
 export interface DnsRecord {
     dnsNextResolver: string | null;
@@ -16,4 +17,9 @@ export interface DnsRecord {
     domain: string;
     nftItemAddress: UserFriendlyAddress;
     nftItemOwner: UserFriendlyAddress;
+}
+
+export interface DnsRecords {
+    addressBook: { [key: string]: AddressBookRow };
+    records: DnsRecord[];
 }

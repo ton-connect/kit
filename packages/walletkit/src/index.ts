@@ -49,7 +49,7 @@ export { LocalStorageAdapter } from './storage/adapters/local';
 export { MemoryStorageAdapter } from './storage/adapters/memory';
 export { ExtensionStorageAdapter } from './storage/adapters/extension';
 export { Storage } from './storage/Storage';
-export type { ApiClient } from './types/toncenter/ApiClient';
+export type { ApiClient } from './api/interfaces/ApiClient';
 export { formatWalletAddress } from './utils/address';
 export { CallForSuccess } from './utils/retry';
 export { createWalletId } from './utils/walletId';
@@ -121,9 +121,9 @@ export type {
     GetJettonsByAddressRequest,
     GetEventsRequest,
     GetEventsResponse,
-} from './types/toncenter/ApiClient';
+} from './api/interfaces/ApiClient';
 export type { FullAccountState } from './types/toncenter/api';
-export type { ToncenterEmulationResult } from './utils/toncenterEmulation';
+export type { EmulationResult } from './api/models/emulation';
 export type { ToncenterResponseJettonMasters } from './types/toncenter/emulation';
 export { asHex } from './utils/hex';
 export {

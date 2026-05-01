@@ -6,8 +6,7 @@
  *
  */
 
-import type { NftItemAttribute } from '../NftItem';
-import type { TokenInfo } from '../TokenInfo';
+import type { NftItemAttribute, TokenInfo } from '../nfts';
 
 export interface NftTokenInfoV3 {
     description?: string;
@@ -41,7 +40,6 @@ export function toTokenInfo(data: NftTokenInfoV3): TokenInfo {
         extra: data.extra,
         animation: data?.extra?.animation_url,
     };
-    // Extract lottie from extra if it exists, or use direct lottie field
     if (data.lottie) {
         result.lottie = data.lottie;
     } else if (data.extra && typeof data.extra === 'object' && 'lottie' in data.extra) {

@@ -9,7 +9,7 @@
 import type { Address, Contract, Sender, ContractProvider, AccountStatus } from '@ton/core';
 import { beginCell, Cell, contractAddress, Dictionary, SendMode } from '@ton/core';
 
-import type { ApiClient } from '../../types/toncenter/ApiClient';
+import type { ApiClient } from '../../api/interfaces/ApiClient';
 import type { WalletOptions } from '../Wallet';
 import { defaultWalletIdV5R1 } from './WalletV5R1Adapter';
 import { ParseStack } from '../../utils/tvmStack';

@@ -6,17 +6,5 @@
  *
  */
 
-/**
- * Public API for message parsing with extensible architecture
- */
-
-// Core modules
 export * from './opcodes';
-export * from './messageDecoder';
-export * from './messageHandler';
-
-// Handlers
-export { JettonTransferHandler, JettonInternalTransferHandler } from './handlers/JettonHandler';
-
-// Legacy exports for backwards compatibility
 export { getDecoded, extractOpFromBody, matchOpWithMap } from './body';

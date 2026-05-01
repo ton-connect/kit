@@ -19,7 +19,7 @@ import type {
     TransactionsResponse,
     JettonsResponse,
     FullAccountState,
-    ToncenterEmulationResult,
+    EmulationResult,
     ToncenterResponseJettonMasters,
     ToncenterTracesResponse,
     TransactionsByAddressRequest,
@@ -62,7 +62,7 @@ export class SwiftAPIClientAdapter implements ApiClient {
         throw new Error('nftItemsByOwner is not implemented yet');
     }
 
-    async fetchEmulation(_messageBoc: Base64String, _ignoreSignature?: boolean): Promise<ToncenterEmulationResult> {
+    async fetchEmulation(_messageBoc: Base64String, _ignoreSignature?: boolean): Promise<EmulationResult> {
         throw new Error('fetchEmulation is not implemented yet');
     }
 

@@ -17,6 +17,3 @@
 
 ## `nftItemsByOwner`
 - ❌ No `codeHash`, `dataHash` for items and collections
-
-## Not implemented
-- `fetchEmulation`
