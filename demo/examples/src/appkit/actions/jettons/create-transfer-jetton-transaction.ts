@@ -16,7 +16,6 @@ export const createTransferJettonTransactionExample = async (appKit: AppKit) => 
         recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
         amount: '100', // 100 USDT
         comment: 'Hello Jetton',
-        jettonDecimals: 6,
     });
     console.log('Transfer Transaction:', tx);
     // SAMPLE_END: CREATE_TRANSFER_JETTON_TRANSACTION
