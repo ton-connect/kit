@@ -21,9 +21,6 @@ import type {
     TransactionEmulatedTrace,
     UserFriendlyAddress,
     AddressBook,
-} from '../../../api/models';
-import { asMaybeAddressFriendly } from '../../../utils/address';
-import type {
     EmulationResponse,
     EmulationTraceNode as DomainEmulationTraceNode,
     EmulationTransaction as DomainEmulationTransaction,
@@ -33,7 +30,8 @@ import type {
     EmulationAction as DomainEmulationAction,
     EmulationAddressBookEntry as DomainEmulationAddressBookEntry,
     EmulationAccountStatus,
-} from '../../../api/models/emulation';
+} from '../../../api/models';
+import { asMaybeAddressFriendly } from '../../../utils/address';
 import type {
     EmulationJettonSwapDetails,
     EmulationCallContractDetails,

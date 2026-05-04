@@ -12,7 +12,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 
 import { clearAllMocks, mocked } from '../../../mock.config';
 import { WalletV5R1Adapter } from './WalletV5R1Adapter';
-import type { ApiClient } from '../../api/interfaces/ApiClient';
+import type { ApiClient } from '../../api/interfaces';
 import type { FullAccountState } from '../../types/toncenter/api';
 import { HexToBase64, Uint8ArrayToHex } from '../../utils/base64';
 import { Signer } from '../../utils/Signer';

@@ -6,7 +6,7 @@
  *
  */
 
-import type { EmulationResponse } from '../api/models/emulation';
+import type { EmulationResponse } from '../api/models';
 import type {
     TransactionTraceMoneyFlow,
     TransactionTraceMoneyFlowItem,

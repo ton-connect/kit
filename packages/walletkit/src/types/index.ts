@@ -65,20 +65,6 @@ export type {
 
 export type { FullAccountState } from './toncenter/api';
 
-export type { MasterchainInfo } from '../api/models';
-
-export type {
-    TransactionsByAddressRequest,
-    GetTransactionByHashRequest,
-    GetPendingTransactionsRequest,
-    GetTraceRequest,
-    GetPendingTraceRequest,
-    GetJettonsByOwnerRequest,
-    GetJettonsByAddressRequest,
-    GetEventsRequest,
-    GetEventsResponse,
-} from '../api/interfaces/ApiClient';
-
 export type { NftItem, NftItems } from '../clients/toncenter/types/nfts';
 export { emulationEvent, toEvent, toAddressBook } from './toncenter/AccountEvent';
 

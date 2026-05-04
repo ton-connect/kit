@@ -10,7 +10,7 @@ import { Address, beginCell } from '@ton/core';
 
 import { isValidAddress, asAddressFriendly } from './address';
 import { ParseStack, SerializeStack } from './tvmStack';
-import type { ApiClient } from '../api/interfaces/ApiClient';
+import type { ApiClient } from '../api/interfaces';
 import type {
     JettonsRequest,
     JettonsResponse,

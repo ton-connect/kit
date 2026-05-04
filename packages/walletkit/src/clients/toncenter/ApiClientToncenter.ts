@@ -24,7 +24,7 @@ import type {
     TransactionsByAddressRequest,
     GetEventsResponse,
     GetEventsRequest,
-} from '../../api/interfaces/ApiClient';
+} from '../../api/interfaces';
 import type { NftItemsResponseV3 } from './types/v3/NftItemsResponseV3';
 import { toNftItemsResponse } from './types/v3/NftItemsResponseV3';
 import type { ToncenterTracesResponse, ToncenterTransactionsResponse } from '../../types/toncenter/emulation';
@@ -52,7 +52,7 @@ import type {
     MasterchainInfo,
 } from '../../api/models';
 import { asAddressFriendly } from '../../utils/address';
-import type { EmulationResult } from '../../api/models/emulation';
+import type { EmulationResult } from '../../api/models';
 import { mapToncenterEmulationResponse } from './mappers/map-emulation';
 import { BaseApiClient } from '../BaseApiClient';
 import type { BaseApiClientConfig } from '../BaseApiClient';

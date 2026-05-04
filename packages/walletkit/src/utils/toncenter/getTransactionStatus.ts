@@ -6,7 +6,7 @@
  *
  */
 
-import type { ApiClient } from '../../api/interfaces/ApiClient';
+import type { ApiClient } from '../../api/interfaces';
 import type { TransactionStatusResponse } from '../../api/models';
 import { getNormalizedExtMessageHash } from '../getNormalizedExtMessageHash';
 import { parseTraceResponse } from './parseTraceResponse';

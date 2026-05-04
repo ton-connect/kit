@@ -24,7 +24,7 @@ import type {
     GetMethodResult,
     MasterchainInfo,
 } from '../models';
-import type { EmulationResult } from '../models/emulation';
+import type { EmulationResult } from '../models';
 
 export interface LimitRequest {
     limit?: number;

@@ -27,7 +27,7 @@ import { PoolContract } from './PoolContract';
 import { StakingCache } from './StakingCache';
 import { ApiClientTonApi } from '../../../clients/tonapi/ApiClientTonApi';
 import { formatUnits, parseUnits } from '../../../utils/units';
-import type { ApiClient } from '../../../api/interfaces/ApiClient';
+import type { ApiClient } from '../../../api/interfaces';
 import type { UnstakeModes } from '../../../api/models/staking/UnstakeMode';
 
 const log = globalLogger.createChild('TonStakersStakingProvider');

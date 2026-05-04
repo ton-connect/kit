@@ -9,10 +9,10 @@
 import { Dictionary } from '@ton/core';
 
 import { mockFn } from '../../../mock.config';
-import type { ApiClient, GetEventsResponse } from '../../api/interfaces/ApiClient';
+import type { ApiClient, GetEventsResponse } from '../../api/interfaces';
 import type { FullAccountState } from '../../types/toncenter/api';
-import type { MasterchainInfo, ToncenterTracesResponse } from '../../types';
-import type { EmulationResponse } from '../../api/models/emulation';
+import type { ToncenterTracesResponse } from '../../types';
+import type { EmulationResponse, MasterchainInfo } from '../../api/models';
 import type { ResponseUserJettons } from '../../types/export/responses/jettons';
 import type { NftItemsResponse } from '../../clients/toncenter/types/nfts';
 import type { WalletV5R1Id } from './WalletV5R1';

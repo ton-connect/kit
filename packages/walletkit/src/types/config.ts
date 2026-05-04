@@ -12,7 +12,7 @@ import type { StorageAdapter, StorageConfig } from '../storage';
 import type { EventProcessorConfig } from '../core/EventProcessor';
 import type { DeviceInfo, WalletInfo } from './jsBridge';
 import type { BridgeConfig } from './internal';
-import type { ApiClient } from '../api/interfaces/ApiClient';
+import type { ApiClient } from '../api/interfaces';
 import type { AnalyticsManagerOptions } from '../analytics';
 import type { TONConnectSessionManager } from '../api/interfaces';
 

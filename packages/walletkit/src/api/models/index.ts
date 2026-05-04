@@ -54,6 +54,31 @@ export type {
 export type { RequestErrorEvent } from './bridge/RequestErrorEvent';
 export type { TONConnectSession } from './sessions/TONConnectSession';
 
+// Emulation models
+export type { EmulationAction } from './emulation/EmulationAction';
+export type { EmulationAddressBookEntry } from './emulation/EmulationAddressBookEntry';
+export type { EmulationMessage, EmulationMessageContent } from './emulation/EmulationMessage';
+export type { EmulationResponse } from './emulation/EmulationResponse';
+export type {
+    EmulationResult,
+    EmulationResultSuccess,
+    EmulationResultError,
+    EmulationError,
+} from './emulation/EmulationResult';
+export type { EmulationTraceNode } from './emulation/EmulationTraceNode';
+export type {
+    EmulationTransaction,
+    EmulationAccountState,
+    EmulationAccountStatus,
+    EmulationBlockRef,
+    EmulationTransactionDescription,
+    EmulationStoragePhase,
+    EmulationCreditPhase,
+    EmulationComputePhase,
+    EmulationActionPhase,
+    EmulationActionMessageSize,
+} from './emulation/EmulationTransaction';
+
 // Jetton models
 export type { Jetton } from './jettons/Jetton';
 export type { JettonsRequest } from './jettons/JettonsRequest';

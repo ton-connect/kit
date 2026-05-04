@@ -8,13 +8,13 @@
 
 import { toTransactionEmulatedTrace } from '../clients/toncenter/mappers/map-emulation-trace';
 import { computeMoneyFlow } from './computeMoneyFlow';
-import type { EmulationResponse } from '../api/models/emulation';
+import type { EmulationResponse } from '../api/models';
 import { ERROR_CODES } from '../errors/codes';
 import { CallForSuccess } from './retry';
 import type { TransactionEmulatedPreview, TransactionRequest } from '../api/models';
 import { Result } from '../api/models';
 import type { Wallet } from '../api/interfaces';
-import type { ApiClient } from '../api/interfaces/ApiClient';
+import type { ApiClient } from '../api/interfaces';
 
 export async function createTransactionPreview(
     client: ApiClient,

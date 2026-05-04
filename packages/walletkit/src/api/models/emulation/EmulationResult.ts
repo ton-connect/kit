@@ -9,22 +9,32 @@
 import type { EmulationResponse } from './EmulationResponse';
 
 /**
+ * Successful outcome of a transaction emulation attempt.
+ * Contains the full emulation response including trace and actions.
+ */
+export type EmulationResultSuccess = {
+    /** Discriminant tag indicating a successful emulation */
+    result: 'success';
+    /** The emulation response data including trace, actions, and messages */
+    emulationResult: EmulationResponse;
+};
+
+/**
+ * Failed outcome of a transaction emulation attempt.
+ * Contains the error code and message describing why emulation could not complete.
+ */
+export type EmulationResultError = {
+    /** Discriminant tag indicating a failed emulation */
+    result: 'error';
+    /** Details of the error that caused emulation to fail */
+    emulationError: EmulationError;
+};
+
+/**
  * Result of a transaction emulation attempt.
  * @discriminator result
  */
-export type EmulationResult =
-    | {
-          /** Emulation completed successfully */
-          result: 'success';
-          /** The emulation response data */
-          emulationResult: EmulationResponse;
-      }
-    | {
-          /** Emulation failed */
-          result: 'error';
-          /** Error details */
-          emulationError: EmulationError;
-      };
+export type EmulationResult = EmulationResultSuccess | EmulationResultError;
 
 /**
  * Error returned when transaction emulation fails.

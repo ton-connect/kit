@@ -8,7 +8,7 @@
 
 import type { Cell } from '@ton/core';
 
-import type { ApiClient } from '../api/interfaces/ApiClient';
+import type { ApiClient } from '../api/interfaces';
 
 export type WalletOptions = {
     code: Cell;

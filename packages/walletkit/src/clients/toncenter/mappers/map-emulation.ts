@@ -25,7 +25,7 @@ import type {
     EmulationAction,
     EmulationAddressBookEntry,
     EmulationAccountStatus,
-} from '../../../api/models/emulation';
+} from '../../../api/models';
 import { Base64ToHex, asBase64 } from '../../../utils/base64';
 import { asHex } from '../../../utils/hex';
 import { asAddressFriendly, asMaybeAddressFriendly } from '../../../utils/address';

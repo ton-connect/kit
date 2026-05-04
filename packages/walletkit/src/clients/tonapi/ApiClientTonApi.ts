@@ -19,7 +19,7 @@ import type {
     GetTraceRequest,
     GetTransactionByHashRequest,
     TransactionsByAddressRequest,
-} from '../../api/interfaces/ApiClient';
+} from '../../api/interfaces';
 import { Network } from '../../api/models';
 import type {
     Base64String,
@@ -34,7 +34,7 @@ import type {
     UserFriendlyAddress,
     UserNFTsRequest,
 } from '../../api/models';
-import type { EmulationResult } from '../../api/models/emulation';
+import type { EmulationResult } from '../../api/models';
 import type { FullAccountState } from '../../types/toncenter/api';
 import type { ToncenterTracesResponse } from '../../types/toncenter/emulation';
 import type { ToncenterResponseJettonMasters } from '../toncenter/types/jettons';

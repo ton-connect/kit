@@ -18,8 +18,8 @@ import type {
     EmulationAction,
     EmulationAddressBookEntry,
     EmulationAccountStatus,
-} from '../../../api/models/emulation';
-import type { Hex } from '../../../api/models';
+    Hex,
+} from '../../../api/models';
 import { parseBlockRef, toHex } from './map-transactions';
 import { asHex } from '../../../utils/hex';
 import { asAddressFriendly, asMaybeAddressFriendly } from '../../../utils/address';

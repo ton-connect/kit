@@ -42,7 +42,7 @@ import { EventEmitter } from './EventEmitter';
 import type { StorageEventProcessor } from './EventProcessor';
 import type { BridgeManager } from './BridgeManager';
 import type { BridgeEventMessageInfo, InjectedToExtensionBridgeRequestPayload } from '../types/jsBridge';
-import type { ApiClient } from '../api/interfaces/ApiClient';
+import type { ApiClient } from '../api/interfaces';
 import { StreamingManager } from '../streaming/StreamingManager';
 import type { WalletKitEvents, WalletKitEventEmitter } from '../types/emitter';
 import { AnalyticsManager } from '../analytics';

@@ -49,7 +49,6 @@ export { LocalStorageAdapter } from './storage/adapters/local';
 export { MemoryStorageAdapter } from './storage/adapters/memory';
 export { ExtensionStorageAdapter } from './storage/adapters/extension';
 export { Storage } from './storage/Storage';
-export type { ApiClient } from './api/interfaces/ApiClient';
 export { formatWalletAddress } from './utils/address';
 export { CallForSuccess } from './utils/retry';
 export { createWalletId } from './utils/walletId';
@@ -110,20 +109,7 @@ export { RESTORE_CONNECTION_TIMEOUT, DEFAULT_REQUEST_TIMEOUT } from './bridge/ut
 export { CreateTonProofMessageBytes } from './utils/tonProof';
 export type { AnalyticsAppInfo, AnalyticsManagerOptions } from './analytics';
 
-// API Client types (ApiClient is exported above)
-export type {
-    TransactionsByAddressRequest,
-    GetTransactionByHashRequest,
-    GetPendingTransactionsRequest,
-    GetTraceRequest,
-    GetPendingTraceRequest,
-    GetJettonsByOwnerRequest,
-    GetJettonsByAddressRequest,
-    GetEventsRequest,
-    GetEventsResponse,
-} from './api/interfaces/ApiClient';
 export type { FullAccountState } from './types/toncenter/api';
-export type { EmulationResult } from './api/models/emulation';
 export type { ToncenterResponseJettonMasters } from './types/toncenter/emulation';
 export { asHex } from './utils/hex';
 export {
