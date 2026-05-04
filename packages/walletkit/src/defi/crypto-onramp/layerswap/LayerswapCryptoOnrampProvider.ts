@@ -83,6 +83,10 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<Layerswa
         return [Network.mainnet()];
     }
 
+    getMetadata() {
+        return { name: 'Layerswap', url: 'https://layerswap.io' };
+    }
+
     private readonly apiKey: string | undefined;
     private readonly apiUrl: string;
 

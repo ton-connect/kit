@@ -9,6 +9,7 @@
 import type {
     CryptoOnrampDeposit,
     CryptoOnrampDepositParams,
+    CryptoOnrampProviderMetadata,
     CryptoOnrampQuote,
     CryptoOnrampQuoteParams,
     CryptoOnrampStatus,
@@ -43,6 +44,11 @@ export abstract class CryptoOnrampProvider<
     readonly type = 'crypto-onramp';
     abstract readonly providerId: string;
     abstract getSupportedNetworks(): Network[];
+
+    /**
+     * Get static metadata for the provider (display name, logo, url).
+     */
+    abstract getMetadata(): CryptoOnrampProviderMetadata;
 
     /**
      * Get a quote for onramping from another crypto asset into a TON asset

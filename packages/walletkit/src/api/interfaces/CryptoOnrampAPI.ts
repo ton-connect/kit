@@ -9,6 +9,7 @@
 import type {
     CryptoOnrampDeposit,
     CryptoOnrampDepositParams,
+    CryptoOnrampProviderMetadata,
     CryptoOnrampQuote,
     CryptoOnrampQuoteParams,
     CryptoOnrampStatus,
@@ -58,6 +59,11 @@ export interface CryptoOnrampProviderInterface<
      * Unique identifier for the provider
      */
     readonly providerId: string;
+
+    /**
+     * Get static metadata for the provider (display name, logo, url).
+     */
+    getMetadata(): CryptoOnrampProviderMetadata;
 
     /**
      * Get a quote for onramping from another crypto asset into a TON asset

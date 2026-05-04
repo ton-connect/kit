@@ -488,6 +488,33 @@ const url = await buildOnrampUrl(appKit, {
 console.log('Onramp URL:', url);
 ```
 
+## Crypto Onramp
+
+### `getCryptoOnrampProvider`
+
+Get a registered crypto-onramp provider by id, or the default one when no id is given.
+
+```ts
+const provider = getCryptoOnrampProvider(appKit, { id: 'layerswap' });
+console.log('Crypto onramp provider:', provider.providerId);
+```
+
+### `getCryptoOnrampProviders`
+
+Get all registered crypto-onramp providers.
+
+```ts
+const providers = getCryptoOnrampProviders(appKit);
+console.log(
+    'Registered crypto onramp providers:',
+    providers.map((p) => p.providerId),
+);
+```
+
+### `watchCryptoOnrampProviders`
+
+Watch for new crypto-onramp providers registration and default-provider changes.
+
 ## Providers
 
 ### `registerProvider`

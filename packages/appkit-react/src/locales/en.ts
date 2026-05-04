@@ -118,6 +118,7 @@ export default {
         memoTab: 'Memo',
         youGet: 'You get',
         exchangeRate: 'Exchange rate',
+        provider: 'Provider',
         refundAddressModalTitle: 'Refund address',
         refundAddressLabel:
             'Enter the address on the source network where the funds will be returned in case of a problem with the exchange',

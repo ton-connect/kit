@@ -11,6 +11,8 @@ export { CryptoOnrampProvider, CryptoOnrampManager, CryptoOnrampError } from '@t
 export type {
     CryptoOnrampAPI,
     CryptoOnrampProviderInterface,
+    CryptoOnrampProviderMetadata,
+    CryptoOnrampProviderMetadataOverride,
     CryptoOnrampQuote,
     CryptoOnrampQuoteParams,
     CryptoOnrampDeposit,

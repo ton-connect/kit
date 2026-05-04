@@ -55,6 +55,8 @@ export interface CryptoOnrampContextType {
     isLoadingQuote: boolean;
     /** Error from quote fetch (i18n key) */
     quoteError: string | null;
+    /** Display name of the provider behind the current quote, when one is available. */
+    quoteProviderName: string | null;
 
     /** Current deposit offer from provider */
     deposit: CryptoOnrampDeposit | null;
@@ -106,6 +108,7 @@ const defaultContext: CryptoOnrampContextType = {
     quote: null,
     isLoadingQuote: false,
     quoteError: null,
+    quoteProviderName: null,
 
     deposit: null,
     isCreatingDeposit: false,

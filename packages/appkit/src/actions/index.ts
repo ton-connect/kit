@@ -43,6 +43,20 @@ export {
 
 // Crypto onramp
 export {
+    getCryptoOnrampProvider,
+    type GetCryptoOnrampProviderOptions,
+    type GetCryptoOnrampProviderReturnType,
+} from './crypto-onramp/get-crypto-onramp-provider';
+export {
+    getCryptoOnrampProviders,
+    type GetCryptoOnrampProvidersReturnType,
+} from './crypto-onramp/get-crypto-onramp-providers';
+export {
+    watchCryptoOnrampProviders,
+    type WatchCryptoOnrampProvidersParameters,
+    type WatchCryptoOnrampProvidersReturnType,
+} from './crypto-onramp/watch-crypto-onramp-providers';
+export {
     getCryptoOnrampQuote,
     type GetCryptoOnrampQuoteOptions,
     type GetCryptoOnrampQuoteReturnType,

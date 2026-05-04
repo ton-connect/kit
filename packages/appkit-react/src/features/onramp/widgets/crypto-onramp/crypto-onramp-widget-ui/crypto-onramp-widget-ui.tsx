@@ -45,6 +45,7 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
     presetAmounts,
     quote,
     isLoadingQuote,
+    quoteProviderName,
     createDeposit,
     isCreatingDeposit,
     deposit,
@@ -188,6 +189,15 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
                         )}
                     </InfoBlock.Row>
                 )}
+
+                <InfoBlock.Row>
+                    <InfoBlock.Label>{t('cryptoOnramp.provider')}</InfoBlock.Label>
+                    {isLoadingQuote || !quoteProviderName ? (
+                        <InfoBlock.ValueSkeleton />
+                    ) : (
+                        <InfoBlock.Value>{quoteProviderName}</InfoBlock.Value>
+                    )}
+                </InfoBlock.Row>
             </InfoBlock.Container>
 
             <TokenSelectModal

@@ -724,40 +724,33 @@ return (
 );
 ```
 
-## Onramp
+## Crypto Onramp
 
-### `useOnrampQuote`
+### `useCryptoOnrampProvider`
 
-Hook to get an onramp quote for a specific fiat/crypto pair.
-
-```tsx
-const { data: quote, isLoading } = useOnrampQuote({
-    fiatCurrency: 'USD',
-    cryptoCurrency: 'TON',
-    amount: '100',
-});
-
-if (isLoading) return <div>Loading quote...</div>;
-return <div>Quote: {quote?.cryptoAmount} TON</div>;
-```
-
-### `useOnrampProvider`
-
-Hook to get a specific onramp provider.
+Hook to get a registered crypto-onramp provider by id, or the default one when no id is given.
 
 ```tsx
-const provider = useOnrampProvider({ id: 'moonpay' });
+const provider = useCryptoOnrampProvider({ id: 'layerswap' });
 
 return <div>Provider: {provider?.providerId}</div>;
 ```
 
-### `useOnrampProviders`
+### `useCryptoOnrampProviders`
 
-Hook to get all registered onramp providers.
+Hook to get all registered crypto-onramp providers.
 
-### `useBuildOnrampUrl`
+```tsx
+const providers = useCryptoOnrampProviders();
 
-Hook to build an onramp URL for redirecting the user to the provider.
+return (
+    <ul>
+        {providers.map((p) => (
+            <li key={p.providerId}>{p.providerId}</li>
+        ))}
+    </ul>
+);
+```
 
 ## Staking
 

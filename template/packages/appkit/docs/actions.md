@@ -238,6 +238,24 @@ Build an onramp URL for redirecting the user to the provider.
 
 %%demo/examples/src/appkit/actions/onramp#BUILD_ONRAMP_URL%%
 
+## Crypto Onramp
+
+### `getCryptoOnrampProvider`
+
+Get a registered crypto-onramp provider by id, or the default one when no id is given.
+
+%%demo/examples/src/appkit/actions/onramp#GET_CRYPTO_ONRAMP_PROVIDER%%
+
+### `getCryptoOnrampProviders`
+
+Get all registered crypto-onramp providers.
+
+%%demo/examples/src/appkit/actions/onramp#GET_CRYPTO_ONRAMP_PROVIDERS%%
+
+### `watchCryptoOnrampProviders`
+
+Watch for new crypto-onramp providers registration and default-provider changes.
+
 ## Providers
 
 ### `registerProvider`

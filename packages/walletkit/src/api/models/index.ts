@@ -109,6 +109,10 @@ export type { CryptoOnrampDepositParams } from './crypto-onramp/CryptoOnrampDepo
 export type { CryptoOnrampDeposit } from './crypto-onramp/CryptoOnrampDeposit';
 export type { CryptoOnrampStatusParams } from './crypto-onramp/CryptoOnrampStatusParams';
 export type { CryptoOnrampStatus } from './crypto-onramp/CryptoOnrampStatus';
+export type {
+    CryptoOnrampProviderMetadata,
+    CryptoOnrampProviderMetadataOverride,
+} from './crypto-onramp/CryptoOnrampProviderMetadata';
 
 // Transaction models
 export * from './transactions/Transaction';

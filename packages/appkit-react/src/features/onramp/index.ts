@@ -13,6 +13,8 @@ export * from './widgets/crypto-onramp/crypto-onramp-widget-ui';
 export * from './widgets/crypto-onramp/crypto-onramp-widget-provider';
 export * from './widgets/ton-pay-widget';
 
+export { useCryptoOnrampProvider, type UseCryptoOnrampProviderReturnType } from './hooks/use-crypto-onramp-provider';
+export { useCryptoOnrampProviders, type UseCryptoOnrampProvidersReturnType } from './hooks/use-crypto-onramp-providers';
 export {
     useCryptoOnrampQuote,
     type UseCryptoOnrampQuoteParameters,
