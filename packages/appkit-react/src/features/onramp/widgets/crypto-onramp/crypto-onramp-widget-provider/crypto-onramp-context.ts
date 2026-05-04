@@ -71,6 +71,8 @@ export interface CryptoOnrampContextType {
     /** Deposit status */
     depositStatus: CryptoOnrampStatus | null;
 
+    /** Whether the current quote provider requires a refund address */
+    requiresRefundAddress: boolean;
     /** Refund address */
     refundAddress: string;
     setRefundAddress: (address: string) => void;
@@ -117,6 +119,7 @@ const defaultContext: CryptoOnrampContextType = {
     createDeposit: () => {},
     depositStatus: null,
 
+    requiresRefundAddress: false,
     refundAddress: '',
     setRefundAddress: () => {},
 

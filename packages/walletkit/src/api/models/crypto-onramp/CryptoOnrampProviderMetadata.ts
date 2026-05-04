@@ -13,6 +13,11 @@ export interface CryptoOnrampProviderMetadata {
     name: string;
     logo?: string;
     url?: string;
+    /**
+     * Whether this provider requires a refund address on the source chain.
+     * When true, the UI must collect a refund address before creating a deposit.
+     */
+    requiresRefundAddress?: boolean;
 }
 
 /**

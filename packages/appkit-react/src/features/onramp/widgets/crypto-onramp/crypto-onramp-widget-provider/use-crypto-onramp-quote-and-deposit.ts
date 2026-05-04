@@ -11,6 +11,7 @@ import { formatUnits, parseUnits } from '@ton/appkit';
 import { keepPreviousData } from '@tanstack/react-query';
 
 import { useCreateCryptoOnrampDeposit } from '../../../hooks/use-create-crypto-onramp-deposit';
+import { useCryptoOnrampProvider } from '../../../hooks/use-crypto-onramp-provider';
 import { useCryptoOnrampQuote } from '../../../hooks/use-crypto-onramp-quote';
 import { useCryptoOnrampStatus } from '../../../hooks/use-crypto-onramp-status';
 import { useDebounceValue } from '../../../../../hooks/use-debounce-value';
@@ -19,7 +20,6 @@ import type { CryptoAmountInputMode } from './crypto-onramp-context';
 
 const QUOTE_DEBOUNCE_MS = 500;
 const STATUS_REFETCH_MS = 10000;
-const LAYERSWAP_PROVIDER_ID = 'layerswap';
 
 interface UseCryptoOnrampQuoteAndDepositOptions {
     selectedToken: CryptoOnrampToken | null;
@@ -66,6 +66,11 @@ export const useCryptoOnrampQuoteAndDeposit = ({
         },
     });
 
+    const quoteProvider = useCryptoOnrampProvider({ id: quoteQuery.data?.providerId });
+    const quoteProviderMetadata = quoteProvider?.getMetadata();
+    const quoteProviderName = quoteProviderMetadata?.name ?? null;
+    const requiresRefundAddress = quoteProviderMetadata?.requiresRefundAddress ?? false;
+
     const createDepositMutation = useCreateCryptoOnrampDeposit();
 
     const { data: depositStatus } = useCryptoOnrampStatus({
@@ -92,7 +97,6 @@ export const useCryptoOnrampQuoteAndDeposit = ({
 
     const createDeposit = useCallback(() => {
         if (!quoteQuery.data || !userAddress) return;
-        const requiresRefundAddress = quoteQuery.data.providerId !== LAYERSWAP_PROVIDER_ID;
         if (requiresRefundAddress && !refundAddress) return;
 
         createDepositMutation.mutate({
@@ -100,7 +104,7 @@ export const useCryptoOnrampQuoteAndDeposit = ({
             providerId: quoteQuery.data.providerId,
             refundAddress,
         });
-    }, [quoteQuery.data, userAddress, createDepositMutation, refundAddress]);
+    }, [quoteQuery.data, userAddress, createDepositMutation, refundAddress, requiresRefundAddress]);
 
     const onReset = useCallback(() => {
         createDepositMutation.reset();
@@ -123,6 +127,8 @@ export const useCryptoOnrampQuoteAndDeposit = ({
         quote: quoteQuery.data ?? null,
         quoteError: quoteQuery.error,
         isQuoteFetching: quoteQuery.isFetching,
+        quoteProviderName,
+        requiresRefundAddress,
         deposit: createDepositMutation.data ?? null,
         depositError: createDepositMutation.error,
         isCreatingDeposit: createDepositMutation.isPending,

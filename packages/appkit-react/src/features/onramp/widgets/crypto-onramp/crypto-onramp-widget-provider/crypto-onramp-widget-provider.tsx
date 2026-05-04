@@ -10,7 +10,6 @@ import { useMemo } from 'react';
 import type { FC, PropsWithChildren } from 'react';
 
 import { useAddress } from '../../../../wallets';
-import { useCryptoOnrampProvider } from '../../../hooks/use-crypto-onramp-provider';
 import { CRYPTO_ONRAMP_TARGET_TOKENS } from '../../../mock-data/crypto-onramp-tokens';
 import { CRYPTO_PAYMENT_METHODS } from '../../../mock-data/crypto-payment-methods';
 import { DEFAULT_ONRAMP_PRESETS } from '../../../constants';
@@ -66,6 +65,8 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
         quote,
         quoteError,
         isQuoteFetching,
+        quoteProviderName,
+        requiresRefundAddress,
         deposit,
         depositError,
         isCreatingDeposit,
@@ -103,9 +104,6 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
     const isLoadingQuote = isQuoteFetching || amount !== amountDebounced;
     const canContinue = canSubmit && !isQuoteFetching && amount === amountDebounced && !!userAddress;
 
-    const quoteProvider = useCryptoOnrampProvider({ id: quote?.providerId });
-    const quoteProviderName = quoteProvider?.getMetadata().name ?? null;
-
     const value = useMemo(
         () => ({
             tokens,
@@ -126,6 +124,7 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             isLoadingQuote,
             quoteError: validationQuoteError,
             quoteProviderName,
+            requiresRefundAddress,
             deposit,
             isCreatingDeposit,
             depositError: validationDepositError,
@@ -158,6 +157,7 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             isLoadingQuote,
             validationQuoteError,
             quoteProviderName,
+            requiresRefundAddress,
             deposit,
             isCreatingDeposit,
             validationDepositError,

@@ -78,7 +78,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
     }
 
     getMetadata() {
-        return { name: 'Swaps.xyz', url: 'https://swaps.xyz' };
+        return { name: 'Swaps.xyz', url: 'https://swaps.xyz', requiresRefundAddress: true };
     }
 
     private readonly apiKey: string;
