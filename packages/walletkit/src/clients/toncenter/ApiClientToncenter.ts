@@ -287,7 +287,7 @@ export class ApiClientToncenter extends BaseApiClient implements ApiClient {
         throw new Error('Failed to fetch pending trace');
     }
 
-    async resolveDnsWallet(domain: string): Promise<string | null> {
+    async resolveDnsWallet(domain: string): Promise<string | undefined> {
         const response = toDnsRecords(
             await this.getJson<DNSRecordsResponseV3>('/api/v3/dns/records', {
                 domain,
@@ -300,10 +300,10 @@ export class ApiClientToncenter extends BaseApiClient implements ApiClient {
             return response.records[0].dnsWallet;
         }
 
-        return null;
+        return undefined;
     }
 
-    async backResolveDnsWallet(wallet: Address | string): Promise<string | null> {
+    async backResolveDnsWallet(wallet: Address | string): Promise<string | undefined> {
         if (wallet instanceof Address) {
             wallet = wallet.toString();
         }
@@ -320,7 +320,7 @@ export class ApiClientToncenter extends BaseApiClient implements ApiClient {
             return response.records[0].domain;
         }
 
-        return null;
+        return undefined;
     }
 
     async jettonsByAddress(request: GetJettonsByAddressRequest): Promise<ToncenterResponseJettonMasters> {

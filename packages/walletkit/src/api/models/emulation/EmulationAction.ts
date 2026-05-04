@@ -15,7 +15,7 @@ export interface EmulationAction {
     /**
      * Trace identifier this action belongs to
      */
-    traceId: string | null;
+    traceId?: string;
 
     /**
      * Hex-encoded unique identifier of the action

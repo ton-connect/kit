@@ -310,23 +310,23 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
         throw new Error('Failed to fetch pending trace');
     }
 
-    async resolveDnsWallet(domain: string): Promise<string | null> {
+    async resolveDnsWallet(domain: string): Promise<string | undefined> {
         try {
             const raw = await this.getJson<TonApiDnsResolveResponse>(`/v2/dns/${domain}/resolve`);
             const address = raw?.wallet?.address;
 
-            return address ? asAddressFriendly(address) : null;
+            return address ? asAddressFriendly(address) : undefined;
         } catch (_e) {
-            return null;
+            return undefined;
         }
     }
 
-    async backResolveDnsWallet(address: UserFriendlyAddress): Promise<string | null> {
+    async backResolveDnsWallet(address: UserFriendlyAddress): Promise<string | undefined> {
         try {
             const raw = await this.getJson<TonApiDnsBackresolveResponse>(`/v2/accounts/${address}/dns/backresolve`);
-            return raw.domains && raw.domains.length > 0 ? raw.domains[0] : null;
+            return raw.domains && raw.domains.length > 0 ? raw.domains[0] : undefined;
         } catch (_e) {
-            return null;
+            return undefined;
         }
     }
 

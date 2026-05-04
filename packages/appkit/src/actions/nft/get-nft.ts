@@ -19,7 +19,7 @@ export interface GetNftOptions {
     network?: Network;
 }
 
-export type GetNftReturnType = NFT | null;
+export type GetNftReturnType = NFT | undefined;
 
 export const getNft = async (appKit: AppKit, options: GetNftOptions): Promise<GetNftReturnType> => {
     const { address, network } = options;

@@ -215,7 +215,7 @@ describe('mapToncenterEmulationResponse', () => {
         const mapped = mapToncenterEmulationResponse(RAW_RESPONSE);
         const tx = Object.values(mapped.transactions)[0];
 
-        expect(tx.inMsg).toBeNull();
+        expect(tx.inMsg).toBeUndefined();
         expect(tx.outMsgs).toHaveLength(1);
         expect(tx.outMsgs[0].value).toBe('1000000000');
         expect(tx.outMsgs[0].messageContent.body).toBe('te6cckEBAQEAAgAAAEysuc0=');

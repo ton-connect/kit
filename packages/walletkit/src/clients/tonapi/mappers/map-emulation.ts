@@ -41,27 +41,28 @@ function mapMessage(raw: TonApiMessage, kind: 'in' | 'out'): EmulationMessage {
     const isExternal = !raw.source;
     return {
         hash: toHex(raw.hash),
-        source: raw.source?.address ? asAddressFriendly(raw.source.address) : null,
+        source: raw.source?.address ? asAddressFriendly(raw.source.address) : undefined,
         destination: raw.destination?.address ? (asAddressFriendly(raw.destination.address) ?? '') : '',
-        value: isExternal ? null : raw.value != null ? String(raw.value) : null,
+        value: isExternal ? undefined : raw.value != null ? String(raw.value) : undefined,
         valueExtraCurrencies: extraCurrencies,
-        fwdFee: isExternal ? null : raw.fwd_fee != null ? String(raw.fwd_fee) : null,
-        ihrFee: isExternal ? null : raw.ihr_fee != null ? String(raw.ihr_fee) : null,
+        fwdFee: isExternal ? undefined : raw.fwd_fee != null ? String(raw.fwd_fee) : undefined,
+        ihrFee: isExternal ? undefined : raw.ihr_fee != null ? String(raw.ihr_fee) : undefined,
         // ext_in messages don't have created_lt/created_at/ihr_disabled/bounce/bounced in TON protocol
-        createdLt: isExternal ? null : raw.created_lt != null ? String(raw.created_lt) : null,
-        createdAt: isExternal ? null : raw.created_at != null ? Number(raw.created_at) : null,
-        opcode: raw.op_code ? asHex(raw.op_code) : null,
-        ihrDisabled: isExternal ? null : (raw.ihr_disabled ?? null),
-        isBounce: isExternal ? null : (raw.bounce ?? null),
-        isBounced: isExternal ? null : (raw.bounced ?? null),
-        // importFee only applies to external in_msgs; internal in_msgs and out_msgs have null
-        importFee: kind === 'out' || !isExternal ? null : raw.import_fee != null ? String(raw.import_fee) : null,
+        createdLt: isExternal ? undefined : raw.created_lt != null ? String(raw.created_lt) : undefined,
+        createdAt: isExternal ? undefined : raw.created_at != null ? Number(raw.created_at) : undefined,
+        opcode: raw.op_code ? asHex(raw.op_code) : undefined,
+        ihrDisabled: isExternal ? undefined : (raw.ihr_disabled ?? undefined),
+        isBounce: isExternal ? undefined : (raw.bounce ?? undefined),
+        isBounced: isExternal ? undefined : (raw.bounced ?? undefined),
+        // importFee only applies to external in_msgs; internal in_msgs and out_msgs have undefined
+        importFee:
+            kind === 'out' || !isExternal ? undefined : raw.import_fee != null ? String(raw.import_fee) : undefined,
         messageContent: {
-            hash: null,
-            body: null,
-            decoded: raw.decoded_body ?? null,
+            hash: undefined,
+            body: undefined,
+            decoded: raw.decoded_body ?? undefined,
         },
-        initState: null,
+        initState: undefined,
     };
 }
 
@@ -108,8 +109,8 @@ function mapTransaction(traceNode: TonApiTrace, rootHash: Hex): EmulationTransac
         now: Number(raw.utime ?? 0),
         mcBlockSeqno: blockRef.seqno,
         traceExternalHash: rootHash,
-        prevTransHash: raw.prev_trans_hash ? toHex(raw.prev_trans_hash) : null,
-        prevTransLt: raw.prev_trans_lt != null ? String(raw.prev_trans_lt) : null,
+        prevTransHash: raw.prev_trans_hash ? toHex(raw.prev_trans_hash) : undefined,
+        prevTransLt: raw.prev_trans_lt != null ? String(raw.prev_trans_lt) : undefined,
         origStatus: mapAccountStatus(raw.orig_status),
         endStatus: mapAccountStatus(raw.end_status),
         totalFees: String(raw.total_fees ?? 0),
@@ -159,25 +160,15 @@ function mapTransaction(traceNode: TonApiTrace, rootHash: Hex): EmulationTransac
                 : undefined,
         },
         blockRef,
-        inMsg: raw.in_msg ? mapMessage(raw.in_msg, 'in') : null,
+        inMsg: raw.in_msg ? mapMessage(raw.in_msg, 'in') : undefined,
         outMsgs: outMsgs.map((m) => mapMessage(m, 'out')),
         accountStateBefore: {
-            hash: null,
             balance: String(raw.end_balance ?? 0),
-            extraCurrencies: null,
             accountStatus: mapAccountStatus(raw.orig_status),
-            frozenHash: null,
-            dataHash: null,
-            codeHash: null,
         },
         accountStateAfter: {
-            hash: null,
             balance: String(raw.end_balance ?? 0),
-            extraCurrencies: null,
             accountStatus: mapAccountStatus(raw.end_status),
-            frozenHash: null,
-            dataHash: null,
-            codeHash: null,
         },
         isEmulated: true,
         traceId: undefined,
@@ -321,7 +312,6 @@ function mapAction(action: TonApiAction, event: TonApiAccountEvent, rootHash: He
     }
 
     return {
-        traceId: null,
         actionId,
         startLt: lt,
         endLt: lt,

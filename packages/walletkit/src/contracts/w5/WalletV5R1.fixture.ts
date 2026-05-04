@@ -97,8 +97,8 @@ export function createMockApiClient(): ApiClient {
         getPendingTransactions: mockFn().mockResolvedValue({} as ToncenterTransactionsResponse),
         getTrace: mockFn().mockResolvedValue({} as ToncenterTracesResponse),
         getTransactionsByHash: mockFn().mockResolvedValue({} as ToncenterTransactionsResponse),
-        resolveDnsWallet: mockFn().mockResolvedValue({} as string | null),
-        backResolveDnsWallet: mockFn().mockResolvedValue({} as string | null),
+        resolveDnsWallet: mockFn().mockResolvedValue({} as string | undefined),
+        backResolveDnsWallet: mockFn().mockResolvedValue({} as string | undefined),
         jettonsByAddress: mockFn().mockResolvedValue({} as ToncenterResponseJettonMasters),
         jettonsByOwnerAddress: mockFn().mockResolvedValue({
             jettons: [],

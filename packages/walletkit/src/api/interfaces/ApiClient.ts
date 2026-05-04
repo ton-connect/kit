@@ -116,8 +116,8 @@ export interface ApiClient {
     getTrace(request: GetTraceRequest): Promise<ToncenterTracesResponse>;
     getPendingTrace(request: GetPendingTraceRequest): Promise<ToncenterTracesResponse>;
 
-    resolveDnsWallet(domain: string): Promise<string | null>;
-    backResolveDnsWallet(address: UserFriendlyAddress): Promise<string | null>;
+    resolveDnsWallet(domain: string): Promise<string | undefined>;
+    backResolveDnsWallet(address: UserFriendlyAddress): Promise<string | undefined>;
 
     jettonsByAddress(request: GetJettonsByAddressRequest): Promise<ToncenterResponseJettonMasters>;
     jettonsByOwnerAddress(request: GetJettonsByOwnerRequest): Promise<JettonsResponse>;

@@ -122,7 +122,7 @@ export async function getNftsFromClient(
 /**
  * Gets a single NFT by address
  */
-export async function getNftFromClient(client: ApiClient, address: UserFriendlyAddress): Promise<NFT | null> {
+export async function getNftFromClient(client: ApiClient, address: UserFriendlyAddress): Promise<NFT | undefined> {
     const result = await client.nftItemsByAddress({ address });
-    return result.nfts.length > 0 ? result.nfts[0] : null;
+    return result.nfts.length > 0 ? result.nfts[0] : undefined;
 }

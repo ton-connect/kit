@@ -21,9 +21,9 @@ export type EmulationAccountStatus = 'active' | 'frozen' | 'uninit' | 'nonexist'
  */
 export interface EmulationAccountState {
     /**
-     * Hex-encoded hash of the account state, or null if not available
+     * Hex-encoded hash of the account state, if available
      */
-    hash: Hex | null;
+    hash?: Hex;
 
     /**
      * Account balance in nanotons
@@ -33,7 +33,7 @@ export interface EmulationAccountState {
     /**
      * Extra currencies held by the account, if any
      */
-    extraCurrencies: ExtraCurrencies | null;
+    extraCurrencies?: ExtraCurrencies;
 
     /**
      * Account status
@@ -43,17 +43,17 @@ export interface EmulationAccountState {
     /**
      * Hex-encoded hash of the frozen account state, if frozen
      */
-    frozenHash: Hex | null;
+    frozenHash?: Hex;
 
     /**
      * Hex-encoded hash of the contract data cell
      */
-    dataHash: Hex | null;
+    dataHash?: Hex;
 
     /**
      * Hex-encoded hash of the contract code cell
      */
-    codeHash: Hex | null;
+    codeHash?: Hex;
 }
 
 /**
@@ -360,12 +360,12 @@ export interface EmulationTransaction {
     /**
      * Hex-encoded hash of the previous transaction on this account
      */
-    prevTransHash: Hex | null;
+    prevTransHash?: Hex;
 
     /**
      * Logical time of the previous transaction on this account
      */
-    prevTransLt: LogicalTime | null;
+    prevTransLt?: LogicalTime;
 
     /**
      * Account status before this transaction was applied
@@ -398,9 +398,9 @@ export interface EmulationTransaction {
     blockRef: EmulationBlockRef;
 
     /**
-     * Incoming message that triggered this transaction, or null for tick-tock transactions
+     * Incoming message that triggered this transaction, or undefined for tick-tock transactions
      */
-    inMsg: EmulationMessage | null;
+    inMsg?: EmulationMessage;
 
     /**
      * Outgoing messages produced by this transaction

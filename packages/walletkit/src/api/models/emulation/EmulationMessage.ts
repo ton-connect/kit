@@ -25,9 +25,9 @@ export interface EmulationMessage {
     normalizedHash?: Hex;
 
     /**
-     * Source address of the message, or null for external inbound messages
+     * Source address of the message, or undefined for external inbound messages
      */
-    source: UserFriendlyAddress | null;
+    source?: UserFriendlyAddress;
 
     /**
      * Destination address of the message
@@ -35,9 +35,9 @@ export interface EmulationMessage {
     destination: UserFriendlyAddress;
 
     /**
-     * Amount of nanotons transferred, or null for external inbound messages
+     * Amount of nanotons transferred, or undefined for external inbound messages
      */
-    value: TokenAmount | null;
+    value?: TokenAmount;
 
     /**
      * Extra currencies transferred with the message
@@ -45,50 +45,50 @@ export interface EmulationMessage {
     valueExtraCurrencies: ExtraCurrencies;
 
     /**
-     * Forwarding fee in nanotons, or null for external inbound messages
+     * Forwarding fee in nanotons, or undefined for external inbound messages
      */
-    fwdFee: TokenAmount | null;
+    fwdFee?: TokenAmount;
 
     /**
-     * IHR (Instant Hypercube Routing) fee in nanotons, or null for external inbound messages
+     * IHR (Instant Hypercube Routing) fee in nanotons, or undefined for external inbound messages
      */
-    ihrFee: TokenAmount | null;
+    ihrFee?: TokenAmount;
 
     /**
-     * Logical time when the message was created, or null for external inbound messages
+     * Logical time when the message was created, or undefined for external inbound messages
      */
-    createdLt: LogicalTime | null;
+    createdLt?: LogicalTime;
 
     /**
-     * Unix timestamp when the message was created, or null for external inbound messages
+     * Unix timestamp when the message was created, or undefined for external inbound messages
      * @format timestamp
      */
-    createdAt: number | null;
+    createdAt?: number;
 
     /**
      * Hex-encoded opcode from the message body, if present
      */
-    opcode: Hex | null;
+    opcode?: Hex;
 
     /**
-     * Whether IHR delivery is disabled, or null for external inbound messages
+     * Whether IHR delivery is disabled, or undefined for external inbound messages
      */
-    ihrDisabled: boolean | null;
+    ihrDisabled?: boolean;
 
     /**
-     * Whether the message requested a bounce on failure, or null for external inbound messages
+     * Whether the message requested a bounce on failure, or undefined for external inbound messages
      */
-    isBounce: boolean | null;
+    isBounce?: boolean;
 
     /**
-     * Whether the message was bounced back, or null for external inbound messages
+     * Whether the message was bounced back, or undefined for external inbound messages
      */
-    isBounced: boolean | null;
+    isBounced?: boolean;
 
     /**
-     * Import fee paid for delivering an external inbound message, null for all other message types
+     * Import fee paid for delivering an external inbound message, undefined for all other message types
      */
-    importFee: TokenAmount | null;
+    importFee?: TokenAmount;
 
     /**
      * Decoded content of the message body
@@ -98,7 +98,7 @@ export interface EmulationMessage {
     /**
      * Initial state (StateInit) attached to the message, if any
      */
-    initState: unknown | null;
+    initState?: unknown;
 }
 
 /**
@@ -106,17 +106,17 @@ export interface EmulationMessage {
  */
 export interface EmulationMessageContent {
     /**
-     * Hex-encoded hash of the message content, or null if not available
+     * Hex-encoded hash of the message content, if available
      */
-    hash: Hex | null;
+    hash?: Hex;
 
     /**
-     * Message body in BOC base64 format, or null if not available
+     * Message body in BOC base64 format, if available
      */
-    body: Base64String | null;
+    body?: Base64String;
 
     /**
      * Structured decoded representation of the message body, if available
      */
-    decoded: unknown | null;
+    decoded?: unknown;
 }
