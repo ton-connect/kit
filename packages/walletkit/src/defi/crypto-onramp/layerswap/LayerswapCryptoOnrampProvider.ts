@@ -49,14 +49,6 @@ export interface LayerswapProviderConfig {
     apiUrl?: string;
 }
 
-export interface LayerswapQuoteOptions {
-    /**
-     * TON recipient address. Required — Layerswap binds the destination at
-     * swap creation time and we create the swap up-front in `getQuote`.
-     */
-    recipient: string;
-}
-
 /**
  * Metadata stored on the CryptoOnrampQuote returned by this provider.
  *
@@ -64,7 +56,6 @@ export interface LayerswapQuoteOptions {
  * action here; `createDeposit` just reads them out.
  */
 export interface LayerswapQuoteMetadata {
-    recipient: string;
     swapId: string;
     depositAddress: string;
     sourceAmountBaseUnits: string;
@@ -77,7 +68,7 @@ export interface LayerswapQuoteMetadata {
  * v1 only supports a single hard-coded route: Arbitrum USDT0 → TON USDT.
  * Any other source network / token combination is rejected.
  */
-export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<LayerswapQuoteOptions, LayerswapQuoteMetadata> {
+export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<undefined, LayerswapQuoteMetadata> {
     readonly providerId = 'layerswap';
 
     getSupportedNetworks(): Network[] {
@@ -97,16 +88,8 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<Layerswa
         this.apiUrl = config.apiUrl ?? LAYERSWAP_API_URL;
     }
 
-    async getQuote(
-        params: CryptoOnrampQuoteParams<LayerswapQuoteOptions>,
-    ): Promise<CryptoOnrampQuote<LayerswapQuoteMetadata>> {
-        const recipient = params.providerOptions?.recipient;
-        if (!recipient) {
-            throw new CryptoOnrampError(
-                'Layerswap requires a TON recipient address in providerOptions.recipient',
-                CryptoOnrampError.INVALID_PARAMS,
-            );
-        }
+    async getQuote(params: CryptoOnrampQuoteParams<undefined>): Promise<CryptoOnrampQuote<LayerswapQuoteMetadata>> {
+        const recipient = params.recipientAddress;
 
         if (params.sourceNetwork !== ARBITRUM_CHAIN_ID) {
             throw new CryptoOnrampError(
@@ -195,7 +178,6 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<Layerswa
                 : '0';
 
         const metadata: LayerswapQuoteMetadata = {
-            recipient,
             swapId: data.swap.id,
             depositAddress: depositAction.to_address,
             sourceAmountBaseUnits: depositAction.amount_in_base_units,
@@ -209,6 +191,7 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<Layerswa
             sourceAmount: metadata.sourceAmountBaseUnits,
             targetAmount: metadata.targetAmountBaseUnits,
             rate,
+            recipientAddress: recipient,
             providerId: this.providerId,
             metadata,
         };
@@ -220,14 +203,6 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<Layerswa
             throw new CryptoOnrampError(
                 'Layerswap: quote metadata is missing — quote must be obtained from this provider',
                 CryptoOnrampError.INVALID_PARAMS,
-            );
-        }
-
-        if (params.userAddress && params.userAddress !== metadata.recipient) {
-            throw new CryptoOnrampError(
-                'Layerswap: deposit userAddress does not match the recipient baked into the quote',
-                CryptoOnrampError.INVALID_PARAMS,
-                { quoteRecipient: metadata.recipient, depositUserAddress: params.userAddress },
             );
         }
 

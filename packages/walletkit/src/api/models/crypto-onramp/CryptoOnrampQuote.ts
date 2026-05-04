@@ -41,6 +41,11 @@ export interface CryptoOnrampQuote<TMetadata = unknown> {
     rate: string;
 
     /**
+     * TON address that will receive the target crypto
+     */
+    recipientAddress: string;
+
+    /**
      * Identifier of the crypto onramp provider
      */
     providerId: string;

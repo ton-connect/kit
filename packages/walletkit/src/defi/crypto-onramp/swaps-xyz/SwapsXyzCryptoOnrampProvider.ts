@@ -47,12 +47,6 @@ export interface SwapsXyzProviderConfig {
 
 export interface SwapsXyzQuoteOptions {
     /**
-     * TON recipient address. Required — swaps.xyz needs it at quote time for
-     * cross-VM swaps, and we reuse the returned quote verbatim for deposits.
-     */
-    recipient: string;
-
-    /**
      * Slippage tolerance in basis points (0-10000). Defaults to 100 (1%).
      */
     slippageBps?: number;
@@ -65,7 +59,6 @@ export interface SwapsXyzQuoteOptions {
  * CryptoOnrampDeposit without an extra network round-trip.
  */
 export interface SwapsXyzQuoteMetadata {
-    recipient: string;
     sender: string;
     response: SwapsXyzGetActionResponse;
 }
@@ -103,13 +96,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
         params: CryptoOnrampQuoteParams<SwapsXyzQuoteOptions>,
     ): Promise<CryptoOnrampQuote<SwapsXyzQuoteMetadata>> {
         const sender = params.refundAddress ?? this.defaultSender;
-        const recipient = params.providerOptions?.recipient;
-        if (!recipient) {
-            throw new CryptoOnrampError(
-                'SwapsXyz requires a TON recipient address in providerOptions.recipient',
-                CryptoOnrampError.INVALID_PARAMS,
-            );
-        }
+        const recipient = params.recipientAddress;
 
         const srcChainId = parseChainId(params.sourceNetwork);
         if (srcChainId === undefined) {
@@ -175,7 +162,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
             );
         }
 
-        const metadata: SwapsXyzQuoteMetadata = { recipient, sender, response: body };
+        const metadata: SwapsXyzQuoteMetadata = { sender, response: body };
 
         return {
             sourceCurrencyAddress: params.sourceCurrencyAddress,
@@ -184,6 +171,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
             sourceAmount: body.amountIn.amount,
             targetAmount: body.amountOut.amount,
             rate: String(body.exchangeRate),
+            recipientAddress: recipient,
             providerId: this.providerId,
             metadata,
         };
@@ -198,15 +186,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
             );
         }
 
-        const { response, recipient } = metadata;
-
-        if (params.userAddress && params.userAddress !== recipient) {
-            throw new CryptoOnrampError(
-                'SwapsXyz: deposit userAddress does not match the recipient baked into the quote',
-                CryptoOnrampError.INVALID_PARAMS,
-                { quoteRecipient: recipient, depositUserAddress: params.userAddress },
-            );
-        }
+        const { response } = metadata;
 
         if (metadata.sender === this.defaultSender || metadata.sender !== params.refundAddress) {
             if (!isEvmAddress(params.refundAddress)) {
@@ -221,11 +201,9 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
                 sourceCurrencyAddress: params.quote.sourceCurrencyAddress,
                 sourceNetwork: params.quote.sourceNetwork,
                 targetCurrencyAddress: params.quote.targetCurrencyAddress,
+                recipientAddress: params.quote.recipientAddress,
                 refundAddress: params.refundAddress,
                 isSourceAmount: true,
-                providerOptions: {
-                    recipient: params.userAddress,
-                },
             });
             const newMetadata = newQuote.metadata;
 

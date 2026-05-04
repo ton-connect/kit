@@ -78,7 +78,7 @@ export class CryptoOnrampManager extends DefiManager<CryptoOnrampProviderInterfa
 
         log.debug('Creating crypto onramp deposit', {
             providerId: selectedProviderId,
-            userAddress: params.userAddress,
+            recipientAddress: params.quote.recipientAddress,
         });
 
         try {

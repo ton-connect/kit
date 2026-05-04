@@ -56,10 +56,8 @@ export const useCryptoOnrampQuoteAndDeposit = ({
         sourceCurrencyAddress: selectedMethod.address,
         sourceNetwork: selectedMethod.networkId,
         targetCurrencyAddress: selectedToken?.address ?? '',
+        recipientAddress: userAddress ?? '',
         isSourceAmount: amountInputMode === 'method',
-        providerOptions: {
-            recipient: userAddress ?? '',
-        },
         query: {
             enabled: !!requestAmountBase && !!selectedToken && !!userAddress && parseFloat(amountDebounced) > 0,
             retry: false,
@@ -99,7 +97,6 @@ export const useCryptoOnrampQuoteAndDeposit = ({
 
         createDepositMutation.mutate({
             quote: quoteQuery.data,
-            userAddress,
             providerId: quoteQuery.data.providerId,
             refundAddress,
         });
