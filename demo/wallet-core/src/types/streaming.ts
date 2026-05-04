@@ -79,10 +79,7 @@ export interface StreamingTransactionPreview {
 
 /** Pending transaction from WebSocket streaming */
 export interface PendingTransaction {
-    /** trace_external_hash_norm from WebSocket (external msg hash) */
     traceId: string;
-    /** First tx hash (trace_id) - for dedup with events API */
-    traceIdFromFirstTx?: string;
     externalHash?: string;
     preview?: StreamingTransactionPreview;
     /** Parsed action from trace (jetton/TON/etc) - used when available for correct display */
