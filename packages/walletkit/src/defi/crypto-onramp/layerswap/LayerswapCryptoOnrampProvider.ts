@@ -17,6 +17,7 @@ import type {
 import { Network } from '../../../api/models';
 import { CryptoOnrampProvider } from '../CryptoOnrampProvider';
 import { CryptoOnrampError } from '../errors';
+import { createProvider } from '../../../types/factory';
 import type { LayerswapCreateSwapResponse, LayerswapGetSwapResponse } from './types';
 import {
     ARBITRUM_CHAIN_ID,
@@ -276,3 +277,10 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<Layerswa
         return mapStatus(json.data.swap.status);
     }
 }
+
+/**
+ * Returns a `ProviderFactory` for `LayerswapCryptoOnrampProvider`.
+ * Pass to `providers: [createLayerswapProvider(config)]`.
+ */
+export const createLayerswapProvider = (config: LayerswapProviderConfig = {}) =>
+    createProvider(() => new LayerswapCryptoOnrampProvider(config));

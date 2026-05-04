@@ -17,6 +17,7 @@ import type {
 import { Network } from '../../../api/models';
 import { CryptoOnrampProvider } from '../CryptoOnrampProvider';
 import { CryptoOnrampError } from '../errors';
+import { createProvider } from '../../../types/factory';
 import type { SwapsXyzGetActionResponse, SwapsXyzSwapDirection } from './types';
 import { isErrorResponse, isEvmAddress, mapStatus, parseChainId } from './utils';
 
@@ -292,3 +293,10 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
         return mapStatus(body.status);
     }
 }
+
+/**
+ * Returns a `ProviderFactory` for `SwapsXyzCryptoOnrampProvider`.
+ * Pass to `providers: [createSwapsXyzProvider(config)]`.
+ */
+export const createSwapsXyzProvider = (config: SwapsXyzProviderConfig) =>
+    createProvider(() => new SwapsXyzCryptoOnrampProvider(config));
