@@ -7,6 +7,7 @@
  */
 
 export * from './api';
+export * from './brands';
 export * from './bridge';
 export * from './events';
 export * from './walletkit';

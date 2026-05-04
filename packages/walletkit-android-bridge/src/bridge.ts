@@ -6,10 +6,12 @@
  *
  */
 
-import type { WalletKitBridgeApi } from './types';
+import type { WalletKitApiMethod, WalletKitBridgeApi } from './types';
 import { api } from './api';
-import { setBridgeApi, registerNativeCallHandler } from './transport/messaging';
-import { registerNativeResponseHandler } from './transport/nativeBridge';
+import { handleNativeCall, setBridgeApi } from './transport/messaging';
+import { handleNativeResponse } from './transport/nativeBridge';
+import { installPortHandshake, setInboundCallback } from './transport/port';
+import { warn, error } from './utils/logger';
 
 declare global {
     interface Window {
@@ -17,8 +19,49 @@ declare global {
     }
 }
 
+interface IncomingCallEnvelope {
+    kind: 'call';
+    id: string;
+    method: WalletKitApiMethod;
+    params?: unknown;
+}
+
+interface IncomingResponseEnvelope {
+    kind: 'response';
+    id: string;
+    result?: unknown;
+    error?: { message?: string };
+}
+
+type IncomingEnvelope = IncomingCallEnvelope | IncomingResponseEnvelope;
+
 setBridgeApi(api as unknown as WalletKitBridgeApi);
-registerNativeCallHandler();
-registerNativeResponseHandler();
+
+// Install the window.message listener that picks up the WebMessagePort handoff. Must
+// run synchronously during bundle parse so it's in place before
+// WebViewClient.onPageFinished triggers the native side to post the port.
+installPortHandshake();
+
+setInboundCallback(json => {
+    let envelope: IncomingEnvelope;
+    try {
+        envelope = JSON.parse(json) as IncomingEnvelope;
+    } catch (err) {
+        error('[walletkitBridge] Failed to parse inbound port message', err, json);
+        return;
+    }
+    switch (envelope.kind) {
+        case 'call':
+            handleNativeCall(envelope.id, envelope.method, envelope.params);
+            break;
+        case 'response':
+            handleNativeResponse(envelope.id, envelope.result, envelope.error);
+            break;
+        default: {
+            const exhaustive: never = envelope;
+            warn('[walletkitBridge] Unknown inbound envelope kind', exhaustive);
+        }
+    }
+});
 
 window.walletkitBridge = api as unknown as WalletKitBridgeApi;
