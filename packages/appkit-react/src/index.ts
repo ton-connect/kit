@@ -39,6 +39,5 @@ export * from './features/swap';
 export * from './features/signing';
 export * from './features/staking';
 export * from './features/onramp';
-export * from './features/crypto-onramp';
 
 export * from './types/appkit-ui-token';

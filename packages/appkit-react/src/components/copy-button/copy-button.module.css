@@ -1,0 +1,19 @@
+.button {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border: none;
+	background: none;
+	cursor: pointer;
+	color: var(--ta-color-text-secondary);
+	border-radius: var(--ta-border-radius-s);
+	transition: color 0.15s, background-color 0.15s;
+}
+
+.button:hover {
+	color: var(--ta-color-text);
+	background-color: var(--ta-color-background-tertiary);
+}

@@ -6,5 +6,5 @@
  *
  */
 
-export { OnrampTokenSelectModal } from './onramp-token-select-modal';
-export type { OnrampTokenSelectModalProps } from './onramp-token-select-modal';
+export { CopyButton } from './copy-button';
+export type { CopyButtonProps } from './copy-button';

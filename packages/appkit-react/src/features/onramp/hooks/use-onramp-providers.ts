@@ -7,8 +7,8 @@
  */
 
 import { useSyncExternalStore, useCallback } from 'react';
-import { getOnrampProviders, watchOnrampProviders } from '@ton/appkit';
-import type { GetOnrampProvidersReturnType } from '@ton/appkit';
+import { getOnrampProviders, watchOnrampProviders } from '@ton/appkit/onramp';
+import type { GetOnrampProvidersReturnType } from '@ton/appkit/onramp';
 
 import { useAppKit } from '../../settings/hooks/use-app-kit';
 

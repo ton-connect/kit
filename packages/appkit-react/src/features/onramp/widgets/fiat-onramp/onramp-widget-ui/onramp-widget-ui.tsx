@@ -14,7 +14,7 @@ import type { OnrampContextType } from '../onramp-widget-provider';
 import { OnrampTokenSelectors } from '../../../components/onramp-token-selectors';
 import { CenteredAmountInput } from '../../../../../components/centered-amount-input';
 import { AmountPresets } from '../../../../../components/amount-presets';
-import { OnrampTokenSelectModal } from '../../../components/onramp-token-select-modal';
+import { TokenSelectModal } from '../../../../../components/token-select-modal';
 import { OnrampCurrencySelectModal } from '../../../components/onramp-currency-select-modal';
 import { OnrampProviderSelect } from '../../../components/onramp-provider-select';
 import styles from './onramp-widget-ui.module.css';
@@ -114,12 +114,14 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
                 {error ? t(`onramp.${error}`) : t('onramp.continue')}
             </Button>
 
-            <OnrampTokenSelectModal
+            <TokenSelectModal
                 open={isTokenSelectOpen}
                 onClose={() => setIsTokenSelectOpen(false)}
                 tokens={tokens}
                 tokenSections={tokenSections}
                 onSelect={setSelectedToken}
+                title={t('onramp.selectToken')}
+                searchPlaceholder={t('onramp.searchToken')}
             />
 
             <OnrampCurrencySelectModal

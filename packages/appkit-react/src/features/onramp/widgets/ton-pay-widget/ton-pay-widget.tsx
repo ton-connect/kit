@@ -13,11 +13,11 @@ import { Button } from '../../../../components/button';
 import { CenteredAmountInput } from '../../../../components/centered-amount-input';
 import { TokenSelector } from '../../../../components/token-selector';
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
+import { TokenSelectModal } from '../../../../components/token-select-modal';
 import type { TokenSectionConfig } from '../../../../components/token-select-modal';
 import { useConnectedWallets } from '../../../wallets/hooks/use-connected-wallets';
 import { useI18n } from '../../../settings/hooks/use-i18n';
-import { OnrampTokenSelectModal } from '../onramp-token-select-modal';
-import { OnrampCurrencySelectModal } from '../onramp-currency-select-modal';
+import { OnrampCurrencySelectModal } from '../../components/onramp-currency-select-modal';
 import { ONRAMP_CURRENCIES } from '../../mock-data/currencies';
 import type { OnrampAmountPreset, OnrampCurrency, CurrencySectionConfig } from '../../types';
 import styles from './ton-pay-widget.module.css';
@@ -183,12 +183,14 @@ export const TonPayWidget: FC<TonPayWidgetProps> = ({
             {errorMessage && <div className={styles.error}>{errorMessage}</div>}
 
             {!isTokenReadOnly && (
-                <OnrampTokenSelectModal
+                <TokenSelectModal
                     open={isTokenSelectOpen}
                     onClose={() => setIsTokenSelectOpen(false)}
                     tokens={supportedTokens}
                     tokenSections={tokenSections}
                     onSelect={setSelectedToken}
+                    title={t('onramp.selectToken')}
+                    searchPlaceholder={t('onramp.searchToken')}
                 />
             )}
 

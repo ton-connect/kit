@@ -8,10 +8,9 @@
 
 import { compareAddress } from '@ton/appkit';
 
-import type { AppkitUIToken } from '../../types/appkit-ui-token';
-import type { TokenSection, TokenSectionConfig } from './token-select-modal';
+import type { TokenBase, TokenSection, TokenSectionConfig } from './token-select-modal';
 
-export const filterTokens = (tokens: AppkitUIToken[], search: string): AppkitUIToken[] => {
+export const filterTokens = <T extends TokenBase>(tokens: T[], search: string): T[] => {
     if (!search) return tokens;
     const lowerSearch = search.toLowerCase();
     return tokens.filter(
@@ -26,15 +25,15 @@ export const filterTokens = (tokens: AppkitUIToken[], search: string): AppkitUIT
  * Converts a flat token list + section configs into TokenSection[] for TokenSelectModal.
  * Tokens not covered by any section config are placed in a final untitled section.
  */
-export const groupTokenSections = (
-    tokens: AppkitUIToken[],
+export const groupTokenSections = <T extends TokenBase>(
+    tokens: T[],
     sections: TokenSectionConfig[],
     otherTitle = 'Other Tokens',
-): TokenSection[] => {
+): TokenSection<T>[] => {
     const tokenById = new Map(tokens.map((t) => [t.id, t]));
     const assignedIds = new Set<string>();
 
-    const result: TokenSection[] = sections.map(({ title, ids }) => {
+    const result: TokenSection<T>[] = sections.map(({ title, ids }) => {
         const sectionTokens = ids.flatMap((id) => {
             const token = tokenById.get(id);
             if (token) {

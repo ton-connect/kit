@@ -6,7 +6,7 @@
  *
  */
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { FC, PropsWithChildren } from 'react';
 
 import type { AppkitUIToken } from '../../../../../types/appkit-ui-token';
@@ -20,6 +20,7 @@ import type {
 } from '../../../types';
 import { ONRAMP_CURRENCIES } from '../../../mock-data/currencies';
 import { ONRAMP_PROVIDERS as MOCK_PROVIDERS } from '../../../mock-data/providers';
+import { DEFAULT_ONRAMP_PRESETS } from '../../../constants';
 import { useOnrampProviders } from '../../../hooks/use-onramp-providers';
 import { useOnrampQuote } from '../../../hooks/use-onramp-quote';
 import { useBuildOnrampUrl } from '../../../hooks/use-build-onramp-url';
@@ -28,12 +29,6 @@ import { useConnectedWallets } from '../../../../wallets/hooks/use-connected-wal
 export type { AppkitUIToken };
 
 const ERROR_THRESHOLD = 10000000;
-const DEFAULT_PRESETS: OnrampAmountPreset[] = [
-    { amount: '100', label: '100' },
-    { amount: '250', label: '250' },
-    { amount: '500', label: '500' },
-    { amount: '1000', label: '1000' },
-];
 
 export interface OnrampContextType {
     /** Full list of available tokens to buy */
@@ -100,7 +95,7 @@ const defaultContext: OnrampContextType = {
     amountInputMode: 'currency',
     setAmountInputMode: () => {},
     convertedAmount: '',
-    presetAmounts: DEFAULT_PRESETS,
+    presetAmounts: DEFAULT_ONRAMP_PRESETS,
     providers: [],
     selectedProvider: null,
     setSelectedProvider: () => {},
@@ -206,7 +201,7 @@ export const OnrampWidgetProvider: FC<OnrampProviderProps> = ({
     const wallets = useConnectedWallets();
     const activeWallet = wallets?.[0];
 
-    const onContinue = async () => {
+    const onContinue = useCallback(async () => {
         if (!canContinue || !quote || !activeWallet || !selectedProvider) return;
 
         try {
@@ -216,15 +211,15 @@ export const OnrampWidgetProvider: FC<OnrampProviderProps> = ({
                 providerId: selectedProvider.id,
             });
             window.open(url, '_blank');
-        } catch (_e) {
-            // console.error('Failed to build onramp URL', e);
+        } catch {
+            // silently swallow — redirect is best-effort
         }
-    };
+    }, [canContinue, quote, activeWallet, selectedProvider, buildUrl]);
 
-    const onReset = () => {
+    const onReset = useCallback(() => {
         setAmount('');
         setAmountInputMode('currency');
-    };
+    }, []);
 
     const value = useMemo(
         () => ({
@@ -241,7 +236,7 @@ export const OnrampWidgetProvider: FC<OnrampProviderProps> = ({
             amountInputMode,
             setAmountInputMode,
             convertedAmount,
-            presetAmounts: DEFAULT_PRESETS,
+            presetAmounts: DEFAULT_ONRAMP_PRESETS,
             providers,
             selectedProvider,
             setSelectedProvider,

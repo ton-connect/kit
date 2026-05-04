@@ -6,13 +6,27 @@
  *
  */
 
-export * from './widgets/fiat-onramp/onramp-widget';
-export * from './widgets/crypto-onramp/crypto-onramp-widget';
-export * from './components/ton-pay-widget';
+// export * from './widgets/fiat-onramp/onramp-widget';  // fiat-onramp: not ready
 
-export * from './hooks/use-onramp-quote';
-export * from './hooks/use-onramp-provider';
-export * from './hooks/use-onramp-providers';
-export * from './hooks/use-build-onramp-url';
+export * from './widgets/crypto-onramp/crypto-onramp-widget';
+export * from './widgets/crypto-onramp/crypto-onramp-widget-ui';
+export * from './widgets/crypto-onramp/crypto-onramp-widget-provider';
+export * from './widgets/ton-pay-widget';
+
+export {
+    useCryptoOnrampQuote,
+    type UseCryptoOnrampQuoteParameters,
+    type UseCryptoOnrampQuoteReturnType,
+} from './hooks/use-crypto-onramp-quote';
+export {
+    useCreateCryptoOnrampDeposit,
+    type UseCreateCryptoOnrampDepositParameters,
+    type UseCreateCryptoOnrampDepositReturnType,
+} from './hooks/use-create-crypto-onramp-deposit';
+export {
+    useCryptoOnrampStatus,
+    type UseCryptoOnrampStatusParameters,
+    type UseCryptoOnrampStatusReturnType,
+} from './hooks/use-crypto-onramp-status';
 
 export * from './types';

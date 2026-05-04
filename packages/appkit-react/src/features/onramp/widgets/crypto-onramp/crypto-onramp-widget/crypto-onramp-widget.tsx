@@ -6,29 +6,48 @@
  *
  */
 
-import type { FC, ReactNode } from 'react';
+import type { ComponentProps, FC, ReactNode } from 'react';
 
+import type { CryptoOnrampWidgetRenderProps } from '../crypto-onramp-widget-ui';
+import { CryptoOnrampWidgetUI } from '../crypto-onramp-widget-ui';
 import { CryptoOnrampWidgetProvider, useCryptoOnrampContext } from '../crypto-onramp-widget-provider';
 import type { CryptoOnrampProviderProps, CryptoOnrampContextType } from '../crypto-onramp-widget-provider';
-import { CryptoOnrampWidgetUI } from '../crypto-onramp-widget-ui';
 
-export type { CryptoOnrampContextType };
+type DivExtras = Omit<ComponentProps<'div'>, 'children' | keyof CryptoOnrampContextType>;
 
-export interface CryptoOnrampWidgetProps extends Omit<CryptoOnrampProviderProps, 'children'> {
-    /** Custom render function — when provided, replaces the default widget UI */
-    children?: (props: CryptoOnrampContextType) => ReactNode;
+/**
+ * Props for the CryptoOnrampWidget component.
+ * Inherits all configuration from CryptoOnrampProviderProps.
+ */
+export interface CryptoOnrampWidgetProps extends Omit<CryptoOnrampProviderProps, 'children'>, DivExtras {
+    /**
+     * Custom render function.
+     * When provided, it replaces the default widget UI and gives full control over the rendering.
+     * Accesses all state and actions from the crypto onramp context.
+     */
+    children?: (props: CryptoOnrampWidgetRenderProps) => ReactNode;
 }
 
-const CryptoOnrampWidgetContent: FC<{ children?: (props: CryptoOnrampContextType) => ReactNode }> = ({ children }) => {
+const CryptoOnrampWidgetContent: FC<{ children?: (props: CryptoOnrampWidgetRenderProps) => ReactNode } & DivExtras> = ({
+    children,
+    ...rest
+}) => {
     const ctx = useCryptoOnrampContext();
 
     if (children) {
-        return <>{children(ctx)}</>;
+        return <>{children({ ...ctx, ...rest })}</>;
     }
 
-    return <CryptoOnrampWidgetUI {...ctx} />;
+    return <CryptoOnrampWidgetUI {...ctx} {...rest} />;
 };
 
+/**
+ * A high-level component that provides a complete crypto-to-crypto onramp interface.
+ *
+ * It manages payment method selection, quote fetching, deposit creation, and
+ * deposit status tracking. It can be used as a standalone widget with default UI
+ * or customized using a render function.
+ */
 export const CryptoOnrampWidget: FC<CryptoOnrampWidgetProps> = ({
     children,
     tokens,
@@ -37,6 +56,7 @@ export const CryptoOnrampWidget: FC<CryptoOnrampWidgetProps> = ({
     methodSections,
     defaultTokenId,
     defaultMethodId,
+    ...rest
 }) => {
     return (
         <CryptoOnrampWidgetProvider
@@ -47,7 +67,7 @@ export const CryptoOnrampWidget: FC<CryptoOnrampWidgetProps> = ({
             defaultTokenId={defaultTokenId}
             defaultMethodId={defaultMethodId}
         >
-            <CryptoOnrampWidgetContent>{children}</CryptoOnrampWidgetContent>
+            <CryptoOnrampWidgetContent {...rest}>{children}</CryptoOnrampWidgetContent>
         </CryptoOnrampWidgetProvider>
     );
 };

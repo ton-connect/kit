@@ -7,7 +7,7 @@
  */
 
 import type { AppKit } from '@ton/appkit';
-import { buildOnrampUrl, getOnrampQuote } from '@ton/appkit';
+import { buildOnrampUrl, getOnrampQuote } from '@ton/appkit/onramp';
 
 export const buildOnrampUrlExample = async (appKit: AppKit) => {
     // SAMPLE_START: BUILD_ONRAMP_URL

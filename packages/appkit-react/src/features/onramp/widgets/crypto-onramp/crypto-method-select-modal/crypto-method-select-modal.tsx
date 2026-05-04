@@ -8,14 +8,12 @@
 
 import { useMemo, useState } from 'react';
 import type { FC } from 'react';
-// import clsx from 'clsx';
 
 import { CurrencySelect } from '../../../../../components/currency-select-modal';
 import { LogoWithNetwork } from '../../../../../components/logo-with-network';
 import { CurrencyItem } from '../../../../../components/currency-item';
 import type { CryptoPaymentMethod, PaymentMethodSectionConfig } from '../../../types';
 import { useI18n } from '../../../../settings/hooks/use-i18n';
-// import styles from './crypto-method-select-modal.module.css';
 
 export interface CryptoMethodSelectModalProps {
     open: boolean;
@@ -73,33 +71,16 @@ export const CryptoMethodSelectModal: FC<CryptoMethodSelectModalProps> = ({
 }) => {
     const { t } = useI18n();
     const [search, setSearch] = useState('');
-    const [networkFilter, setNetworkFilter] = useState<string | null>(null);
-
-    // const networks = useMemo(() => {
-    //     const seen = new Set<string>();
-    //     return methods
-    //         .filter((m) => {
-    //             if (seen.has(m.networkId)) return false;
-    //             seen.add(m.networkId);
-    //             return true;
-    //         })
-    //         .map((m) => ({ id: m.networkId, label: m.network }));
-    // }, [methods]);
-
-    const filteredByNetwork = useMemo(
-        () => (networkFilter ? methods.filter((m) => m.networkId === networkFilter) : methods),
-        [methods, networkFilter],
-    );
 
     const displaySections = useMemo((): MethodSection[] => {
         if (search) {
-            return [{ title: '', methods: filterMethods(filteredByNetwork, search) }];
+            return [{ title: '', methods: filterMethods(methods, search) }];
         }
         if (methodSections) {
-            return groupMethodSections(filteredByNetwork, methodSections, t('tokenSelect.otherTokens'));
+            return groupMethodSections(methods, methodSections, t('tokenSelect.otherTokens'));
         }
-        return [{ title: '', methods: filteredByNetwork }];
-    }, [filteredByNetwork, methodSections, search, t]);
+        return [{ title: '', methods: methods }];
+    }, [methods, methodSections, search, t]);
 
     const isEmpty = displaySections.every((s) => s.methods.length === 0);
 
@@ -107,14 +88,12 @@ export const CryptoMethodSelectModal: FC<CryptoMethodSelectModalProps> = ({
         onSelect(method);
         onClose();
         setSearch('');
-        setNetworkFilter(null);
     };
 
     const handleOpenChange = (isOpen: boolean) => {
         if (!isOpen) {
             onClose();
             setSearch('');
-            setNetworkFilter(null);
         }
     };
 
@@ -125,26 +104,6 @@ export const CryptoMethodSelectModal: FC<CryptoMethodSelectModalProps> = ({
                 onSearchChange={setSearch}
                 placeholder={t('cryptoOnramp.searchMethod')}
             />
-
-            {/* <div className={styles.networkTabs}>
-                <button
-                    type="button"
-                    className={clsx(styles.networkTab, !networkFilter && styles.networkTabActive)}
-                    onClick={() => setNetworkFilter(null)}
-                >
-                    {t('cryptoOnramp.allNetworks')}
-                </button>
-                {networks.map((net) => (
-                    <button
-                        key={net.id}
-                        type="button"
-                        className={clsx(styles.networkTab, networkFilter === net.id && styles.networkTabActive)}
-                        onClick={() => setNetworkFilter(net.id)}
-                    >
-                        {net.label}
-                    </button>
-                ))}
-            </div> */}
 
             <CurrencySelect.ListContainer isEmpty={isEmpty}>
                 {displaySections.map((section) => (

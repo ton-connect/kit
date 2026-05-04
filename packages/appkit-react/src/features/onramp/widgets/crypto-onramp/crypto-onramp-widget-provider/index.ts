@@ -6,13 +6,7 @@
  *
  */
 
-export {
-    CryptoOnrampWidgetProvider,
-    useCryptoOnrampContext,
-    CryptoOnrampContext,
-} from './crypto-onramp-widget-provider';
-export type {
-    CryptoOnrampProviderProps,
-    CryptoOnrampContextType,
-    CryptoAmountInputMode,
-} from './crypto-onramp-widget-provider';
+export { CryptoOnrampWidgetProvider } from './crypto-onramp-widget-provider';
+export type { CryptoOnrampProviderProps } from './crypto-onramp-widget-provider';
+export { CryptoOnrampContext, useCryptoOnrampContext } from './crypto-onramp-context';
+export type { CryptoOnrampContextType, CryptoAmountInputMode } from './crypto-onramp-context';

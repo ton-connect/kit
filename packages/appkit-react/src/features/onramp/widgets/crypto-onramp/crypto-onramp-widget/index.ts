@@ -7,4 +7,4 @@
  */
 
 export { CryptoOnrampWidget } from './crypto-onramp-widget';
-export type { CryptoOnrampWidgetProps, CryptoOnrampContextType } from './crypto-onramp-widget';
+export type { CryptoOnrampWidgetProps } from './crypto-onramp-widget';

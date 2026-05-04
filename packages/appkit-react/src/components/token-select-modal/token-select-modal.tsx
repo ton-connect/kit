@@ -7,7 +7,7 @@
  */
 
 import { useMemo, useState } from 'react';
-import type { FC } from 'react';
+import type { JSX } from 'react';
 
 import { CurrencySelect } from '../currency-select-modal';
 import { CurrencyItem } from '../currency-item';
@@ -15,9 +15,17 @@ import type { AppkitUIToken } from '../../types/appkit-ui-token';
 import { useI18n } from '../../features/settings/hooks/use-i18n';
 import { filterTokens, groupTokenSections } from './utils';
 
-export interface TokenSection {
+export interface TokenBase {
+    id: string;
+    symbol: string;
+    name: string;
+    address: string;
+    logo?: string;
+}
+
+export interface TokenSection<T extends TokenBase = AppkitUIToken> {
     title: string;
-    tokens: AppkitUIToken[];
+    tokens: T[];
 }
 
 export interface TokenSectionConfig {
@@ -25,17 +33,17 @@ export interface TokenSectionConfig {
     ids: string[];
 }
 
-export interface TokenSelectModalProps {
+export interface TokenSelectModalProps<T extends TokenBase = AppkitUIToken> {
     open: boolean;
     onClose: () => void;
-    tokens: AppkitUIToken[];
+    tokens: T[];
     tokenSections?: TokenSectionConfig[];
-    onSelect: (token: AppkitUIToken) => void;
+    onSelect: (token: T) => void;
     title: string;
     searchPlaceholder?: string;
 }
 
-export const TokenSelectModal: FC<TokenSelectModalProps> = ({
+export const TokenSelectModal = <T extends TokenBase = AppkitUIToken>({
     open,
     onClose,
     tokens,
@@ -43,11 +51,11 @@ export const TokenSelectModal: FC<TokenSelectModalProps> = ({
     onSelect,
     title,
     searchPlaceholder,
-}) => {
+}: TokenSelectModalProps<T>): JSX.Element => {
     const { t } = useI18n();
     const [search, setSearch] = useState('');
 
-    const displaySections = useMemo((): TokenSection[] => {
+    const displaySections = useMemo((): TokenSection<T>[] => {
         if (search) {
             return [{ title: '', tokens: filterTokens(tokens, search) }];
         }
@@ -59,7 +67,7 @@ export const TokenSelectModal: FC<TokenSelectModalProps> = ({
 
     const isEmpty = displaySections.every((s) => s.tokens.length === 0);
 
-    const handleSelect = (token: AppkitUIToken) => () => {
+    const handleSelect = (token: T) => () => {
         onSelect(token);
         onClose();
         setSearch('');

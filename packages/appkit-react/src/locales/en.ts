@@ -113,8 +113,6 @@ export default {
         tooManyDecimals: 'Too many decimals',
         providerError: 'Provider error',
         depositFailed: 'Failed to create deposit',
-        networkError: 'Network error',
-        invalidParams: 'Invalid parameters',
         genericError: 'Something went wrong',
         addressTab: 'Address',
         memoTab: 'Memo',
@@ -129,6 +127,8 @@ export default {
         statusPending: 'Waiting for your transfer',
         statusSuccess: 'Transfer completed',
         statusFailed: 'Transfer failed',
+        done: 'Done',
+        close: 'Close',
     },
 
     // Onramp

@@ -7,7 +7,7 @@
  */
 
 import type { AppKit } from '@ton/appkit';
-import { getOnrampQuote } from '@ton/appkit';
+import { getOnrampQuote } from '@ton/appkit/onramp';
 
 export const getOnrampQuoteExample = async (appKit: AppKit) => {
     // SAMPLE_START: GET_ONRAMP_QUOTE
