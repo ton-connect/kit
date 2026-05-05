@@ -59,6 +59,8 @@ export const api = {
     rejectTransactionRequest: requests.rejectTransactionRequest,
     approveSignDataRequest: requests.approveSignDataRequest,
     rejectSignDataRequest: requests.rejectSignDataRequest,
+    approveSignMessageRequest: requests.approveSignMessageRequest,
+    rejectSignMessageRequest: requests.rejectSignMessageRequest,
 
     handleTonConnectUrl: tonconnect.handleTonConnectUrl,
     connectionEventFromUrl: tonconnect.connectionEventFromUrl,

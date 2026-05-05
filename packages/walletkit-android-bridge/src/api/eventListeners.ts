@@ -12,11 +12,13 @@ import type {
     RequestErrorEvent,
     SendTransactionRequestEvent,
     SignDataRequestEvent,
+    SignMessageRequestEvent,
 } from '@ton/walletkit';
 
 type ConnectEventListener = ((event: ConnectionRequestEvent) => void) | null;
 type TransactionEventListener = ((event: SendTransactionRequestEvent) => void) | null;
 type SignDataEventListener = ((event: SignDataRequestEvent) => void) | null;
+type SignMessageEventListener = ((event: SignMessageRequestEvent) => void) | null;
 type DisconnectEventListener = ((event: DisconnectionEvent) => void) | null;
 type ErrorEventListener = ((event: RequestErrorEvent) => void) | null;
 
@@ -24,6 +26,7 @@ export const eventListeners = {
     onConnectListener: null as ConnectEventListener,
     onTransactionListener: null as TransactionEventListener,
     onSignDataListener: null as SignDataEventListener,
+    onSignMessageListener: null as SignMessageEventListener,
     onDisconnectListener: null as DisconnectEventListener,
     onErrorListener: null as ErrorEventListener,
 };

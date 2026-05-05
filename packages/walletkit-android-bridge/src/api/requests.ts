@@ -31,3 +31,11 @@ export async function approveSignDataRequest(args: unknown[]) {
 export async function rejectSignDataRequest(args: unknown[]) {
     return kit('rejectSignDataRequest', ...args);
 }
+
+export async function approveSignMessageRequest(args: unknown[]) {
+    return kit('approveSignMessageRequest', ...args);
+}
+
+export async function rejectSignMessageRequest(args: unknown[]) {
+    return kit('rejectSignMessageRequest', ...args);
+}
