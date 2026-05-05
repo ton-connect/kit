@@ -50,6 +50,7 @@ export class BridgeManager {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private eventQueue: any[] = [];
     private isProcessing = false;
+    private isActive = false;
 
     // Durable events support
     private eventStore: EventStore;
@@ -124,6 +125,13 @@ export class BridgeManager {
      * Initialize bridge connection
      */
     async start(): Promise<void> {
+        if (this.isActive === true) {
+            log.warn('Bridge already started');
+            return;
+        }
+
+        this.isActive = true;
+
         if (this.isConnected === true) {
             log.warn('Bridge already connected');
             return;
@@ -138,6 +146,7 @@ export class BridgeManager {
                 this.reconnectAttempts = 0;
             }
         } catch (error) {
+            this.isActive = false;
             log.error('Failed to start bridge', { error });
             throw error;
         }
@@ -345,6 +354,7 @@ export class BridgeManager {
         this.isProcessing = false;
 
         // this.sessions.clear();
+        this.isActive = false;
         this.isConnected = false;
         this.reconnectAttempts = 0;
         if (this.requestProcessingTimeoutId) {
