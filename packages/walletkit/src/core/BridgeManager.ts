@@ -124,8 +124,8 @@ export class BridgeManager {
      * Initialize bridge connection
      */
     async start(): Promise<void> {
-        if (this.bridgeProvider) {
-            log.warn('Bridge already initialized');
+        if (this.isConnected === true) {
+            log.warn('Bridge already connected');
             return;
         }
 
@@ -338,7 +338,6 @@ export class BridgeManager {
     async close(): Promise<void> {
         if (this.bridgeProvider) {
             await this.bridgeProvider.close();
-            this.bridgeProvider = undefined;
         }
 
         // Clear event queue and reset processing state
@@ -382,8 +381,11 @@ export class BridgeManager {
      * Connect to TON Connect bridge
      */
     private async connectToSSEBridge(): Promise<void> {
-        if (!this.config.bridgeUrl) {
-            return;
+        if (!this.bridgeProvider) {
+            throw new WalletKitError(
+                ERROR_CODES.BRIDGE_NOT_INITIALIZED,
+                'Bridge not initialized before connecting to SSE',
+            );
         }
 
         const connectTraceId = uuidv7();
