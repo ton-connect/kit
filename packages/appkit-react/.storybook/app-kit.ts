@@ -11,6 +11,7 @@ import { createOmnistonProvider } from '@ton/appkit/swap/omniston';
 import { createDeDustProvider } from '@ton/appkit/swap/dedust';
 import { createTonstakersProvider } from '@ton/appkit/staking/tonstakers';
 import { createLayerswapProvider } from '@ton/appkit/crypto-onramp/layerswap';
+import { createAppkitOnrampProvider } from '@ton/appkit/onramp/appkit-onramp';
 
 export const appKit = new AppKit({
     networks: {
@@ -40,5 +41,6 @@ export const appKit = new AppKit({
         createDeDustProvider(),
         createTonstakersProvider(),
         createLayerswapProvider(),
+        createAppkitOnrampProvider({ apiKey: 'ak_test_66546d3cebb69dc4397570d65aad14dd' }),
     ],
 });

@@ -19,10 +19,8 @@ import type {
     CurrencySectionConfig,
 } from '../../../types';
 import { ONRAMP_CURRENCIES } from '../../../mock-data/currencies';
-import { ONRAMP_PROVIDERS as MOCK_PROVIDERS } from '../../../mock-data/providers';
 import { DEFAULT_ONRAMP_PRESETS } from '../../../constants';
-import { useOnrampProviders } from '../../../hooks/use-onramp-providers';
-import { useOnrampQuote } from '../../../hooks/use-onramp-quote';
+import { useOnrampQuotes } from '../../../hooks/use-onramp-quotes';
 import { useBuildOnrampUrl } from '../../../hooks/use-build-onramp-url';
 import { useConnectedWallets } from '../../../../wallets/hooks/use-connected-wallets';
 
@@ -143,78 +141,82 @@ export const OnrampWidgetProvider: FC<OnrampProviderProps> = ({
 
     const [amount, setAmount] = useState('');
     const [amountInputMode, setAmountInputMode] = useState<AmountInputMode>('currency');
+    const [selectedProvider, setSelectedProvider] = useState<OnrampWidgetProviderType | null>(null);
 
-    // Get real registered providers
-    const registeredProviders = useOnrampProviders();
-
-    const providers = useMemo(() => {
-        if (registeredProviders.length === 0) {
-            return MOCK_PROVIDERS;
-        }
-
-        return registeredProviders.map((rp) => {
-            const metadata = MOCK_PROVIDERS.find((m) => m.id === rp.providerId);
-            return {
-                id: rp.providerId,
-                name: metadata?.name ?? rp.providerId,
-                description: metadata?.description ?? '',
-                logo: metadata?.logo ?? '',
-            };
-        });
-    }, [registeredProviders]);
-
-    const [selectedProvider, setSelectedProvider] = useState<OnrampWidgetProviderType | null>(
-        () => providers[0] ?? null,
-    );
-
-    // Update selected provider if it's no longer in the list or if the list was initially empty
-    useEffect(() => {
-        if (!selectedProvider || !providers.find((p) => p.id === selectedProvider.id)) {
-            if (providers.length > 0) {
-                setSelectedProvider(providers[0]!);
-            }
-        }
-    }, [providers, selectedProvider]);
-
-    const { data: quote, isLoading: isQuoteLoading } = useOnrampQuote({
+    const {
+        data: quotes,
+        isLoading: isQuoteLoading,
+        error: quotesError,
+    } = useOnrampQuotes({
         fiatCurrency: selectedCurrency.code,
         cryptoCurrency: selectedToken?.symbol ?? 'TON',
         amount: amount || '0',
         isFiatAmount: amountInputMode === 'currency',
-        providerId: selectedProvider?.id ?? '',
         query: {
-            enabled: !!amount && !isNaN(parseFloat(amount)) && parseFloat(amount) > 0 && !!selectedProvider,
+            enabled: !!amount && !isNaN(parseFloat(amount)) && parseFloat(amount) > 0,
+            retry: false,
         },
     });
 
+    const providers = useMemo<OnrampWidgetProviderType[]>(
+        () =>
+            quotes?.map((q) => ({
+                id: q.serviceInfo?.id ?? q.providerId,
+                name: q.serviceInfo?.name ?? q.providerId,
+                description: q.serviceInfo?.paymentMethods?.join(', ') ?? '',
+                logo: q.serviceInfo?.lightLogo ?? '',
+            })) ?? [],
+        [quotes],
+    );
+
+    const selectedQuote = useMemo(() => {
+        if (!quotes || quotes.length === 0) return undefined;
+        if (selectedProvider) {
+            const match = quotes.find((q) => (q.serviceInfo?.id ?? q.providerId) === selectedProvider.id);
+            if (match) return match;
+        }
+        return quotes[0];
+    }, [quotes, selectedProvider]);
+
     const convertedAmount = useMemo(() => {
-        if (!quote) return '';
-        return amountInputMode === 'currency' ? quote.cryptoAmount : quote.fiatAmount;
-    }, [quote, amountInputMode]);
+        if (!selectedQuote) return '';
+        return amountInputMode === 'currency' ? selectedQuote.cryptoAmount : selectedQuote.fiatAmount;
+    }, [selectedQuote, amountInputMode]);
+
+    useEffect(() => {
+        if (selectedProvider && providers.find((p) => p.id === selectedProvider.id)) return;
+        setSelectedProvider(providers[0] ?? null);
+    }, [providers, selectedProvider]);
 
     const numericAmount = parseFloat(amount);
-    const error = !isNaN(numericAmount) && numericAmount > ERROR_THRESHOLD ? 'noQuotesFound' : undefined;
+    const error = useMemo<string | undefined>(() => {
+        if (quotesError) {
+            const code = (quotesError as { code?: string }).code;
+            return code === 'PAIR_NOT_SUPPORTED' ? 'pairNotSupported' : 'noQuotesFound';
+        }
+        if (!isNaN(numericAmount) && numericAmount > ERROR_THRESHOLD) return 'noQuotesFound';
+        return undefined;
+    }, [quotesError, numericAmount]);
     const canContinue =
-        amount !== '' && !isNaN(numericAmount) && numericAmount > 0 && !!quote && !error && !!selectedProvider;
+        amount !== '' && !isNaN(numericAmount) && numericAmount > 0 && !!selectedQuote && !error && !!selectedProvider;
 
     const { mutateAsync: buildUrl } = useBuildOnrampUrl();
     const wallets = useConnectedWallets();
     const activeWallet = wallets?.[0];
 
     const onContinue = useCallback(async () => {
-        if (!canContinue || !quote || !activeWallet || !selectedProvider) return;
+        if (!canContinue || !selectedQuote || !activeWallet) return;
 
         try {
             const url = await buildUrl({
-                quote,
+                quote: selectedQuote,
                 userAddress: activeWallet.getAddress(),
-                providerId: selectedProvider.id,
             });
             window.open(url, '_blank');
         } catch {
             // silently swallow — redirect is best-effort
         }
-    }, [canContinue, quote, activeWallet, selectedProvider, buildUrl]);
+    }, [canContinue, selectedQuote, activeWallet, buildUrl]);
 
     const onReset = useCallback(() => {
         setAmount('');

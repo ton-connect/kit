@@ -106,7 +106,7 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
             <Button
                 variant="fill"
                 size="l"
-                disabled={!canContinue && !error}
+                disabled={!canContinue}
                 loading={isLoading}
                 onClick={handleContinue}
                 fullWidth

@@ -9,5 +9,4 @@
 export * from './errors';
 export * from './OnrampManager';
 export * from './OnrampProvider';
-export * from './moonpay';
-export * from './mercuryo';
+export * from './appkit-onramp';

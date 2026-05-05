@@ -14,10 +14,10 @@ export {
 } from '../actions/onramp/get-onramp-provider';
 export { getOnrampProviders, type GetOnrampProvidersReturnType } from '../actions/onramp/get-onramp-providers';
 export {
-    getOnrampQuote,
-    type GetOnrampQuoteOptions,
-    type GetOnrampQuoteReturnType,
-} from '../actions/onramp/get-onramp-quote';
+    getOnrampQuotes,
+    type GetOnrampQuotesOptions,
+    type GetOnrampQuotesReturnType,
+} from '../actions/onramp/get-onramp-quotes';
 export {
     watchOnrampProviders,
     type WatchOnrampProvidersParameters,

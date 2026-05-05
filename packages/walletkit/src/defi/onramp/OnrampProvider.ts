@@ -18,8 +18,8 @@ import type { OnrampProviderInterface } from '../../api/interfaces';
  * @example
  * ```typescript
  * class MyOnrampProvider extends OnrampProvider {
- *   async getQuote(params: OnrampQuoteParams): Promise<OnrampQuote> {
- *     // Implementation
+ *   async getQuote(params: OnrampQuoteParams): Promise<OnrampQuote | OnrampQuote[]> {
+ *     // Implementation — return one quote, or many if aggregating multiple sources
  *   }
  *
  *   async buildOnrampUrl(params: OnrampParams): Promise<string> {
@@ -37,11 +37,11 @@ export abstract class OnrampProvider<
     abstract getSupportedNetworks(): Network[];
 
     /**
-     * Get a quote for onramping fiat to crypto
+     * Get a quote (or quotes) for onramping fiat to crypto.
+     * Single-source providers may return one quote; aggregating providers may return many.
      * @param params - Quote parameters including currencies and amount
-     * @returns Promise resolving to onramp quote with pricing information
      */
-    abstract getQuote(params: OnrampQuoteParams<TQuoteOptions>): Promise<OnrampQuote>;
+    abstract getQuote(params: OnrampQuoteParams<TQuoteOptions>): Promise<OnrampQuote | OnrampQuote[]>;
 
     /**
      * Build an onramp URL for redirecting the user to the provider

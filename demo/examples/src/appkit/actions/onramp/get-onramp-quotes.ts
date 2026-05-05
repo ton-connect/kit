@@ -7,16 +7,16 @@
  */
 
 import type { AppKit } from '@ton/appkit';
-import { getOnrampQuote } from '@ton/appkit/onramp';
+import { getOnrampQuotes } from '@ton/appkit/onramp';
 
-export const getOnrampQuoteExample = async (appKit: AppKit) => {
-    // SAMPLE_START: GET_ONRAMP_QUOTE
-    const quote = await getOnrampQuote(appKit, {
+export const getOnrampQuotesExample = async (appKit: AppKit) => {
+    // SAMPLE_START: GET_ONRAMP_QUOTES
+    const quotes = await getOnrampQuotes(appKit, {
         fiatCurrency: 'USD',
         cryptoCurrency: 'TON',
         amount: '100',
         isFiatAmount: true,
     });
-    console.log('Onramp Quote:', quote);
-    // SAMPLE_END: GET_ONRAMP_QUOTE
+    console.log('Onramp Quotes:', quotes);
+    // SAMPLE_END: GET_ONRAMP_QUOTES
 };

@@ -7,15 +7,18 @@
  */
 
 import type { AppKit } from '@ton/appkit';
-import { buildOnrampUrl, getOnrampQuote } from '@ton/appkit/onramp';
+import { buildOnrampUrl, getOnrampQuotes } from '@ton/appkit/onramp';
 
 export const buildOnrampUrlExample = async (appKit: AppKit) => {
     // SAMPLE_START: BUILD_ONRAMP_URL
-    const quote = await getOnrampQuote(appKit, {
+    const quotes = await getOnrampQuotes(appKit, {
         fiatCurrency: 'USD',
         cryptoCurrency: 'TON',
         amount: '100',
     });
+
+    const [quote] = quotes;
+    if (!quote) throw new Error('No onramp quotes available');
 
     const url = await buildOnrampUrl(appKit, {
         quote,
