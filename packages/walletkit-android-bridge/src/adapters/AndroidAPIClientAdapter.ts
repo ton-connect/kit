@@ -33,6 +33,7 @@ import type {
     GetEventsResponse,
     MasterchainInfo,
     Network,
+    BulkAccountState,
 } from '@ton/walletkit';
 
 import { error } from '../utils/logger';
@@ -157,6 +158,10 @@ export class AndroidAPIClientAdapter implements ApiClient {
             error('[AndroidAPIClientAdapter] getBalance failed:', err);
             throw err;
         }
+    }
+
+    async getBulkAccounts(_addresses: string[]): Promise<BulkAccountState[]> {
+        throw new Error('getBulkAccounts is not implemented yet');
     }
 
     async getAccountTransactions(_request: TransactionsByAddressRequest): Promise<TransactionsResponse> {
