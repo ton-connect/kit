@@ -121,6 +121,7 @@ export type {
     GetJettonsByAddressRequest,
     GetEventsRequest,
     GetEventsResponse,
+    BulkAccountState,
 } from './types/toncenter/ApiClient';
 export type { FullAccountState } from './types/toncenter/api';
 export type { ToncenterEmulationResult } from './utils/toncenterEmulation';

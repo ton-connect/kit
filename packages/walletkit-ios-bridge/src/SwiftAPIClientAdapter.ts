@@ -32,6 +32,7 @@ import type {
     GetEventsRequest,
     GetEventsResponse,
     MasterchainInfo,
+    BulkAccountState,
 } from '@ton/walletkit';
 
 export class SwiftAPIClientAdapter implements ApiClient {
@@ -72,6 +73,10 @@ export class SwiftAPIClientAdapter implements ApiClient {
 
     async getBalance(_address: UserFriendlyAddress, _seqno?: number): Promise<TokenAmount> {
         throw new Error('getBalance is not implemented yet');
+    }
+
+    async getBulkAccounts(addresses: string[]): Promise<BulkAccountState[]> {
+        return this.swiftApiClient.getBulkAccounts(addresses);
     }
 
     async getAccountTransactions(_request: TransactionsByAddressRequest): Promise<TransactionsResponse> {

@@ -17,6 +17,10 @@ export interface UserNFTsRequest {
      */
     ownerAddress: UserFriendlyAddress;
     /**
+     * Collection address to filter NFTs by
+     */
+    collectionAddress?: UserFriendlyAddress;
+    /**
      * Pagination information
      */
     pagination?: Pagination;

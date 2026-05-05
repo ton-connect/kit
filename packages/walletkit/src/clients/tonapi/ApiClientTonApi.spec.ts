@@ -15,6 +15,9 @@ const HEX_HASH = `0x${'11'.repeat(32)}`;
 type ClientWithGetJson = ApiClientTonApi & {
     getJson: (url: string, query?: Record<string, unknown>) => Promise<unknown>;
 };
+type ClientWithPostJson = ApiClientTonApi & {
+    postJson: (url: string, body: unknown) => Promise<unknown>;
+};
 
 function makeTransaction(overrides: Record<string, unknown> = {}): Record<string, unknown> {
     return {
@@ -154,6 +157,37 @@ describe('ApiClientTonApi', () => {
 
         expect(response.transactions).toHaveLength(1);
         expect(response.transactions[0]?.hash).toMatch(/^0x[0-9a-f]+$/);
+    });
+
+    it('fetches TonAPI bulk accounts', async () => {
+        const client = new ApiClientTonApi();
+        const postJsonSpy = vi.spyOn(client as ClientWithPostJson, 'postJson').mockResolvedValue({
+            accounts: [
+                {
+                    address: TEST_ADDRESS,
+                    balance: 1,
+                    code: 'ff',
+                    data: '00',
+                    last_transaction_lt: 123,
+                    last_transaction_hash: '11'.repeat(32),
+                    frozen_hash: null,
+                    status: 'active',
+                },
+            ],
+        });
+
+        const result = await client.getBulkAccounts([TEST_ADDRESS]);
+
+        expect(postJsonSpy).toHaveBeenCalledWith('/v2/blockchain/accounts/_bulk', { account_ids: [TEST_ADDRESS] });
+        expect(result).toHaveLength(1);
+        expect(result[0]?.address).toBe(TEST_ADDRESS);
+        expect(result[0]?.balance).toBe('1');
+        expect(result[0]?.code).toBe('/w==');
+        expect(result[0]?.data).toBe('AA==');
+        expect(result[0]?.lastTransaction).toEqual({
+            lt: '123',
+            hash: `0x${'11'.repeat(32)}`,
+        });
     });
 
     it('resolves bodyHash via /transactions first to avoid message 404 noise', async () => {

@@ -94,6 +94,10 @@ export interface GetEventsResponse {
     hasNext: boolean;
 }
 
+export interface BulkAccountState extends FullAccountState {
+    address: string;
+}
+
 export interface ApiClient {
     nftItemsByAddress(request: NFTsRequest): Promise<NFTsResponse>;
     nftItemsByOwner(request: UserNFTsRequest): Promise<NFTsResponse>;
@@ -107,6 +111,7 @@ export interface ApiClient {
     ): Promise<GetMethodResult>; // TODO - Make serializable
     getAccountState(address: UserFriendlyAddress, seqno?: number): Promise<FullAccountState>;
     getBalance(address: UserFriendlyAddress, seqno?: number): Promise<TokenAmount>;
+    getBulkAccounts(addresses: string[]): Promise<BulkAccountState[]>;
 
     getAccountTransactions(request: TransactionsByAddressRequest): Promise<TransactionsResponse>;
     getTransactionsByHash(request: GetTransactionByHashRequest): Promise<TransactionsResponse>;

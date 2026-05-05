@@ -10,6 +10,7 @@ import { Address } from '@ton/core';
 
 import type {
     ApiClient,
+    BulkAccountState,
     GetEventsRequest,
     GetEventsResponse,
     GetJettonsByAddressRequest,
@@ -40,6 +41,7 @@ import type { ToncenterResponseJettonMasters, ToncenterTracesResponse } from '..
 import { BaseApiClient } from '../BaseApiClient';
 import type { BaseApiClientConfig } from '../BaseApiClient';
 import { TonClientError } from '../TonClientError';
+import { globalLogger } from '../../core/Logger';
 import type { TonApiBlockchainAccount } from './types/accounts';
 import { asAddressFriendly } from '../../utils/address';
 import { mapAccountState } from './mappers/map-account-state';
@@ -60,6 +62,8 @@ import { mapTonApiTransaction } from './mappers/map-transactions';
 import { mapTonApiTrace, mapTonApiTraceTransaction } from './mappers/map-traces';
 import { mapTonApiEvent } from './mappers/map-events';
 import { mapMasterchainInfo } from './mappers/map-masterchain-info';
+
+const log = globalLogger.createChild('ApiClientTonApi');
 
 /**
  * @experimental
@@ -113,6 +117,17 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
         return state.balance;
     }
 
+    async getBulkAccounts(addresses: string[]): Promise<BulkAccountState[]> {
+        const raw = await this.postJson<{ accounts: TonApiBlockchainAccount[] }>('/v2/blockchain/accounts/_bulk', {
+            account_ids: addresses,
+        });
+
+        return raw.accounts.map((account) => ({
+            address: account.address,
+            ...mapAccountState(account),
+        }));
+    }
+
     async jettonsByAddress(request: GetJettonsByAddressRequest): Promise<ToncenterResponseJettonMasters> {
         const raw = await this.getJson<TonApiJettonInfo>(`/v2/jettons/${request.address}`);
 
@@ -145,6 +160,7 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
 
     async nftItemsByOwner(request: UserNFTsRequest): Promise<NFTsResponse> {
         const query: Record<string, unknown> = {};
+        if (request.collectionAddress) query.collection = request.collectionAddress;
         if (request.pagination?.limit) query.limit = request.pagination.limit;
         if (request.pagination?.offset) query.offset = request.pagination.offset;
 
@@ -152,7 +168,44 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
             `/v2/accounts/${this.normalizeAddress(request.ownerAddress)}/nfts`,
             query,
         );
-        return mapNftItemsResponse(raw.nft_items);
+        const result = mapNftItemsResponse(raw.nft_items);
+        await this.enrichAddressBookWithInterfaces(result);
+
+        return result;
+    }
+
+    private async enrichAddressBookWithInterfaces(result: NFTsResponse): Promise<void> {
+        if (result.nfts.length === 0) {
+            return;
+        }
+
+        const addresses = result.nfts.map((nft) => nft.address);
+        const addressBook = (result.addressBook ??= {});
+        const chunkSize = 100;
+
+        try {
+            for (let i = 0; i < addresses.length; i += chunkSize) {
+                const chunk = addresses.slice(i, i + chunkSize);
+                const bulkRaw = await this.postJson<{
+                    accounts?: Array<TonApiBlockchainAccount & { interfaces?: string[] }>;
+                }>('/v2/blockchain/accounts/_bulk', { account_ids: chunk });
+
+                for (const account of bulkRaw.accounts ?? []) {
+                    const address = asAddressFriendly(account.address);
+                    if (addressBook[address]) {
+                        addressBook[address].interfaces = account.interfaces ?? [];
+                    } else {
+                        addressBook[address] = {
+                            address,
+                            domain: undefined,
+                            interfaces: account.interfaces ?? [],
+                        };
+                    }
+                }
+            }
+        } catch (error) {
+            log.warn('Failed to enrich NFT address book with interfaces', { error });
+        }
     }
 
     async sendBoc(boc: Base64String): Promise<string> {

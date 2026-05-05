@@ -6,7 +6,7 @@
  *
  */
 
-import type { ExtraCurrency } from '@ton/core';
+import type { AccountStatus, ExtraCurrency } from '@ton/core';
 import { Address } from '@ton/core';
 
 import { Base64ToBigInt, Base64Normalize, Base64ToHex } from '../../utils/base64';
@@ -14,6 +14,7 @@ import type { FullAccountState } from '../../types/toncenter/api';
 import type { JettonInfo, ToncenterEmulationResponse } from '../../types';
 import type {
     ApiClient,
+    BulkAccountState,
     GetJettonsByOwnerRequest,
     GetJettonsByAddressRequest,
     GetPendingTraceRequest,
@@ -152,32 +153,23 @@ export class ApiClientToncenter extends BaseApiClient implements ApiClient {
         const query: Record<string, unknown> = { include_boc: true, address: [address] };
         if (typeof seqno === 'number') query.seqno = seqno.toString();
         const raw = await this.getJson<V2AddressInformation>('/api/v3/addressInformation', query);
-        const balance = BigInt(raw.balance);
-        const extraCurrencies: ExtraCurrency = {};
-        for (const currency of raw.extra_currencies || []) {
-            extraCurrencies[currency.id] = BigInt(currency.amount);
-        }
-        // const code = Base64ToUint8Array(raw.code);
-        // const data = Base64ToUint8Array(raw.data);
-        const out: FullAccountState = {
-            status: raw.status,
-            balance: balance.toString(),
-            extraCurrencies,
-            code: raw.code,
-            data: raw.data,
-            lastTransaction: parseInternalTransactionId({
-                hash: raw.last_transaction_hash,
-                lt: raw.last_transaction_lt,
-            }),
-        };
-        if (raw.frozen_hash) {
-            out.frozenHash = Base64ToHex(raw.frozen_hash) ?? undefined;
-        }
-        return out;
+        return toFullAccountState(raw);
     }
 
     async getBalance(address: UserFriendlyAddress, seqno?: number): Promise<TokenAmount> {
         return (await this.getAccountState(address, seqno)).balance;
+    }
+
+    async getBulkAccounts(addresses: string[]): Promise<BulkAccountState[]> {
+        const raw = await this.getJson<ToncenterAccountStatesResponse>('/api/v3/accountStates', {
+            address: addresses,
+            include_boc: true,
+        });
+
+        return (raw.accounts ?? []).map((account) => ({
+            address: account.address,
+            ...toFullAccountState(account),
+        }));
     }
 
     async getAccountTransactions(request: TransactionsByAddressRequest): Promise<TransactionsResponse> {
@@ -456,5 +448,71 @@ export class ApiClientToncenter extends BaseApiClient implements ApiClient {
             fileHash: Base64ToHex(raw.last.file_hash),
             rootHash: Base64ToHex(raw.last.root_hash),
         };
+    }
+}
+
+interface ToncenterAccountStateResponse extends RawToncenterAccountState {
+    address: string;
+}
+
+interface ToncenterAccountStatesResponse {
+    accounts?: ToncenterAccountStateResponse[];
+}
+
+interface RawToncenterAccountState {
+    balance?: string | number;
+    code?: string | null;
+    data?: string | null;
+    frozen_hash?: string | null;
+    last_transaction_hash?: string | null;
+    last_transaction_lt?: string | number;
+    status?: string;
+    extra_currencies?: Array<{
+        id: number;
+        amount: string;
+    }>;
+}
+
+function toFullAccountState(raw: RawToncenterAccountState): FullAccountState {
+    const extraCurrencies: ExtraCurrency = {};
+    for (const currency of raw.extra_currencies ?? []) {
+        extraCurrencies[currency.id] = BigInt(currency.amount);
+    }
+
+    const out: FullAccountState = {
+        status: normalizeAccountStatus(raw.status),
+        balance: BigInt(raw.balance ?? '0').toString(),
+        extraCurrencies,
+        code: raw.code ?? null,
+        data: raw.data ?? null,
+        lastTransaction:
+            raw.last_transaction_hash && raw.last_transaction_lt
+                ? parseInternalTransactionId({
+                      hash: raw.last_transaction_hash,
+                      lt: String(raw.last_transaction_lt),
+                  })
+                : null,
+    };
+
+    if (raw.frozen_hash) {
+        out.frozenHash = Base64ToHex(raw.frozen_hash) ?? undefined;
+    }
+
+    return out;
+}
+
+function normalizeAccountStatus(status?: string): AccountStatus {
+    switch (status) {
+        case 'active':
+        case 'frozen':
+        case 'uninitialized':
+        case 'non-existing':
+            return status;
+        case 'uninit':
+            return 'uninitialized';
+        case 'nonexist':
+            return 'non-existing';
+        default:
+            return 'non-existing';
     }
 }
