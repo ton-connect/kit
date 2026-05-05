@@ -19,9 +19,8 @@ import { AmountReversed } from '../../../../../components/amount-reversed';
 import { CryptoMethodSelectModal } from '../crypto-method-select-modal';
 import { CryptoOnrampDepositModal } from '../crypto-onramp-deposit-modal';
 import { CryptoOnrampRefundAddressModal } from '../crypto-onramp-refund-address-modal';
-import { InfoBlock } from '../../../../../components/info-block';
+import { CryptoOnrampInfoBlock } from '../crypto-onramp-info-block';
 import type { CryptoOnrampContextType } from '../crypto-onramp-widget-provider';
-import { formatOnrampAmount } from '../utils/format-onramp-amount';
 import { useI18n } from '../../../../settings/hooks/use-i18n';
 import styles from './crypto-onramp-widget-ui.module.css';
 
@@ -150,61 +149,16 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
                 {quoteError ? t(quoteError) : t('cryptoOnramp.continue')}
             </ButtonWithConnect>
 
-            <InfoBlock.Container className={styles.info}>
-                <InfoBlock.Row>
-                    <InfoBlock.Label>{t('cryptoOnramp.youGet')}</InfoBlock.Label>
-
-                    {isLoadingQuote ? (
-                        <InfoBlock.ValueSkeleton />
-                    ) : (
-                        <InfoBlock.Value>
-                            {formatOnrampAmount(
-                                amountInputMode === 'token' ? amount : convertedAmount,
-                                selectedToken?.decimals,
-                            )}{' '}
-                            {selectedToken?.symbol}
-                        </InfoBlock.Value>
-                    )}
-                </InfoBlock.Row>
-
-                {/*<InfoBlock.Row>
-                    <InfoBlock.Label>{t('cryptoOnramp.exchangeRate')}</InfoBlock.Label>
-
-                    {isLoadingQuote ? (
-                        <InfoBlock.ValueSkeleton />
-                    ) : (
-                        <InfoBlock.Value>
-                            1 {selectedToken?.symbol} ={' '}
-                            {formatOnrampAmount(quote ? (1 / parseFloat(quote.rate)).toString() : '0', 2)}{' '}
-                            {selectedMethod.symbol}
-                        </InfoBlock.Value>
-                    )}
-                </InfoBlock.Row>*/}
-
-                {isWalletConnected && (
-                    <InfoBlock.Row>
-                        <InfoBlock.Label>{t('cryptoOnramp.yourBalance')}</InfoBlock.Label>
-
-                        {isLoadingTargetBalance ? (
-                            <InfoBlock.ValueSkeleton />
-                        ) : (
-                            <InfoBlock.Value>
-                                {formatOnrampAmount(targetBalance || '0', selectedToken?.decimals)}{' '}
-                                {selectedToken?.symbol}
-                            </InfoBlock.Value>
-                        )}
-                    </InfoBlock.Row>
-                )}
-
-                <InfoBlock.Row>
-                    <InfoBlock.Label>{t('cryptoOnramp.provider')}</InfoBlock.Label>
-                    {isLoadingQuote || !quoteProviderName ? (
-                        <InfoBlock.ValueSkeleton />
-                    ) : (
-                        <InfoBlock.Value>{quoteProviderName}</InfoBlock.Value>
-                    )}
-                </InfoBlock.Row>
-            </InfoBlock.Container>
+            <CryptoOnrampInfoBlock
+                className={styles.info}
+                selectedToken={selectedToken}
+                tokenAmount={amountInputMode === 'token' ? amount : convertedAmount}
+                isLoadingQuote={isLoadingQuote}
+                isWalletConnected={isWalletConnected}
+                targetBalance={targetBalance}
+                isLoadingTargetBalance={isLoadingTargetBalance}
+                quoteProviderName={quoteProviderName}
+            />
 
             <TokenSelectModal
                 open={isTokenSelectOpen}

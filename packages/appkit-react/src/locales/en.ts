@@ -149,7 +149,7 @@ export default {
         connectWallet: 'Connect a wallet to continue',
         tonPayError: 'Failed to start TonPay checkout',
         youGet: 'You get',
-        exchangeRate: 'Exchange rate',
+        yourBalance: 'Your balance',
     },
 
     // Staking

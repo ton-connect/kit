@@ -66,6 +66,14 @@ export class AppkitOnrampProvider extends OnrampProvider<undefined, undefined> {
         return [Network.mainnet()];
     }
 
+    getMetadata() {
+        return {
+            name: 'AppKit Onramp',
+            url: 'https://ton.org/dev',
+            isReversedAmountSupported: false,
+        };
+    }
+
     async getQuote(params: OnrampQuoteParams<undefined>): Promise<OnrampQuote[]> {
         const url = new URL(`${this.baseUrl}/onramp/get-quote`);
         url.searchParams.set('amount', params.amount);

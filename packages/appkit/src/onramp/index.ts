@@ -7,6 +7,22 @@
  */
 
 // fiat-onramp: not ready — exported via sub-path to keep off main @ton/appkit API
+
+export { OnrampProvider, OnrampManager, OnrampError } from '@ton/walletkit';
+
+export type {
+    OnrampAPI,
+    OnrampProviderInterface,
+    OnrampProviderMetadata,
+    OnrampProviderMetadataOverride,
+    OnrampQuote,
+    OnrampQuoteParams,
+    OnrampParams,
+    OnrampServiceInfo,
+    OnrampFee,
+    OnrampFeeType,
+} from '@ton/walletkit';
+
 export {
     getOnrampProvider,
     type GetOnrampProviderOptions,

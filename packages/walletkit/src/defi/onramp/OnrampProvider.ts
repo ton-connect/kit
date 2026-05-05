@@ -6,7 +6,7 @@
  *
  */
 
-import type { Network, OnrampParams, OnrampQuote, OnrampQuoteParams } from '../../api/models';
+import type { Network, OnrampParams, OnrampProviderMetadata, OnrampQuote, OnrampQuoteParams } from '../../api/models';
 import type { OnrampProviderInterface } from '../../api/interfaces';
 
 /**
@@ -35,6 +35,11 @@ export abstract class OnrampProvider<
     readonly type = 'onramp';
     abstract readonly providerId: string;
     abstract getSupportedNetworks(): Network[];
+
+    /**
+     * Get static metadata for the provider (display name, logo, capability flags).
+     */
+    abstract getMetadata(): OnrampProviderMetadata;
 
     /**
      * Get a quote (or quotes) for onramping fiat to crypto.

@@ -11,10 +11,8 @@ import type { FC } from 'react';
 import { AmountReversed } from '../../../../components/amount-reversed';
 import type { AmountReversedProps } from '../../../../components/amount-reversed';
 
-export interface OnrampAmountReversedProps extends Omit<AmountReversedProps, 'onChangeDirection'> {
-    onChangeDirection: () => void;
-}
+export type OnrampAmountReversedProps = AmountReversedProps;
 
-export const OnrampAmountReversed: FC<OnrampAmountReversedProps> = (props) => (
-    <AmountReversed {...props} decimals={2} />
+export const OnrampAmountReversed: FC<OnrampAmountReversedProps> = ({ decimals, ...props }) => (
+    <AmountReversed {...props} decimals={decimals ?? 2} />
 );

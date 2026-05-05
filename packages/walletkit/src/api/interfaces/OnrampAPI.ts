@@ -6,7 +6,7 @@
  *
  */
 
-import type { OnrampParams, OnrampQuote, OnrampQuoteParams } from '../models';
+import type { OnrampParams, OnrampProviderMetadata, OnrampQuote, OnrampQuoteParams } from '../models';
 import type { DefiManagerAPI } from './DefiManagerAPI';
 import type { DefiProvider } from './DefiProvider';
 
@@ -41,6 +41,11 @@ export interface OnrampProviderInterface<TQuoteOptions = unknown, TOnrampOptions
      * Unique identifier for the provider
      */
     readonly providerId: string;
+
+    /**
+     * Get static metadata for the provider (display name, logo, capability flags).
+     */
+    getMetadata(): OnrampProviderMetadata;
 
     /**
      * Get a quote (or quotes) for onramping fiat to crypto.

@@ -8,6 +8,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { FC, PropsWithChildren } from 'react';
+import type { OnrampQuote } from '@ton/appkit/onramp';
 
 import type { AppkitUIToken } from '../../../../../types/appkit-ui-token';
 import type { TokenSectionConfig } from '../../../../../components/token-select-modal';
@@ -21,12 +22,15 @@ import type {
 import { ONRAMP_CURRENCIES } from '../../../mock-data/currencies';
 import { DEFAULT_ONRAMP_PRESETS } from '../../../constants';
 import { useOnrampQuotes } from '../../../hooks/use-onramp-quotes';
+import { useOnrampProviders } from '../../../hooks/use-onramp-providers';
 import { useBuildOnrampUrl } from '../../../hooks/use-build-onramp-url';
 import { useConnectedWallets } from '../../../../wallets/hooks/use-connected-wallets';
+import { useDebounceValue } from '../../../../../hooks/use-debounce-value';
 
 export type { AppkitUIToken };
 
 const ERROR_THRESHOLD = 10000000;
+const QUOTE_DEBOUNCE_MS = 500;
 
 export interface OnrampContextType {
     /** Full list of available tokens to buy */
@@ -66,6 +70,10 @@ export interface OnrampContextType {
     selectedProvider: OnrampWidgetProviderType | null;
     /** Select a provider */
     setSelectedProvider: (provider: OnrampWidgetProviderType) => void;
+    /** Quote tied to the currently selected provider */
+    selectedQuote?: OnrampQuote;
+    /** Whether the registered providers support reversed (crypto-amount) quotes */
+    isReversedAmountSupported: boolean;
 
     /** Whether amount is valid and user can proceed */
     canContinue: boolean;
@@ -97,6 +105,8 @@ const defaultContext: OnrampContextType = {
     providers: [],
     selectedProvider: null,
     setSelectedProvider: () => {},
+    selectedQuote: undefined,
+    isReversedAmountSupported: false,
     canContinue: false,
     error: undefined,
     isLoading: false,
@@ -143,6 +153,16 @@ export const OnrampWidgetProvider: FC<OnrampProviderProps> = ({
     const [amountInputMode, setAmountInputMode] = useState<AmountInputMode>('currency');
     const [selectedProvider, setSelectedProvider] = useState<OnrampWidgetProviderType | null>(null);
 
+    const registeredProviders = useOnrampProviders();
+    const isReversedAmountSupported = useMemo(
+        () =>
+            registeredProviders.length > 0 &&
+            registeredProviders.every((p) => p.getMetadata().isReversedAmountSupported ?? true),
+        [registeredProviders],
+    );
+
+    const [amountDebounced] = useDebounceValue(amount, QUOTE_DEBOUNCE_MS);
+
     const {
         data: quotes,
         isLoading: isQuoteLoading,
@@ -150,10 +170,10 @@ export const OnrampWidgetProvider: FC<OnrampProviderProps> = ({
     } = useOnrampQuotes({
         fiatCurrency: selectedCurrency.code,
         cryptoCurrency: selectedToken?.symbol ?? 'TON',
-        amount: amount || '0',
+        amount: amountDebounced || '0',
         isFiatAmount: amountInputMode === 'currency',
         query: {
-            enabled: !!amount && !isNaN(parseFloat(amount)) && parseFloat(amount) > 0,
+            enabled: !!amountDebounced && !isNaN(parseFloat(amountDebounced)) && parseFloat(amountDebounced) > 0,
             retry: false,
         },
     });
@@ -242,6 +262,8 @@ export const OnrampWidgetProvider: FC<OnrampProviderProps> = ({
             providers,
             selectedProvider,
             setSelectedProvider,
+            selectedQuote,
+            isReversedAmountSupported,
             canContinue,
             error,
             isLoading: isQuoteLoading,
@@ -259,6 +281,8 @@ export const OnrampWidgetProvider: FC<OnrampProviderProps> = ({
             convertedAmount,
             providers,
             selectedProvider,
+            selectedQuote,
+            isReversedAmountSupported,
             canContinue,
             error,
             isQuoteLoading,
