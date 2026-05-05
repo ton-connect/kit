@@ -29,6 +29,7 @@ import type {
 import { Base64ToHex, asBase64 } from '../../../utils/base64';
 import { asHex } from '../../../utils/hex';
 import { asAddressFriendly, asMaybeAddressFriendly } from '../../../utils/address';
+import { parseMsgSizeCount } from '../utils';
 
 function normalizeAccountStatus(status: string): EmulationAccountStatus {
     if (status === 'active') return 'active';
@@ -103,7 +104,10 @@ function mapDescription(desc: RawDescription): EmulationTransactionDescription {
                   skippedActions: desc.action.skipped_actions,
                   msgsCreated: desc.action.msgs_created,
                   actionListHash: desc.action.action_list_hash ? Base64ToHex(desc.action.action_list_hash) : undefined,
-                  totalMsgSize: { cells: desc.action.tot_msg_size.cells, bits: desc.action.tot_msg_size.bits },
+                  totalMsgSize: {
+                      cells: parseMsgSizeCount(desc.action.tot_msg_size.cells) ?? 0,
+                      bits: parseMsgSizeCount(desc.action.tot_msg_size.bits) ?? 0,
+                  },
               }
             : undefined,
     };

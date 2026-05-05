@@ -155,7 +155,7 @@ function mapTransaction(traceNode: TonApiTrace, rootHash: Hex): EmulationTransac
                       specActions: 0,
                       skippedActions: raw.action_phase.skipped_actions ?? 0,
                       msgsCreated: outMsgs.length,
-                      totalMsgSize: { cells: '0', bits: '0' },
+                      totalMsgSize: { cells: 0, bits: 0 },
                   }
                 : undefined,
         },

@@ -182,13 +182,15 @@ export interface EmulationComputePhase {
 export interface EmulationActionMessageSize {
     /**
      * Number of cells used
+     * @format int
      */
-    cells: string;
+    cells: number;
 
     /**
      * Number of bits used
+     * @format int
      */
-    bits: string;
+    bits: number;
 }
 
 /**
