@@ -77,6 +77,7 @@ export type {
     GetJettonsByAddressRequest,
     GetEventsRequest,
     GetEventsResponse,
+    BulkAccountState,
 } from './toncenter/ApiClient';
 
 export type { NftItem } from './toncenter/NftItem';

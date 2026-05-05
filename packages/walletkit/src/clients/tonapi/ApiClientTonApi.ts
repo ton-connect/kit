@@ -65,55 +65,6 @@ import { mapMasterchainInfo } from './mappers/map-masterchain-info';
 
 const log = globalLogger.createChild('ApiClientTonApi');
 
-export type TonApiAccountStatus = 'nonexist' | 'uninit' | 'active' | 'frozen';
-
-export interface TonApiEcPreview {
-    /** Extra currency ID. Example: 239 */
-    id: number;
-    /** Currency symbol. Example: "FMS" */
-    symbol: string;
-    /** Decimal places. Example: 5 */
-    decimals: number;
-    /** Icon URL. Example: "https://cache.tonapi.io/images/extra.jpg" */
-    image: string;
-}
-
-export interface TonApiExtraCurrency {
-    /** Amount as string (bigint). Example: "1000000000" */
-    amount: string;
-    preview: TonApiEcPreview;
-}
-
-export interface TonApiBulkAccount extends BulkAccountState {
-    /** Raw address. Example: "0:da6b1b6663a0e4d18cc8574ccd9db5296e367dd9324706f3bbd9eb1cd2caf0bf" */
-    address: string;
-    /** Balance in nanocoins. Example: 123456789 */
-    balance: number;
-    /** Extra currency balances */
-    extra_balance?: TonApiExtraCurrency[];
-    /** Map of currency code to amount. Example: { "USD": 1, "IDR": 1000 } */
-    currencies_balance?: Record<string, number>;
-    /** Unix timestamp of last activity. Example: 1720860269 */
-    last_activity: number;
-    status: TonApiAccountStatus;
-    /** List of interfaces implemented by this account. Example: ["nft_sale"] */
-    interfaces?: string[];
-    /** Display name. Example: "Ton foundation" */
-    name?: string;
-    /** Whether the account is marked as a scam. Example: true */
-    is_scam?: boolean;
-    /** Icon URL. Example: "https://ton.org/logo.png" */
-    icon?: string;
-    /** Whether transactions to this account require a memo. Example: true */
-    memo_required?: boolean;
-    /** Available GET methods. Example: ["get_item_data"] */
-    get_methods: string[];
-    /** Whether the account is suspended */
-    is_suspended?: boolean;
-    /** Whether the account is a wallet */
-    is_wallet: boolean;
-}
-
 /**
  * @experimental
  * This client implementation is experimental and currently has inconsistencies
@@ -166,12 +117,15 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
         return state.balance;
     }
 
-    async getBulkAccounts(addresses: string[]): Promise<TonApiBulkAccount[]> {
-        const raw = await this.postJson<{ accounts: TonApiBulkAccount[] }>('/v2/accounts/_bulk', {
+    async getBulkAccounts(addresses: string[]): Promise<BulkAccountState[]> {
+        const raw = await this.postJson<{ accounts: TonApiBlockchainAccount[] }>('/v2/blockchain/accounts/_bulk', {
             account_ids: addresses,
         });
 
-        return raw.accounts;
+        return raw.accounts.map((account) => ({
+            address: account.address,
+            ...mapAccountState(account),
+        }));
     }
 
     async jettonsByAddress(request: GetJettonsByAddressRequest): Promise<ToncenterResponseJettonMasters> {
@@ -232,9 +186,9 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
         try {
             for (let i = 0; i < addresses.length; i += chunkSize) {
                 const chunk = addresses.slice(i, i + chunkSize);
-                const bulkRaw = await this.postJson<{ accounts?: TonApiBulkAccount[] }>('/v2/accounts/_bulk', {
-                    account_ids: chunk,
-                });
+                const bulkRaw = await this.postJson<{
+                    accounts?: Array<TonApiBlockchainAccount & { interfaces?: string[] }>;
+                }>('/v2/blockchain/accounts/_bulk', { account_ids: chunk });
 
                 for (const account of bulkRaw.accounts ?? []) {
                     const address = asAddressFriendly(account.address);

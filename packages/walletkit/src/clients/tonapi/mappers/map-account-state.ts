@@ -57,5 +57,9 @@ export function mapAccountState(raw: TonApiBlockchainAccount): FullAccountState 
         lastTransaction,
     };
 
+    if (raw.frozen_hash) {
+        out.frozenHash = (raw.frozen_hash.startsWith('0x') ? raw.frozen_hash : `0x${raw.frozen_hash}`) as Hex;
+    }
+
     return out;
 }

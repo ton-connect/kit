@@ -94,22 +94,8 @@ export interface GetEventsResponse {
     hasNext: boolean;
 }
 
-export interface BulkAccountState {
+export interface BulkAccountState extends FullAccountState {
     address: string;
-    balance: string | number;
-    status?: string;
-    interfaces?: string[];
-    last_activity?: number;
-    last_transaction_lt?: string;
-    last_transaction_hash?: string;
-    account_state_hash?: string;
-    get_methods?: string[];
-    contract_methods?: number[];
-    name?: string;
-    is_scam?: boolean;
-    icon?: string;
-    memo_required?: boolean;
-    is_wallet?: boolean;
 }
 
 export interface ApiClient {
