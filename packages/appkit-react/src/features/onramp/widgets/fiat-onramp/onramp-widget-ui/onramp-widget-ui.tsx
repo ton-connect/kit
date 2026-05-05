@@ -43,9 +43,9 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
     providers,
     selectedQuote,
     isReversedAmountSupported,
-    canContinue,
+    canSubmit,
     error,
-    isLoading,
+    isLoadingQuote,
     onContinue,
     setSelectedProvider,
 }) => {
@@ -117,19 +117,19 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
             <Button
                 variant="fill"
                 size="l"
-                disabled={!canContinue}
-                loading={isLoading}
+                disabled={!canSubmit}
+                loading={isLoadingQuote}
                 onClick={handleContinue}
                 fullWidth
             >
-                {error ? t(`onramp.${error}`) : t('onramp.continue')}
+                {error ? t(error) : t('onramp.continue')}
             </Button>
 
             <OnrampInfoBlock
                 className={styles.info}
                 selectedToken={selectedToken}
                 selectedQuote={selectedQuote}
-                isLoading={isLoading}
+                isLoading={isLoadingQuote}
             />
 
             <TokenSelectModal

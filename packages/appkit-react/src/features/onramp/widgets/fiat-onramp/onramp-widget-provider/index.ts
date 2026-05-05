@@ -6,5 +6,7 @@
  *
  */
 
-export { OnrampWidgetProvider, useOnrampContext } from './onramp-widget-provider';
-export type { OnrampProviderProps, OnrampContextType } from './onramp-widget-provider';
+export { OnrampWidgetProvider } from './onramp-widget-provider';
+export type { OnrampProviderProps } from './onramp-widget-provider';
+export { OnrampContext, useOnrampContext } from './onramp-context';
+export type { OnrampContextType } from './onramp-context';

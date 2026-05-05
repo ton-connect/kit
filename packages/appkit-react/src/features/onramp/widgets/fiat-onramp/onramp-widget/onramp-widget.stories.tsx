@@ -38,7 +38,7 @@ export const CustomUI: Story = {
     },
     render: (args) => (
         <OnrampWidget {...args}>
-            {({ selectedToken, selectedCurrency, amount, setAmount, canContinue }) => (
+            {({ selectedToken, selectedCurrency, amount, setAmount, canSubmit }) => (
                 <div
                     style={{
                         display: 'flex',
@@ -59,8 +59,8 @@ export const CustomUI: Story = {
                         inputMode="decimal"
                         style={{ fontSize: 32, fontWeight: 'bold', border: 'none', outline: 'none' }}
                     />
-                    <button disabled={!canContinue} type="button">
-                        {canContinue ? 'Continue' : 'Enter an amount'}
+                    <button disabled={!canSubmit} type="button">
+                        {canSubmit ? 'Continue' : 'Enter an amount'}
                     </button>
                 </div>
             )}

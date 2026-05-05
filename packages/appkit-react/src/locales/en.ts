@@ -150,6 +150,10 @@ export default {
         tonPayError: 'Failed to start TonPay checkout',
         youGet: 'You get',
         yourBalance: 'Your balance',
+        tooManyDecimals: 'Too many decimal places',
+        providerError: 'Onramp provider unavailable',
+        urlBuildFailed: 'Could not build the onramp link',
+        genericError: 'Unable to get a quote',
     },
 
     // Staking
