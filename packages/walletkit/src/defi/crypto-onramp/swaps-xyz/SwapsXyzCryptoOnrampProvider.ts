@@ -24,7 +24,7 @@ import { isErrorResponse, isEvmAddress, mapStatus, parseChainId } from './utils'
 const SWAPS_XYZ_API_URL = 'https://api-v2.swaps.xyz/api';
 const TON_CHAIN_ID = 999000337;
 const DEFAULT_SLIPPAGE_BPS = 100;
-const DEFAULT_SENDER = '0x4C798114E4d85f9A70321E4198DF20CD920d9387';
+const DEFAULT_SENDER = '0x0000000000000000000000000000000000000000';
 
 export interface SwapsXyzProviderConfig {
     /**
@@ -40,7 +40,7 @@ export interface SwapsXyzProviderConfig {
     /**
      * EVM address used as `sender` on getAction requests. Required by the API
      * even for deposit flows where the actual payer is unknown. Defaults to a
-     * well-known valid address when omitted.
+     * null address when omitted.
      */
     defaultSender?: string;
 }
@@ -78,7 +78,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
     }
 
     getMetadata() {
-        return { name: 'Swaps.xyz', url: 'https://swaps.xyz', requiresRefundAddress: true };
+        return { name: 'Swaps.xyz', url: 'https://swaps.xyz', isRefundAddressRequired: true };
     }
 
     private readonly apiKey: string;
@@ -189,6 +189,13 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
         const { response } = metadata;
 
         if (metadata.sender === this.defaultSender || metadata.sender !== params.refundAddress) {
+            if (!params.refundAddress) {
+                throw new CryptoOnrampError(
+                    'SwapsXyz: a refund address is required to create a deposit',
+                    CryptoOnrampError.REFUND_ADDRESS_REQUIRED,
+                );
+            }
+
             if (!isEvmAddress(params.refundAddress)) {
                 throw new CryptoOnrampError(
                     'SwapsXyz: senderAddress must be a valid EVM address (got "' + params.refundAddress + '")',

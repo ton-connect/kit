@@ -18,6 +18,8 @@ import { mapDefiError } from '../../../../../utils/map-defi-error';
 export const mapCryptoOnrampError = (error: unknown): string => {
     if (error instanceof CryptoOnrampError) {
         switch (error.code) {
+            case CryptoOnrampError.REFUND_ADDRESS_REQUIRED:
+                return 'cryptoOnramp.refundAddressRequired';
             case CryptoOnrampError.INVALID_REFUND_ADDRESS:
                 return 'cryptoOnramp.invalidRefundAddress';
             case CryptoOnrampError.QUOTE_FAILED:

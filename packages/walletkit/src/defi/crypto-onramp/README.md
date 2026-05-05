@@ -112,7 +112,7 @@ export class MyCryptoOnrampProvider extends CryptoOnrampProvider<MyQuoteOptions>
     }
 
     getMetadata() {
-        return { name: 'My Provider', url: 'https://my-provider.com', requiresRefundAddress: true };
+        return { name: 'My Provider', url: 'https://my-provider.com', isRefundAddressRequired: true };
     }
 
     async getQuote(params: CryptoOnrampQuoteParams<MyQuoteOptions>): Promise<CryptoOnrampQuote> {

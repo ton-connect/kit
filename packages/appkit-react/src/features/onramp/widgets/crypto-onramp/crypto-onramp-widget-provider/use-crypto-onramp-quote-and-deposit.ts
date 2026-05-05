@@ -69,7 +69,7 @@ export const useCryptoOnrampQuoteAndDeposit = ({
     const quoteProvider = useCryptoOnrampProvider({ id: quoteQuery.data?.providerId });
     const quoteProviderMetadata = quoteProvider?.getMetadata();
     const quoteProviderName = quoteProviderMetadata?.name ?? null;
-    const requiresRefundAddress = quoteProviderMetadata?.requiresRefundAddress ?? false;
+    const isRefundAddressRequired = quoteProviderMetadata?.isRefundAddressRequired ?? false;
 
     const createDepositMutation = useCreateCryptoOnrampDeposit();
 
@@ -97,14 +97,14 @@ export const useCryptoOnrampQuoteAndDeposit = ({
 
     const createDeposit = useCallback(() => {
         if (!quoteQuery.data || !userAddress) return;
-        if (requiresRefundAddress && !refundAddress) return;
+        if (isRefundAddressRequired && !refundAddress) return;
 
         createDepositMutation.mutate({
             quote: quoteQuery.data,
             providerId: quoteQuery.data.providerId,
             refundAddress,
         });
-    }, [quoteQuery.data, userAddress, createDepositMutation, refundAddress, requiresRefundAddress]);
+    }, [quoteQuery.data, userAddress, createDepositMutation, refundAddress, isRefundAddressRequired]);
 
     const onReset = useCallback(() => {
         createDepositMutation.reset();
@@ -128,7 +128,7 @@ export const useCryptoOnrampQuoteAndDeposit = ({
         quoteError: quoteQuery.error,
         isQuoteFetching: quoteQuery.isFetching,
         quoteProviderName,
-        requiresRefundAddress,
+        isRefundAddressRequired,
         deposit: createDepositMutation.data ?? null,
         depositError: createDepositMutation.error,
         isCreatingDeposit: createDepositMutation.isPending,

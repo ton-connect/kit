@@ -54,7 +54,7 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
     canContinue,
     onReset,
     depositStatus,
-    requiresRefundAddress,
+    isRefundAddressRequired,
     refundAddress,
     setRefundAddress,
     quoteError,
@@ -72,12 +72,12 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
     const { t } = useI18n();
 
     const handleContinue = useCallback(() => {
-        if (!requiresRefundAddress) {
+        if (!isRefundAddressRequired) {
             createDeposit();
             return;
         }
         setIsRefundAddressOpen(true);
-    }, [requiresRefundAddress, createDeposit]);
+    }, [isRefundAddressRequired, createDeposit]);
 
     const handleConfirmRefundAddress = useCallback(() => {
         createDeposit();
