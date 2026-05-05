@@ -9,8 +9,8 @@ disable-model-invocation: false
 
 Backed **xStocks** are jettons on TON. Resolve the **jetton master** from the public xStocks API, then use the same **quote → execute** flow as `ton-swap`, with routing preferences learned from real Omniston behavior.
 
-> **Critical: USDT is the only working swap pair.**
-> Omniston consistently returns **no quote** for TON → xStock and xStock → TON routes.
+> **Critical: USDT is the only working swap pair.**  
+> Omniston consistently returns **no quote** for TON → xStock and xStock → TON routes.  
 > All xStock buys and sells **must** go through USDT. If the user lacks sufficient USDT, buy USDT with TON first (see §Pre-fund USDT below).
 
 ## Key addresses

@@ -159,26 +159,6 @@ describe('ApiClientTonApi', () => {
         expect(response.transactions[0]?.hash).toMatch(/^0x[0-9a-f]+$/);
     });
 
-    it('normalizes non-32-byte hex transaction hashes', async () => {
-        const client = new ApiClientTonApi();
-        vi.spyOn(client as ClientWithGetJson, 'getJson').mockResolvedValue({
-            transactions: [
-                makeTransaction({
-                    hash: '9e8b7e6be85ab2',
-                }),
-            ],
-        });
-
-        const response = await client.getAccountTransactions({
-            address: [TEST_ADDRESS],
-            limit: 10,
-            offset: 0,
-        });
-
-        expect(response.transactions[0]?.hash).toBe('0x9e8b7e6be85ab2');
-        expect(response.transactions[0]?.traceExternalHash).toBe('0x9e8b7e6be85ab2');
-    });
-
     it('fetches TonAPI bulk accounts', async () => {
         const client = new ApiClientTonApi();
         const postJsonSpy = vi.spyOn(client as ClientWithPostJson, 'postJson').mockResolvedValue({

@@ -11,7 +11,7 @@
 // eslint-disable-next-line no-console
 console.log('TON Wallet Demo extension background script loaded');
 
-import { Network, ExtensionStorageAdapter, TonWalletKit, ApiClientTonApi } from '@ton/walletkit';
+import { Network, ExtensionStorageAdapter, TonWalletKit } from '@ton/walletkit';
 import type { InjectedToExtensionBridgeRequestPayload } from '@ton/walletkit';
 import browser from 'webextension-polyfill';
 import { onMessage } from '@truecarry/webext-bridge/background';
@@ -21,13 +21,7 @@ import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../utils/w
 
 import { JS_BRIDGE_MESSAGE_TO_BACKGROUND } from '@/lib/constants';
 import { SendMessageToExtensionContentFromBackground } from '@/lib/extensionBackground';
-import {
-    DISABLE_AUTO_POPUP,
-    ENV_TON_API_KEY_MAINNET,
-    ENV_TON_API_KEY_TESTNET,
-    ENV_TON_API_KEY_TETRA,
-    ENV_TON_API_MIN_REQUEST_INTERVAL_MS,
-} from '@/lib/env';
+import { DISABLE_AUTO_POPUP, ENV_TON_API_KEY_MAINNET, ENV_TON_API_KEY_TESTNET, ENV_TON_API_KEY_TETRA } from '@/lib/env';
 
 // Initialize WalletKit and JSBridge
 let walletKit: TonWalletKit | null = null;
@@ -48,18 +42,16 @@ async function initializeWalletKit() {
             },
             networks: {
                 [Network.mainnet().chainId]: {
-                    apiClient: new ApiClientTonApi({
-                        network: Network.mainnet(),
-                        apiKey: ENV_TON_API_KEY_MAINNET,
-                        minRequestIntervalMs: ENV_TON_API_MIN_REQUEST_INTERVAL_MS,
-                    }),
+                    apiClient: {
+                        url: 'https:/toncenter.com',
+                        key: ENV_TON_API_KEY_MAINNET,
+                    },
                 },
                 [Network.testnet().chainId]: {
-                    apiClient: new ApiClientTonApi({
-                        network: Network.testnet(),
-                        apiKey: ENV_TON_API_KEY_TESTNET,
-                        minRequestIntervalMs: ENV_TON_API_MIN_REQUEST_INTERVAL_MS,
-                    }),
+                    apiClient: {
+                        url: 'https://testnet.toncenter.com',
+                        key: ENV_TON_API_KEY_TESTNET,
+                    },
                 },
 
                 // TODO: Update tetra api client
