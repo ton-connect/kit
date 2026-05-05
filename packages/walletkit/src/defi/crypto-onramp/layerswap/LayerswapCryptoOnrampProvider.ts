@@ -76,7 +76,7 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<undefine
     }
 
     getMetadata() {
-        return { name: 'Layerswap', url: 'https://layerswap.io' };
+        return { name: 'Layerswap', url: 'https://layerswap.io', isReversedAmountSupported: false };
     }
 
     private readonly apiKey: string | undefined;
@@ -114,8 +114,8 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<undefine
 
         if (params.isSourceAmount === false) {
             throw new CryptoOnrampError(
-                'Layerswap: only source-amount quotes are supported (isSourceAmount=false is not yet implemented)',
-                CryptoOnrampError.INVALID_PARAMS,
+                'Layerswap: only source-amount quotes are supported',
+                CryptoOnrampError.REVERSED_AMOUNT_NOT_SUPPORTED,
             );
         }
 

@@ -123,6 +123,7 @@ export default {
         refundAddressLabel:
             'Enter the address on the source network where the funds will be returned in case of a problem with the exchange',
         refundAddressRequired: 'Refund address is required',
+        reversedAmountNotSupported: 'This provider only supports entering the source amount',
         invalidRefundAddress: 'Invalid refund address',
         refundAddressPlaceholder: 'Your address',
         yourBalance: 'Your balance',

@@ -70,6 +70,7 @@ export const useCryptoOnrampQuoteAndDeposit = ({
     const quoteProviderMetadata = quoteProvider?.getMetadata();
     const quoteProviderName = quoteProviderMetadata?.name ?? null;
     const isRefundAddressRequired = quoteProviderMetadata?.isRefundAddressRequired ?? false;
+    const isReversedAmountSupported = quoteProviderMetadata?.isReversedAmountSupported ?? true;
 
     const createDepositMutation = useCreateCryptoOnrampDeposit();
 
@@ -129,6 +130,7 @@ export const useCryptoOnrampQuoteAndDeposit = ({
         isQuoteFetching: quoteQuery.isFetching,
         quoteProviderName,
         isRefundAddressRequired,
+        isReversedAmountSupported,
         deposit: createDepositMutation.data ?? null,
         depositError: createDepositMutation.error,
         isCreatingDeposit: createDepositMutation.isPending,

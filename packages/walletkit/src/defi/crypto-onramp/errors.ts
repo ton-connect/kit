@@ -14,6 +14,7 @@ export class CryptoOnrampError extends DefiError {
     static readonly DEPOSIT_FAILED = 'DEPOSIT_FAILED';
     static readonly REFUND_ADDRESS_REQUIRED = 'REFUND_ADDRESS_REQUIRED';
     static readonly INVALID_REFUND_ADDRESS = 'INVALID_REFUND_ADDRESS';
+    static readonly REVERSED_AMOUNT_NOT_SUPPORTED = 'REVERSED_AMOUNT_NOT_SUPPORTED';
 
     constructor(message: string, code: string, details?: unknown) {
         super(message, code, details);

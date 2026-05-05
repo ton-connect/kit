@@ -6,7 +6,7 @@
  *
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import type { FC, PropsWithChildren } from 'react';
 
 import { useAddress } from '../../../../wallets';
@@ -67,6 +67,7 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
         isQuoteFetching,
         quoteProviderName,
         isRefundAddressRequired,
+        isReversedAmountSupported,
         deposit,
         depositError,
         isCreatingDeposit,
@@ -104,6 +105,12 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
     const isLoadingQuote = isQuoteFetching || amount !== amountDebounced;
     const canContinue = canSubmit && !isQuoteFetching && amount === amountDebounced && !!userAddress;
 
+    useEffect(() => {
+        if (!isReversedAmountSupported && amountInputMode === 'token') {
+            setAmountInputMode('method');
+        }
+    }, [isReversedAmountSupported, amountInputMode, setAmountInputMode]);
+
     const value = useMemo(
         () => ({
             tokens,
@@ -125,6 +132,7 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             quoteError: validationQuoteError,
             quoteProviderName,
             isRefundAddressRequired,
+            isReversedAmountSupported,
             deposit,
             isCreatingDeposit,
             depositError: validationDepositError,
@@ -158,6 +166,7 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             validationQuoteError,
             quoteProviderName,
             isRefundAddressRequired,
+            isReversedAmountSupported,
             deposit,
             isCreatingDeposit,
             validationDepositError,

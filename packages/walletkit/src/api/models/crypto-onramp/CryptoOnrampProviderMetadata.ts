@@ -30,6 +30,12 @@ export interface CryptoOnrampProviderMetadata {
      * When true, the UI must collect a refund address before creating a deposit.
      */
     isRefundAddressRequired?: boolean;
+
+    /**
+     * Whether this provider supports reversed (target-amount) quotes.
+     * When false, the UI should hide the direction toggle and only allow source-amount input.
+     */
+    isReversedAmountSupported?: boolean;
 }
 
 /**

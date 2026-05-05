@@ -55,6 +55,7 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
     onReset,
     depositStatus,
     isRefundAddressRequired,
+    isReversedAmountSupported,
     refundAddress,
     setRefundAddress,
     quoteError,
@@ -126,7 +127,11 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
                 <AmountReversed
                     className={styles.converted}
                     value={convertedAmount}
-                    onChangeDirection={() => setAmountInputMode(amountInputMode === 'token' ? 'method' : 'token')}
+                    onChangeDirection={
+                        isReversedAmountSupported
+                            ? () => setAmountInputMode(amountInputMode === 'token' ? 'method' : 'token')
+                            : undefined
+                    }
                     ticker={amountInputMode === 'token' ? selectedMethod.symbol : selectedToken?.symbol}
                     decimals={amountInputMode === 'token' ? selectedMethod.decimals : (selectedToken?.decimals ?? 0)}
                 />

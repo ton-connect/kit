@@ -20,6 +20,8 @@ export const mapCryptoOnrampError = (error: unknown): string => {
         switch (error.code) {
             case CryptoOnrampError.REFUND_ADDRESS_REQUIRED:
                 return 'cryptoOnramp.refundAddressRequired';
+            case CryptoOnrampError.REVERSED_AMOUNT_NOT_SUPPORTED:
+                return 'cryptoOnramp.reversedAmountNotSupported';
             case CryptoOnrampError.INVALID_REFUND_ADDRESS:
                 return 'cryptoOnramp.invalidRefundAddress';
             case CryptoOnrampError.QUOTE_FAILED:
