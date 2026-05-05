@@ -99,15 +99,20 @@ export class BridgeManager {
         this.jsBridgeTransport = config?.jsBridgeTransport;
 
         if (this.config.bridgeUrl) {
-            this.bridgeProvider = new BridgeProvider<WalletConsumer>(this.config.bridgeUrl, this.queueBridgeEvent.bind(this), (error: any) => {
-                log.error('Bridge listener error', { error: error.toString() });
-                // Send bridge-client-connect-error event for listener errors
-                this.analytics?.emitBridgeClientConnectError({
-                    error_message: `${error?.toString() || 'Unknown error'}${error?.errorCode ? ` (Code: ${error?.errorCode})` : ''}`,
-                    trace_id: error?.traceId,
-                    client_id: error?.clientId,
-                });
-            })
+            this.bridgeProvider = new BridgeProvider<WalletConsumer>(
+                this.config.bridgeUrl,
+                this.queueBridgeEvent.bind(this),
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (error: any) => {
+                    log.error('Bridge listener error', { error: error.toString() });
+                    // Send bridge-client-connect-error event for listener errors
+                    this.analytics?.emitBridgeClientConnectError({
+                        error_message: `${error?.toString() || 'Unknown error'}${error?.errorCode ? ` (Code: ${error?.errorCode})` : ''}`,
+                        trace_id: error?.traceId,
+                        client_id: error?.clientId,
+                    });
+                },
+            );
         }
 
         if (!this.jsBridgeTransport && config?.enableJsBridge) {
@@ -404,7 +409,7 @@ export class BridgeManager {
 
             await this.bridgeProvider?.restoreConnection(clients, {
                 lastEventId: this.lastEventId,
-            })
+            });
             this.isConnected = true;
             this.reconnectAttempts = 0;
             log.info('Bridge connected successfully');
