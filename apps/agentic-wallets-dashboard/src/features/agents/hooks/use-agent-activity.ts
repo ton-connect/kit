@@ -510,10 +510,10 @@ export function useAgentActivity(agentAddress: string | null, ownerAddress: stri
                             typeof action?.NftItemTransfer?.nft === 'string' ? action.NftItemTransfer.nft : undefined;
                         const hasThumbnail = Boolean(
                             action?.simplePreview?.valueImage ??
-                                action?.simple_preview?.value_image ??
-                                action?.NftItemTransfer?.nft?.preview ??
-                                action?.NftItemTransfer?.nft?.image ??
-                                action?.NftItemTransfer?.nft?.metadata?.image,
+                            action?.simple_preview?.value_image ??
+                            action?.NftItemTransfer?.nft?.preview ??
+                            action?.NftItemTransfer?.nft?.image ??
+                            action?.NftItemTransfer?.nft?.metadata?.image,
                         );
 
                         if (!hasThumbnail && nftAddress) {

@@ -6,8 +6,7 @@
  *
  */
 
-import { AppKit, Network, ApiClientTonApi } from '@ton/appkit';
-import { TonConnectConnector } from '@ton/appkit';
+import { AppKit, Network, ApiClientTonApi, createTonConnectConnector } from '@ton/appkit';
 import { THEME } from '@tonconnect/ui';
 
 import {
@@ -34,7 +33,7 @@ export const appKit = new AppKit({
         },
     },
     connectors: [
-        new TonConnectConnector({
+        createTonConnectConnector({
             tonConnectOptions: {
                 manifestUrl: 'https://tonconnect-sdk-demo-dapp.vercel.app/tonconnect-manifest.json',
                 uiPreferences: {
