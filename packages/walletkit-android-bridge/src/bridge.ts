@@ -40,7 +40,7 @@ setBridgeApi(api as unknown as WalletKitBridgeApi);
 // Synchronous: must be in place before native onPageFinished posts the port.
 installPortHandshake();
 
-setInboundCallback(json => {
+setInboundCallback((json) => {
     let envelope: IncomingEnvelope;
     try {
         envelope = JSON.parse(json) as IncomingEnvelope;

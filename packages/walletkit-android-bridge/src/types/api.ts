@@ -28,16 +28,17 @@ import type {
     Wallet,
     WalletResponse,
 } from '@ton/walletkit';
-import type { TONBase64, TONHex, TONUserFriendlyAddress } from './brands';
 import type { DeDustSwapProviderConfig } from '@ton/walletkit/swap/dedust';
 import type { OmnistonSwapProviderConfig } from '@ton/walletkit/swap/omniston';
+
+import type { TONBase64, TONHex, TONUserFriendlyAddress } from './brands';
+import type { WalletKitBridgeEventCallback } from './events';
+import type { WalletKitBridgeInitConfig } from './walletkit';
 
 /**
  * TonConnect event payload types that can be returned from processInternalBrowserRequest.
  */
 export type TonConnectEventPayload = ConnectEvent | ConnectEventError | WalletResponse | DisconnectEvent;
-import type { WalletKitBridgeEventCallback } from './events';
-import type { WalletKitBridgeInitConfig } from './walletkit';
 
 export type PromiseOrValue<T> = T | Promise<T>;
 
@@ -431,8 +432,12 @@ export interface WalletKitBridgeApi {
         args: CreateSignerFromPrivateKeyArgs,
     ): PromiseOrValue<{ signerId: string; publicKey: TONHex }>;
     createSignerFromCustom(args: CreateSignerFromCustomArgs): PromiseOrValue<{ signerId: string; publicKey: TONHex }>;
-    createV5R1WalletAdapter(args: CreateWalletAdapterArgs): PromiseOrValue<{ adapterId: string; address: TONUserFriendlyAddress }>;
-    createV4R2WalletAdapter(args: CreateWalletAdapterArgs): PromiseOrValue<{ adapterId: string; address: TONUserFriendlyAddress }>;
+    createV5R1WalletAdapter(
+        args: CreateWalletAdapterArgs,
+    ): PromiseOrValue<{ adapterId: string; address: TONUserFriendlyAddress }>;
+    createV4R2WalletAdapter(
+        args: CreateWalletAdapterArgs,
+    ): PromiseOrValue<{ adapterId: string; address: TONUserFriendlyAddress }>;
     addWallet(args: AddWalletArgs): PromiseOrValue<{ walletId: string | undefined; wallet: Wallet } | null>;
     releaseRef(args: ReleaseRefArgs): PromiseOrValue<{ ok: boolean }>;
     getWallets(): PromiseOrValue<{ walletId: string | undefined; wallet: Wallet }[]>;
@@ -452,7 +457,9 @@ export interface WalletKitBridgeApi {
     rejectConnectRequest(args: RejectConnectRequestArgs): PromiseOrValue<{ success: boolean }>;
     approveTransactionRequest(args: ApproveTransactionRequestArgs): PromiseOrValue<{ signedBoc: TONBase64 }>;
     rejectTransactionRequest(args: RejectTransactionRequestArgs): PromiseOrValue<{ success: boolean }>;
-    approveSignDataRequest(args: ApproveSignDataRequestArgs): PromiseOrValue<{ signature: TONBase64; timestamp: number }>;
+    approveSignDataRequest(
+        args: ApproveSignDataRequestArgs,
+    ): PromiseOrValue<{ signature: TONBase64; timestamp: number }>;
     rejectSignDataRequest(args: RejectSignDataRequestArgs): PromiseOrValue<{ success: boolean }>;
     listSessions(): PromiseOrValue<{ items: TONConnectSession[] }>;
     disconnectSession(args?: DisconnectSessionArgs): PromiseOrValue<{ ok: boolean }>;

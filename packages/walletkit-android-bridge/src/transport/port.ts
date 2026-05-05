@@ -36,7 +36,7 @@ export function setInboundCallback(callback: (json: string) => void): void {
 // Must run synchronously during bundle parse — Kotlin posts the port from
 // WebViewClient.onPageFinished and the listener has to be in place by then.
 export function installPortHandshake(): void {
-    window.addEventListener('message', event => {
+    window.addEventListener('message', (event) => {
         if (event.data !== HANDSHAKE_TAG) {
             warn('[walletkitBridge] Ignoring window message — not the handshake tag', event.data);
             return;
@@ -50,7 +50,7 @@ export function installPortHandshake(): void {
             warn('[walletkitBridge] Bridge port already initialised — ignoring duplicate handshake');
             return;
         }
-        incoming.onmessage = e => {
+        incoming.onmessage = (e) => {
             const data = typeof e.data === 'string' ? e.data : JSON.stringify(e.data);
             const cb = inboundCallback;
             if (!cb) {
