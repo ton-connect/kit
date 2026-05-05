@@ -1,5 +1,11 @@
 # @ton/appkit-react
 
+## 0.0.6-alpha.3
+
+### Patch Changes
+
+- @ton/appkit@0.0.5-alpha.3
+
 ## 0.0.6-alpha.2
 
 ### Patch Changes
