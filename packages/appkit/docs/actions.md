@@ -456,18 +456,18 @@ Get all registered onramp providers.
 
 Watch for new onramp providers registration.
 
-### `getOnrampQuote`
+### `getOnrampQuotes`
 
-Get an onramp quote from registered providers.
+Get onramp quotes from all registered providers (results are flattened).
 
 ```ts
-const quote = await getOnrampQuote(appKit, {
+const quotes = await getOnrampQuotes(appKit, {
     fiatCurrency: 'USD',
     cryptoCurrency: 'TON',
     amount: '100',
     isFiatAmount: true,
 });
-console.log('Onramp Quote:', quote);
+console.log('Onramp Quotes:', quotes);
 ```
 
 ### `buildOnrampUrl`
@@ -475,11 +475,14 @@ console.log('Onramp Quote:', quote);
 Build an onramp URL for redirecting the user to the provider.
 
 ```ts
-const quote = await getOnrampQuote(appKit, {
+const quotes = await getOnrampQuotes(appKit, {
     fiatCurrency: 'USD',
     cryptoCurrency: 'TON',
     amount: '100',
 });
+
+const [quote] = quotes;
+if (!quote) throw new Error('No onramp quotes available');
 
 const url = await buildOnrampUrl(appKit, {
     quote,

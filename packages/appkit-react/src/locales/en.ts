@@ -145,10 +145,15 @@ export default {
         buyToken: 'Buy {{ symbol }}',
         forCurrency: 'for {{ symbol }}',
         noQuotesFound: 'No quotes found',
+        pairNotSupported: 'This currency pair is not supported',
         connectWallet: 'Connect a wallet to continue',
         tonPayError: 'Failed to start TonPay checkout',
         youGet: 'You get',
-        exchangeRate: 'Exchange rate',
+        yourBalance: 'Your balance',
+        tooManyDecimals: 'Too many decimal places',
+        providerError: 'Onramp provider unavailable',
+        urlBuildFailed: 'Could not build the onramp link',
+        genericError: 'Unable to get a quote',
     },
 
     // Staking

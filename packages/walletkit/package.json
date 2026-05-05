@@ -61,14 +61,14 @@
         "default": "./dist/cjs/defi/staking/tonstakers/index.js"
       }
     },
-    "./onramp/ton-pay": {
+    "./onramp/appkit-onramp": {
       "import": {
-        "types": "./dist/esm/defi/onramp/ton-pay/index.d.ts",
-        "default": "./dist/esm/defi/onramp/ton-pay/index.js"
+        "types": "./dist/esm/defi/onramp/appkit-onramp/index.d.ts",
+        "default": "./dist/esm/defi/onramp/appkit-onramp/index.js"
       },
       "require": {
-        "types": "./dist/cjs/defi/onramp/ton-pay/index.d.ts",
-        "default": "./dist/cjs/defi/onramp/ton-pay/index.js"
+        "types": "./dist/cjs/defi/onramp/appkit-onramp/index.d.ts",
+        "default": "./dist/cjs/defi/onramp/appkit-onramp/index.js"
       }
     },
     "./crypto-onramp/swaps-xyz": {
@@ -106,8 +106,8 @@
       "staking/tonstakers": [
         "./dist/cjs/defi/staking/tonstakers/index.d.ts"
       ],
-      "onramp/ton-pay": [
-        "./dist/cjs/defi/onramp/ton-pay/index.d.ts"
+      "onramp/appkit-onramp": [
+        "./dist/cjs/defi/onramp/appkit-onramp/index.d.ts"
       ],
       "crypto-onramp/swaps-xyz": [
         "./dist/cjs/defi/crypto-onramp/swaps-xyz/index.d.ts"

@@ -6,7 +6,7 @@
  *
  */
 
-import type { OnrampParams, OnrampQuote, OnrampQuoteParams } from '../models';
+import type { OnrampParams, OnrampProviderMetadata, OnrampQuote, OnrampQuoteParams } from '../models';
 import type { DefiManagerAPI } from './DefiManagerAPI';
 import type { DefiProvider } from './DefiProvider';
 
@@ -15,17 +15,10 @@ import type { DefiProvider } from './DefiProvider';
  */
 export interface OnrampAPI extends DefiManagerAPI<OnrampProviderInterface> {
     /**
-     * Get a quote for onramping fiat to crypto
+     * Get quotes for onramping fiat to crypto from all registered providers.
+     * Each provider may emit one or many quotes; results are flattened.
      * @param params Quote parameters (fiat, crypto, amount, etc.)
-     * @param providerId Provider identifier (optional, uses default if not specified)
-     * @returns A promise that resolves to an OnrampQuote
-     */
-    getQuote(params: OnrampQuoteParams, providerId?: string): Promise<OnrampQuote>;
-
-    /**
-     * Get quotes for onramping fiat to crypto from all registered providers
-     * @param params Quote parameters (fiat, crypto, amount, etc.)
-     * @returns A promise that resolves to an array of OnrampQuotes
+     * @returns A promise that resolves to a flat array of OnrampQuotes
      */
     getQuotes(params: OnrampQuoteParams): Promise<OnrampQuote[]>;
 
@@ -50,11 +43,17 @@ export interface OnrampProviderInterface<TQuoteOptions = unknown, TOnrampOptions
     readonly providerId: string;
 
     /**
-     * Get a quote for onramping fiat to crypto
-     * @param params Quote parameters including provider-specific options
-     * @returns A promise that resolves to an OnrampQuote
+     * Get static metadata for the provider (display name, logo, capability flags).
      */
-    getQuote(params: OnrampQuoteParams<TQuoteOptions>): Promise<OnrampQuote>;
+    getMetadata(): OnrampProviderMetadata;
+
+    /**
+     * Get a quote (or quotes) for onramping fiat to crypto.
+     * Aggregating providers may return multiple quotes from a single call;
+     * single-source providers may return one quote directly.
+     * @param params Quote parameters including provider-specific options
+     */
+    getQuote(params: OnrampQuoteParams<TQuoteOptions>): Promise<OnrampQuote | OnrampQuote[]>;
 
     /**
      * Build an onramp URL for redirecting the user to the provider

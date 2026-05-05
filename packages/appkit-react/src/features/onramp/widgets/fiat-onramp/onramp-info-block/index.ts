@@ -6,4 +6,5 @@
  *
  */
 
-export * from '@ton/walletkit/onramp/ton-pay';
+export { OnrampInfoBlock } from './onramp-info-block';
+export type { OnrampInfoBlockProps } from './onramp-info-block';

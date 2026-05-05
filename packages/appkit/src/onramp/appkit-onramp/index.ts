@@ -6,4 +6,4 @@
  *
  */
 
-export * from './MercuryoProvider';
+export * from '@ton/walletkit/onramp/appkit-onramp';

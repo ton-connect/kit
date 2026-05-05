@@ -168,7 +168,7 @@ export {
 // Onramp — fiat-onramp: not ready; functions hidden from public API, types kept for internal hooks
 export type { GetOnrampProviderOptions, GetOnrampProviderReturnType } from './onramp/get-onramp-provider';
 export type { GetOnrampProvidersReturnType } from './onramp/get-onramp-providers';
-export type { GetOnrampQuoteOptions, GetOnrampQuoteReturnType } from './onramp/get-onramp-quote';
+export type { GetOnrampQuotesOptions, GetOnrampQuotesReturnType } from './onramp/get-onramp-quotes';
 export type { WatchOnrampProvidersParameters, WatchOnrampProvidersReturnType } from './onramp/watch-onramp-providers';
 export type { BuildOnrampUrlOptions, BuildOnrampUrlReturnType } from './onramp/build-onramp-url';
 

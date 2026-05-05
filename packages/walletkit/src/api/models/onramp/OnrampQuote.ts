@@ -6,10 +6,13 @@
  *
  */
 
+import type { OnrampFee } from './OnrampFee';
+import type { OnrampServiceInfo } from './OnrampServiceInfo';
+
 /**
  * Onramp quote response with pricing information
  */
-export interface OnrampQuote {
+export interface OnrampQuote<TMetadata = unknown> {
     /**
      * Fiat currency ticker (e.g. 'USD')
      */
@@ -36,22 +39,23 @@ export interface OnrampQuote {
     rate: string;
 
     /**
-     * Total fees charged for the transaction (in fiat currency)
+     * Fees charged for the transaction
      */
-    fiatFee?: string;
+    fees?: OnrampFee[];
 
     /**
-     * Network fee estimated (in fiat currency)
-     */
-    networkFeeFiat?: string;
-
-    /**
-     * Identifier of the onramp provider
+     * Identifier of the registered onramp provider that produced the quote
      */
     providerId: string;
 
     /**
-     * Provider-specific metadata for the quote
+     * The underlying onramp service that will fulfill this quote
+     * (set by aggregating providers like AppkitOnramp).
      */
-    metadata?: unknown;
+    serviceInfo?: OnrampServiceInfo;
+
+    /**
+     * Provider-specific metadata for the quote (e.g. raw response needed to execute)
+     */
+    metadata?: TMetadata;
 }

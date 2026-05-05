@@ -71,14 +71,14 @@
         "default": "./dist/cjs/onramp/index.js"
       }
     },
-    "./onramp/ton-pay": {
+    "./onramp/appkit-onramp": {
       "import": {
-        "types": "./dist/esm/onramp/ton-pay/index.d.ts",
-        "default": "./dist/esm/onramp/ton-pay/index.js"
+        "types": "./dist/esm/onramp/appkit-onramp/index.d.ts",
+        "default": "./dist/esm/onramp/appkit-onramp/index.js"
       },
       "require": {
-        "types": "./dist/cjs/onramp/ton-pay/index.d.ts",
-        "default": "./dist/cjs/onramp/ton-pay/index.js"
+        "types": "./dist/cjs/onramp/appkit-onramp/index.d.ts",
+        "default": "./dist/cjs/onramp/appkit-onramp/index.js"
       }
     },
     "./crypto-onramp/swaps-xyz": {
@@ -119,8 +119,8 @@
       "onramp": [
         "./dist/esm/onramp/index.d.ts"
       ],
-      "onramp/ton-pay": [
-        "./dist/esm/onramp/ton-pay/index.d.ts"
+      "onramp/appkit-onramp": [
+        "./dist/esm/onramp/appkit-onramp/index.d.ts"
       ],
       "crypto-onramp/swaps-xyz": [
         "./dist/esm/crypto-onramp/swaps-xyz/index.d.ts"

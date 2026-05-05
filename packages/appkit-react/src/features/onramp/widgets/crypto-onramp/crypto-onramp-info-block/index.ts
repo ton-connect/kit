@@ -6,4 +6,5 @@
  *
  */
 
-export * from './TonPayProvider';
+export { CryptoOnrampInfoBlock } from './crypto-onramp-info-block';
+export type { CryptoOnrampInfoBlockProps } from './crypto-onramp-info-block';

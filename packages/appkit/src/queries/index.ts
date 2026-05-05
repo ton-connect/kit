@@ -194,14 +194,14 @@ export {
 
 // Onramp
 export {
-    getOnrampQuoteQueryOptions,
-    type GetOnrampQuoteQueryConfig,
-    type GetOnrampQuoteQueryOptions,
-    type GetOnrampQuoteData,
-    type GetOnrampQuoteErrorType,
-    type GetOnrampQuoteQueryFnData,
-    type GetOnrampQuoteQueryKey,
-} from './onramp/get-onramp-quote';
+    getOnrampQuotesQueryOptions,
+    type GetOnrampQuotesQueryConfig,
+    type GetOnrampQuotesQueryOptions,
+    type GetOnrampQuotesData,
+    type GetOnrampQuotesErrorType,
+    type GetOnrampQuotesQueryFnData,
+    type GetOnrampQuotesQueryKey,
+} from './onramp/get-onramp-quotes';
 export {
     buildOnrampUrlMutationOptions,
     type BuildOnrampUrlMutationOptions,

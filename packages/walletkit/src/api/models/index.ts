@@ -96,7 +96,10 @@ export type { UnstakeModes } from './staking/UnstakeMode';
 export { UnstakeMode } from './staking/UnstakeMode';
 
 // Onramp models
+export type { OnrampFee, OnrampFeeType } from './onramp/OnrampFee';
 export type { OnrampParams } from './onramp/OnrampParams';
+export type { OnrampProviderMetadata, OnrampProviderMetadataOverride } from './onramp/OnrampProviderMetadata';
+export type { OnrampServiceInfo } from './onramp/OnrampServiceInfo';
 export type { OnrampQuote } from './onramp/OnrampQuote';
 export type { OnrampQuoteParams } from './onramp/OnrampQuoteParams';
 export type { OnrampLimits } from './onramp/OnrampLimits';

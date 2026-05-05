@@ -22,44 +22,10 @@ const log = globalLogger.createChild('OnrampManager');
  */
 export class OnrampManager extends DefiManager<OnrampProviderInterface> implements OnrampAPI {
     /**
-     * Get a quote for onramping fiat to crypto
+     * Get quotes for onramping fiat to crypto from all registered providers.
+     * Each provider may return one quote or an array; results are flattened.
      * @param params - Quote parameters
-     * @param providerId - Optional provider name to use
-     * @returns Promise resolving to onramp quote
-     */
-    async getQuote<TProviderOptions = unknown>(
-        params: OnrampQuoteParams<TProviderOptions>,
-        providerId?: string,
-    ): Promise<OnrampQuote> {
-        const selectedProviderId = providerId || this.defaultProviderId;
-        log.debug('Getting onramp quote', {
-            fiatCurrency: params.fiatCurrency,
-            cryptoCurrency: params.cryptoCurrency,
-            amount: params.amount,
-            isFiatAmount: params.isFiatAmount,
-            providerId: selectedProviderId,
-        });
-
-        try {
-            const quote = await this.getProvider(selectedProviderId).getQuote(params);
-
-            log.debug('Received onramp quote', {
-                fiatAmount: quote.fiatAmount,
-                cryptoAmount: quote.cryptoAmount,
-                rate: quote.rate,
-            });
-
-            return quote;
-        } catch (error) {
-            log.error('Failed to get onramp quote', { error, params });
-            throw error;
-        }
-    }
-
-    /**
-     * Get quotes for onramping fiat to crypto from all registered providers
-     * @param params - Quote parameters
-     * @returns Promise resolving to an array of onramp quotes
+     * @returns Promise resolving to a flat array of onramp quotes
      */
     async getQuotes<TProviderOptions = unknown>(params: OnrampQuoteParams<TProviderOptions>): Promise<OnrampQuote[]> {
         log.debug('Getting onramp quotes from all providers', {
@@ -71,15 +37,19 @@ export class OnrampManager extends DefiManager<OnrampProviderInterface> implemen
 
         const providers = this.getProviders();
 
-        // Execute all getQuote requests concurrently
         const results = await Promise.allSettled(
             providers.map((provider: OnrampProviderInterface) => provider.getQuote(params)),
         );
 
         const quotes: OnrampQuote[] = [];
 
-        results.forEach((result: PromiseSettledResult<OnrampQuote>, index: number) => {
+        results.forEach((result: PromiseSettledResult<OnrampQuote | OnrampQuote[]>, index: number) => {
             if (result.status === 'fulfilled') {
+                if (Array.isArray(result.value)) {
+                    quotes.push(...result.value);
+                    return;
+                }
+
                 quotes.push(result.value);
             } else {
                 log.debug(`Provider ${providers[index].providerId} failed to return a quote`, {
@@ -92,6 +62,17 @@ export class OnrampManager extends DefiManager<OnrampProviderInterface> implemen
         log.debug(`Received ${quotes.length} onramp quotes`, {
             successfulProviders: quotes.map((q) => q.providerId),
         });
+
+        if (quotes.length === 0) {
+            throw new OnrampError(
+                `No onramp service supports ${params.fiatCurrency} → ${params.cryptoCurrency}`,
+                OnrampError.PAIR_NOT_SUPPORTED,
+                {
+                    fiatCurrency: params.fiatCurrency,
+                    cryptoCurrency: params.cryptoCurrency,
+                },
+            );
+        }
 
         return quotes;
     }

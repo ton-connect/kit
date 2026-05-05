@@ -17,6 +17,7 @@ import { AmountPresets } from '../../../../../components/amount-presets';
 import { TokenSelectModal } from '../../../../../components/token-select-modal';
 import { OnrampCurrencySelectModal } from '../../../components/onramp-currency-select-modal';
 import { OnrampProviderSelect } from '../../../components/onramp-provider-select';
+import { OnrampInfoBlock } from '../onramp-info-block';
 import styles from './onramp-widget-ui.module.css';
 import { OnrampAmountReversed } from '../../../components/onramp-amount-reversed';
 import type { OnrampProvider } from '../../../types';
@@ -40,9 +41,11 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
     convertedAmount,
     presetAmounts,
     providers,
-    canContinue,
+    selectedQuote,
+    isReversedAmountSupported,
+    canSubmit,
     error,
-    isLoading,
+    isLoadingQuote,
     onContinue,
     setSelectedProvider,
 }) => {
@@ -90,9 +93,14 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
                 <OnrampAmountReversed
                     className={styles.converted}
                     value={convertedAmount}
-                    onChangeDirection={() => setAmountInputMode(amountInputMode === 'token' ? 'currency' : 'token')}
+                    onChangeDirection={
+                        isReversedAmountSupported
+                            ? () => setAmountInputMode(amountInputMode === 'token' ? 'currency' : 'token')
+                            : undefined
+                    }
                     ticker={amountInputMode === 'token' ? undefined : selectedToken?.symbol}
                     symbol={amountInputMode === 'token' ? selectedCurrency.symbol : undefined}
+                    decimals={amountInputMode === 'token' ? 2 : (selectedToken?.decimals ?? 0)}
                 />
             </div>
 
@@ -100,19 +108,29 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
                 className={styles.presets}
                 presets={presetAmounts}
                 currencySymbol={selectedCurrency.symbol}
-                onPresetSelect={setAmount}
+                onPresetSelect={(value) => {
+                    setAmountInputMode('currency');
+                    setAmount(value);
+                }}
             />
 
             <Button
                 variant="fill"
                 size="l"
-                disabled={!canContinue && !error}
-                loading={isLoading}
+                disabled={!canSubmit}
+                loading={isLoadingQuote}
                 onClick={handleContinue}
                 fullWidth
             >
-                {error ? t(`onramp.${error}`) : t('onramp.continue')}
+                {error ? t(error) : t('onramp.continue')}
             </Button>
+
+            <OnrampInfoBlock
+                className={styles.info}
+                selectedToken={selectedToken}
+                selectedQuote={selectedQuote}
+                isLoading={isLoadingQuote}
+            />
 
             <TokenSelectModal
                 open={isTokenSelectOpen}
