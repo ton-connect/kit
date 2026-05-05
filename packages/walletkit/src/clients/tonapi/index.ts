@@ -7,3 +7,4 @@
  */
 
 export { ApiClientTonApi } from './ApiClientTonApi';
+export type { TonApiBulkAccount, TonApiAccountStatus, TonApiExtraCurrency, TonApiEcPreview } from './ApiClientTonApi';

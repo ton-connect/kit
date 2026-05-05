@@ -130,9 +130,9 @@ export abstract class BaseApiClient {
             if (typeof value === 'string') url.searchParams.set(key, value);
             else if (Array.isArray(value)) {
                 for (const item of value) {
-                    if (typeof item === 'string') url.searchParams.set(key, item);
+                    if (typeof item === 'string') url.searchParams.append(key, item);
                     else if (item != null && typeof item.toString === 'function') {
-                        url.searchParams.set(key, item.toString());
+                        url.searchParams.append(key, item.toString());
                     }
                 }
             } else if (value != null && typeof value.toString === 'function') {

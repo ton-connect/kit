@@ -8,6 +8,7 @@
 
 import type {
     ApiClient,
+    BulkAccountState,
     GetEventsRequest,
     GetEventsResponse,
     GetJettonsByAddressRequest,
@@ -58,6 +59,55 @@ import type { TonApiMethodExecutionResult } from './types/methods';
 import { mapTonApiGetMethodArgs, mapTonApiTvmStackRecord } from './mappers/map-methods';
 import { Base64Normalize, Base64ToBigInt, Base64ToHex, getNormalizedExtMessageHash, isHex } from '../../utils';
 import { toAccount } from '../../types/toncenter/AccountEvent';
+
+export type TonApiAccountStatus = 'nonexist' | 'uninit' | 'active' | 'frozen';
+
+export interface TonApiEcPreview {
+    /** Extra currency ID. Example: 239 */
+    id: number;
+    /** Currency symbol. Example: "FMS" */
+    symbol: string;
+    /** Decimal places. Example: 5 */
+    decimals: number;
+    /** Icon URL. Example: "https://cache.tonapi.io/images/extra.jpg" */
+    image: string;
+}
+
+export interface TonApiExtraCurrency {
+    /** Amount as string (bigint). Example: "1000000000" */
+    amount: string;
+    preview: TonApiEcPreview;
+}
+
+export interface TonApiBulkAccount extends BulkAccountState {
+    /** Raw address. Example: "0:da6b1b6663a0e4d18cc8574ccd9db5296e367dd9324706f3bbd9eb1cd2caf0bf" */
+    address: string;
+    /** Balance in nanocoins. Example: 123456789 */
+    balance: number;
+    /** Extra currency balances */
+    extra_balance?: TonApiExtraCurrency[];
+    /** Map of currency code to amount. Example: { "USD": 1, "IDR": 1000 } */
+    currencies_balance?: Record<string, number>;
+    /** Unix timestamp of last activity. Example: 1720860269 */
+    last_activity: number;
+    status: TonApiAccountStatus;
+    /** List of interfaces implemented by this account. Example: ["nft_sale"] */
+    interfaces?: string[];
+    /** Display name. Example: "Ton foundation" */
+    name?: string;
+    /** Whether the account is marked as a scam. Example: true */
+    is_scam?: boolean;
+    /** Icon URL. Example: "https://ton.org/logo.png" */
+    icon?: string;
+    /** Whether transactions to this account require a memo. Example: true */
+    memo_required?: boolean;
+    /** Available GET methods. Example: ["get_item_data"] */
+    get_methods: string[];
+    /** Whether the account is suspended */
+    is_suspended?: boolean;
+    /** Whether the account is a wallet */
+    is_wallet: boolean;
+}
 
 /**
  * @experimental
@@ -111,6 +161,14 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
         return state.balance;
     }
 
+    async getBulkAccounts(addresses: string[]): Promise<TonApiBulkAccount[]> {
+        const raw = await this.postJson<{ accounts: TonApiBulkAccount[] }>('/v2/accounts/_bulk', {
+            account_ids: addresses,
+        });
+
+        return raw.accounts;
+    }
+
     async jettonsByAddress(request: GetJettonsByAddressRequest): Promise<ToncenterResponseJettonMasters> {
         const raw = await this.getJson<TonApiJettonInfo>(`/v2/jettons/${request.address}`);
 
@@ -148,7 +206,43 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
         if (request.pagination?.offset) query.offset = request.pagination.offset;
 
         const raw = await this.getJson<TonApiNftItems>(`/v2/accounts/${request.ownerAddress}/nfts`, query);
-        return mapNftItemsResponse(raw.nft_items);
+        const result = mapNftItemsResponse(raw.nft_items);
+        await this.enrichAddressBookWithInterfaces(result);
+
+        return result;
+    }
+
+    private async enrichAddressBookWithInterfaces(result: NFTsResponse): Promise<void> {
+        if (result.nfts.length === 0) {
+            return;
+        }
+
+        const addresses = result.nfts.map((nft) => nft.address);
+        const chunkSize = 100;
+
+        try {
+            for (let i = 0; i < addresses.length; i += chunkSize) {
+                const chunk = addresses.slice(i, i + chunkSize);
+                const bulkRaw = await this.postJson<{ accounts?: TonApiBulkAccount[] }>('/v2/accounts/_bulk', {
+                    account_ids: chunk,
+                });
+
+                for (const account of bulkRaw.accounts ?? []) {
+                    const address = asAddressFriendly(account.address);
+                    if (result.addressBook![address]) {
+                        result.addressBook![address].interfaces = account.interfaces ?? [];
+                    } else {
+                        result.addressBook![address] = {
+                            address,
+                            domain: undefined,
+                            interfaces: account.interfaces ?? [],
+                        };
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('[walletkit] Failed to enrich NFT address book with interfaces:', e);
+        }
     }
 
     async sendBoc(boc: Base64String): Promise<string> {
@@ -704,7 +798,7 @@ interface TonApiTransactionsResponse {
     transactions: TonApiTransaction[];
 }
 
-interface TonApiExtraCurrency {
+interface TonApiMessageExtraCurrency {
     id: number | string;
     amount: string | number;
 }
@@ -714,7 +808,7 @@ interface TonApiMessage {
     source?: string;
     destination?: string;
     value?: string | number | null;
-    value_extra?: TonApiExtraCurrency[];
+    value_extra?: TonApiMessageExtraCurrency[];
     fwd_fee?: string | number | null;
     ihr_fee?: string | number | null;
     created_lt?: string | number | null;
@@ -874,24 +968,16 @@ function toHex(value: string): Hex {
         throw new Error('Invalid hex value: empty input');
     }
 
-    const assertHashLength = (hex: string): Hex => {
-        const withoutPrefix = hex.startsWith('0x') ? hex.slice(2) : hex;
-        if (withoutPrefix.length !== 64) {
-            throw new Error(`Invalid hex value: ${value}`);
-        }
-        return (hex.startsWith('0x') ? hex : `0x${hex}`).toLowerCase() as Hex;
-    };
-
     if (isHex(normalized)) {
-        return assertHashLength(normalized);
+        return normalized.toLowerCase() as Hex;
     }
 
     if (/^[0-9a-fA-F]+$/.test(normalized) && normalized.length % 2 === 0) {
-        return assertHashLength(normalized);
+        return `0x${normalized.toLowerCase()}` as Hex;
     }
 
     try {
-        return assertHashLength(Base64ToHex(Base64Normalize(normalized)));
+        return Base64ToHex(Base64Normalize(normalized)).toLowerCase() as Hex;
     } catch {
         // fallthrough
     }

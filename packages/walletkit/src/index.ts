@@ -25,6 +25,7 @@ export { EventEmitter } from './core/EventEmitter';
 export type { EventListener } from './core/EventEmitter';
 export { ApiClientToncenter } from './clients/toncenter';
 export { ApiClientTonApi } from './clients/tonapi';
+export type { TonApiBulkAccount, TonApiAccountStatus, TonApiExtraCurrency, TonApiEcPreview } from './clients/tonapi';
 export type { NetworkManager } from './core/NetworkManager';
 export { KitNetworkManager } from './core/NetworkManager';
 export { StorageEventStore } from './core/EventStore';

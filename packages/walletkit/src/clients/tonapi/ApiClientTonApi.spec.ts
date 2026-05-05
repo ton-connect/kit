@@ -137,24 +137,48 @@ describe('ApiClientTonApi', () => {
         expect(result.offset).toBe(12);
     });
 
-    it('throws on invalid transaction hash instead of silently coercing', async () => {
+    it('normalizes non-32-byte hex transaction hashes', async () => {
         const client = new ApiClientTonApi();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         vi.spyOn(client as any, 'getJson').mockResolvedValue({
             transactions: [
                 makeTransaction({
-                    hash: 'not-a-hash',
+                    hash: '9e8b7e6be85ab2',
                 }),
             ],
         });
 
-        await expect(
-            client.getAccountTransactions({
-                address: [TEST_ADDRESS],
-                limit: 10,
-                offset: 0,
-            }),
-        ).rejects.toThrow('Invalid hex value');
+        const result = await client.getAccountTransactions({
+            address: [TEST_ADDRESS],
+            limit: 10,
+            offset: 0,
+        });
+
+        expect(result.transactions[0]?.hash).toBe('0x9e8b7e6be85ab2');
+        expect(result.transactions[0]?.traceExternalHash).toBe('0x9e8b7e6be85ab2');
+    });
+
+    it('fetches TonAPI bulk accounts', async () => {
+        const client = new ApiClientTonApi();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const postJsonSpy = vi.spyOn(client as any, 'postJson').mockResolvedValue({
+            accounts: [
+                {
+                    address: TEST_ADDRESS,
+                    balance: 1,
+                    last_activity: 1,
+                    status: 'active',
+                    get_methods: [],
+                    is_wallet: true,
+                },
+            ],
+        });
+
+        const result = await client.getBulkAccounts([TEST_ADDRESS]);
+
+        expect(postJsonSpy).toHaveBeenCalledWith('/v2/accounts/_bulk', { account_ids: [TEST_ADDRESS] });
+        expect(result).toHaveLength(1);
+        expect(result[0]?.address).toBe(TEST_ADDRESS);
     });
 
     it('resolves bodyHash via /transactions first to avoid message 404 noise', async () => {

@@ -14,6 +14,7 @@ import type { FullAccountState } from '../../types/toncenter/api';
 import type { JettonInfo, ToncenterEmulationResponse } from '../../types';
 import type {
     ApiClient,
+    BulkAccountState,
     GetJettonsByOwnerRequest,
     GetJettonsByAddressRequest,
     GetPendingTraceRequest,
@@ -181,6 +182,24 @@ export class ApiClientToncenter extends BaseApiClient implements ApiClient {
 
     async getBalance(address: UserFriendlyAddress, seqno?: number): Promise<TokenAmount> {
         return (await this.getAccountState(address, seqno)).balance;
+    }
+
+    async getBulkAccounts(addresses: string[]): Promise<BulkAccountState[]> {
+        const raw = await this.getJson<ToncenterAccountStatesResponse>('/api/v3/accountStates', {
+            address: addresses,
+            include_boc: false,
+        });
+
+        return (raw.accounts ?? []).map((account) => ({
+            address: account.address,
+            balance: String(account.balance ?? '0'),
+            status: account.status,
+            interfaces: Array.isArray(account.interfaces) ? account.interfaces : undefined,
+            last_transaction_lt: account.last_transaction_lt,
+            last_transaction_hash: account.last_transaction_hash,
+            account_state_hash: account.account_state_hash,
+            contract_methods: Array.isArray(account.contract_methods) ? account.contract_methods : undefined,
+        }));
     }
 
     async getAccountTransactions(request: TransactionsByAddressRequest): Promise<TransactionsResponse> {
@@ -462,6 +481,21 @@ interface V2RunGetMethodResponse {
     result: V2RunGetMethodResult;
     error?: string;
     code?: number;
+}
+
+interface ToncenterAccountStateResponse {
+    address: string;
+    balance?: string | number;
+    status?: string;
+    interfaces?: unknown;
+    last_transaction_lt?: string;
+    last_transaction_hash?: string;
+    account_state_hash?: string;
+    contract_methods?: unknown;
+}
+
+interface ToncenterAccountStatesResponse {
+    accounts?: ToncenterAccountStateResponse[];
 }
 
 function toToncenterNum(value: string): string {
