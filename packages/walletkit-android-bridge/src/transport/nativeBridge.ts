@@ -52,13 +52,7 @@ export function handleNativeResponse(id: string, resultJson: unknown, errorJson:
     }
 
     if (typeof resultJson === 'string') {
-        // Kotlin handlers return JSON-encoded strings; fall through to the raw string for
-        // legacy handlers that emit unquoted scalars (e.g. hex values).
-        try {
-            entry.resolve(JSON.parse(resultJson));
-        } catch {
-            entry.resolve(resultJson);
-        }
+        entry.resolve(JSON.parse(resultJson));
         return;
     }
 
