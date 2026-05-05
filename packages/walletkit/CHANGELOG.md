@@ -1,5 +1,11 @@
 # @ton/walletkit
 
+## 0.0.12-alpha.3
+
+### Patch Changes
+
+- 0042cc9: Make bridge SSE connection optional for sending messages
+
 ## 0.0.12-alpha.2
 
 ### Patch Changes
