@@ -7,7 +7,7 @@
  */
 
 import { Address } from '@ton/core';
-import type { JettonsResponse } from '@ton/walletkit';
+import type { Jetton, JettonsResponse } from '@ton/walletkit';
 import { getJettonsFromClient, formatUnits } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
@@ -38,23 +38,17 @@ export const getJettonsByAddress = async (
         },
     });
 
-    const jettons = response.jettons
-        .filter((jetton) => {
-            try {
-                return BigInt(jetton.balance) > 0n;
-            } catch {
-                return false;
-            }
-        })
-        .map((jetton) => {
-            if (typeof jetton.decimalsNumber !== 'number') {
-                return jetton;
-            }
-            return {
-                ...jetton,
-                balance: formatUnits(jetton.balance, jetton.decimalsNumber),
-            };
+    const jettons = response.jettons.reduce((acc, jetton) => {
+        if (!jetton.decimalsNumber) {
+            return acc;
+        }
+
+        acc.push({
+            ...jetton,
+            balance: formatUnits(jetton.balance, jetton.decimalsNumber),
         });
+        return acc;
+    }, [] as Jetton[]);
 
     return {
         ...response,

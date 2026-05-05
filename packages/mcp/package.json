@@ -1,13 +1,13 @@
 {
   "name": "@ton/mcp",
-  "version": "0.1.13",
+  "version": "0.1.15-alpha.14",
   "description": "TON MCP Server - Model Context Protocol server for TON blockchain wallet operations",
   "license": "MIT",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
-  "bin": "./dist/cli.js",
+  "bin": "./bin/mcp.js",
   "exports": {
     ".": {
       "import": {
@@ -34,13 +34,15 @@
     "access": "public"
   },
   "files": [
+    "bin",
     "dist",
     "skills",
     "llms.txt",
+    "USAGE_EXAMPLES.md",
     "README.md"
   ],
   "scripts": {
-    "build": "pnpm build:clean && rolldown -c && pnpm build:types && pnpm build:chmod",
+    "build": "pnpm build:clean && rolldown -c && pnpm build:types",
     "build:clean": "rimraf dist",
     "build:types": "tsc -p tsconfig.json --emitDeclarationOnly",
     "build:chmod": "chmod +x dist/cli.js",
@@ -65,20 +67,24 @@
     "url": "https://github.com/ton-connect/kit"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.25.1",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@ston-fi/omniston-sdk": "^0.7.9",
     "@ton/walletkit": "workspace:*",
+    "https-proxy-agent": "^9.0.0",
+    "undici": "8.0.2",
+    "ws": "^8.20.0",
     "zod": "^3.25.76"
   },
   "peerDependencies": {
     "@modelcontextprotocol/sdk": "^1.25.1"
   },
   "devDependencies": {
-    "@types/node": "^22.15.29",
-    "@vitest/coverage-v8": "^4.0.17",
+    "@types/node": "^25.6.0",
+    "@vitest/coverage-v8": "^4.1.4",
     "rimraf": "^6.1.0",
-    "rolldown": "1.0.0-rc.2",
+    "rolldown": "1.0.0-rc.15",
     "typescript": "~5.9.3",
-    "vitest": "^4.0.17"
+    "vitest": "^4.1.4"
   },
   "engines": {
     "node": ">=18.0.0"

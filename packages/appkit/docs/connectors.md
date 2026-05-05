@@ -1,3 +1,9 @@
+<!--
+This file is auto-generated. Do not edit manually.
+Changes will be overwritten when running the docs update script.
+Source template: template/packages/appkit/docs/connectors.md
+-->
+
 # Connectors
 
 AppKit supports wallet connections through connectors. The primary connector is `TonConnect`.
@@ -35,7 +41,7 @@ const appKit = new AppKit({
         },
     },
     connectors: [
-        new TonConnectConnector({
+        createTonConnectConnector({
             tonConnectOptions: {
                 manifestUrl: 'https://my-app.com/tonconnect-manifest.json',
             },
@@ -62,7 +68,7 @@ const appKit = new AppKit({
             },
         },
     },
-    connectors: [new TonConnectConnector({ tonConnectUI })],
+    connectors: [createTonConnectConnector({ tonConnectUI })],
 });
 ```
 
@@ -83,8 +89,8 @@ const appKit = new AppKit({
     },
 });
 
-// 2. Initialize TonConnect connector
-const connector = new TonConnectConnector({
+// 2. Initialize TonConnect connector function
+const connector = createTonConnectConnector({
     tonConnectOptions: {
         manifestUrl: 'https://my-app.com/tonconnect-manifest.json',
     },

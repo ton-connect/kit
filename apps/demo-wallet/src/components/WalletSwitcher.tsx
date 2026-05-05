@@ -21,6 +21,7 @@ interface WalletSwitcherProps {
     onRemoveWallet: (walletId: string) => void;
     onRenameWallet: (walletId: string, newName: string) => void;
     onUpdateWalletType?: (walletId: string, newType: 'signer' | 'mnemonic' | 'ledger') => void;
+    compact?: boolean;
 }
 
 export const WalletSwitcher: React.FC<WalletSwitcherProps> = ({
@@ -30,6 +31,7 @@ export const WalletSwitcher: React.FC<WalletSwitcherProps> = ({
     onRemoveWallet,
     onRenameWallet,
     onUpdateWalletType: _onUpdateWalletType,
+    compact = false,
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [editingWalletId, setEditingWalletId] = useState<string | null>(null);
@@ -87,24 +89,37 @@ export const WalletSwitcher: React.FC<WalletSwitcherProps> = ({
     }
 
     return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div
+            className={
+                compact ? 'overflow-hidden' : 'bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden'
+            }
+        >
             {/* Active Wallet Display */}
             <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                className={`w-full flex items-center justify-between hover:bg-gray-50 transition-colors ${
+                    compact ? 'px-0 py-1' : 'px-4 py-3'
+                }`}
             >
-                <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                            />
-                        </svg>
-                    </div>
-                    <div className="text-left">
+                <div className={`flex items-center space-x-3 ${compact ? 'min-w-0 flex-1' : ''}`}>
+                    {!compact && (
+                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                            <svg
+                                className="w-5 h-5 text-blue-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                                />
+                            </svg>
+                        </div>
+                    )}
+                    <div className={`text-left min-w-0 flex-1 ${compact ? 'truncate' : ''}`}>
                         <div className="flex items-center space-x-2">
                             <p className="text-sm font-medium text-gray-900">
                                 {activeWallet?.name || 'No Wallet Selected'}
@@ -123,13 +138,15 @@ export const WalletSwitcher: React.FC<WalletSwitcherProps> = ({
                                 </span>
                             )}
                         </div>
-                        <p className="text-xs text-gray-500">
-                            {activeWallet ? formatAddress(activeWallet.address) : 'Select a wallet'}
-                        </p>
+                        {!compact && (
+                            <p className="text-xs text-gray-500">
+                                {activeWallet ? formatAddress(activeWallet.address) : 'Select a wallet'}
+                            </p>
+                        )}
                     </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                    {savedWallets.length > 1 && (
+                <div className="flex items-center space-x-2 flex-shrink-0">
+                    {savedWallets.length > 1 && !compact && (
                         <span className="text-xs text-gray-500 px-2 py-1 bg-gray-100 rounded-full">
                             {savedWallets.length} wallets
                         </span>

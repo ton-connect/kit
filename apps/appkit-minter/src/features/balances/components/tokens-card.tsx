@@ -29,14 +29,14 @@ export const TokensCard: FC<ComponentProps<'div'>> = (props) => {
         data: balance,
         isLoading: isBalanceLoading,
         isError: isBalanceError,
-    } = useBalance({ query: { refetchInterval: 10000 } });
+    } = useBalance({ query: { refetchInterval: 20000 } });
 
     const {
         data: jettonsResponse,
         isLoading: isJettonsLoading,
         isError: isJettonsError,
         refetch: onRefresh,
-    } = useJettons({ query: { refetchInterval: 10000 } });
+    } = useJettons({ query: { refetchInterval: 20000 } });
 
     const jettons = useMemo(() => jettonsResponse?.jettons ?? [], [jettonsResponse?.jettons]);
 

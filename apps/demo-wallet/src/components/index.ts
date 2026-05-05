@@ -6,6 +6,7 @@
  *
  */
 
+export { AnimatedBalance } from './AnimatedBalance';
 export { AppRouter } from './AppRouter';
 export { Button } from './Button';
 export { Card } from './Card';
@@ -25,6 +26,7 @@ export { Layout } from './Layout';
 export { MnemonicDisplay } from './MnemonicDisplay';
 export { NetworkSelector } from './NetworkSelector';
 export { SettingsDropdown } from './SettingsDropdown';
+export { StreamingStatus } from './StreamingStatus';
 export { ProtectedRoute } from './ProtectedRoute';
 export { RecentTransactions } from './RecentTransactions';
 export { SignDataRequestModal } from './SignDataRequestModal';

@@ -11,6 +11,10 @@
  */
 export type SwapToken = {
     address: string;
+
+    /**
+     * @format: int
+     */
     decimals: number;
 
     name?: string;

@@ -15,7 +15,7 @@ import { SwapProvider } from '../SwapProvider';
 import type { SwapQuoteParams, SwapQuote, SwapParams, SwapFee } from '../../../api/models';
 import { SwapError } from '../errors';
 import { globalLogger } from '../../../core/Logger';
-import { tokenToAddress, addressToToken, toOmnistonAddress, isOmnistonQuoteMetadata } from './utils';
+import { tokenToAddress, toOmnistonAddress, isOmnistonQuoteMetadata } from './utils';
 import type { TransactionRequest } from '../../../api/models';
 import { asBase64, getUnixtime } from '../../../utils';
 import { formatUnits, parseUnits } from '../../../utils/units';
@@ -32,22 +32,15 @@ const log = globalLogger.createChild('OmnistonSwapProvider');
  * ```typescript
  * // Import from separate entry point to avoid bundling Omniston SDK
  * import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
- * import { Omniston } from '@ston-fi/omniston-sdk';
  *
- * const omniston = new Omniston({
- *   apiUrl: 'wss://omni-ws.ston.fi'
- * });
- *
- * const provider = new OmnistonSwapProvider(
- *   {
- *     omnistonInstance: omniston,
+ * const provider = new OmnistonSwapProvider({
+ *     apiUrl: 'wss://omni-ws.ston.fi',
  *     defaultSlippageBps: 100, // 1%
  *     referrerAddress: 'EQ...',
- *     referrerFeeBps: 10 // 0.1%
- *   }
- * );
+ *     referrerFeeBps: 10, // 0.1%
+ * });
  *
- * kit.swap.registerProvider('omniston', provider);
+ * kit.swap.registerProvider(provider);
  * ```
  */
 export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> {
@@ -113,7 +106,9 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
 
             const quoteRequest: QuoteRequest = {
                 amount,
-                settlementMethods: [SettlementMethod.SETTLEMENT_METHOD_SWAP],
+                settlementMethods: params.providerOptions?.settlementMethods ?? [
+                    SettlementMethod.SETTLEMENT_METHOD_SWAP,
+                ],
                 bidAssetAddress: toOmnistonAddress(bidAssetAddress, params.network),
                 askAssetAddress: toOmnistonAddress(askAssetAddress, params.network),
                 referrerAddress: referrerAddress
@@ -286,19 +281,19 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
 
         const fee: SwapFee[] = [];
 
-        if (quote.protocolFeeAsset) {
-            fee.push({
-                amount: quote.protocolFeeUnits,
-                token: addressToToken(quote.protocolFeeAsset.address),
-            });
-        }
+        // if (quote.protocolFeeAsset) {
+        //     fee.push({
+        //         amount: formatUnits(quote.protocolFeeUnits, 9),
+        //         token: addressToToken(quote.protocolFeeAsset.address),
+        //     });
+        // }
 
-        if (quote.referrerFeeAsset) {
-            fee.push({
-                amount: quote.referrerFeeUnits,
-                token: addressToToken(quote.referrerFeeAsset.address),
-            });
-        }
+        // if (quote.referrerFeeAsset) {
+        //     fee.push({
+        //         amount: formatUnits(quote.referrerFeeUnits, 9),
+        //         token: addressToToken(quote.referrerFeeAsset.address),
+        //     });
+        // }
 
         return {
             rawFromAmount: quote.bidUnits,

@@ -1,6 +1,6 @@
 {
   "name": "@ton/appkit",
-  "version": "0.0.2",
+  "version": "0.0.5-alpha.2",
   "description": "",
   "repository": {
     "type": "git",
@@ -40,15 +40,41 @@
         "types": "./dist/cjs/swap/omniston/index.d.ts",
         "default": "./dist/cjs/swap/omniston/index.js"
       }
+    },
+    "./swap/dedust": {
+      "import": {
+        "types": "./dist/esm/swap/dedust/index.d.ts",
+        "default": "./dist/esm/swap/dedust/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/swap/dedust/index.d.ts",
+        "default": "./dist/cjs/swap/dedust/index.js"
+      }
+    },
+    "./staking/tonstakers": {
+      "import": {
+        "types": "./dist/esm/staking/tonstakers/index.d.ts",
+        "default": "./dist/esm/staking/tonstakers/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/staking/tonstakers/index.d.ts",
+        "default": "./dist/cjs/staking/tonstakers/index.js"
+      }
     }
   },
   "typesVersions": {
     "*": {
       "queries": [
-        "./dist/cjs/queries/index.d.ts"
+        "./dist/esm/queries/index.d.ts"
       ],
       "swap/omniston": [
-        "./dist/cjs/swap/omniston/index.d.ts"
+        "./dist/esm/swap/omniston/index.d.ts"
+      ],
+      "swap/dedust": [
+        "./dist/esm/swap/dedust/index.d.ts"
+      ],
+      "staking/tonstakers": [
+        "./dist/esm/staking/tonstakers/index.d.ts"
       ]
     }
   },
@@ -91,7 +117,7 @@
     "@tanstack/query-core": "catalog:",
     "@ton/core": "catalog:",
     "@tonconnect/ui": "catalog:",
-    "typescript": "~5.8.3",
-    "vitest": "^4.0.17"
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.4"
   }
 }

@@ -9,18 +9,17 @@
 import { expect } from '@playwright/test';
 
 import { testWithUIFixture } from './UITestFixture';
+import { TEST_PASSWORD } from '../constants';
 
 const test = testWithUIFixture();
-
-const PASSWORD = 'tester@1234';
 
 test.describe('New Wallet Flow', () => {
     test.beforeEach(async ({ page }) => {
         // Setup password first - Layout title is "Setup Password"
         await page.getByTestId('title').filter({ hasText: 'Setup Password' }).waitFor({ state: 'visible' });
         await page.getByTestId('subtitle').filter({ hasText: 'Create Password' }).waitFor({ state: 'visible' });
-        await page.getByTestId('password').fill(PASSWORD);
-        await page.getByTestId('password-confirm').fill(PASSWORD);
+        await page.getByTestId('password').fill(TEST_PASSWORD);
+        await page.getByTestId('password-confirm').fill(TEST_PASSWORD);
         await page.getByTestId('password-submit').click();
 
         // Wait for setup wallet page - Layout title is "Setup Wallet"

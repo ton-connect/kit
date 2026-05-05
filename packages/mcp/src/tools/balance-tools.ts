@@ -7,6 +7,7 @@
  */
 
 import { z } from 'zod';
+import { formatUnits } from '@ton/walletkit';
 
 import type { McpWalletService } from '../services/McpWalletService.js';
 import type { ToolResponse } from './types.js';
@@ -61,7 +62,6 @@ export function createMcpBalanceTools(service: McpWalletService) {
             handler: async (): Promise<ToolResponse> => {
                 try {
                     const balance = await service.getBalance();
-                    const balanceTon = Number(BigInt(balance)) / 1e9;
 
                     return {
                         content: [
@@ -71,8 +71,8 @@ export function createMcpBalanceTools(service: McpWalletService) {
                                     {
                                         success: true,
                                         address: service.getAddress(),
-                                        balance: `${balanceTon} TON`,
-                                        balanceNano: balance,
+                                        amountRaw: balance,
+                                        amount: formatUnits(balance, 9),
                                     },
                                     null,
                                     2,
@@ -102,7 +102,11 @@ export function createMcpBalanceTools(service: McpWalletService) {
             inputSchema: getJettonBalanceSchema,
             handler: async (args: z.infer<typeof getJettonBalanceSchema>): Promise<ToolResponse> => {
                 try {
-                    const balance = await service.getJettonBalance(args.jettonAddress);
+                    const [balance, jettonInfo] = await Promise.all([
+                        service.getJettonBalance(args.jettonAddress),
+                        service.getJettonInfo(args.jettonAddress),
+                    ]);
+                    const decimals = jettonInfo?.decimals ?? 9;
 
                     return {
                         content: [
@@ -112,7 +116,8 @@ export function createMcpBalanceTools(service: McpWalletService) {
                                     {
                                         success: true,
                                         jettonAddress: args.jettonAddress,
-                                        balance,
+                                        amountRaw: balance,
+                                        amount: formatUnits(balance, decimals),
                                     },
                                     null,
                                     2,
@@ -151,7 +156,14 @@ export function createMcpBalanceTools(service: McpWalletService) {
                                 text: JSON.stringify(
                                     {
                                         success: true,
-                                        jettons,
+                                        jettons: jettons.map((j) => ({
+                                            address: j.address,
+                                            name: j.name,
+                                            symbol: j.symbol,
+                                            decimals: j.decimals,
+                                            amountRaw: j.balance,
+                                            amount: formatUnits(j.balance, j.decimals ?? 9),
+                                        })),
                                         count: jettons.length,
                                     },
                                     null,

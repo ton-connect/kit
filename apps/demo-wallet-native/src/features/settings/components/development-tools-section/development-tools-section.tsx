@@ -7,11 +7,12 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
-import { useWalletKit } from '@demo/wallet-core';
+import { useAuth, useWalletKit } from '@demo/wallet-core';
 import type { FC } from 'react';
 import { useCallback } from 'react';
 import { Alert, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { Switch } from 'react-native';
 
 import { AppButton } from '@/core/components/app-button';
 import { AppText } from '@/core/components/app-text';
@@ -20,6 +21,7 @@ import { Block } from '@/core/components/block';
 export const DevelopmentToolsSection: FC = () => {
     const { theme } = useUnistyles();
     const walletKit = useWalletKit();
+    const { showFastSend, setShowFastSend } = useAuth();
 
     const handleTestDisconnectAll = useCallback(async () => {
         if (!walletKit) return;
@@ -50,6 +52,24 @@ export const DevelopmentToolsSection: FC = () => {
                 <AppButton.Container colorScheme="secondary" onPress={handleTestDisconnectAll}>
                     <AppButton.Text>Disconnect All</AppButton.Text>
                 </AppButton.Container>
+            </Block>
+
+            <Block style={styles.block}>
+                <View style={styles.content}>
+                    <Ionicons color={theme.colors.accent.primary} name="flash-outline" size={24} />
+                    <View style={styles.info}>
+                        <AppText style={styles.title}>Show fast send</AppText>
+                        <AppText style={styles.description}>
+                            Show &quot;Send Fast&quot; button on send screen (1 nano, no confirmation)
+                        </AppText>
+                    </View>
+                </View>
+                <Switch
+                    value={showFastSend ?? false}
+                    onValueChange={setShowFastSend}
+                    trackColor={{ false: theme.colors.navigation.default, true: theme.colors.accent.primary }}
+                    thumbColor={theme.colors.background.main}
+                />
             </Block>
         </View>
     );

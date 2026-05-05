@@ -6,13 +6,17 @@
  *
  */
 
+import type { QueryClient } from '@tanstack/query-core';
+
 import type { AppKit } from '../../core/app-kit';
 import { getJettonsByAddress } from '../../actions/jettons/get-jettons-by-address';
 import type { GetJettonsByAddressOptions } from '../../actions/jettons/get-jettons-by-address';
 import type { QueryOptions, QueryParameter } from '../../types/query';
 import type { Compute, ExactPartial } from '../../types/utils';
-import { filterQueryOptions } from '../../utils';
+import { filterQueryOptions, resolveNetwork, compareAddress, formatUnits, sleep } from '../../utils';
 import type { GetJettonsByAddressReturnType } from '../../actions/jettons/get-jettons-by-address';
+import type { JettonUpdate } from '../../core/streaming';
+import type { Network } from '../../types/network';
 
 export type GetJettonsErrorType = Error;
 
@@ -25,8 +29,11 @@ export type GetJettonsByAddressQueryConfig<selectData = GetJettonsByAddressData>
 
 export const getJettonsByAddressQueryOptions = <selectData = GetJettonsByAddressData>(
     appKit: AppKit,
-    options: GetJettonsByAddressQueryConfig<selectData> = {},
+    initialOptions: GetJettonsByAddressQueryConfig<selectData> = {},
 ): GetJettonsByAddressQueryOptions<selectData> => {
+    const network = resolveNetwork(appKit, initialOptions.network);
+    const options = { ...initialOptions, network };
+
     return {
         ...options.query,
         enabled: Boolean(options.address && (options.query?.enabled ?? true)),
@@ -57,3 +64,42 @@ export type GetJettonsByAddressQueryOptions<selectData = GetJettonsByAddressData
     selectData,
     GetJettonsByAddressQueryKey
 >;
+
+/**
+ * Update the TanStack Query cache for an address jettons list.
+ */
+export const handleJettonsUpdate = (
+    queryClient: QueryClient,
+    { address, network }: { address: string; network: Network },
+    update: JettonUpdate,
+) => {
+    if (update.status === 'finalized') {
+        const queryKey = getJettonsByAddressQueryKey({ address, network });
+        const currentData = queryClient.getQueryData(queryKey) as GetJettonsByAddressData | undefined;
+
+        if (currentData?.jettons) {
+            const jetton = currentData.jettons.find((j) => compareAddress(j.address, update.masterAddress));
+            const decimals = jetton?.decimalsNumber ?? update.decimals;
+
+            if (jetton && decimals) {
+                const updatedJetton = {
+                    ...jetton,
+                    balance: formatUnits(update.rawBalance, decimals),
+                };
+                const newJettons = currentData.jettons.map((j) =>
+                    compareAddress(j.address, update.masterAddress) ? updatedJetton : j,
+                );
+                queryClient.setQueryData(queryKey, {
+                    ...currentData,
+                    jettons: newJettons,
+                });
+            }
+        }
+        sleep(5000).then(() => queryClient.invalidateQueries({ queryKey }));
+    }
+
+    if (update.status === 'invalidated') {
+        const queryKey = getJettonsByAddressQueryKey({ address, network });
+        queryClient.invalidateQueries({ queryKey });
+    }
+};

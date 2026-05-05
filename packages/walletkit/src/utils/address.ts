@@ -60,3 +60,17 @@ export function isFriendlyTonAddress(address: string): boolean {
 
     return true;
 }
+
+export function compareAddress(
+    a: string | Address | undefined | null,
+    b: string | Address | undefined | null,
+): boolean {
+    if (!a || !b) return false;
+    try {
+        const addressA = typeof a === 'string' ? Address.parse(a) : a;
+        const addressB = typeof b === 'string' ? Address.parse(b) : b;
+        return addressA.equals(addressB);
+    } catch {
+        return typeof a === 'string' && typeof b === 'string' ? a.toLowerCase() === b.toLowerCase() : false;
+    }
+}

@@ -9,6 +9,7 @@
 // Balances
 export {
     getBalanceByAddressQueryOptions,
+    handleBalanceUpdate,
     type GetBalanceByAddressData,
     type GetBalanceErrorType,
     type GetBalanceByAddressQueryConfig,
@@ -51,12 +52,14 @@ export {
 } from './jettons/get-jetton-wallet-address';
 export {
     getJettonBalanceByAddressQueryOptions,
+    handleJettonBalanceUpdate,
     type GetJettonBalanceByAddressQueryConfig,
     type GetJettonBalanceByAddressData,
     type GetJettonBalanceErrorType,
 } from './jettons/get-jetton-balance-by-address';
 export {
     getJettonsByAddressQueryOptions,
+    handleJettonsUpdate,
     type GetJettonsByAddressData,
     type GetJettonsErrorType,
     type GetJettonsByAddressQueryConfig,
@@ -73,6 +76,14 @@ export {
     type TransferJettonParameters,
     type TransferJettonReturnType,
 } from './jettons/transfer-jetton';
+
+// Network
+export {
+    getBlockNumberQueryOptions,
+    type GetBlockNumberData,
+    type GetBlockNumberErrorType,
+    type GetBlockNumberQueryConfig,
+} from './network/get-block-number';
 
 // NFT
 export {
@@ -153,6 +164,42 @@ export {
     type BuildSwapTransactionMutateAsync,
     type BuildSwapTransactionVariables,
 } from './swap/build-swap-transaction';
+
+// Staking
+export {
+    getStakingProvidersQueryOptions,
+    type GetStakingProvidersData,
+    type GetStakingProvidersErrorType,
+    type GetStakingProvidersQueryConfig,
+} from './staking/get-staking-providers';
+export {
+    getStakingQuoteQueryOptions,
+    type GetStakingQuoteQueryConfig,
+    type GetStakingQuoteQueryOptions,
+    type GetStakingQuoteData,
+    type GetStakingQuoteErrorType,
+    type GetStakingQuoteQueryFnData,
+    type GetStakingQuoteQueryKey,
+} from './staking/get-staking-quote';
+export {
+    getStakedBalanceQueryOptions,
+    type GetStakedBalanceQueryConfig,
+    type GetStakedBalanceData,
+    type GetStakedBalanceErrorType,
+} from './staking/get-staked-balance';
+export {
+    getStakingProviderInfoQueryOptions,
+    type GetStakingProviderInfoQueryConfig,
+    type GetStakingProviderInfoData,
+    type GetStakingProviderInfoErrorType,
+} from './staking/get-staking-provider-info';
+export {
+    buildStakeTransactionMutationOptions,
+    type BuildStakeTransactionData,
+    type BuildStakeTransactionErrorType,
+    type BuildStakeTransactionMutationOptions,
+    type BuildStakeTransactionVariables,
+} from './staking/build-stake-transaction';
 
 // Transaction
 export {

@@ -10,16 +10,15 @@
 
 import { Address } from '@ton/core';
 import { LRUCache } from 'lru-cache';
-import type { ChainId } from '@tonconnect/protocol';
 
 import type { EmulationTokenInfoMasters } from '../types/toncenter/emulation';
 import { globalLogger } from './Logger';
-import type { EventEmitter } from './EventEmitter';
+import type { WalletKitEventEmitter } from '../types/emitter';
 import type { JettonInfo, JettonsAPI } from '../types/jettons';
 import { JettonError, JettonErrorCode } from '../types/jettons';
 import type { NetworkManager } from './NetworkManager';
 import type { Jetton } from '../api/models';
-import { Network } from '../api/models';
+import type { Network } from '../api/models';
 import { asMaybeAddressFriendly } from '../utils';
 
 const log = globalLogger.createChild('JettonsManager');
@@ -41,7 +40,7 @@ export class JettonsManager implements JettonsAPI {
 
     constructor(
         cacheSize: number = 10000,
-        private eventEmitter: EventEmitter,
+        private eventEmitter: WalletKitEventEmitter,
         private networkManager: NetworkManager,
     ) {
         this.cache = new LRUCache({
@@ -58,21 +57,16 @@ export class JettonsManager implements JettonsAPI {
 
         // Set up event listener for emulation results for jetton caching
         // TODO Fix network in emulation result
-        this.eventEmitter.on('emulation:result', (emulationResult: unknown) => {
-            if (
-                emulationResult &&
-                typeof emulationResult === 'object' &&
-                'metadata' in emulationResult &&
-                'network' in emulationResult
-            ) {
-                const network = (emulationResult as { network: ChainId }).network;
-                this.addJettonsFromEmulationMetadata(
-                    Network.custom(network),
-                    (emulationResult as { metadata: Record<string, { is_indexed: boolean; token_info?: unknown[] }> })
-                        .metadata,
-                );
-            }
-        });
+        // this.eventEmitter.on('emulationResult', ({ payload: emulationResult }) => {
+        //     if (emulationResult && emulationResult.metadata) {
+        //         const network = (emulationResult as { network: ChainId }).network;
+        //         this.addJettonsFromEmulationMetadata(
+        //             Network.custom(network),
+        //             (emulationResult as { metadata: Record<string, { is_indexed: boolean; token_info?: unknown[] }> })
+        //                 .metadata,
+        //         );
+        //     }
+        // });
     }
 
     /**

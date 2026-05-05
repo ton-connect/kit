@@ -18,9 +18,9 @@ import type { EventType } from '../types/internal';
 import type { WalletManager } from './WalletManager';
 import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 import type { EventRouter } from './EventRouter';
-import type { EventEmitter } from './EventEmitter';
 import { globalLogger } from './Logger';
 import type { WalletId } from '../utils/walletId';
+import type { WalletKitEventEmitter } from '../types/emitter';
 
 const log = globalLogger.createChild('EventProcessor');
 
@@ -37,7 +37,7 @@ export class StorageEventProcessor implements IEventProcessor {
     private config: DurableEventsConfig;
     private sessionManager: TONConnectSessionManager;
     private eventRouter: EventRouter;
-    private eventEmitter: EventEmitter;
+    private eventEmitter: WalletKitEventEmitter;
     private walletManager: WalletManager;
 
     // Single global processing loop state
@@ -60,7 +60,7 @@ export class StorageEventProcessor implements IEventProcessor {
         walletManager: WalletManager,
         sessionManager: TONConnectSessionManager,
         eventRouter: EventRouter,
-        eventEmitter: EventEmitter,
+        eventEmitter: WalletKitEventEmitter,
     ) {
         this.processorConfig = processorConfig;
 
@@ -76,7 +76,7 @@ export class StorageEventProcessor implements IEventProcessor {
         }
 
         // Listen for bridge storage updates to trigger processing
-        this.eventEmitter.on('bridge-storage-updated', () => {
+        this.eventEmitter.on('bridgeStorageUpdated', () => {
             this.triggerProcessing();
         });
     }

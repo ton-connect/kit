@@ -6,7 +6,7 @@
  *
  */
 
-export { formatUnits, parseUnits } from '@ton/walletkit';
+export { formatUnits, parseUnits, compareAddress } from '@ton/walletkit';
 
 export * from './amount/validate-numeric-string';
 export * from './arrays/key-by';

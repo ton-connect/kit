@@ -6,17 +6,20 @@
  *
  */
 
+import type { ProviderInput } from '../../types';
+import type { ProviderFactoryContext } from '../../types/factory';
 import type { DefiProvider } from './DefiProvider';
 
 /**
  * Swap API interface exposed by SwapManager
  */
 export interface DefiManagerAPI<T extends DefiProvider> {
+    createFactoryContext(): ProviderFactoryContext;
     /**
      * Register a new provider
      * @param provider Provider instance (must have providerId)
      */
-    registerProvider(provider: T): void;
+    registerProvider(provider: ProviderInput<T>): void;
 
     /**
      * Set the default provider

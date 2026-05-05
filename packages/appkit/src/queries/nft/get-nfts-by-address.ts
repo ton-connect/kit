@@ -11,7 +11,7 @@ import { getNftsByAddress } from '../../actions/nft/get-nfts-by-address';
 import type { GetNftsByAddressOptions } from '../../actions/nft/get-nfts-by-address';
 import type { QueryOptions, QueryParameter } from '../../types/query';
 import type { Compute, ExactPartial } from '../../types/utils';
-import { filterQueryOptions } from '../../utils';
+import { filterQueryOptions, resolveNetwork } from '../../utils';
 import type { GetNftsByAddressReturnType } from '../../actions/nft/get-nfts-by-address';
 
 export type GetNFTsErrorType = Error;
@@ -25,8 +25,11 @@ export type GetNFTsByAddressQueryConfig<selectData = GetNFTsByAddressData> = Com
 
 export const getNFTsByAddressQueryOptions = <selectData = GetNFTsByAddressData>(
     appKit: AppKit,
-    options: GetNFTsByAddressQueryConfig<selectData> = {},
+    initialOptions: GetNFTsByAddressQueryConfig<selectData> = {},
 ): GetNFTsByAddressQueryOptions<selectData> => {
+    const network = resolveNetwork(appKit, initialOptions.network);
+    const options = { ...initialOptions, network };
+
     return {
         ...options.query,
         enabled: Boolean(options.address && (options.query?.enabled ?? true)),

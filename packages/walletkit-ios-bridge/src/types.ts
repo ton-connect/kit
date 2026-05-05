@@ -24,7 +24,18 @@ import type {
     ConnectionApprovalResponse,
     SendTransactionRequestEvent,
     SignDataRequestEvent,
+    SwapProviderInterface,
+    SwapAPI,
+    TonCenterStreamingProviderConfig,
+    TonApiStreamingProviderConfig,
+    StreamingProvider,
+    StreamingAPI,
+    StakingProviderInterface,
+    StakingAPI,
 } from '@ton/walletkit';
+import type { OmnistonSwapProviderConfig } from '@ton/walletkit/swap/omniston';
+import type { DeDustSwapProviderConfig } from '@ton/walletkit/swap/dedust';
+import type { TonStakersProviderConfig } from '@ton/walletkit/staking/tonstakers';
 
 import type { ConnectionRequestEvent } from '../../walletkit/dist/cjs';
 
@@ -45,7 +56,11 @@ export interface SwiftWalletKitConfiguration extends ReusedTonWalletKitOptions {
         apiClientConfiguration?: {
             url?: string;
             key: string;
+            timeout?: number;
+            disableNetworkSend?: boolean;
+            dnsResolver?: string;
         };
+        apiClientType: 'default' | 'toncenter' | 'tonapi' | 'custom';
     }[];
     eventsConfiguration?: TonWalletKitOptions['eventProcessor'];
 }
@@ -118,4 +133,20 @@ export interface SwiftWalletKit {
     disconnect(sessionId: string): Promise<void>;
 
     sendTransaction(wallet: Wallet, transaction: TransactionRequest): Promise<void>;
+
+    createOmnistonSwapProvider(config?: OmnistonSwapProviderConfig): SwapProviderInterface;
+
+    createDeDustSwapProvider(config?: DeDustSwapProviderConfig): SwapProviderInterface;
+
+    createTonCenterStreamingProvider(config: TonCenterStreamingProviderConfig): StreamingProvider;
+
+    createTonApiStreamingProvider(config: TonApiStreamingProviderConfig): StreamingProvider;
+
+    createTonStakersStakingProvider(config?: TonStakersProviderConfig): StakingProviderInterface;
+
+    swap(): SwapAPI;
+
+    streaming(): StreamingAPI;
+
+    staking(): StakingAPI;
 }

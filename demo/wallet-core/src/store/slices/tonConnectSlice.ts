@@ -150,7 +150,7 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
         const state = get();
         if (!state.tonConnect.pendingTransactionRequestEvent) {
             log.error('No pending transaction request to approve');
-            return;
+            return undefined;
         }
 
         if (!state.walletCore.walletKit) {
@@ -158,7 +158,9 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
         }
 
         try {
-            await state.walletCore.walletKit.approveTransactionRequest(state.tonConnect.pendingTransactionRequestEvent);
+            const result = await state.walletCore.walletKit.approveTransactionRequest(
+                state.tonConnect.pendingTransactionRequestEvent,
+            );
             setTimeout(() => {
                 set((state) => {
                     state.tonConnect.pendingTransactionRequestEvent = undefined;
@@ -167,6 +169,7 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
 
                 state.clearCurrentRequestFromQueue();
             }, 3000);
+            return result;
         } catch (error) {
             log.error('Failed to approve transaction request:', error);
             state.clearCurrentRequestFromQueue();

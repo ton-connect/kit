@@ -10,10 +10,9 @@ import { expect } from '@playwright/test';
 import type { NetworkType } from '@demo/wallet-core';
 
 import { testWithUIFixture } from './UITestFixture';
+import { TEST_PASSWORD } from '../constants';
 
 const test = testWithUIFixture();
-
-const PASSWORD = 'tester@1234';
 
 // Test mnemonic - this should be a valid test mnemonic for e2e tests
 const TEST_MNEMONIC = process.env.WALLET_MNEMONIC ?? '';
@@ -49,8 +48,8 @@ test.describe('Import Wallet Flow', () => {
         // Setup password first
         await page.getByTestId('title').filter({ hasText: 'Setup Password' }).waitFor({ state: 'visible' });
         await page.getByTestId('subtitle').filter({ hasText: 'Create Password' }).waitFor({ state: 'visible' });
-        await page.getByTestId('password').fill(PASSWORD);
-        await page.getByTestId('password-confirm').fill(PASSWORD);
+        await page.getByTestId('password').fill(TEST_PASSWORD);
+        await page.getByTestId('password-confirm').fill(TEST_PASSWORD);
         await page.getByTestId('password-submit').click();
 
         // Wait for setup wallet page - Layout title is "Setup Wallet"
@@ -108,8 +107,8 @@ test.describe('Import Wallet - Validation', () => {
         // Setup password first
         await page.getByTestId('title').filter({ hasText: 'Setup Password' }).waitFor({ state: 'visible' });
         await page.getByTestId('subtitle').filter({ hasText: 'Create Password' }).waitFor({ state: 'visible' });
-        await page.getByTestId('password').fill(PASSWORD);
-        await page.getByTestId('password-confirm').fill(PASSWORD);
+        await page.getByTestId('password').fill(TEST_PASSWORD);
+        await page.getByTestId('password-confirm').fill(TEST_PASSWORD);
         await page.getByTestId('password-submit').click();
 
         // Wait for setup wallet page - Layout title is "Setup Wallet"

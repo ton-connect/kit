@@ -11,6 +11,7 @@
 import type { CONNECT_EVENT_ERROR_CODES, SendTransactionRpcResponseError } from '@tonconnect/protocol';
 
 import type { JettonsAPI } from './jettons';
+import type { StreamingAPI } from '../api/interfaces';
 import type { ApiClient } from './toncenter/ApiClient';
 import type { Wallet, WalletAdapter } from '../api/interfaces';
 import type { Network } from '../api/models/core/Network';
@@ -27,7 +28,9 @@ import type {
     SendTransactionApprovalResponse,
     ConnectionApprovalResponse,
 } from '../api/models';
-import type { SwapAPI } from '../api/interfaces';
+import type { SwapAPI, StakingAPI } from '../api/interfaces';
+import type { NetworkManager } from '../core/NetworkManager';
+import type { ProviderFactoryContext } from './factory';
 
 /**
  * Main TonWalletKit interface
@@ -42,8 +45,14 @@ export interface ITonWalletKit {
      */
     getApiClient(network: Network): ApiClient;
 
+    /** Network manager for all configured API clients */
+    getNetworkManager(): NetworkManager;
+
     /** Get all configured networks */
     getConfiguredNetworks(): Network[];
+
+    /** Get factory context */
+    createFactoryContext(): ProviderFactoryContext;
 
     isReady(): boolean;
 
@@ -74,6 +83,13 @@ export interface ITonWalletKit {
 
     /** List all active sessions */
     listSessions(): Promise<TONConnectSession[]>;
+
+    // === URL Parsing API ===
+
+    /**
+     * Allow to convert url to ConnectionRequestEvent to use inline way
+     */
+    connectionEventFromUrl(url: string): Promise<ConnectionRequestEvent>;
 
     // === URL Processing ===
 
@@ -139,13 +155,15 @@ export interface ITonWalletKit {
     removeDisconnectCallback(cb: (event: DisconnectionEvent) => void): void;
     removeErrorCallback(cb: (event: RequestErrorEvent) => void): void;
 
-    // === Jettons API ===
-
     /** Jettons API access */
     jettons: JettonsAPI;
 
-    // === Swaps API ===
-
     /** Jettons API access */
     swap: SwapAPI;
+
+    /** Get streaming manager */
+    streaming: StreamingAPI;
+
+    /** Staking API access */
+    staking: StakingAPI;
 }

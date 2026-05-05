@@ -94,7 +94,7 @@ export abstract class BaseApiClient {
         }
     }
 
-    protected async fetch<T>(url: URL, props: globalThis.RequestInit = {}): Promise<T> {
+    async fetch<T>(url: URL, props: globalThis.RequestInit = {}): Promise<T> {
         const headers = new Headers(props.headers);
         headers.set('accept', 'application/json');
         this.appendAuthHeaders(headers);
@@ -112,11 +112,11 @@ export abstract class BaseApiClient {
         return json as Promise<T>;
     }
 
-    protected async getJson<T>(path: string, query?: Record<string, unknown>): Promise<T> {
+    async getJson<T>(path: string, query?: Record<string, unknown>): Promise<T> {
         return this.fetch(this.buildUrl(path, query), { method: 'GET' });
     }
 
-    protected async postJson<T>(path: string, props: unknown): Promise<T> {
+    async postJson<T>(path: string, props: unknown): Promise<T> {
         return this.fetch(this.buildUrl(path), {
             method: 'POST',
             headers: { 'content-type': 'application/json' },

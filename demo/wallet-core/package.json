@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@demo/v4ledger-adapter": "workspace:*",
+    "@ton/core": "catalog:",
     "@ton/walletkit": "workspace:*"
   },
   "peerDependencies": {

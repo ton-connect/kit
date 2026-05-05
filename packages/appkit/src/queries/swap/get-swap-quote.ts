@@ -12,7 +12,7 @@ import type { GetSwapQuoteReturnType } from '../../actions/swap/get-swap-quote';
 import type { AppKit } from '../../core/app-kit';
 import type { QueryOptions, QueryParameter } from '../../types/query';
 import type { Compute, ExactPartial } from '../../types/utils';
-import { filterQueryOptions } from '../../utils';
+import { filterQueryOptions, resolveNetwork } from '../../utils';
 
 export type GetSwapQuoteErrorType = Error;
 
@@ -21,8 +21,11 @@ export type GetSwapQuoteQueryConfig<selectData = GetSwapQuoteData> = Compute<Exa
 
 export const getSwapQuoteQueryOptions = <selectData = GetSwapQuoteData>(
     appKit: AppKit,
-    options: GetSwapQuoteQueryConfig<selectData> = {},
+    initialOptions: GetSwapQuoteQueryConfig<selectData> = {},
 ): GetSwapQuoteQueryOptions<selectData> => {
+    const network = resolveNetwork(appKit, initialOptions.network);
+    const options = { ...initialOptions, network };
+
     return {
         ...options.query,
         enabled: Boolean(options.amount && options.from && options.to && (options.query?.enabled ?? true)),

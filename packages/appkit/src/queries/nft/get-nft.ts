@@ -13,7 +13,7 @@ import { getNft } from '../../actions/nft/get-nft';
 import type { GetNftOptions as GetNftParameters } from '../../actions/nft/get-nft';
 import type { QueryOptions, QueryParameter } from '../../types/query';
 import type { Compute, ExactPartial } from '../../types/utils';
-import { filterQueryOptions } from '../../utils';
+import { filterQueryOptions, resolveNetwork } from '../../utils';
 
 export type GetNftErrorType = Error;
 
@@ -22,8 +22,11 @@ export type GetNftQueryConfig<selectData = GetNftData> = Compute<ExactPartial<Ge
 
 export const getNftQueryOptions = <selectData = GetNftData>(
     appKit: AppKit,
-    options: GetNftQueryConfig<selectData> = {},
+    initialOptions: GetNftQueryConfig<selectData> = {},
 ): GetNftQueryOptions<selectData> => {
+    const network = resolveNetwork(appKit, initialOptions.network);
+    const options = { ...initialOptions, network };
+
     return {
         ...options.query,
         enabled: Boolean(options.address && (options.query?.enabled ?? true)),

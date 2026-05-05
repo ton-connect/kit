@@ -91,8 +91,20 @@ async function findTemplateFiles(): Promise<string[]> {
         return [];
     }
 
-    const entries = await fs.readdir(templateDir);
-    return entries.filter((name) => name.endsWith('.md')).map((name) => path.join(templateDir, name));
+    const files: string[] = [];
+    async function walk(dir: string): Promise<void> {
+        const entries = await fs.readdir(dir, { withFileTypes: true });
+        for (const entry of entries) {
+            const fullPath = path.join(dir, entry.name);
+            if (entry.isDirectory()) {
+                await walk(fullPath);
+            } else if (entry.isFile() && entry.name.endsWith('.md')) {
+                files.push(fullPath);
+            }
+        }
+    }
+    await walk(templateDir);
+    return files.sort();
 }
 
 function parseTemplateParams(content: string): { params: TemplateParams; body: string } {
@@ -272,10 +284,6 @@ async function processTemplateFile(templatePath: string): Promise<void> {
 
     const placeholders = parsePlaceholders(templateBody);
 
-    if (placeholders.length === 0) {
-        return;
-    }
-
     const sampleCache = new Map<string, Map<string, string>>();
 
     // Replace placeholders
@@ -287,8 +295,16 @@ async function processTemplateFile(templatePath: string): Promise<void> {
 
     // Use target from template parameters
     const outPath = path.resolve(cwd, params.target);
+    const sourceRelative = path.relative(cwd, templatePath);
+    const generatedHeader = `<!--
+This file is auto-generated. Do not edit manually.
+Changes will be overwritten when running the docs update script.
+Source template: ${sourceRelative}
+-->
+
+`;
     await fs.mkdir(path.dirname(outPath), { recursive: true });
-    await fs.writeFile(outPath, result, 'utf8');
+    await fs.writeFile(outPath, generatedHeader + result, 'utf8');
     console.log(`Updated markdown: ${path.relative(cwd, outPath)} from ${path.relative(cwd, templatePath)}`);
 }
 

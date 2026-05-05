@@ -1,0 +1,34 @@
+{
+  "mode": "pre",
+  "tag": "alpha",
+  "initialVersions": {
+    "appkit-minter": "0.0.0",
+    "demo-wallet": "0.0.0",
+    "demo-wallet-native": "1.0.0",
+    "@ton/mcp-telegram": "0.1.0",
+    "@ton/walletkit-examples": "1.0.0",
+    "@demo/v4ledger-adapter": "0.1.0",
+    "@demo/wallet-core": "0.1.0",
+    "@ton/appkit": "0.0.4",
+    "@ton/appkit-react": "0.0.5",
+    "@ton/mcp": "0.1.15-alpha.8",
+    "@ton/walletkit": "0.0.11",
+    "walletkit-android-bridge": "0.0.1",
+    "walletkit-ios-bridge": "0.0.1"
+  },
+  "changesets": [
+    "bright-poets-jog",
+    "cli-help-flag",
+    "fix-jetton-balance-exit-code",
+    "fix-jetton-param-naming",
+    "late-cups-argue",
+    "move-domain-from-signer-to-wallets",
+    "rename-transaction-action-to-send",
+    "short-kings-flow",
+    "smart-toys-remain",
+    "tricky-bags-retire",
+    "tricky-tools-create",
+    "update-agentic-dashboard-url",
+    "wet-peas-beam"
+  ]
+}

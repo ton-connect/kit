@@ -15,7 +15,7 @@ import { BridgeProvider } from '@tonconnect/bridge-sdk';
 import type { BridgeConfig, RawBridgeEvent } from '../types/internal';
 import type { Storage } from '../storage';
 import type { EventStore } from '../types/durableEvents';
-import type { EventEmitter } from './EventEmitter';
+import type { WalletKitEventEmitter } from '../types/emitter';
 import { globalLogger } from './Logger';
 import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 import type { EventRouter } from './EventRouter';
@@ -25,7 +25,7 @@ import type {
     JSBridgeTransportFunction,
     WalletInfo,
 } from '../types/jsBridge';
-import { uuidv7 } from '../utils/uuid';
+import { uuidv7 } from '../utils/uuid.mjs';
 import { WalletKitError, ERROR_CODES } from '../errors';
 import type { Analytics, AnalyticsManager } from '../analytics';
 import type { TonWalletKitOptions } from '../types/config';
@@ -54,7 +54,7 @@ export class BridgeManager {
     // Durable events support
     private eventStore: EventStore;
     private eventRouter: EventRouter;
-    private eventEmitter?: EventEmitter;
+    private eventEmitter?: WalletKitEventEmitter;
     private analytics?: Analytics;
 
     private requestProcessingTimeoutId?: number;
@@ -67,7 +67,7 @@ export class BridgeManager {
         eventStore: EventStore,
         eventRouter: EventRouter,
         walletKitConfig: TonWalletKitOptions,
-        eventEmitter?: EventEmitter,
+        eventEmitter?: WalletKitEventEmitter,
         analyticsManager?: AnalyticsManager,
     ) {
         const isManifestJsBridge = walletManifest && 'jsBridgeKey' in walletManifest ? true : false;
@@ -512,13 +512,18 @@ export class BridgeManager {
                 walletId: messageInfo.walletId,
             });
         } else if (event.method == 'restoreConnection') {
-            this.eventEmitter?.emit('restoreConnection', {
-                ...event,
-                tabId: messageInfo.tabId,
-                domain: messageInfo.domain,
-                messageId: messageInfo.messageId,
-                walletId: messageInfo.walletId,
-            });
+            this.eventEmitter?.emit(
+                'restoreConnection',
+                {
+                    ...event,
+                    method: 'restoreConnection',
+                    tabId: messageInfo.tabId,
+                    domain: messageInfo.domain,
+                    messageId: messageInfo.messageId,
+                    walletId: messageInfo.walletId,
+                },
+                'bridge-manager',
+            );
         } else if (event.method == 'send' && event?.params?.length === 1) {
             this.eventQueue.push({
                 ...event,
@@ -664,7 +669,7 @@ export class BridgeManager {
 
                 // Notify that bridge storage was updated
                 if (this.eventEmitter) {
-                    this.eventEmitter.emit('bridge-storage-updated');
+                    this.eventEmitter.emit('bridgeStorageUpdated', {}, 'bridge-manager');
                 }
 
                 log.info('Event stored durably', { eventId: rawEvent.id, method: rawEvent.method });

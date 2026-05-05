@@ -11,13 +11,12 @@ import {
     WalletV5R1Adapter,
     WalletV4R2Adapter,
     DefaultSignature,
-    DefaultDomainSignature,
     MnemonicToKeyPair,
     Uint8ArrayToHex,
     Network,
     Signer,
 } from '@ton/walletkit';
-import type { ITonWalletKit, ToncenterTransaction } from '@ton/walletkit';
+import type { ITonWalletKit, Transaction } from '@ton/walletkit';
 import { createWalletInitConfigLedger, createLedgerPath, createWalletV4R2Ledger } from '@demo/v4ledger-adapter';
 
 import type { CreateLedgerTransportFunction, LedgerConfig, PreviewTransaction, SavedWallet } from '../types/wallet';
@@ -78,9 +77,6 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
             const customSigner: WalletSigner = {
                 sign: async (bytes: Iterable<number>) => {
                     if (confirm('Are you sure you want to sign?')) {
-                        if (domain) {
-                            return DefaultDomainSignature(bytes, keyPair.secretKey, domain);
-                        }
                         return DefaultSignature(bytes, keyPair.secretKey);
                     }
                     throw new Error('User did not confirm');
@@ -105,17 +101,19 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
                 throw new Error('Mnemonic required for mnemonic wallet type');
             }
 
-            const signer = await Signer.fromMnemonic(mnemonic, { type: 'ton' }, domain);
+            const signer = await Signer.fromMnemonic(mnemonic, { type: 'ton' });
 
             if (version === 'v5r1') {
                 return await WalletV5R1Adapter.create(signer, {
                     client: walletKit.getApiClient(chainNetwork),
                     network: chainNetwork,
+                    domain: domain,
                 });
             } else {
                 return await WalletV4R2Adapter.create(signer, {
                     client: walletKit.getApiClient(chainNetwork),
                     network: chainNetwork,
+                    domain: domain,
                 });
             }
         }
@@ -128,7 +126,8 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
                 if (storedLedgerConfig) {
                     return createWalletV4R2Ledger(
                         createWalletInitConfigLedger({
-                            createTransport: createLedgerTransport,
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            createTransport: createLedgerTransport as any,
                             path: storedLedgerConfig.path,
                             publicKey: Buffer.from(storedLedgerConfig.publicKey.substring(2), 'hex'),
                             version: storedLedgerConfig.version as 'v4r2',
@@ -151,7 +150,8 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
 
                 return createWalletV4R2Ledger(
                     createWalletInitConfigLedger({
-                        createTransport: createLedgerTransport,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        createTransport: createLedgerTransport as any,
                         path,
                         version: 'v4r2',
                         network: chainNetwork,
@@ -173,45 +173,45 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
 }
 
 /**
- * Transforms a Toncenter transaction to our PreviewTransaction type
+ * Transforms a streaming Transaction to our PreviewTransaction type
  */
-export function transformToncenterTransaction(tx: ToncenterTransaction): PreviewTransaction {
+export function transformTransaction(tx: Transaction): PreviewTransaction {
     let type: 'send' | 'receive' = 'receive';
     let amount = '0';
     let address = '';
 
-    if (tx.in_msg && tx.in_msg.value) {
-        amount = tx.in_msg.value;
-        address = tx.in_msg.source || '';
+    if (tx.inMessage && tx.inMessage.value) {
+        amount = tx.inMessage.value;
+        address = tx.inMessage.source || '';
         type = 'receive';
     }
 
-    if (tx.out_msgs && tx.out_msgs.length > 0) {
-        const mainOutMsg = tx.out_msgs[0];
+    if (tx.outMessages && tx.outMessages.length > 0) {
+        const mainOutMsg = tx.outMessages[0];
         if (mainOutMsg.value) {
             amount = mainOutMsg.value;
-            address = mainOutMsg.destination;
+            address = mainOutMsg.destination || '';
             type = 'send';
         }
     }
 
     let status: 'pending' | 'confirmed' | 'failed' = 'confirmed';
-    if (tx.description.aborted) {
+    if (tx.description?.isAborted) {
         status = 'failed';
-    } else if (!tx.description.compute_ph.success) {
+    } else if (!tx.description?.computePhase?.isSuccess) {
         status = 'failed';
     }
 
     return {
         id: tx.hash,
-        traceId: tx.trace_id || undefined,
-        messageHash: tx.in_msg?.hash || '',
+        traceId: tx.traceId || undefined,
+        messageHash: tx.inMessage?.hash || '',
         type,
         amount,
         address,
         timestamp: tx.now * 1000,
         status,
-        externalMessageHash: tx.trace_external_hash || undefined,
+        externalMessageHash: tx.traceExternalHash || undefined,
     };
 }
 

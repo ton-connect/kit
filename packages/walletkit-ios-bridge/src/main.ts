@@ -27,9 +27,36 @@ import type {
     ConnectionApprovalResponse,
     SendTransactionRequestEvent,
     SignDataRequestEvent,
+    ApiClientConfig,
+    ApiClient,
+    SignatureDomain,
+    SwapProviderInterface,
+    SwapAPI,
+    StreamingProvider,
+    TonCenterStreamingProviderConfig,
+    TonApiStreamingProviderConfig,
+    StreamingAPI,
+    StakingProviderInterface,
+    StakingAPI,
 } from '@ton/walletkit';
-import { MemoryStorageAdapter, Signer, WalletV4R2Adapter, WalletV5R1Adapter, TonWalletKit } from '@ton/walletkit';
+import {
+    MemoryStorageAdapter,
+    Signer,
+    WalletV4R2Adapter,
+    WalletV5R1Adapter,
+    TonWalletKit,
+    ApiClientToncenter,
+    ApiClientTonApi,
+    TonCenterStreamingProvider,
+    TonApiStreamingProvider,
+} from '@ton/walletkit';
 import type { WalletAdapter } from '@ton/walletkit';
+import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
+import type { OmnistonSwapProviderConfig } from '@ton/walletkit/swap/omniston';
+import { DeDustSwapProvider } from '@ton/walletkit/swap/dedust';
+import type { DeDustSwapProviderConfig } from '@ton/walletkit/swap/dedust';
+import { TonStakersStakingProvider } from '@ton/walletkit/staking/tonstakers';
+import type { TonStakersProviderConfig } from '@ton/walletkit/staking/tonstakers';
 
 import { SwiftStorageAdapter } from './SwiftStorageAdapter';
 import { SwiftWalletAdapter } from './SwiftWalletAdapter';
@@ -72,8 +99,35 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
     const networks: NetworkAdapters = {};
     if (configuration.networkConfigurations) {
         for (const netConfig of configuration.networkConfigurations) {
+            if (netConfig.apiClientType === 'custom') {
+                continue;
+            }
+
+            let apiClient: ApiClientConfig | ApiClient | undefined;
+
+            if (netConfig.apiClientType === 'default') {
+                apiClient = netConfig.apiClientConfiguration;
+            } else if (netConfig.apiClientType === 'toncenter') {
+                apiClient = new ApiClientToncenter({
+                    dnsResolver: netConfig.apiClientConfiguration?.dnsResolver,
+                    endpoint: netConfig.apiClientConfiguration?.url,
+                    apiKey: netConfig.apiClientConfiguration?.key,
+                    timeout: netConfig.apiClientConfiguration?.timeout,
+                    network: netConfig.network,
+                    disableNetworkSend: netConfig.apiClientConfiguration?.disableNetworkSend,
+                });
+            } else if (netConfig.apiClientType === 'tonapi') {
+                apiClient = new ApiClientTonApi({
+                    endpoint: netConfig.apiClientConfiguration?.url,
+                    apiKey: netConfig.apiClientConfiguration?.key,
+                    timeout: netConfig.apiClientConfiguration?.timeout,
+                    network: netConfig.network,
+                    disableNetworkSend: netConfig.apiClientConfiguration?.disableNetworkSend,
+                });
+            }
+
             networks[netConfig.network.chainId] = {
-                apiClient: netConfig.apiClientConfiguration,
+                apiClient: apiClient,
             };
         }
     }
@@ -200,7 +254,7 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
 
         async createV4R2WalletAdapter(
             signer: WalletSigner | SwiftWalletSigner,
-            parameters: { network: Network },
+            parameters: { network: Network; domain?: SignatureDomain },
         ): Promise<WalletAdapter> {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
 
@@ -216,12 +270,13 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
             return await WalletV4R2Adapter.create(this.jsSigner(signer), {
                 client: walletKit.getApiClient(network),
                 network: network,
+                domain: parameters.domain,
             });
         },
 
         async createV5R1WalletAdapter(
             signer: WalletSigner | SwiftWalletSigner,
-            parameters: { network: Network },
+            parameters: { network: Network; domain?: SignatureDomain },
         ): Promise<WalletAdapter> {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
 
@@ -237,6 +292,7 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
             return await WalletV5R1Adapter.create(this.jsSigner(signer), {
                 client: walletKit.getApiClient(network),
                 network: network,
+                domain: parameters.domain,
             });
         },
 
@@ -470,6 +526,45 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
             console.log('🪙 Bridge: Sending transaction:', transaction);
 
             await walletKit.handleNewTransaction(wallet, transaction);
+        },
+
+        // Swap providers
+        createOmnistonSwapProvider(config?: OmnistonSwapProviderConfig): SwapProviderInterface {
+            console.log('➕ Bridge: Creating Omniston swap provider', config);
+            return new OmnistonSwapProvider(config);
+        },
+
+        createDeDustSwapProvider(config?: DeDustSwapProviderConfig): SwapProviderInterface {
+            console.log('➕ Bridge: Creating DeDust swap provider', config);
+            return new DeDustSwapProvider(config);
+        },
+
+        // Streaming providers
+        createTonCenterStreamingProvider(config: TonCenterStreamingProviderConfig): StreamingProvider {
+            return new TonCenterStreamingProvider(walletKit.createFactoryContext(), config);
+        },
+
+        // Streaming providers
+        createTonApiStreamingProvider(config: TonApiStreamingProviderConfig): StreamingProvider {
+            return new TonApiStreamingProvider(walletKit.createFactoryContext(), config);
+        },
+
+        // Staking providers
+        createTonStakersStakingProvider(config?: TonStakersProviderConfig): StakingProviderInterface {
+            console.log('➕ Bridge: Creating TonStakers staking provider', config);
+            return TonStakersStakingProvider.createFromContext(walletKit.createFactoryContext(), config ?? {});
+        },
+
+        swap(): SwapAPI {
+            return walletKit.swap;
+        },
+
+        streaming(): StreamingAPI {
+            return walletKit.streaming;
+        },
+
+        staking(): StakingAPI {
+            return walletKit.staking;
         },
     };
 };

@@ -16,6 +16,8 @@ import { NETWORKS_EVENTS } from '@ton/appkit';
 import { createWrapper } from '../../../__tests__/test-utils';
 import { UseNetworkExample } from './use-network';
 import { UseNetworksExample } from './use-networks';
+import { UseBlockNumberExample } from './use-block-number';
+import { UseDefaultNetworkExample } from './use-default-network';
 
 describe('Network Hooks Examples', () => {
     let mockAppKit: any;
@@ -53,10 +55,14 @@ describe('Network Hooks Examples', () => {
         };
 
         mockAppKit = {
-            getDefaultNetwork: vi.fn(),
             connectors: [],
             networkManager: {
+                getDefaultNetwork: vi.fn(),
+                setDefaultNetwork: vi.fn(),
                 getConfiguredNetworks: vi.fn().mockReturnValue([mockNetworkMainnet, mockNetworkTestnet]),
+                getClient: vi.fn().mockReturnValue({
+                    getMasterchainInfo: vi.fn().mockResolvedValue({ seqno: 12345678 }),
+                }),
             },
             walletsManager: {
                 selectedWallet: null,
@@ -105,6 +111,62 @@ describe('Network Hooks Examples', () => {
                 expect(screen.queryByText(`${mockNetworkTestnet.chainId}`)).toBeNull();
                 expect(screen.getByText(`${mockNetworkMainnet.chainId}`)).toBeDefined();
             });
+        });
+    });
+
+    describe('UseBlockNumberExample', () => {
+        it('should render the block number once loaded', async () => {
+            render(<UseBlockNumberExample />, { wrapper: createWrapper(mockAppKit) });
+
+            await waitFor(() => {
+                expect(screen.getByText('Current block number: 12345678')).toBeDefined();
+            });
+        });
+
+        it('should render empty state initially', () => {
+            mockAppKit.networkManager.getClient.mockReturnValue({
+                getMasterchainInfo: vi.fn().mockReturnValue(new Promise(() => {})), // never resolves
+            });
+
+            render(<UseBlockNumberExample />, { wrapper: createWrapper(mockAppKit) });
+
+            expect(screen.getByText('Current block number:')).toBeDefined();
+        });
+    });
+
+    describe('UseDefaultNetworkExample', () => {
+        it('should render default network', () => {
+            mockAppKit.networkManager.getDefaultNetwork.mockReturnValue(mockNetworkTestnet);
+
+            render(<UseDefaultNetworkExample />, { wrapper: createWrapper(mockAppKit) });
+
+            expect(screen.getByText(`Default network: ${mockNetworkTestnet.chainId}`)).toBeDefined();
+        });
+
+        it('should render Any when default network is nullish', () => {
+            mockAppKit.networkManager.getDefaultNetwork.mockReturnValue(undefined);
+
+            render(<UseDefaultNetworkExample />, { wrapper: createWrapper(mockAppKit) });
+
+            expect(screen.getByText('Default network: Any')).toBeDefined();
+        });
+
+        it('should allow setting network', () => {
+            render(<UseDefaultNetworkExample />, { wrapper: createWrapper(mockAppKit) });
+
+            const testnetBtn = screen.getByText('Use Testnet');
+            act(() => {
+                testnetBtn.click();
+            });
+            expect(mockAppKit.networkManager.setDefaultNetwork).toHaveBeenCalledWith(
+                expect.objectContaining({ chainId: '-3' }),
+            );
+
+            const anyBtn = screen.getByText('Any Network');
+            act(() => {
+                anyBtn.click();
+            });
+            expect(mockAppKit.networkManager.setDefaultNetwork).toHaveBeenCalledWith(undefined);
         });
     });
 });

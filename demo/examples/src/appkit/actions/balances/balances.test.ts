@@ -14,6 +14,8 @@ import type { WalletInterface } from '@ton/appkit';
 
 import { getBalanceByAddressExample } from './get-balance-by-address';
 import { getBalanceExample } from './get-balance';
+import { watchBalanceExample } from './watch-balance';
+import { watchBalanceByAddressExample } from './watch-balance-by-address';
 
 describe('Balance Actions Examples (Integration)', () => {
     let appKit: AppKit;
@@ -94,6 +96,44 @@ describe('Balance Actions Examples (Integration)', () => {
             // Expect call with the address from the example file
             expect(mockGetBalance).toHaveBeenCalledWith(VALID_ADDRESS);
             expect(consoleSpy).toHaveBeenCalledWith('Balance by address:', '0.5');
+        });
+    });
+
+    describe('watchBalanceExample', () => {
+        it('should log balance updates', async () => {
+            const mockWallet = {
+                getAddress: () => VALID_ADDRESS,
+                getWalletId: () => 'mock-wallet-id',
+                getNetwork: () => Network.mainnet(),
+            } as unknown as WalletInterface;
+
+            appKit.walletsManager.setWallets([mockWallet]);
+
+            const mockWatchBalance = vi.fn().mockImplementation((_net, _addr, callback) => {
+                callback({ balance: '2', rawBalance: '2000000000', address: VALID_ADDRESS, type: 'balance' });
+                return () => {};
+            });
+            vi.spyOn(appKit.streamingManager, 'watchBalance').mockImplementation(mockWatchBalance);
+
+            watchBalanceExample(appKit);
+
+            expect(consoleSpy).toHaveBeenCalledWith('Balance updated:', '2');
+        });
+    });
+
+    describe('watchBalanceByAddressExample', () => {
+        it('should log balance updates for specific address', async () => {
+            const mockWatchBalance = vi.fn().mockImplementation((_net, addr, callback) => {
+                if (addr === VALID_ADDRESS) {
+                    callback({ balance: '3', rawBalance: '3000000000', address: VALID_ADDRESS, type: 'balance' });
+                }
+                return () => {};
+            });
+            vi.spyOn(appKit.streamingManager, 'watchBalance').mockImplementation(mockWatchBalance);
+
+            watchBalanceByAddressExample(appKit);
+
+            expect(consoleSpy).toHaveBeenCalledWith('Balance by address updated:', '3');
         });
     });
 });

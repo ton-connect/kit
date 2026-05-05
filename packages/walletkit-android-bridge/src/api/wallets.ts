@@ -14,6 +14,7 @@ import type {
     Base64String,
     UserFriendlyAddress,
     Feature,
+    SignatureDomain,
 } from '@ton/walletkit';
 import type { WalletId } from '@ton/walletkit';
 import type { TransactionRequest } from '@ton/walletkit';
@@ -167,6 +168,7 @@ export async function createV5R1WalletAdapter(args: {
     network: { chainId: string };
     workchain?: number;
     walletId?: number;
+    domain?: SignatureDomain;
 }) {
     const instance = await getKit();
     const signer = get<{ publicKey: Hex; sign: (data: Iterable<number>) => Promise<Hex> }>(args.signerId);
@@ -179,6 +181,7 @@ export async function createV5R1WalletAdapter(args: {
         network,
         workchain: args.workchain ?? 0,
         walletId: args.walletId,
+        domain: args.domain,
     });
 
     const adapterId = retain('adapter', adapter);
@@ -190,6 +193,7 @@ export async function createV4R2WalletAdapter(args: {
     network: { chainId: string };
     workchain?: number;
     walletId?: number;
+    domain?: SignatureDomain;
 }) {
     const instance = await getKit();
     const signer = get<{ publicKey: Hex; sign: (data: Iterable<number>) => Promise<Hex> }>(args.signerId);
@@ -202,6 +206,7 @@ export async function createV4R2WalletAdapter(args: {
         network,
         workchain: args.workchain ?? 0,
         walletId: args.walletId,
+        domain: args.domain,
     });
 
     const adapterId = retain('adapter', adapter);

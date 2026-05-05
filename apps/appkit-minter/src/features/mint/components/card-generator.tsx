@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import type React from 'react';
 import { Sparkles, Coins, AlertCircle } from 'lucide-react';
-import { useSelectedWallet, Transaction } from '@ton/appkit-react';
+import { useSelectedWallet, Send } from '@ton/appkit-react';
 import { getErrorMessage } from '@ton/appkit';
 import { toast } from 'sonner';
 
@@ -92,7 +92,7 @@ export const CardGenerator: React.FC<CardGeneratorProps> = ({ className }) => {
                     </Button>
 
                     {isConnected && canMint && (
-                        <Transaction
+                        <Send
                             request={createMintTransaction}
                             onSuccess={() => {
                                 mintCard();
@@ -100,7 +100,7 @@ export const CardGenerator: React.FC<CardGeneratorProps> = ({ className }) => {
                                 setMintError(null);
                                 toast.success('NFT minted successfully!');
                             }}
-                            onError={(error) => {
+                            onError={(error: Error) => {
                                 const msg = getErrorMessage(error);
                                 setMintErrorLocal(msg);
                                 setMintError(msg);
@@ -119,7 +119,7 @@ export const CardGenerator: React.FC<CardGeneratorProps> = ({ className }) => {
                                     Mint
                                 </Button>
                             )}
-                        </Transaction>
+                        </Send>
                     )}
                 </div>
             </div>

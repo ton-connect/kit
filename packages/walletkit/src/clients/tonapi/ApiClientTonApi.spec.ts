@@ -12,12 +12,18 @@ import { ApiClientTonApi } from './ApiClientTonApi';
 
 const TEST_ADDRESS = 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c';
 const HEX_HASH = `0x${'11'.repeat(32)}`;
+type ClientWithGetJson = ApiClientTonApi & {
+    getJson: (url: string, query?: Record<string, unknown>) => Promise<unknown>;
+};
+type ClientWithPostJson = ApiClientTonApi & {
+    postJson: (url: string, body: unknown) => Promise<unknown>;
+};
 
 function makeTransaction(overrides: Record<string, unknown> = {}): Record<string, unknown> {
     return {
         hash: HEX_HASH,
         lt: '1',
-        account: TEST_ADDRESS,
+        account: { address: TEST_ADDRESS },
         utime: 1,
         orig_status: 'active',
         end_status: 'active',
@@ -44,8 +50,7 @@ describe('ApiClientTonApi', () => {
 
     it('uses server-side pagination params for account transactions', async () => {
         const client = new ApiClientTonApi();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const getJsonSpy = vi.spyOn(client as any, 'getJson').mockResolvedValue({
+        const getJsonSpy = vi.spyOn(client as ClientWithGetJson, 'getJson').mockResolvedValue({
             transactions: [makeTransaction()],
         });
 
@@ -65,8 +70,7 @@ describe('ApiClientTonApi', () => {
 
     it('maps block ref as (workchain, shard, seqno)', async () => {
         const client = new ApiClientTonApi();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        vi.spyOn(client as any, 'getJson').mockResolvedValue({
+        vi.spyOn(client as ClientWithGetJson, 'getJson').mockResolvedValue({
             transactions: [
                 makeTransaction({
                     block: '( -1, 8000000000000000, 321 )',
@@ -89,8 +93,7 @@ describe('ApiClientTonApi', () => {
 
     it('keeps safe fallback for unexpected block format', async () => {
         const client = new ApiClientTonApi();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        vi.spyOn(client as any, 'getJson').mockResolvedValue({
+        vi.spyOn(client as ClientWithGetJson, 'getJson').mockResolvedValue({
             transactions: [
                 makeTransaction({
                     block: 'unexpected-format',
@@ -113,8 +116,7 @@ describe('ApiClientTonApi', () => {
 
     it('uses server-side pagination params for events and computes hasNext from response cursor', async () => {
         const client = new ApiClientTonApi();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const getJsonSpy = vi.spyOn(client as any, 'getJson').mockResolvedValue({
+        const getJsonSpy = vi.spyOn(client as ClientWithGetJson, 'getJson').mockResolvedValue({
             events: [makeEvent()],
             next_from: 100,
         });
@@ -137,10 +139,29 @@ describe('ApiClientTonApi', () => {
         expect(result.offset).toBe(12);
     });
 
+    it('normalizes non-hex transaction hash values when possible', async () => {
+        const client = new ApiClientTonApi();
+        vi.spyOn(client as ClientWithGetJson, 'getJson').mockResolvedValue({
+            transactions: [
+                makeTransaction({
+                    hash: 'not-a-hash',
+                }),
+            ],
+        });
+
+        const response = await client.getAccountTransactions({
+            address: [TEST_ADDRESS],
+            limit: 10,
+            offset: 0,
+        });
+
+        expect(response.transactions).toHaveLength(1);
+        expect(response.transactions[0]?.hash).toMatch(/^0x[0-9a-f]+$/);
+    });
+
     it('normalizes non-32-byte hex transaction hashes', async () => {
         const client = new ApiClientTonApi();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        vi.spyOn(client as any, 'getJson').mockResolvedValue({
+        vi.spyOn(client as ClientWithGetJson, 'getJson').mockResolvedValue({
             transactions: [
                 makeTransaction({
                     hash: '9e8b7e6be85ab2',
@@ -148,20 +169,19 @@ describe('ApiClientTonApi', () => {
             ],
         });
 
-        const result = await client.getAccountTransactions({
+        const response = await client.getAccountTransactions({
             address: [TEST_ADDRESS],
             limit: 10,
             offset: 0,
         });
 
-        expect(result.transactions[0]?.hash).toBe('0x9e8b7e6be85ab2');
-        expect(result.transactions[0]?.traceExternalHash).toBe('0x9e8b7e6be85ab2');
+        expect(response.transactions[0]?.hash).toBe('0x9e8b7e6be85ab2');
+        expect(response.transactions[0]?.traceExternalHash).toBe('0x9e8b7e6be85ab2');
     });
 
     it('fetches TonAPI bulk accounts', async () => {
         const client = new ApiClientTonApi();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const postJsonSpy = vi.spyOn(client as any, 'postJson').mockResolvedValue({
+        const postJsonSpy = vi.spyOn(client as ClientWithPostJson, 'postJson').mockResolvedValue({
             accounts: [
                 {
                     address: TEST_ADDRESS,
@@ -183,8 +203,7 @@ describe('ApiClientTonApi', () => {
 
     it('resolves bodyHash via /transactions first to avoid message 404 noise', async () => {
         const client = new ApiClientTonApi();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const getJsonSpy = vi.spyOn(client as any, 'getJson').mockImplementation(async (url: string) => {
+        const getJsonSpy = vi.spyOn(client as ClientWithGetJson, 'getJson').mockImplementation(async (url: string) => {
             if (url.includes('/v2/blockchain/transactions/')) {
                 return makeTransaction();
             }
@@ -200,8 +219,7 @@ describe('ApiClientTonApi', () => {
 
     it('resolves msgHash via /messages first', async () => {
         const client = new ApiClientTonApi();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const getJsonSpy = vi.spyOn(client as any, 'getJson').mockImplementation(async (url: string) => {
+        const getJsonSpy = vi.spyOn(client as ClientWithGetJson, 'getJson').mockImplementation(async (url: string) => {
             if (url.includes('/v2/blockchain/messages/')) {
                 return makeTransaction();
             }

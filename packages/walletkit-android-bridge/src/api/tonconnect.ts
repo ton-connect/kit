@@ -13,6 +13,10 @@ export async function handleTonConnectUrl(args: string) {
     return kit('handleTonConnectUrl', args);
 }
 
+export async function connectionEventFromUrl(args: string) {
+    return kit('connectionEventFromUrl', args);
+}
+
 export async function listSessions() {
     return kit('listSessions');
 }

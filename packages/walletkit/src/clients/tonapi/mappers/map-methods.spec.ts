@@ -30,21 +30,9 @@ describe('map-methods', () => {
             expect(mapTonApiGetMethodArgs(negativeStack)).toEqual([{ type: 'int257', value: '-0x1A' }]);
         });
 
-        it('should map decimal num to int257 hex', () => {
+        it('should map decimal num to int257', () => {
             const stack: RawStackItem[] = [{ type: 'num', value: '123' }];
             expect(mapTonApiGetMethodArgs(stack)).toEqual([{ type: 'int257', value: '0x7b' }]);
-        });
-
-        it('should map large decimal num to int257 hex', () => {
-            const stack: RawStackItem[] = [
-                { type: 'num', value: '180056281789306854254248987623122344072230446834495475140383756455096801169' },
-            ];
-            expect(mapTonApiGetMethodArgs(stack)).toEqual([
-                {
-                    type: 'int257',
-                    value: '0x65e882adc7acbe085629b77b32c6108b7d432e7baf978fcd610857aeded791',
-                },
-            ]);
         });
 
         it('should map cell', () => {

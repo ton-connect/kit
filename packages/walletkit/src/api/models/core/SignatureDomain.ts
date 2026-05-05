@@ -1,0 +1,25 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+/**
+ * @discriminator type
+ */
+export type SignatureDomain = SignatureDomainL2 | SignatureDomainEmpty;
+
+export type SignatureDomainL2 = {
+    type: 'l2';
+
+    /**
+     * @format int
+     */
+    globalId: number;
+};
+
+export type SignatureDomainEmpty = {
+    type: 'empty';
+};

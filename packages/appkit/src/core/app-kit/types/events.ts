@@ -6,9 +6,10 @@
  *
  */
 
-import type { Network } from '../../../types/network';
-import type { Emitter } from '../../emitter';
+import type { SharedKitEvents } from '../../emitter';
 import type { CONNECTOR_EVENTS, WALLETS_EVENTS, PLUGIN_EVENTS, NETWORKS_EVENTS } from '../constants/events';
+import type { Network } from '../../../types/network';
+import type { EventEmitter } from '../../emitter';
 import type { WalletInterface } from '../../../types/wallet';
 
 export interface WalletConnectedPayload {
@@ -29,7 +30,7 @@ export interface DefaultNetworkChangedPayload {
     network: Network | undefined;
 }
 
-export interface AppKitEvents {
+export type AppKitEvents = {
     // Connector events
     [CONNECTOR_EVENTS.CONNECTED]: WalletConnectedPayload;
     [CONNECTOR_EVENTS.DISCONNECTED]: WalletDisconnectedPayload;
@@ -44,6 +45,6 @@ export interface AppKitEvents {
 
     // Plugin events
     [PLUGIN_EVENTS.REGISTERED]: PluginRegisteredPayload;
-}
+} & SharedKitEvents;
 
-export type AppKitEmitter = Emitter<AppKitEvents>;
+export type AppKitEmitter = EventEmitter<AppKitEvents>;

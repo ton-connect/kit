@@ -7,3 +7,4 @@
  */
 
 export * from './storage';
+export * from './WalletV5SeqnoAdapter';

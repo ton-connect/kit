@@ -6,113 +6,94 @@
  *
  */
 
-import React, { memo } from 'react';
-import { Link } from 'react-router-dom';
+import React, { memo, useMemo } from 'react';
 import type { Action } from '@ton/walletkit';
 
-import { formatTimestamp } from '../../utils';
+import { formatTonForDisplay, sameAddress } from '../../utils';
+import { TransactionCard } from './TransactionCard';
+import type { TxFinality } from './TransactionCard';
 
 interface ActionCardProps {
     action: Action;
     myAddress: string;
     timestamp: number;
-    traceLink: string;
+    traceLink?: string;
+    /** When true, renders as pending (spinner icon, "Pending" status) */
+    isPending?: boolean;
+    /** Finality: pending, confirmed, finalized, or done (default from isPending) */
+    finality?: TxFinality;
+    /** Debug ID for DOM inspection (data-debug-id) */
+    debugId?: string;
 }
 
 /**
- * Universal component for displaying any blockchain action
- * Uses Action.simplePreview and Action.status for rendering
+ * Wrapper that extracts Action data and renders TransactionCard
  */
-export const ActionCard: React.FC<ActionCardProps> = memo(({ action, myAddress, timestamp, traceLink }) => {
-    const { simplePreview, status } = action;
-    const { description, value, accounts, valueImage } = simplePreview;
+const TON_TRANSFER_DESC = /^Transferring (.+) TON$/;
+const TON_VALUE = /^(.+) TON$/;
+const JETTON_TRANSFER_DESC = /^Transferring (.+)$/;
 
-    // Determine if this is an outgoing action by checking if myAddress is the first account (sender)
-    const isOutgoing = accounts.length > 0 && accounts[0]?.address === myAddress;
-    const isFailed = status === 'failure';
+function isOutgoingFromAction(action: Action, myAddress: string): boolean {
+    if (action.type === 'TonTransfer' && 'TonTransfer' in action) {
+        return sameAddress(action.TonTransfer?.sender?.address, myAddress);
+    }
+    if (action.type === 'JettonTransfer' && 'JettonTransfer' in action) {
+        return sameAddress(action.JettonTransfer?.sender?.address, myAddress);
+    }
+    if (action.type === 'NftItemTransfer' && 'NftItemTransfer' in action) {
+        return sameAddress(action.NftItemTransfer?.sender?.address, myAddress);
+    }
+    const accounts = action.simplePreview?.accounts;
+    return accounts != null && accounts.length > 0 && sameAddress(accounts[0].address, myAddress);
+}
 
-    // Determine icon and color based on action type and status
-    const getIconAndColor = () => {
-        if (isFailed) {
-            return {
-                bgColor: 'bg-red-100',
-                iconColor: 'text-red-600',
-                icon: (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                ),
-            };
-        }
+export const ActionCard: React.FC<ActionCardProps> = memo(
+    ({ action, myAddress, timestamp, traceLink, isPending = false, finality: finalityProp, debugId }) => {
+        const { simplePreview, status } = action;
+        const { description, value, valueImage } = simplePreview;
 
-        if (isOutgoing) {
-            return {
-                bgColor: 'bg-red-100',
-                iconColor: 'text-red-600',
-                icon: (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M7 11l5-5m0 0l5 5m-5-5v12"
-                        />
-                    </svg>
-                ),
-            };
-        }
+        const isOutgoing = isOutgoingFromAction(action, myAddress);
+        const txStatus = isPending ? 'pending' : status === 'failure' ? 'failure' : 'success';
+        const finality: TxFinality = finalityProp ?? (isPending ? 'pending' : status === 'failure' ? 'done' : 'done');
 
-        return {
-            bgColor: 'bg-green-100',
-            iconColor: 'text-green-600',
-            icon: (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 13l-5 5m0 0l-5-5m5 5V6" />
-                </svg>
-            ),
-        };
-    };
+        const { description: displayDesc, value: displayValue } = useMemo(() => {
+            const descMatch = description?.match(TON_TRANSFER_DESC);
+            const valueMatch = value?.match(TON_VALUE);
+            if (descMatch && valueMatch && action.type === 'TonTransfer') {
+                const amount = formatTonForDisplay(valueMatch[1]);
+                const label = isOutgoing ? 'Sent' : 'Received';
+                return {
+                    description: `${label} ${amount} TON`,
+                    value: `${amount} TON`,
+                };
+            }
+            if (valueMatch && action.type === 'TonTransfer') {
+                const amount = formatTonForDisplay(valueMatch[1]);
+                return { description, value: `${amount} TON` };
+            }
+            const jettonMatch = description?.match(JETTON_TRANSFER_DESC);
+            if (jettonMatch && action.type === 'JettonTransfer') {
+                const label = isOutgoing ? 'Sent' : 'Received';
+                return {
+                    description: `${label} ${jettonMatch[1]}`,
+                    value: value ?? '',
+                };
+            }
+            return { description, value };
+        }, [description, value, action.type, isOutgoing]);
 
-    const { bgColor, iconColor, icon } = getIconAndColor();
-
-    return (
-        <Link
-            to={traceLink}
-            className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg border border-gray-100"
-        >
-            <div className="flex items-center space-x-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${bgColor}`}>
-                    <div className={iconColor}>{icon}</div>
-                </div>
-                <div>
-                    <p className="text-sm font-medium text-gray-900">{description}</p>
-                </div>
-            </div>
-            <div className="text-right">
-                <div className="flex items-center justify-end space-x-2">
-                    {valueImage && (
-                        <img
-                            src={valueImage}
-                            alt=""
-                            className="w-4 h-4 rounded-full"
-                            onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                            }}
-                        />
-                    )}
-                    <p
-                        className={`text-sm font-medium ${
-                            isFailed ? 'text-red-600' : isOutgoing ? 'text-red-600' : 'text-green-600'
-                        }`}
-                    >
-                        {!isFailed && (isOutgoing ? '-' : '+')}
-                        {value}
-                    </p>
-                </div>
-                <p className={`text-xs ${status === 'success' ? 'text-gray-400' : 'text-red-500'}`}>
-                    {status === 'success' ? formatTimestamp(timestamp) : 'Failed'}
-                </p>
-            </div>
-        </Link>
-    );
-});
+        return (
+            <TransactionCard
+                description={displayDesc}
+                value={displayValue}
+                valueImage={valueImage}
+                timestamp={timestamp}
+                traceLink={traceLink}
+                status={txStatus}
+                finality={finality}
+                isOutgoing={isOutgoing}
+                debugId={debugId}
+            />
+        );
+    },
+);

@@ -8,6 +8,7 @@
 
 // Common components
 export { Button, Card } from './common';
+export { ToasterProvider } from './common/toaster-provider';
 
 // Layout components
 export { Layout, AppRouter, ThemeProvider } from './layout';

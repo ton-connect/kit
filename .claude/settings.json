@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm quality)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm typecheck)",
+      "Bash(pnpm lint:fix)",
+      "Bash(pnpm lint-files)",
+      "Bash(pnpm lint-files:fix)",
+      "Bash(pnpm docs:update)",
+      "Bash(pnpm dev)",
+      "Bash(pnpm build)",
+      "Bash(pnpm clean)",
+      "Bash(pnpm clean:workspaces)",
+      "Bash(pnpm changeset)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_response.filePath // .tool_input.file_path' | { read -r f; echo \"$f\" | grep -qE '\\.(ts|tsx|js|jsx)$' && pnpm lint-files:fix \"$f\" || true; } 2>/dev/null || true",
+            "timeout": 30,
+            "statusMessage": "Running eslint --fix..."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -13,10 +13,13 @@
  * TON wallet management tools for use with Claude Desktop or other MCP clients.
  *
  * Usage:
- *   npx @ton/mcp                          # stdio mode (default)
- *   npx @ton/mcp --http                   # HTTP server on 0.0.0.0:3000
- *   npx @ton/mcp --http 8080              # HTTP server on custom port
- *   npx @ton/mcp --http --host 127.0.0.1  # HTTP server on custom host
+ *   npx @ton/mcp@alpha                          # stdio mode (default)
+ *   npx @ton/mcp@alpha --http                   # HTTP server on 0.0.0.0:3000
+ *   npx @ton/mcp@alpha --http 8080              # HTTP server on custom port
+ *   npx @ton/mcp@alpha --http --host 127.0.0.1  # HTTP server on custom host
+ *   npx @ton/mcp@alpha get_balance              # raw CLI: call tool and exit
+ *   npx @ton/mcp@alpha get_transactions --limit 5
+ *   npx @ton/mcp@alpha get_jetton_balance --jettonAddress EQAbc...
  *
  * Environment variables:
  *   NETWORK         - Network to use (mainnet or testnet, default: mainnet)
@@ -27,13 +30,19 @@
  *   AGENTIC_WALLET_NFT_INDEX - walletNftIndex / subwallet id for agentic wallet (uint256, optional)
  *   AGENTIC_COLLECTION_ADDRESS - collection address for agentic wallet state init derivation (optional)
  *   TONCENTER_API_KEY - API key for Toncenter (optional, for higher rate limits)
+ *   AGENTIC_CALLBACK_BASE_URL - optional public callback base URL for agentic onboarding
+ *   AGENTIC_CALLBACK_HOST - host for local callback server in stdio mode (default: 127.0.0.1)
+ *   AGENTIC_CALLBACK_PORT - port for local callback server in stdio mode (default: random free port)
  */
 
-import { createServer } from 'node:http';
-import { randomUUID } from 'node:crypto';
+import './suppress-punycode-deprecation.js';
 
+import { createServer } from 'node:http';
+
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { CallToolResultSchema } from '@modelcontextprotocol/sdk/types.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import {
     TonWalletKit,
     Signer,
@@ -42,11 +51,19 @@ import {
     MemoryStorageAdapter,
     Network,
 } from '@ton/walletkit';
-import type { Wallet, ApiClientConfig, WalletSigner } from '@ton/walletkit';
+import type { Wallet, WalletSigner } from '@ton/walletkit';
 
 import { createTonWalletMCP } from './factory.js';
 import type { NetworkType } from './types/config.js';
 import { AgenticWalletAdapter } from './contracts/agentic_wallet/AgenticWalletAdapter.js';
+import { createHttpMcpSessionRouter } from './http-mode.js';
+import {
+    AgenticSetupSessionManager,
+    ConfigBackedAgenticSetupSessionStore,
+} from './services/AgenticSetupSessionManager.js';
+import { createApiClient } from './utils/ton-client.js';
+import { parseCliArgs } from './utils/cli-args.js';
+import { UINT_256_MAX } from './utils/math.js';
 
 const SERVER_NAME = 'ton-mcp';
 
@@ -57,35 +74,85 @@ const PRIVATE_KEY = process.env.PRIVATE_KEY;
 const WALLET_VERSION = (process.env.WALLET_VERSION as 'v5r1' | 'v4r2' | 'agentic') || 'v5r1';
 const AGENTIC_WALLET_ADDRESS = process.env.AGENTIC_WALLET_ADDRESS;
 const AGENTIC_WALLET_NFT_INDEX = process.env.AGENTIC_WALLET_NFT_INDEX;
-const AGENTIC_COLLECTION_ADDRESS = process.env.AGENTIC_COLLECTION_ADDRESS;
+const DEFAULT_AGENTIC_COLLECTION_ADDRESS = 'EQByQ19qvWxW7VibSbGEgZiYMqilHY5y1a_eeSL2VaXhfy07';
+const AGENTIC_COLLECTION_ADDRESS = process.env.AGENTIC_COLLECTION_ADDRESS?.trim() || DEFAULT_AGENTIC_COLLECTION_ADDRESS;
 const TONCENTER_API_KEY = process.env.TONCENTER_API_KEY;
+const AGENTIC_CALLBACK_BASE_URL = process.env.AGENTIC_CALLBACK_BASE_URL?.trim();
+const AGENTIC_CALLBACK_HOST = process.env.AGENTIC_CALLBACK_HOST?.trim() || '127.0.0.1';
+const AGENTIC_CALLBACK_PORT = Number.parseInt(process.env.AGENTIC_CALLBACK_PORT ?? '', 10);
+
+if (WALLET_VERSION !== 'agentic' && WALLET_VERSION !== 'v4r2' && WALLET_VERSION !== 'v5r1') {
+    throw new Error(`Invalid WALLET_VERSION: "${WALLET_VERSION}". Must be one of: agentic, v4r2, v5r1`);
+}
 
 function log(message: string) {
     // eslint-disable-next-line no-console
     console.error(`[${SERVER_NAME}] ${message}`);
 }
 
-function parseArgs() {
-    const args = process.argv.slice(2);
-    const httpIndex = args.indexOf('--http');
+function printHelp() {
+    const help = `
+@ton/mcp – TON wallet MCP server & CLI
 
-    if (httpIndex === -1) {
-        return { mode: 'stdio' as const };
-    }
+Usage:
+  npx @ton/mcp@alpha                              stdio MCP server (default)
+  npx @ton/mcp@alpha --http [port]                HTTP MCP server (default: 0.0.0.0:3000)
+  npx @ton/mcp@alpha --http --host 127.0.0.1      HTTP server on custom host
+  npx @ton/mcp@alpha <tool_name> [--arg value]    call one tool and exit
 
-    const nextArg = args[httpIndex + 1];
-    const port = nextArg && !nextArg.startsWith('-') ? parseInt(nextArg, 10) : 3000;
+Options:
+  --help, -h      Show this help message
+  --http [port]   Start HTTP server instead of stdio
+  --host <addr>   Bind HTTP server to address (default: 0.0.0.0)
 
-    const hostIndex = args.indexOf('--host');
-    const hostArg = hostIndex !== -1 ? args[hostIndex + 1] : undefined;
-    const host = hostArg && !hostArg.startsWith('-') ? hostArg : '0.0.0.0';
+Examples:
+  npx @ton/mcp@alpha get_balance
+  npx @ton/mcp@alpha get_jetton_balance --jettonAddress EQAbc...
+  npx @ton/mcp@alpha get_swap_quote --fromToken TON --toToken EQAbc... --amount 1
+  npx @ton/mcp@alpha send_ton --toAddress UQA... --amount 0.5
 
-    return { mode: 'http' as const, port, host };
+Environment variables:
+  NETWORK              mainnet (default) or testnet
+  MNEMONIC             24-word mnemonic phrase
+  PRIVATE_KEY          Hex-encoded private key (alternative to MNEMONIC)
+  WALLET_VERSION       v5r1 (default), v4r2, or agentic
+  TONCENTER_API_KEY    Optional Toncenter API key
+  TON_CONFIG_PATH      Config file path (default: ~/.config/ton/config.json)
+`.trimStart();
+
+    process.stdout.write(help);
 }
 
-const UINT_256_MAX = 1n << 256n;
+function parseArgs() {
+    const args = process.argv.slice(2);
 
-function parseOptionalBigInt(input?: string): bigint | undefined {
+    if (args.includes('--help') || args.includes('-h')) {
+        printHelp();
+        process.exit(0);
+    }
+
+    const httpIndex = args.indexOf('--http');
+
+    if (httpIndex !== -1) {
+        const nextArg = args[httpIndex + 1];
+        const port = nextArg && !nextArg.startsWith('-') ? parseInt(nextArg, 10) : 3000;
+
+        const hostIndex = args.indexOf('--host');
+        const hostArg = hostIndex !== -1 ? args[hostIndex + 1] : undefined;
+        const host = hostArg && !hostArg.startsWith('-') ? hostArg : '0.0.0.0';
+
+        return { mode: 'http' as const, port, host };
+    }
+
+    const toolName = args.find((a) => !a.startsWith('-'));
+    if (toolName) {
+        return { mode: 'cli' as const, toolName, rawArgs: args };
+    }
+
+    return { mode: 'stdio' as const };
+}
+
+function parseAgenticWalletNftIndex(input?: string): bigint | undefined {
     if (!input) {
         return undefined;
     }
@@ -154,7 +221,7 @@ async function createWalletFromSigner(kit: TonWalletKit, network: Network, signe
                     client: kit.getApiClient(network),
                     network,
                     walletAddress: AGENTIC_WALLET_ADDRESS,
-                    walletNftIndex: parseOptionalBigInt(AGENTIC_WALLET_NFT_INDEX),
+                    walletNftIndex: parseAgenticWalletNftIndex(AGENTIC_WALLET_NFT_INDEX),
                     collectionAddress: AGENTIC_COLLECTION_ADDRESS,
                 });
 
@@ -227,24 +294,31 @@ async function createWalletFromSigner(kit: TonWalletKit, network: Network, signe
 //     return wallet;
 // }
 
-async function createWalletAndServer(): Promise<{
+async function createWalletAndServer(agenticSessionManager?: AgenticSetupSessionManager): Promise<{
     server: Awaited<ReturnType<typeof createTonWalletMCP>>;
-    kit: TonWalletKit;
-    wallet: Wallet;
+    kit?: TonWalletKit;
+    wallet?: Wallet;
 }> {
-    const network = NETWORK === 'mainnet' ? Network.mainnet() : Network.testnet();
-
-    // Configure API client
-    const apiConfig: ApiClientConfig = {};
-    if (TONCENTER_API_KEY) {
-        apiConfig.url = NETWORK === 'mainnet' ? 'https://toncenter.com' : 'https://testnet.toncenter.com';
-        apiConfig.key = TONCENTER_API_KEY;
+    if (!MNEMONIC && !PRIVATE_KEY) {
+        // log('No direct wallet credentials provided. Starting in config-registry mode.');
+        const server = await createTonWalletMCP({
+            agenticSessionManager,
+            walletVersion: WALLET_VERSION,
+            networks: {
+                mainnet: TONCENTER_API_KEY && NETWORK === 'mainnet' ? { apiKey: TONCENTER_API_KEY } : undefined,
+                testnet: TONCENTER_API_KEY && NETWORK === 'testnet' ? { apiKey: TONCENTER_API_KEY } : undefined,
+            },
+        });
+        return { server };
     }
+
+    const networkType = NETWORK === 'mainnet' ? 'mainnet' : 'testnet';
+    const network = networkType === 'mainnet' ? Network.mainnet() : Network.testnet();
 
     // Initialize TonWalletKit
     const kit = new TonWalletKit({
         networks: {
-            [network.chainId]: { apiClient: apiConfig },
+            [network.chainId]: { apiClient: createApiClient(networkType, TONCENTER_API_KEY) },
         },
         storage: new MemoryStorageAdapter(),
     });
@@ -281,7 +355,9 @@ async function createWalletAndServer(): Promise<{
 
     // Create MCP server with the wallet
     const server = await createTonWalletMCP({
+        agenticSessionManager,
         wallet,
+        walletVersion: WALLET_VERSION,
         networks: {
             mainnet: TONCENTER_API_KEY && NETWORK === 'mainnet' ? { apiKey: TONCENTER_API_KEY } : undefined,
             testnet: TONCENTER_API_KEY && NETWORK === 'testnet' ? { apiKey: TONCENTER_API_KEY } : undefined,
@@ -291,15 +367,83 @@ async function createWalletAndServer(): Promise<{
     return { server, kit, wallet };
 }
 
+function getResolvedHttpCallbackBaseUrl(host: string, port: number): string {
+    if (AGENTIC_CALLBACK_BASE_URL) {
+        return AGENTIC_CALLBACK_BASE_URL.replace(/\/+$/, '');
+    }
+
+    const publicHost = host === '0.0.0.0' ? '127.0.0.1' : host;
+    return `http://${publicHost}:${port}`;
+}
+
+async function createStdioSessionManager(): Promise<AgenticSetupSessionManager> {
+    return AgenticSetupSessionManager.create({
+        host: AGENTIC_CALLBACK_HOST,
+        listenPort: Number.isFinite(AGENTIC_CALLBACK_PORT) ? AGENTIC_CALLBACK_PORT : 0,
+        publicBaseUrl: AGENTIC_CALLBACK_BASE_URL,
+        store: new ConfigBackedAgenticSetupSessionStore(),
+    });
+}
+
+async function createHttpSessionManager(host: string, port: number): Promise<AgenticSetupSessionManager> {
+    return AgenticSetupSessionManager.create({
+        publicBaseUrl: getResolvedHttpCallbackBaseUrl(host, port),
+        enableInternalHttpServer: false,
+        store: new ConfigBackedAgenticSetupSessionStore(),
+    });
+}
+
+async function startCli(toolName: string, rawArgs: string[]) {
+    const sessionManager = await createStdioSessionManager();
+    const { server, kit } = await createWalletAndServer(sessionManager);
+
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await server.connect(serverTransport);
+
+    const client = new Client({ name: 'ton-mcp-cli', version: '0.0.1' });
+    await client.connect(clientTransport);
+
+    let isError = false;
+    try {
+        const tools = await client.listTools();
+        const toolSchema = tools.tools.find((tool) => tool.name === toolName)?.inputSchema;
+        const normalizedArgs = parseCliArgs(rawArgs, toolSchema);
+        const result = await client.callTool({ name: toolName, arguments: normalizedArgs }, CallToolResultSchema);
+        const content = result.content as Array<{ type: string; text?: string }>;
+        for (const item of content) {
+            if (item.type === 'text' && item.text !== undefined) {
+                process.stdout.write(item.text + '\n');
+            }
+        }
+        isError = !!result.isError;
+    } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(`[${SERVER_NAME}] Tool error:`, error instanceof Error ? error.message : error);
+        isError = true;
+    } finally {
+        await client.close();
+        await sessionManager.close();
+        if (kit) {
+            await kit.close();
+        }
+    }
+
+    process.exit(isError ? 1 : 0);
+}
+
 async function startStdio() {
     log('Starting in stdio mode...');
 
-    const { server, kit } = await createWalletAndServer();
+    const sessionManager = await createStdioSessionManager();
+    const { server, kit } = await createWalletAndServer(sessionManager);
     const transport = new StdioServerTransport();
 
     const shutdown = async () => {
         log('Shutting down...');
-        await kit.close();
+        await sessionManager.close();
+        if (kit) {
+            await kit.close();
+        }
         log('Shutdown complete');
         process.exit(0);
     };
@@ -314,29 +458,32 @@ async function startStdio() {
 async function startHttp(port: number, host: string) {
     log(`Starting in HTTP mode on ${host}:${port}...`);
 
-    const { server, kit } = await createWalletAndServer();
-
-    const transport = new StreamableHTTPServerTransport({
-        sessionIdGenerator: () => randomUUID(),
+    const sessionManager = await createHttpSessionManager(host, port);
+    const router = createHttpMcpSessionRouter({
+        host,
+        port,
+        handleExtraRequest: (req, res) => sessionManager.handleCallbackHttpRequest(req, res),
+        createServerInstance: async () => {
+            const { server, kit } = await createWalletAndServer(sessionManager);
+            return {
+                server,
+                close: async () => {
+                    if (kit) {
+                        await kit.close();
+                    }
+                },
+            };
+        },
     });
 
-    await server.connect(transport);
-
     const httpServer = createServer(async (req, res) => {
-        const url = new URL(req.url ?? '/', `http://${host}:${port}`);
-
-        if (url.pathname === '/mcp') {
-            await transport.handleRequest(req, res);
-        } else {
-            res.writeHead(404).end('Not Found');
-        }
+        await router.handleRequest(req, res);
     });
 
     const shutdown = async () => {
         log('Shutting down...');
         httpServer.close();
-        await transport.close();
-        await kit.close();
+        await Promise.allSettled([router.close(), sessionManager.close()]);
         log('Shutdown complete');
         process.exit(0);
     };
@@ -349,18 +496,18 @@ async function startHttp(port: number, host: string) {
     });
 }
 
+function fatalError(error: unknown) {
+    // eslint-disable-next-line no-console
+    console.error(`[${SERVER_NAME}] Fatal error:`, error);
+    process.exit(1);
+}
+
 const config = parseArgs();
 
 if (config.mode === 'http') {
-    startHttp(config.port, config.host).catch((error) => {
-        // eslint-disable-next-line no-console
-        console.error(`[${SERVER_NAME}] Fatal error:`, error);
-        process.exit(1);
-    });
+    startHttp(config.port, config.host).catch(fatalError);
+} else if (config.mode === 'cli') {
+    startCli(config.toolName, config.rawArgs).catch(fatalError);
 } else {
-    startStdio().catch((error) => {
-        // eslint-disable-next-line no-console
-        console.error(`[${SERVER_NAME}] Fatal error:`, error);
-        process.exit(1);
-    });
+    startStdio().catch(fatalError);
 }

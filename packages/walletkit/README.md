@@ -1,3 +1,9 @@
+<!--
+This file is auto-generated. Do not edit manually.
+Changes will be overwritten when running the docs update script.
+Source template: template/packages/walletkit/README.md
+-->
+
 # TonWalletKit
 
 A production-ready wallet-side integration layer for TON Connect, designed for building TON wallets at scale

@@ -9,9 +9,16 @@
 export type { Wallet, WalletTonInterface, WalletNftInterface, WalletJettonInterface } from './Wallet';
 export type { WalletAdapter } from './WalletAdapter';
 export type { WalletSigner, ISigner } from './WalletSigner';
+export type { BaseProvider } from './BaseProvider';
+
 // Defi interfaces
 export type { DefiManagerAPI } from './DefiManagerAPI';
-export type { SwapAPI, SwapProviderInterface } from './SwapAPI';
 export type { DefiProvider } from './DefiProvider';
+export type { SwapAPI, SwapProviderInterface } from './SwapAPI';
+export type { StakingAPI, StakingProviderInterface } from './StakingAPI';
 
 export type { TONConnectSessionManager } from './TONConnectSessionManager';
+
+// Streaming interfaces
+export type { StreamingProvider, StreamingProviderFactory } from './StreamingProvider';
+export type { StreamingAPI } from './StreamingAPI';

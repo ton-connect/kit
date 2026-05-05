@@ -33,8 +33,14 @@ export const addressToToken = (address: string, decimals: number = 9): SwapToken
 };
 
 export const toOmnistonAddress = (address: string, network: Network): OmnistonAddress => {
+    let formattedAddress: string;
+    try {
+        formattedAddress = Address.parse(address).toString({ bounceable: true });
+    } catch {
+        formattedAddress = address;
+    }
     return {
-        address,
+        address: formattedAddress,
         blockchain: mapNetworkToBlockchainId(network),
     };
 };
@@ -57,15 +63,6 @@ export const isOmnistonQuoteMetadata = (metadata: unknown): metadata is Omniston
     }
 
     const meta = metadata as Record<string, unknown>;
-    const omnistonQuote =
-        typeof meta.omnistonQuote === 'object' && meta.omnistonQuote !== null
-            ? (meta.omnistonQuote as Record<string, unknown>)
-            : undefined;
 
-    return (
-        !!omnistonQuote &&
-        typeof omnistonQuote.quoteId === 'string' &&
-        typeof omnistonQuote.bidUnits === 'string' &&
-        typeof omnistonQuote.askUnits === 'string'
-    );
+    return typeof meta.omnistonQuote === 'object' && meta.omnistonQuote !== null;
 };

@@ -1,3 +1,9 @@
+<!--
+This file is auto-generated. Do not edit manually.
+Changes will be overwritten when running the docs update script.
+Source template: template/packages/appkit-react/docs/hooks.md
+-->
+
 # Hooks
 
 AppKit React provides a set of hooks to interact with the blockchain and wallets.
@@ -70,6 +76,32 @@ if (error) {
 }
 
 return <div>Balance: {balance?.toString()}</div>;
+```
+
+### `useWatchBalance`
+
+Hook to enable real-time balance updates for the currently selected wallet. It automatically updates the TanStack Query cache.
+
+```tsx
+const { data: balance } = useBalance();
+
+useWatchBalance();
+
+return <div>Current balance: {balance}</div>;
+```
+
+### `useWatchBalanceByAddress`
+
+Hook to enable real-time balance updates for a specific address.
+
+```tsx
+const address = 'UQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJKZ';
+const network = Network.mainnet();
+const { data: balance } = useBalanceByAddress({ address, network });
+
+useWatchBalanceByAddress({ address, network });
+
+return <div>Current balance: {balance}</div>;
 ```
 
 ## Jettons
@@ -245,6 +277,53 @@ return (
 );
 ```
 
+### `useWatchJettons`
+
+Hook to enable real-time jetton updates for the currently selected wallet.
+
+```tsx
+const { data: jettons } = useJettons();
+
+useWatchJettons();
+
+return (
+    <div>
+        <h3>Your Jettons:</h3>
+        <ul>
+            {jettons?.jettons.map((j) => (
+                <li key={j.walletAddress}>
+                    {j.info.name}: {j.balance}
+                </li>
+            ))}
+        </ul>
+    </div>
+);
+```
+
+### `useWatchJettonsByAddress`
+
+Hook to enable real-time jetton updates for a specific address.
+
+```tsx
+const address = 'UQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJKZ';
+const { data: jettons } = useJettonsByAddress({ address });
+
+useWatchJettonsByAddress({ address });
+
+return (
+    <div>
+        <h3>Jettons for {address}:</h3>
+        <ul>
+            {jettons?.jettons.map((j) => (
+                <li key={j.walletAddress}>
+                    {j.info.name}: {j.balance}
+                </li>
+            ))}
+        </ul>
+    </div>
+);
+```
+
 ## Network
 
 ### `useNetwork`
@@ -276,6 +355,32 @@ return (
                 <li key={network.chainId}>{network.chainId}</li>
             ))}
         </ul>
+    </div>
+);
+```
+
+### `useBlockNumber`
+
+Hook to get the current masterchain block number.
+
+```tsx
+const { data: blockNumber } = useBlockNumber();
+
+return <div>Current block number: {blockNumber}</div>;
+```
+
+### `useDefaultNetwork`
+
+Hook to get and set the default network for wallet connections. Returns a tuple `[defaultNetwork, setDefaultNetwork]`.
+
+```tsx
+const [defaultNetwork, setDefaultNetwork] = useDefaultNetwork();
+
+return (
+    <div>
+        <p>Default network: {defaultNetwork?.chainId ?? 'Any'}</p>
+        <button onClick={() => setDefaultNetwork(Network.testnet())}>Use Testnet</button>
+        <button onClick={() => setDefaultNetwork(undefined)}>Any Network</button>
     </div>
 );
 ```
@@ -655,6 +760,64 @@ return (
                 <h4>Transfer Successful!</h4>
                 <p>BOC: {data.boc}</p>
             </div>
+        )}
+    </div>
+);
+```
+
+### `useWatchTransactions`
+
+Hook to watch for new transactions for the currently selected wallet in real-time.
+
+```tsx
+const [lastUpdate, setLastUpdate] = useState<TransactionsUpdate | null>(null);
+
+useWatchTransactions({
+    onChange: (update) => {
+        setLastUpdate(update);
+    },
+});
+
+return (
+    <div>
+        {lastUpdate ? (
+            <div>
+                Last update for: {lastUpdate.address}
+                <br />
+                Transactions count: {lastUpdate.transactions.length}
+            </div>
+        ) : (
+            'Waiting for transactions...'
+        )}
+    </div>
+);
+```
+
+### `useWatchTransactionsByAddress`
+
+Hook to watch for new transactions for a specific address in real-time.
+
+```tsx
+const address = 'UQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJKZ';
+const [lastUpdate, setLastUpdate] = useState<TransactionsUpdate | null>(null);
+
+useWatchTransactionsByAddress({
+    address,
+    onChange: (update) => {
+        setLastUpdate(update);
+    },
+});
+
+return (
+    <div>
+        {lastUpdate ? (
+            <div>
+                New transactions for: {lastUpdate.address}
+                <br />
+                Count: {lastUpdate.transactions.length}
+            </div>
+        ) : (
+            'Waiting for transactions...'
         )}
     </div>
 );

@@ -21,11 +21,6 @@ export const NftsCard: React.FC<NftsCardProps> = ({ className = '' }) => {
     const { userNfts, isLoadingNfts, error, loadUserNfts, formatNftIndex } = useNfts();
     const [selectedNft, setSelectedNft] = useState<NFT | null>(null);
 
-    const handleViewAll = () => {
-        // TODO: Navigate to NFTs page when created
-        // This would navigate to a dedicated NFTs page
-    };
-
     const formatAddress = (address: string): string => {
         return `${address.slice(0, 4)}...${address.slice(-4)}`;
     };
@@ -78,7 +73,7 @@ export const NftsCard: React.FC<NftsCardProps> = ({ className = '' }) => {
 
     if (error) {
         return (
-            <Card title="NFTs" className={className}>
+            <Card title="NFTs" className={className} compact>
                 <div className="text-center py-4">
                     <div className="text-red-400 mb-2">
                         <svg className="w-8 h-8 mx-auto" fill="currentColor" viewBox="0 0 20 20">
@@ -99,7 +94,7 @@ export const NftsCard: React.FC<NftsCardProps> = ({ className = '' }) => {
     }
 
     return (
-        <Card title="NFTs" className={className}>
+        <Card title="NFTs" className={className} compact>
             {isLoadingNfts ? (
                 <div className="flex items-center justify-center py-8">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
@@ -123,16 +118,11 @@ export const NftsCard: React.FC<NftsCardProps> = ({ className = '' }) => {
             ) : (
                 <div className="space-y-4">
                     {/* Summary */}
-                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100">
-                        <div className="space-y-1">
-                            <p className="text-base font-semibold text-gray-900">
-                                {totalNfts} {totalNfts === 1 ? 'NFT' : 'NFTs'}
-                            </p>
-                            <p className="text-sm text-gray-600">Digital collectibles</p>
-                        </div>
-                        <Button size="sm" variant="secondary" onClick={handleViewAll}>
-                            View All
-                        </Button>
+                    <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 space-y-1">
+                        <p className="text-base font-semibold text-gray-900">
+                            {totalNfts} {totalNfts === 1 ? 'NFT' : 'NFTs'}
+                        </p>
+                        <p className="text-sm text-gray-600">Digital collectibles</p>
                     </div>
 
                     {/* Top NFTs */}

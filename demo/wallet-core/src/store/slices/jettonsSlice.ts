@@ -6,7 +6,7 @@
  *
  */
 
-import { JettonError } from '@ton/walletkit';
+import { JettonError, compareAddress } from '@ton/walletkit';
 import type { Jetton, JettonTransfer, JettonInfo } from '@ton/walletkit';
 
 import { createComponentLogger } from '../../utils/logger';
@@ -122,6 +122,19 @@ export const createJettonsSlice: JettonsSliceCreator = (set: SetState, get) => (
                 state.jettons.isRefreshing = false;
             });
         }
+    },
+
+    updateJettonBalanceFromStream: (walletAddress: string, balance: string, decimals?: number) => {
+        set((state) => {
+            const jetton = state.jettons.userJettons.find((j) => compareAddress(j.walletAddress, walletAddress));
+            if (jetton) {
+                jetton.balance = balance;
+                if (typeof decimals === 'number') {
+                    jetton.decimalsNumber = decimals;
+                }
+                state.jettons.lastJettonsUpdate = Date.now();
+            }
+        });
     },
 
     validateJettonAddress: (address: string): boolean => {

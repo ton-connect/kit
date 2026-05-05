@@ -12,6 +12,7 @@ import type {
     JettonTransfer,
     JettonInfo,
     ITonWalletKit,
+    TransactionsUpdate,
     NFT,
     Jetton,
     ConnectionRequestEvent,
@@ -21,8 +22,15 @@ import type {
     WalletAdapter,
     SwapQuote,
     SwapToken,
+    StakingQuote,
+    StakingQuoteParams,
+    StakingBalance,
+    StakingProviderInfo,
+    StakeParams,
+    UnstakeModes,
 } from '@ton/walletkit';
 
+import type { PendingTransaction } from './streaming';
 import type {
     AuthState,
     SavedWallet,
@@ -41,6 +49,7 @@ export interface AuthSlice extends AuthState {
     reset: () => void;
     setPersistPassword: (persist: boolean) => void;
     setHoldToSign: (enabled: boolean) => void;
+    setShowFastSend: (enabled: boolean) => void;
     setUseWalletInterfaceType: (interfaceType: 'signer' | 'mnemonic' | 'ledger') => void;
     setLedgerAccountNumber: (accountNumber: number) => void;
 }
@@ -56,6 +65,9 @@ export interface WalletCoreSlice {
     initializeWalletKit: (network?: NetworkType) => Promise<void>;
 }
 
+/** Local seqno + timestamp for fast send (prevents duplicate seqno on rapid clicks) */
+export type LocalSeqnoEntry = { seqno: number; timestamp: number };
+
 // Wallet Management slice - Wallet CRUD and data
 export interface WalletManagementSlice {
     walletManagement: {
@@ -69,9 +81,20 @@ export interface WalletManagementSlice {
         events: unknown[];
         hasNextEvents: boolean;
 
+        /** Pending transactions from WebSocket streaming */
+        pendingTransactions: PendingTransaction[];
+
+        /** Trace IDs (trace_id) we've received as confirmed - never mix with trace_external_hash */
+        confirmedTraceIds: string[];
+        /** External hashes (trace_external_hash_norm) confirmed - never mix with trace_id */
+        confirmedExternalHashes: string[];
+
         currentWallet?: Wallet;
         hasWallet: boolean;
         isAuthenticated: boolean;
+
+        // WebSocket streaming state
+        isStreamingConnected: boolean;
     };
 
     // Multi-wallet actions
@@ -101,6 +124,13 @@ export interface WalletManagementSlice {
     // Wallet state actions
     clearWallet: () => void;
     updateBalance: () => Promise<void>;
+
+    // WebSocket streaming actions
+    startWebSocketStreaming: () => Promise<void>;
+    stopWebSocketStreaming: () => Promise<void>;
+    updateWebSocketSubscription: () => Promise<void>;
+    handleStreamingTransactions: (update: TransactionsUpdate) => void;
+
     // Events-based history
     // addEvent: (event: unknown) => void;
     loadEvents: (limit?: number, offset?: number) => Promise<void>;
@@ -133,7 +163,7 @@ export interface TonConnectSlice {
 
     // Transaction request actions
     showTransactionRequest: (request: SendTransactionRequestEvent) => void;
-    approveTransactionRequest: () => Promise<void>;
+    approveTransactionRequest: () => Promise<{ signedBoc: string } | undefined>;
     rejectTransactionRequest: (reason?: string) => Promise<void>;
     closeTransactionModal: () => void;
 
@@ -177,6 +207,7 @@ export interface JettonsSlice {
 
     loadUserJettons: (userAddress?: string) => Promise<void>;
     refreshJettons: (userAddress?: string) => Promise<void>;
+    updateJettonBalanceFromStream: (walletAddress: string, balance: string, decimals?: number) => void;
     validateJettonAddress: (address: string) => boolean;
     clearJettons: () => void;
     getJettonByAddress: (jettonAddress: string) => Jetton | undefined;
@@ -217,17 +248,45 @@ export interface SwapState {
     isReverseSwap: boolean;
 }
 
+// Staking slice interface
+export interface StakingState {
+    amount: string;
+    providerId: string;
+    currentQuote: StakingQuote | null;
+    isLoadingQuote: boolean;
+    isStaking: boolean;
+    isUnstaking: boolean;
+    error: string | null;
+    unstakeMode: UnstakeModes;
+    stakedBalance: StakingBalance | null;
+    providerInfo: StakingProviderInfo | null;
+}
+
+export interface StakingSlice {
+    staking: StakingState;
+
+    setStakingAmount: (amount: string) => void;
+    setStakingProviderId: (providerId: string) => void;
+    setUnstakeMode: (mode: UnstakeModes) => void;
+    getStakingQuote: (params: Omit<StakingQuoteParams, 'network'>) => Promise<void>;
+    stake: (params: Omit<StakeParams, 'userAddress'>) => Promise<void>;
+    unstake: (params: Omit<StakeParams, 'userAddress'>) => Promise<void>;
+    loadStakingData: (userAddress: string) => Promise<void>;
+    clearStaking: () => void;
+    validateStakingInputs: () => string | null;
+}
+
 export interface SwapSlice {
     swap: SwapState;
 
     setFromToken: (token: SwapToken) => void;
     setToToken: (token: SwapToken) => void;
-    setAmount: (amount: string) => void;
+    setSwapAmount: (amount: string) => void;
     setDestinationAddress: (address: string) => void;
     setIsReverseSwap: (isReverseSwap: boolean) => void;
     setSlippageBps: (slippage: number) => void;
     swapTokens: () => void;
-    getQuote: () => Promise<void>;
+    getSwapQuote: () => Promise<void>;
     executeSwap: () => Promise<void>;
     clearSwap: () => void;
     validateSwapInputs: () => string | null;
@@ -235,13 +294,15 @@ export interface SwapSlice {
 
 // Combined app state
 export interface AppState
-    extends AuthSlice,
+    extends
+        AuthSlice,
         WalletCoreSlice,
         WalletManagementSlice,
         TonConnectSlice,
         JettonsSlice,
         NftsSlice,
-        SwapSlice {
+        SwapSlice,
+        StakingSlice {
     isHydrated: boolean;
 }
 
@@ -264,6 +325,8 @@ export type JettonsSliceCreator = StateCreator<AppState, [], [], JettonsSlice>;
 export type NftsSliceCreator = StateCreator<AppState, [], [], NftsSlice>;
 
 export type SwapSliceCreator = StateCreator<AppState, [['zustand/immer', never]], [], SwapSlice>;
+
+export type StakingSliceCreator = StateCreator<AppState, [['zustand/immer', never]], [], StakingSlice>;
 
 // Migration types
 export interface MigrationState {

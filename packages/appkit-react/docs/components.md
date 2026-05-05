@@ -1,3 +1,9 @@
+<!--
+This file is auto-generated. Do not edit manually.
+Changes will be overwritten when running the docs update script.
+Source template: template/packages/appkit-react/docs/components.md
+-->
+
 # Components
 
 `@ton/appkit-react` provides a set of themed, ready-to-use UI components for building TON dApps.
@@ -58,13 +64,13 @@ return (
 
 ## Transactions
 
-### `Transaction`
+### `Send`
 
 A drop-in component that handles the entire transaction flow.
 
 ```tsx
 return (
-    <Transaction
+    <Send
         request={{
             messages: [
                 {
@@ -80,10 +86,10 @@ return (
             ],
         }}
         text="Send Transaction"
-        onSuccess={(result) => {
+        onSuccess={(result: SendTransactionReturnType) => {
             console.log('Transaction sent:', result);
         }}
-        onError={(error) => {
+        onError={(error: Error) => {
             console.error('Transaction failed:', error);
         }}
     />

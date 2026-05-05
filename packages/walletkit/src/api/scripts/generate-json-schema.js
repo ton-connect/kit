@@ -195,6 +195,150 @@ class EnumNodeParserWithNames {
 }
 
 // ============================================================================
+// Const-Object Enum Parser
+// ============================================================================
+
+/**
+ * Parser for const-object enum patterns:
+ *   export const X = { A: 'A', B: 'B' } as const;
+ *   export type XValue = (typeof X)[keyof typeof X];
+ *
+ * Detects the indexed access type pattern and extracts enum members
+ * from the referenced const object declaration.
+ */
+class ConstEnumNodeParser {
+    constructor(typeChecker) {
+        this.typeChecker = typeChecker;
+    }
+
+    /**
+     * Unwrap ParenthesizedType to get the inner type node.
+     */
+    unwrapParens(typeNode) {
+        while (typeNode.kind === ts.SyntaxKind.ParenthesizedType) {
+            typeNode = typeNode.type;
+        }
+        return typeNode;
+    }
+
+    supportsNode(node) {
+        // Match: type X = (typeof Y)[keyof typeof Y]
+        if (node.kind !== ts.SyntaxKind.TypeAliasDeclaration) return false;
+
+        const typeNode = node.type;
+        if (!typeNode || typeNode.kind !== ts.SyntaxKind.IndexedAccessType) return false;
+
+        // objectType must be TypeQuery (typeof Y), possibly wrapped in parens
+        const objectType = this.unwrapParens(typeNode.objectType);
+        if (objectType.kind !== ts.SyntaxKind.TypeQuery) return false;
+
+        // indexType must be TypeOperator with keyof
+        if (typeNode.indexType.kind !== ts.SyntaxKind.TypeOperator) return false;
+        if (typeNode.indexType.operator !== ts.SyntaxKind.KeyOfKeyword) return false;
+
+        // Verify the const object can be found
+        const constName = objectType.exprName.getText();
+        const sourceFile = node.getSourceFile();
+        return this.findConstObjectDeclaration(sourceFile, constName) !== null;
+    }
+
+    createType(node) {
+        const typeAliasName = node.name.getText();
+        const objectType = this.unwrapParens(node.type.objectType);
+        const constName = objectType.exprName.getText();
+        const sourceFile = node.getSourceFile();
+        const constDecl = this.findConstObjectDeclaration(sourceFile, constName);
+
+        const { values, memberNames } = this.extractMembers(constDecl, constName);
+
+        // Use x-definition-name to rename the definition to the const object name in post-processing
+        const annotations = typeAliasName !== constName ? { 'x-definition-name': constName } : {};
+
+        const id = `const-enum-${sourceFile.fileName}-${node.pos}`;
+        const enumType = new EnumTypeWithNames(id, values, memberNames, annotations);
+
+        return new tsj.DefinitionType(typeAliasName, enumType);
+    }
+
+    extractMembers(constDecl, constName) {
+        // Derive prefix from const name: SettlementMethod → SETTLEMENT_METHOD_
+        const prefix = this.toScreamingSnake(constName) + '_';
+
+        const values = [];
+        const memberNames = [];
+        const objLiteral = constDecl.initializer;
+
+        for (const prop of objLiteral.properties) {
+            if (prop.kind !== ts.SyntaxKind.PropertyAssignment) continue;
+
+            const key = prop.name.getText();
+            const value = this.resolveValue(prop);
+            values.push(value);
+
+            // Strip prefix from key for the varname, then camelCase
+            const stripped = key.startsWith(prefix) ? key.slice(prefix.length) : key;
+            memberNames.push(this.toCamelCase(stripped));
+        }
+
+        return { values, memberNames };
+    }
+
+    resolveValue(prop) {
+        const init = prop.initializer;
+        if (init.kind === ts.SyntaxKind.StringLiteral) return init.text;
+        if (init.kind === ts.SyntaxKind.NumericLiteral) return Number(init.text);
+        // Identifier reference — resolve via type checker
+        if (init.kind === ts.SyntaxKind.Identifier) {
+            const symbol = this.typeChecker.getSymbolAtLocation(init);
+            const decl = symbol?.valueDeclaration;
+            if (decl?.initializer?.kind === ts.SyntaxKind.StringLiteral) {
+                return decl.initializer.text;
+            }
+            if (decl?.initializer?.kind === ts.SyntaxKind.NumericLiteral) {
+                return Number(decl.initializer.text);
+            }
+        }
+        return init.getText();
+    }
+
+    /**
+     * Find a const variable declaration with an object literal initializer.
+     */
+    findConstObjectDeclaration(sourceFile, name) {
+        for (const stmt of sourceFile.statements) {
+            if (stmt.kind !== ts.SyntaxKind.VariableStatement) continue;
+            for (const decl of stmt.declarationList.declarations) {
+                if (decl.name.getText() !== name) continue;
+                // Accept ObjectLiteralExpression or AsExpression wrapping one
+                let init = decl.initializer;
+                if (init?.kind === ts.SyntaxKind.AsExpression) {
+                    init = init.expression;
+                }
+                if (init?.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+                    return { ...decl, initializer: init };
+                }
+            }
+        }
+        return null;
+    }
+
+    toScreamingSnake(str) {
+        return str
+            .replace(/([A-Z])/g, '_$1')
+            .toUpperCase()
+            .replace(/^_/, '');
+    }
+
+    toCamelCase(str) {
+        if (str.includes('_')) {
+            return str.toLowerCase().replace(/_([a-z])/g, (_, l) => l.toUpperCase());
+        }
+        if (str === str.toUpperCase()) return str.toLowerCase();
+        return str.charAt(0).toLowerCase() + str.slice(1);
+    }
+}
+
+// ============================================================================
 // Custom EnumTypeFormatter with x-enum-varnames
 // ============================================================================
 
@@ -603,6 +747,12 @@ class DiscriminatedUnionTypeFormatter {
             return true;
         }
         if (!(type instanceof tsj.UnionType) || type.getTypes().length < 2) {
+            return false;
+        }
+        // If the union has a discriminator set (from @discriminator annotation),
+        // let the default UnionTypeFormatter handle it — it produces allOf/if/then
+        // which postProcessDiscriminatedUnions() transforms into x-interface-union.
+        if (type.getDiscriminator?.()) {
             return false;
         }
         const isDiscriminated = type.getTypes().every((variant) => this.getDiscriminatorValue(variant) !== null);
@@ -1108,10 +1258,15 @@ class AllTypesSchemaGenerator extends tsj.SchemaGenerator {
     }
 
     createSchemaFromNodes(rootNodes) {
-        const roots = rootNodes.map((rootNode) => {
-            const rootType = this.nodeParser.createType(rootNode, new tsj.Context());
-            return { rootNode, rootType };
-        });
+        const roots = [];
+        for (const rootNode of rootNodes) {
+            try {
+                const rootType = this.nodeParser.createType(rootNode, new tsj.Context());
+                roots.push({ rootNode, rootType });
+            } catch {
+                // Skip nodes that can't be parsed (e.g., const objects with identifier references)
+            }
+        }
 
         const definitions = {};
 
@@ -1322,6 +1477,62 @@ function postProcessDiscriminatedUnions(schema) {
             Object.keys(typeDef).forEach((k) => delete typeDef[k]);
             Object.assign(typeDef, unionSchema);
             processDiscriminatorMemberTypes(topLevel.cases, topLevel.discriminatorField, definitions);
+
+            // Detect empty and single-field variants
+            const singleFieldCodingKeys = new Set();
+            for (const { rawValue, ref } of topLevel.cases) {
+                const memberName = typeNameFromRef(ref);
+                const memberDef = definitions[memberName];
+                if (!memberDef?.properties) continue;
+
+                const propKeys = Object.keys(memberDef.properties);
+                const caseName = toCamelCase(rawValue);
+                const propKey = `x_${caseName}`;
+                const caseProp = typeDef.properties[propKey];
+                if (!caseProp) continue;
+
+                if (propKeys.length === 0) {
+                    // Empty variant: no properties after discriminator removal
+                    caseProp['x-empty-variant'] = true;
+                } else if (propKeys.length === 1) {
+                    // Single-field variant: inline the field as associated value
+                    const fieldName = propKeys[0];
+                    const fieldSchema = memberDef.properties[fieldName];
+                    const isRequired = memberDef.required?.includes(fieldName) ?? false;
+
+                    // Preserve existing vendor extensions
+                    const vendorExts = {};
+                    for (const [k, v] of Object.entries(caseProp)) {
+                        if (k.startsWith('x-')) vendorExts[k] = v;
+                    }
+
+                    // Replace case property schema with the field's schema
+                    Object.keys(caseProp).forEach((k) => delete caseProp[k]);
+                    if (fieldSchema.$ref) {
+                        caseProp.allOf = [{ $ref: fieldSchema.$ref }];
+                    } else {
+                        Object.assign(caseProp, { ...fieldSchema });
+                    }
+
+                    // Restore + add vendor extensions
+                    Object.assign(caseProp, vendorExts);
+                    caseProp['x-single-field-variant'] = true;
+                    caseProp['x-single-field-name'] = fieldName;
+                    if (!isRequired) {
+                        caseProp['x-single-field-optional'] = true;
+                    }
+
+                    singleFieldCodingKeys.add(fieldName);
+
+                    // Mark member for suppression
+                    memberDef['x-skip-model'] = true;
+                }
+            }
+
+            // Add unique coding keys for single-field variants
+            if (singleFieldCodingKeys.size > 0) {
+                typeDef['x-single-field-coding-keys'] = [...singleFieldCodingKeys].map((k) => ({ name: k }));
+            }
             continue;
         }
 
@@ -1333,12 +1544,44 @@ function postProcessDiscriminatedUnions(schema) {
             const inlineUnion = detectDiscriminatedUnion(propDef);
             if (!inlineUnion) continue;
 
+            // Process member types first so we can detect empty variants
+            processDiscriminatorMemberTypes(inlineUnion.cases, inlineUnion.discriminatorField, definitions);
+
             // Build case data with type names for template rendering
-            const cases = inlineUnion.cases.map(({ rawValue, ref }) => ({
-                caseName: toCamelCase(rawValue),
-                rawValue,
-                typeName: typeNameFromRef(ref),
-            }));
+            const inlineSingleFieldCodingKeys = new Set();
+            const cases = inlineUnion.cases.map(({ rawValue, ref }) => {
+                const memberName = typeNameFromRef(ref);
+                const memberDef = definitions[memberName];
+                const propKeys = memberDef?.properties ? Object.keys(memberDef.properties) : [];
+
+                if (propKeys.length === 0) {
+                    return {
+                        caseName: toCamelCase(rawValue),
+                        rawValue,
+                        typeName: typeNameFromRef(ref),
+                        emptyVariant: true,
+                    };
+                } else if (propKeys.length === 1) {
+                    const fieldName = propKeys[0];
+                    const isRequired = memberDef.required?.includes(fieldName) ?? false;
+                    inlineSingleFieldCodingKeys.add(fieldName);
+                    memberDef['x-skip-model'] = true;
+                    return {
+                        caseName: toCamelCase(rawValue),
+                        rawValue,
+                        typeName: typeNameFromRef(ref),
+                        singleFieldVariant: true,
+                        singleFieldName: fieldName,
+                        ...(!isRequired && { singleFieldOptional: true }),
+                    };
+                } else {
+                    return {
+                        caseName: toCamelCase(rawValue),
+                        rawValue,
+                        typeName: typeNameFromRef(ref),
+                    };
+                }
+            });
 
             // Add inline union info to parent type for nested enum rendering
             if (!typeDef['x-inline-interface-unions']) {
@@ -1348,6 +1591,9 @@ function postProcessDiscriminatedUnions(schema) {
                 propertyName: propName,
                 discriminatorField: inlineUnion.discriminatorField,
                 cases,
+                ...(inlineSingleFieldCodingKeys.size > 0 && {
+                    singleFieldCodingKeys: [...inlineSingleFieldCodingKeys].map((k) => ({ name: k })),
+                }),
             });
 
             // Replace property with simple object type + marker
@@ -1355,8 +1601,6 @@ function postProcessDiscriminatedUnions(schema) {
             Object.keys(propDef).forEach((k) => delete propDef[k]);
             propDef.type = 'object';
             propDef['x-interface-union'] = true;
-
-            processDiscriminatorMemberTypes(inlineUnion.cases, inlineUnion.discriminatorField, definitions);
         }
     }
 }
@@ -1405,6 +1649,183 @@ function postProcessConstantFields(schema) {
     }
 }
 
+/**
+ * Post-process schema to convert pure $ref definitions (type aliases) into
+ * x-type-alias markers so openapi-generator will create a file and the
+ * template can emit a Swift typealias.
+ */
+/**
+ * Post-process schema to strip `default` values from properties.
+ * @default JSDoc is documentation-only and should not produce default values in generated code.
+ */
+function postProcessStripDefaults(schema) {
+    const definitions = schema.definitions || {};
+    for (const typeDef of Object.values(definitions)) {
+        if (!typeDef.properties) continue;
+        for (const propDef of Object.values(typeDef.properties)) {
+            delete propDef.default;
+        }
+    }
+}
+
+/**
+ * Post-process schema to detect unions of string literals + a single ref to a
+ * primitive string type, e.g. `type X = 'a' | 'b' | UserFriendlyAddress`.
+ *
+ * ts-json-schema-generator hoists each string literal into its own synthetic
+ * single-value enum definition (named e.g. `<CAPS_LITERAL><ParentName>`) and
+ * emits the union as `anyOf` of `$ref`s. We detect that shape and rewrite it
+ * into a Swift-friendly vendor extension that the template turns into:
+ *
+ *     enum X { case a; case b; case userFriendlyAddress(UserFriendlyAddress) }
+ *
+ * Detection: definition has `anyOf` where every entry is a `$ref`, each
+ * referenced definition is either a single-value string enum (literal case) or
+ * a plain `{type:"string"}` (ref case), with >=1 literal and exactly 1 ref.
+ */
+function postProcessStringLiteralUnions(schema) {
+    const definitions = schema.definitions || {};
+
+    // Classify an anyOf entry. Returns {kind: 'literal', rawValue} or
+    // {kind: 'ref', targetName, synthetic} or null.
+    const classifyEntry = (entry) => {
+        if (!entry || typeof entry !== 'object') return null;
+
+        // Inline string literal: { type: "string", const: "..." } or enum of one
+        if (entry.type === 'string' && !entry.$ref) {
+            if (typeof entry.const === 'string') return { kind: 'literal', rawValue: entry.const };
+            if (Array.isArray(entry.enum) && entry.enum.length === 1) {
+                return { kind: 'literal', rawValue: String(entry.enum[0]) };
+            }
+        }
+
+        // $ref: classify based on the referenced definition
+        if (typeof entry.$ref === 'string' && Object.keys(entry).length === 1) {
+            const targetName = typeNameFromRef(entry.$ref);
+            const target = definitions[targetName];
+            if (!target) return null;
+            if (target.type === 'string' && !target.$ref) {
+                if (Array.isArray(target.enum) && target.enum.length === 1 && typeof target.enum[0] === 'string') {
+                    return { kind: 'literal', rawValue: target.enum[0], synthetic: targetName };
+                }
+                if (!target.enum && typeof target.const !== 'string') {
+                    return { kind: 'ref', targetName };
+                }
+            }
+        }
+
+        return null;
+    };
+
+    const synthLiteralsToDelete = new Set();
+
+    for (const [, typeDef] of Object.entries(definitions)) {
+        if (!Array.isArray(typeDef.anyOf) || typeDef.anyOf.length < 2) continue;
+
+        const classified = typeDef.anyOf.map(classifyEntry);
+        if (classified.some((c) => c === null)) continue;
+
+        const literalCases = classified.filter((c) => c.kind === 'literal');
+        const refCases = classified.filter((c) => c.kind === 'ref');
+        if (literalCases.length < 1 || refCases.length !== 1) continue;
+
+        for (const { synthetic } of literalCases) {
+            if (synthetic) synthLiteralsToDelete.add(synthetic);
+        }
+
+        const refCase = refCases[0];
+        Object.keys(typeDef).forEach((k) => delete typeDef[k]);
+        typeDef.type = 'object';
+        typeDef.properties = { _placeholder: { type: 'string' } };
+        typeDef['x-string-literal-union'] = true;
+        typeDef['x-literal-cases'] = literalCases.map(({ rawValue }) => ({
+            name: toCamelCase(rawValue),
+            rawValue,
+        }));
+        typeDef['x-ref-case'] = {
+            name: toCamelCase(refCase.targetName),
+            typeRef: refCase.targetName,
+        };
+    }
+
+    if (synthLiteralsToDelete.size === 0) return;
+
+    // Ensure the synthetic literal definitions aren't still referenced elsewhere
+    // before deleting them.
+    const stillReferenced = new Set();
+    const visit = (obj) => {
+        if (obj === null || typeof obj !== 'object') return;
+        if (typeof obj.$ref === 'string') {
+            const name = typeNameFromRef(obj.$ref);
+            if (synthLiteralsToDelete.has(name)) stillReferenced.add(name);
+        }
+        for (const value of Object.values(obj)) visit(value);
+    };
+    visit(definitions);
+
+    for (const name of synthLiteralsToDelete) {
+        if (!stillReferenced.has(name)) delete definitions[name];
+    }
+}
+
+function postProcessTypeAliases(schema) {
+    const definitions = schema.definitions || {};
+
+    for (const [, typeDef] of Object.entries(definitions)) {
+        if (typeDef.$ref && !typeDef.type && !typeDef.properties && !typeDef.allOf && !typeDef['x-enum-case-name']) {
+            const targetName = typeNameFromRef(typeDef.$ref);
+
+            Object.keys(typeDef).forEach((k) => delete typeDef[k]);
+            typeDef.type = 'object';
+            typeDef.properties = { _alias: { type: 'string' } };
+            typeDef['x-type-alias'] = true;
+            typeDef['x-alias-target'] = targetName;
+        }
+    }
+}
+
+/**
+ * Rename definitions that have x-definition-name and update all $refs.
+ */
+function postProcessDefinitionNames(schema) {
+    const definitions = schema.definitions || {};
+    const renames = {};
+
+    // Collect renames
+    for (const [name, def] of Object.entries(definitions)) {
+        if (def['x-definition-name']) {
+            renames[name] = def['x-definition-name'];
+            delete def['x-definition-name'];
+        }
+    }
+
+    if (Object.keys(renames).length === 0) return;
+
+    // Apply renames to definitions
+    for (const [oldName, newName] of Object.entries(renames)) {
+        definitions[newName] = definitions[oldName];
+        delete definitions[oldName];
+    }
+
+    // Update all $refs in the schema
+    const oldToNewRef = {};
+    for (const [oldName, newName] of Object.entries(renames)) {
+        oldToNewRef[`#/definitions/${oldName}`] = `#/definitions/${newName}`;
+        oldToNewRef[`#/components/schemas/${oldName}`] = `#/components/schemas/${newName}`;
+    }
+    updateRefs(definitions, oldToNewRef);
+}
+
+function updateRefs(obj, refMap) {
+    if (obj === null || typeof obj !== 'object') return;
+    if (obj.$ref && refMap[obj.$ref]) {
+        obj.$ref = refMap[obj.$ref];
+    }
+    for (const value of Object.values(obj)) {
+        updateRefs(value, refMap);
+    }
+}
+
 // ============================================================================
 // Main
 // ============================================================================
@@ -1432,6 +1853,7 @@ try {
     const typeChecker = program.getTypeChecker();
 
     const parser = tsj.createParser(program, config, (prs) => {
+        prs.addNodeParser(new ConstEnumNodeParser(typeChecker));
         prs.addNodeParser(new EnumNodeParserWithNames(typeChecker));
         prs.addNodeParser(new DiscriminatedUnionNodeParser(typeChecker, prs));
         prs.addNodeParser(new GenericInterfaceNodeParser(typeChecker, prs));
@@ -1451,11 +1873,23 @@ try {
     const generator = new AllTypesSchemaGenerator(program, parser, formatter, config);
     const schema = generator.createSchema(config.type);
 
+    // Post-process: rename definitions with x-definition-name
+    postProcessDefinitionNames(schema);
+
     // Post-process: transform @discriminator annotated unions into discriminated union schemas
     postProcessDiscriminatedUnions(schema);
 
     // Post-process: convert single-literal properties to constant fields
     postProcessConstantFields(schema);
+
+    // Post-process: strip @default values (documentation-only, not for codegen)
+    postProcessStripDefaults(schema);
+
+    // Post-process: detect string-literal + ref unions and rewrite to x-string-literal-union
+    postProcessStringLiteralUnions(schema);
+
+    // Post-process: convert pure $ref definitions (type aliases) to x-type-alias
+    postProcessTypeAliases(schema);
 
     fs.writeFileSync(outputPath, JSON.stringify(schema, null, 2));
 } catch (error) {

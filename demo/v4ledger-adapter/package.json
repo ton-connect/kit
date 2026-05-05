@@ -22,13 +22,13 @@
     "dist"
   ],
   "dependencies": {
-    "@ledgerhq/hw-transport": "^6.31.16",
+    "@ledgerhq/hw-transport": "6.32.0",
     "@ton-community/ton-ledger": "^7.3.0",
     "@ton/walletkit": "workspace:*"
   },
   "devDependencies": {
-    "@ledgerhq/hw-transport-node-hid": "^6.29.17",
-    "dotenv": "^17.2.3",
+    "@ledgerhq/hw-transport-node-hid": "6.30.0",
+    "dotenv": "^17.4.2",
     "rimraf": "^6.1.2",
     "typescript": "~5.9.3"
   },
