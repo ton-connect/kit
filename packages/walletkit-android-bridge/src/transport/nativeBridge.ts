@@ -13,16 +13,9 @@ import { bigIntReplacer } from '../utils/serialization';
 import { warn, error } from '../utils/logger';
 import { sendToNative } from './port';
 
-// Reverse-RPC: JS sends {kind:'request', id, method, params} via the WebMessagePort.
-// Kotlin replies with {kind:'response', id, result?, error?} on the same port.
-
 const pendingRequests = new Map<string, { resolve: (v: unknown) => void; reject: (e: Error) => void }>();
 
-/**
- * Synchronous bridge call via @JavascriptInterface (WalletKitNative.adapterCallSync).
- * Used for sync WalletAdapter getters that cannot be async. Stays on the legacy
- * channel — sync WebView calls cannot use the async WebMessagePort.
- */
+// Sync host call via @JavascriptInterface — WebMessagePort is async and can't satisfy sync getters.
 export function bridgeRequestSync(method: string, params: Record<string, unknown>): string {
     const native = window.WalletKitNative;
     if (!native || typeof native.adapterCallSync !== 'function') {
@@ -31,9 +24,6 @@ export function bridgeRequestSync(method: string, params: Record<string, unknown
     return native.adapterCallSync(method, JSON.stringify(params));
 }
 
-/**
- * Send a request to Kotlin via the WebMessagePort and wait for a response.
- */
 export function bridgeRequest(method: string, params: Record<string, unknown>): Promise<unknown> {
     const id = uuidv7();
     return new Promise<unknown>((resolve, reject) => {
@@ -42,9 +32,6 @@ export function bridgeRequest(method: string, params: Record<string, unknown>): 
     });
 }
 
-/**
- * Resolve a pending JS-side request with a result coming back from Kotlin.
- */
 export function handleNativeResponse(id: string, resultJson: unknown, errorJson: unknown): void {
     const entry = pendingRequests.get(id);
     if (!entry) {
@@ -65,24 +52,19 @@ export function handleNativeResponse(id: string, resultJson: unknown, errorJson:
     }
 
     if (typeof resultJson === 'string') {
-        // Kotlin handlers return a JSON-encoded string for compatibility with the
-        // legacy `__walletkitResponse(id, resultJson, errorJson)` contract.
+        // Kotlin handlers return JSON-encoded strings; fall through to the raw string for
+        // legacy handlers that emit unquoted scalars (e.g. hex values).
         try {
             entry.resolve(JSON.parse(resultJson));
         } catch {
-            // If it's not JSON (e.g. a hex value with no quotes from older handlers), pass it through.
             entry.resolve(resultJson);
         }
         return;
     }
 
-    // Some future handler may return a typed value directly — accept it.
     entry.resolve(resultJson);
 }
 
-/**
- * Sends a payload to the native bridge via the WebMessagePort transport.
- */
 export function postToNative(payload: BridgePayload): void {
     if (payload === null || (typeof payload !== 'object' && typeof payload !== 'function')) {
         const diagnostic = {

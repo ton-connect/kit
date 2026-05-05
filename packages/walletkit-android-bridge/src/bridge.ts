@@ -37,9 +37,7 @@ type IncomingEnvelope = IncomingCallEnvelope | IncomingResponseEnvelope;
 
 setBridgeApi(api as unknown as WalletKitBridgeApi);
 
-// Install the window.message listener that picks up the WebMessagePort handoff. Must
-// run synchronously during bundle parse so it's in place before
-// WebViewClient.onPageFinished triggers the native side to post the port.
+// Synchronous: must be in place before native onPageFinished posts the port.
 installPortHandshake();
 
 setInboundCallback(json => {

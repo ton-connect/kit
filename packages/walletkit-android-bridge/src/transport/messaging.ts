@@ -58,10 +58,6 @@ export async function handleCall(id: string, method: WalletKitApiMethod, params?
     }
 }
 
-/**
- * Handle an inbound `{kind:'call'}` envelope dispatched from Kotlin via the port.
- * Replaces the legacy `window.__walletkitCall` global.
- */
 export function handleNativeCall(id: string, method: WalletKitApiMethod, params: unknown): void {
     void handleCall(id, method, params);
 }
