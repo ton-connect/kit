@@ -89,5 +89,5 @@ export interface EmulationAction {
     /**
      * Action-specific detail fields keyed by name
      */
-    details: Record<string, unknown>;
+    details: { [key: string]: unknown };
 }

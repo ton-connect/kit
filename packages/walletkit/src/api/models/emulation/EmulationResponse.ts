@@ -30,7 +30,7 @@ export interface EmulationResponse {
     /**
      * Map of transaction hashes to transaction details
      */
-    transactions: Record<string, EmulationTransaction>;
+    transactions: { [key: string]: EmulationTransaction };
 
     /**
      * High-level actions extracted from the trace
@@ -50,15 +50,15 @@ export interface EmulationResponse {
     /**
      * Map of code cell hashes to their BOC base64 representations
      */
-    codeCells: Record<string, Base64String>;
+    codeCells: { [key: string]: Base64String };
 
     /**
      * Map of data cell hashes to their BOC base64 representations
      */
-    dataCells: Record<string, Base64String>;
+    dataCells: { [key: string]: Base64String };
 
     /**
      * Address book mapping raw addresses to human-readable metadata
      */
-    addressBook: Record<string, EmulationAddressBookEntry>;
+    addressBook: { [key: string]: EmulationAddressBookEntry };
 }
