@@ -18,6 +18,7 @@ import type {
     Base64String,
 } from '../../../api/models';
 import { asAddressFriendly, asMaybeAddressFriendly } from '../../../utils/address';
+import { parseMsgSizeCount } from '../utils';
 import { toAddressBook } from '../../../types/toncenter/v3/AddressBookRowV3';
 import type {
     ToncenterTransaction,
@@ -131,8 +132,8 @@ function toTransactionDescription(desc: EmulationTransactionDescription): Transa
             messagesCreatedNumber: desc.action?.msgs_created,
             actionListHash: desc.action?.action_list_hash ? Base64ToHex(desc.action.action_list_hash) : undefined,
             totalMessagesSize: {
-                cells: desc.action?.tot_msg_size.cells,
-                bits: desc.action?.tot_msg_size.bits,
+                cells: parseMsgSizeCount(desc.action?.tot_msg_size.cells),
+                bits: parseMsgSizeCount(desc.action?.tot_msg_size.bits),
             },
         },
     };

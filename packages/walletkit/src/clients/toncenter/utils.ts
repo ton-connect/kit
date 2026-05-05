@@ -16,6 +16,13 @@ export const padBase64 = (data: string): string => {
     return data.padEnd(data.length + (4 - (data.length % 4)), '=');
 };
 
+export const parseMsgSizeCount = (value: string | undefined): number | undefined => {
+    if (value === undefined) return undefined;
+    const num = Number(value);
+    if (!Number.isFinite(num)) return undefined;
+    return Math.trunc(num);
+};
+
 export const prepareAddress = (address: Address | string): string => {
     if (address instanceof Address) {
         address = address.toString();

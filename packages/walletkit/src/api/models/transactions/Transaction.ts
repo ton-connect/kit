@@ -528,11 +528,13 @@ export interface TransactionAction {
 export interface TransactionActionMessageSize {
     /**
      * The total number of cells used
+     * @format int
      */
-    cells?: string;
+    cells?: number;
 
     /**
      * The total number of bits used
+     * @format int
      */
-    bits?: string;
+    bits?: number;
 }

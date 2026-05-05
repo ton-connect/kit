@@ -32,6 +32,7 @@ import type {
     EmulationAccountStatus,
 } from '../../../api/models';
 import { asMaybeAddressFriendly } from '../../../utils/address';
+import { parseMsgSizeCount } from '../utils';
 import type {
     EmulationJettonSwapDetails,
     EmulationCallContractDetails,
@@ -158,8 +159,8 @@ function emulationDescToTransactionDescription(desc: DomainEmulationTransactionD
                   messagesCreatedNumber: desc.actionPhase.msgsCreated,
                   actionListHash: desc.actionPhase.actionListHash,
                   totalMessagesSize: {
-                      cells: desc.actionPhase.totalMsgSize.cells,
-                      bits: desc.actionPhase.totalMsgSize.bits,
+                      cells: parseMsgSizeCount(desc.actionPhase.totalMsgSize.cells),
+                      bits: parseMsgSizeCount(desc.actionPhase.totalMsgSize.bits),
                   },
               }
             : undefined,
