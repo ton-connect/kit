@@ -229,7 +229,7 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<undefine
         } catch (error) {
             throw new CryptoOnrampError(
                 'Layerswap: network error while fetching swap status',
-                CryptoOnrampError.QUOTE_FAILED,
+                CryptoOnrampError.PROVIDER_ERROR,
                 error,
             );
         }
@@ -244,7 +244,7 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<undefine
             const err = isErrorResponse(json) ? json.error : undefined;
             throw new CryptoOnrampError(
                 err?.message ?? `Layerswap get swap failed (HTTP ${response.status})`,
-                err?.code ?? CryptoOnrampError.QUOTE_FAILED,
+                err?.code ?? CryptoOnrampError.PROVIDER_ERROR,
                 err ?? { status: response.status },
             );
         }

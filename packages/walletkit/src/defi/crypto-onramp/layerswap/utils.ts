@@ -52,7 +52,7 @@ export const mapStatus = (status: LayerswapSwapStatus | string): CryptoOnrampSta
         case 'requires_refund':
             return 'failed';
         default:
-            throw new Error(`Unknown Layerswap status: ${status}`);
+            return 'pending';
     }
 };
 

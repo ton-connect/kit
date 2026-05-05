@@ -36,7 +36,7 @@ export const mapStatus = (status: string): CryptoOnrampStatus => {
         case 'refunded':
             return 'failed';
         default:
-            throw new Error(`Unknown status: ${status}`);
+            return 'pending';
     }
 };
 

@@ -188,7 +188,11 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
 
         const { response } = metadata;
 
-        if (metadata.sender === this.defaultSender || metadata.sender !== params.refundAddress) {
+        const needsRefetch =
+            metadata.sender === this.defaultSender ||
+            (params.refundAddress !== undefined && params.refundAddress !== metadata.sender);
+
+        if (needsRefetch) {
             if (!params.refundAddress) {
                 throw new CryptoOnrampError(
                     'SwapsXyz: a refund address is required to create a deposit',
@@ -253,8 +257,8 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
             });
         } catch (error) {
             throw new CryptoOnrampError(
-                'SwapsXyz: network error while calling getAction',
-                CryptoOnrampError.QUOTE_FAILED,
+                'SwapsXyz: network error while fetching status',
+                CryptoOnrampError.PROVIDER_ERROR,
                 error,
             );
         }
@@ -269,8 +273,8 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
             }
 
             throw new CryptoOnrampError(
-                err?.message ?? `SwapsXyz getAction failed (HTTP ${response.status})`,
-                err?.code ?? CryptoOnrampError.QUOTE_FAILED,
+                err?.message ?? `SwapsXyz getStatus failed (HTTP ${response.status})`,
+                err?.code ?? CryptoOnrampError.PROVIDER_ERROR,
                 err ?? { status: response.status },
             );
         }
