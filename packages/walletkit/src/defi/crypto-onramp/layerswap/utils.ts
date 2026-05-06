@@ -11,7 +11,7 @@ import type { LayerswapErrorResponse, LayerswapSwapStatus } from './types';
 
 const EVM_ADDRESS_REGEX = /^(0x)?[0-9a-fA-F]{40}$/;
 
-export const ARBITRUM_CHAIN_ID = '42161';
+export const ARBITRUM_CAIP2 = 'eip155:42161';
 export const ARBITRUM_USDT0_ADDRESS = '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9';
 export const TON_USDT_ADDRESS = 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs';
 

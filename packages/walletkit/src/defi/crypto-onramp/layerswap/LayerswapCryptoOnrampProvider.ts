@@ -20,7 +20,7 @@ import { CryptoOnrampError } from '../errors';
 import { createProvider } from '../../../types/factory';
 import type { LayerswapCreateSwapResponse, LayerswapGetSwapResponse } from './types';
 import {
-    ARBITRUM_CHAIN_ID,
+    ARBITRUM_CAIP2,
     ARBITRUM_USDT0_ADDRESS,
     LAYERSWAP_DESTINATION_NETWORK,
     LAYERSWAP_DESTINATION_TOKEN,
@@ -91,9 +91,9 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<undefine
     async getQuote(params: CryptoOnrampQuoteParams<undefined>): Promise<CryptoOnrampQuote<LayerswapQuoteMetadata>> {
         const recipient = params.recipientAddress;
 
-        if (params.sourceNetwork !== ARBITRUM_CHAIN_ID) {
+        if (params.sourceChain !== ARBITRUM_CAIP2) {
             throw new CryptoOnrampError(
-                `Layerswap: unsupported source network "${params.sourceNetwork}" (only Arbitrum One / 42161 is supported)`,
+                `Layerswap: unsupported source chain "${params.sourceChain}" (only Arbitrum One / ${ARBITRUM_CAIP2} is supported)`,
                 CryptoOnrampError.INVALID_PARAMS,
             );
         }
@@ -186,7 +186,7 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<undefine
 
         return {
             sourceCurrencyAddress: params.sourceCurrencyAddress,
-            sourceNetwork: ARBITRUM_CHAIN_ID,
+            sourceChain: ARBITRUM_CAIP2,
             targetCurrencyAddress: params.targetCurrencyAddress,
             sourceAmount: metadata.sourceAmountBaseUnits,
             targetAmount: metadata.targetAmountBaseUnits,
@@ -211,7 +211,7 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<undefine
             address: metadata.depositAddress,
             amount: metadata.sourceAmountBaseUnits,
             sourceCurrencyAddress: params.quote.sourceCurrencyAddress,
-            sourceNetwork: params.quote.sourceNetwork,
+            sourceChain: params.quote.sourceChain,
             providerId: this.providerId,
         };
     }

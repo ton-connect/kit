@@ -34,21 +34,24 @@ export interface OnrampAmountPreset {
 }
 
 export interface CryptoPaymentMethod {
+    /** Stable identifier for the method — used for selection state and `methodSections.ids` */
     id: string;
     /** Token symbol, e.g. "USDC", "USDT" */
     symbol: string;
-    /** Token name, e.g. "USD Coin", "Tether" */
+    /** Full token name shown in the picker, e.g. "USD Coin", "Tether" */
     name: string;
-    /** Human-readable network name, e.g. "Base", "BSC" */
-    network: string;
-    /** Source chain id as string (decimal), e.g. "8453", "56" — passed as srcChainId to the onramp provider */
-    networkId: string;
-    /** Number of decimals for the token */
+    /**
+     * Source chain in CAIP-2 format, e.g. "eip155:8453", "eip155:56" — passed
+     * as `sourceChain` to the onramp provider. The widget resolves a display
+     * name and logo for it via the `chains` map (see `CryptoOnrampWidgetProvider`).
+     */
+    chain: string;
+    /** Number of decimals for the token (used to convert between display and base units) */
     decimals: number;
     /** Token contract address on the source network (empty string / zero address for native) */
     address: string;
+    /** Token logo URL shown in the picker and selectors */
     logo?: string;
-    networkLogo?: string;
 }
 
 export interface PaymentMethodSectionConfig {

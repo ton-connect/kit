@@ -23,9 +23,13 @@ export interface CryptoOnrampQuoteParams<TProviderOptions = unknown> {
     sourceCurrencyAddress: string;
 
     /**
-     * Source network identifier (e.g. 'solana', 'ethereum', 'bitcoin')
+     * Source chain identifier in CAIP-2 format (e.g. 'eip155:1' for Ethereum
+     * mainnet, 'eip155:42161' for Arbitrum One). Providers map this to their
+     * own chain identifiers internally.
+     *
+     * @see https://chainagnostic.org/CAIPs/caip-2
      */
-    sourceNetwork: string;
+    sourceChain: string;
 
     /**
      * Target crypto currency address on TON (contract address or 0x0... for native)

@@ -14,12 +14,16 @@ import { LogoWithNetwork } from '../../../../../components/logo-with-network';
 import { CurrencyItem } from '../../../../../components/currency-item';
 import type { CryptoPaymentMethod, PaymentMethodSectionConfig } from '../../../types';
 import { useI18n } from '../../../../settings/hooks/use-i18n';
+import type { ChainInfo } from '../utils/chains';
+import { getChainInfo } from '../utils/chains';
 
 export interface CryptoMethodSelectModalProps {
     open: boolean;
     onClose: () => void;
     methods: CryptoPaymentMethod[];
     methodSections?: PaymentMethodSectionConfig[];
+    /** CAIP-2 → display info map. Defaults to `{}` (helper falls back to the chain reference). */
+    chains?: Record<string, ChainInfo>;
     onSelect: (method: CryptoPaymentMethod) => void;
 }
 
@@ -28,13 +32,17 @@ interface MethodSection {
     methods: CryptoPaymentMethod[];
 }
 
-const filterMethods = (methods: CryptoPaymentMethod[], search: string): CryptoPaymentMethod[] => {
+const filterMethods = (
+    methods: CryptoPaymentMethod[],
+    search: string,
+    chains: Record<string, ChainInfo>,
+): CryptoPaymentMethod[] => {
     const q = search.toLowerCase();
     return methods.filter(
         (m) =>
             m.symbol.toLowerCase().includes(q) ||
             m.name.toLowerCase().includes(q) ||
-            m.network.toLowerCase().includes(q),
+            getChainInfo(m.chain, chains).name.toLowerCase().includes(q),
     );
 };
 
@@ -67,6 +75,7 @@ export const CryptoMethodSelectModal: FC<CryptoMethodSelectModalProps> = ({
     onClose,
     methods,
     methodSections,
+    chains = {},
     onSelect,
 }) => {
     const { t } = useI18n();
@@ -74,13 +83,13 @@ export const CryptoMethodSelectModal: FC<CryptoMethodSelectModalProps> = ({
 
     const displaySections = useMemo((): MethodSection[] => {
         if (search) {
-            return [{ title: '', methods: filterMethods(methods, search) }];
+            return [{ title: '', methods: filterMethods(methods, search, chains) }];
         }
         if (methodSections) {
             return groupMethodSections(methods, methodSections, t('tokenSelect.otherTokens'));
         }
         return [{ title: '', methods: methods }];
-    }, [methods, methodSections, search, t]);
+    }, [methods, methodSections, chains, search, t]);
 
     const isEmpty = displaySections.every((s) => s.methods.length === 0);
 
@@ -109,26 +118,29 @@ export const CryptoMethodSelectModal: FC<CryptoMethodSelectModalProps> = ({
                 {displaySections.map((section) => (
                     <CurrencySelect.Section key={section.title}>
                         {section.title && <CurrencySelect.SectionHeader>{section.title}</CurrencySelect.SectionHeader>}
-                        {section.methods.map((method) => (
-                            <CurrencyItem.Container key={method.id} onClick={handleSelect(method)}>
-                                <LogoWithNetwork
-                                    size={40}
-                                    src={method.logo}
-                                    alt={method.symbol}
-                                    fallback={method.symbol[0]}
-                                    networkSrc={method.networkLogo}
-                                    networkAlt={method.network[0]}
-                                />
-                                <CurrencyItem.Info>
-                                    <CurrencyItem.Header>
-                                        <CurrencyItem.Name>{method.name}</CurrencyItem.Name>
-                                    </CurrencyItem.Header>
-                                    <CurrencyItem.Ticker>
-                                        {method.symbol} • {method.network}
-                                    </CurrencyItem.Ticker>
-                                </CurrencyItem.Info>
-                            </CurrencyItem.Container>
-                        ))}
+                        {section.methods.map((method) => {
+                            const chainInfo = getChainInfo(method.chain, chains);
+                            return (
+                                <CurrencyItem.Container key={method.id} onClick={handleSelect(method)}>
+                                    <LogoWithNetwork
+                                        size={40}
+                                        src={method.logo}
+                                        alt={method.symbol}
+                                        fallback={method.symbol[0]}
+                                        networkSrc={chainInfo.logo}
+                                        networkAlt={chainInfo.name[0]}
+                                    />
+                                    <CurrencyItem.Info>
+                                        <CurrencyItem.Header>
+                                            <CurrencyItem.Name>{method.name}</CurrencyItem.Name>
+                                        </CurrencyItem.Header>
+                                        <CurrencyItem.Ticker>
+                                            {method.symbol} • {chainInfo.name}
+                                        </CurrencyItem.Ticker>
+                                    </CurrencyItem.Info>
+                                </CurrencyItem.Container>
+                            );
+                        })}
                     </CurrencySelect.Section>
                 ))}
             </CurrencySelect.ListContainer>

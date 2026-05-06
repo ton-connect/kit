@@ -37,7 +37,7 @@ See [Crypto Onramp README](../README.md) for base `CryptoOnrampQuoteParams`. Lay
 ```typescript
 const quote = await kit.cryptoOnramp.getQuote({
     sourceCurrencyAddress: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', // USDT on Arbitrum
-    sourceNetwork: '42161',
+    sourceChain: 'eip155:42161',
     targetCurrencyAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs', // USDT on TON
     amount: '1000000', // 1 USDT (6 decimals)
     recipientAddress: 'UQ...', // TON address to receive tokens

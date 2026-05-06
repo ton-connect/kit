@@ -16,9 +16,11 @@ export interface CryptoOnrampQuote<TMetadata = unknown> {
     sourceCurrencyAddress: string;
 
     /**
-     * Source network identifier (e.g. 'solana')
+     * Source chain identifier in CAIP-2 format (e.g. 'eip155:42161').
+     *
+     * @see https://chainagnostic.org/CAIPs/caip-2
      */
-    sourceNetwork: string;
+    sourceChain: string;
 
     /**
      * Target crypto currency address on TON (contract address or 0x0... for native)

@@ -19,7 +19,7 @@ import { CryptoOnrampProvider } from '../CryptoOnrampProvider';
 import { CryptoOnrampError } from '../errors';
 import { createProvider } from '../../../types/factory';
 import type { SwapsXyzGetActionResponse, SwapsXyzSwapDirection } from './types';
-import { isErrorResponse, isEvmAddress, mapStatus, parseChainId } from './utils';
+import { evmChainIdToCaip2, isErrorResponse, isEvmAddress, mapStatus, parseEvmChainIdFromCaip2 } from './utils';
 
 const SWAPS_XYZ_API_URL = 'https://api-v2.swaps.xyz/api';
 const TON_CHAIN_ID = 999000337;
@@ -98,10 +98,10 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
         const sender = params.refundAddress ?? this.defaultSender;
         const recipient = params.recipientAddress;
 
-        const srcChainId = parseChainId(params.sourceNetwork);
+        const srcChainId = parseEvmChainIdFromCaip2(params.sourceChain);
         if (srcChainId === undefined) {
             throw new CryptoOnrampError(
-                `SwapsXyz: sourceNetwork must be a numeric chainId (got "${params.sourceNetwork}")`,
+                `SwapsXyz: sourceChain must be a CAIP-2 EVM chain (e.g. "eip155:1"), got "${params.sourceChain}"`,
                 CryptoOnrampError.INVALID_PARAMS,
             );
         }
@@ -166,7 +166,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
 
         return {
             sourceCurrencyAddress: params.sourceCurrencyAddress,
-            sourceNetwork: String(body.amountIn.chainId),
+            sourceChain: evmChainIdToCaip2(body.amountIn.chainId),
             targetCurrencyAddress: params.targetCurrencyAddress,
             sourceAmount: body.amountIn.amount,
             targetAmount: body.amountOut.amount,
@@ -210,7 +210,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
             const newQuote = await this.getQuote({
                 amount: params.quote.sourceAmount,
                 sourceCurrencyAddress: params.quote.sourceCurrencyAddress,
-                sourceNetwork: params.quote.sourceNetwork,
+                sourceChain: params.quote.sourceChain,
                 targetCurrencyAddress: params.quote.targetCurrencyAddress,
                 recipientAddress: params.quote.recipientAddress,
                 refundAddress: params.refundAddress,
@@ -230,7 +230,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
                 address: newMetadata.response.tx.to,
                 amount: newMetadata.response.amountIn.amount,
                 sourceCurrencyAddress: params.quote.sourceCurrencyAddress,
-                sourceNetwork: String(newMetadata.response.amountIn.chainId),
+                sourceChain: evmChainIdToCaip2(newMetadata.response.amountIn.chainId),
                 providerId: this.providerId,
             };
         }
@@ -240,7 +240,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
             address: response.tx.to,
             amount: response.amountIn.amount,
             sourceCurrencyAddress: params.quote.sourceCurrencyAddress,
-            sourceNetwork: String(response.amountIn.chainId),
+            sourceChain: evmChainIdToCaip2(response.amountIn.chainId),
             providerId: this.providerId,
         };
     }

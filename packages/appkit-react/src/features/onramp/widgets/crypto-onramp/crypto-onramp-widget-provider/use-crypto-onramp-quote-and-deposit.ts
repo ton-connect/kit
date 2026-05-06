@@ -54,7 +54,7 @@ export const useCryptoOnrampQuoteAndDeposit = ({
     const quoteQuery = useCryptoOnrampQuote({
         amount: requestAmountBase,
         sourceCurrencyAddress: selectedMethod.address,
-        sourceNetwork: selectedMethod.networkId,
+        sourceChain: selectedMethod.chain,
         targetCurrencyAddress: selectedToken?.address ?? '',
         recipientAddress: userAddress ?? '',
         isSourceAmount: amountInputMode === 'method',

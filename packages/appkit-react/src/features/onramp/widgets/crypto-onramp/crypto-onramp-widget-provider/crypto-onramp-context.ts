@@ -12,6 +12,8 @@ import type { CryptoOnrampDeposit, CryptoOnrampQuote, CryptoOnrampStatus } from 
 import { CRYPTO_ONRAMP_TARGET_TOKENS } from '../../../mock-data/crypto-onramp-tokens';
 import { CRYPTO_PAYMENT_METHODS } from '../../../mock-data/crypto-payment-methods';
 import { DEFAULT_ONRAMP_PRESETS } from '../../../constants';
+import type { ChainInfo } from '../utils/chains';
+import { DEFAULT_CHAINS } from '../utils/chains';
 import type {
     CryptoOnrampToken,
     CryptoOnrampTokenSectionConfig,
@@ -38,6 +40,8 @@ export interface CryptoOnrampContextType {
     /** Currently selected payment method */
     selectedMethod: CryptoPaymentMethod;
     setSelectedMethod: (method: CryptoPaymentMethod) => void;
+    /** CAIP-2 → chain display info map (defaults merged with consumer overrides) */
+    chains: Record<string, ChainInfo>;
 
     /** Current amount input value */
     amount: string;
@@ -102,6 +106,7 @@ const defaultContext: CryptoOnrampContextType = {
     methodSections: undefined,
     selectedMethod: CRYPTO_PAYMENT_METHODS[0]!,
     setSelectedMethod: () => {},
+    chains: DEFAULT_CHAINS,
     amount: '',
     setAmount: () => {},
     amountInputMode: 'method',

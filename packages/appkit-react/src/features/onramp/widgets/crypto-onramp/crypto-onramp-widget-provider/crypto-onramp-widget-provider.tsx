@@ -19,6 +19,8 @@ import type {
     CryptoPaymentMethod,
     PaymentMethodSectionConfig,
 } from '../../../types';
+import type { ChainInfo } from '../utils/chains';
+import { DEFAULT_CHAINS } from '../utils/chains';
 import { CryptoOnrampContext } from './crypto-onramp-context';
 import { useCryptoOnrampBalance } from './use-crypto-onramp-balance';
 import { useCryptoOnrampQuoteAndDeposit } from './use-crypto-onramp-quote-and-deposit';
@@ -30,6 +32,12 @@ export interface CryptoOnrampProviderProps extends PropsWithChildren {
     tokenSections?: CryptoOnrampTokenSectionConfig[];
     paymentMethods?: CryptoPaymentMethod[];
     methodSections?: PaymentMethodSectionConfig[];
+    /**
+     * Custom CAIP-2 → chain display info overrides. Merged on top of the
+     * built-in defaults, so consumers only need to provide what they want to
+     * override or add (e.g. `{ 'eip155:42161': { name: 'Arbitrum', logo: '...' } }`).
+     */
+    chains?: Record<string, ChainInfo>;
     defaultTokenId?: string;
     defaultMethodId?: string;
 }
@@ -40,6 +48,7 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
     tokenSections,
     paymentMethods = CRYPTO_PAYMENT_METHODS,
     methodSections,
+    chains: chainsOverride,
     defaultTokenId,
     defaultMethodId,
 }) => {
@@ -105,6 +114,8 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
     const isLoadingQuote = isQuoteFetching || amount !== amountDebounced;
     const canContinue = canSubmit && !isQuoteFetching && amount === amountDebounced && !!userAddress;
 
+    const chains = useMemo(() => ({ ...DEFAULT_CHAINS, ...(chainsOverride ?? {}) }), [chainsOverride]);
+
     useEffect(() => {
         if (!isReversedAmountSupported && amountInputMode === 'token') {
             setAmountInputMode('method');
@@ -121,6 +132,7 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             methodSections,
             selectedMethod,
             setSelectedMethod,
+            chains,
             amount,
             setAmount,
             amountInputMode,
@@ -156,6 +168,7 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             methodSections,
             selectedMethod,
             setSelectedMethod,
+            chains,
             amount,
             setAmount,
             amountInputMode,

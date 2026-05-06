@@ -41,7 +41,7 @@ export class CryptoOnrampManager extends DefiManager<CryptoOnrampProviderInterfa
         const selectedProviderId = providerId || this.defaultProviderId;
         log.debug('Getting crypto onramp quote', {
             sourceCurrencyAddress: params.sourceCurrencyAddress,
-            sourceNetwork: params.sourceNetwork,
+            sourceChain: params.sourceChain,
             targetCurrencyAddress: params.targetCurrencyAddress,
             amount: params.amount,
             isSourceAmount: params.isSourceAmount,
@@ -88,7 +88,7 @@ export class CryptoOnrampManager extends DefiManager<CryptoOnrampProviderInterfa
                 address: deposit.address,
                 amount: deposit.amount,
                 sourceCurrencyAddress: deposit.sourceCurrencyAddress,
-                sourceNetwork: deposit.sourceNetwork,
+                sourceChain: deposit.sourceChain,
             });
 
             return deposit;

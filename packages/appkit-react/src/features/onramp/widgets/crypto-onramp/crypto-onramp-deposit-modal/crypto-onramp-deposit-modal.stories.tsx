@@ -43,10 +43,10 @@ export const WithMemo: Story = {
     },
 };
 
-export const WithNetworkWarning: Story = {
+export const WithChainWarning: Story = {
     args: {
         ...Default.args,
-        networkWarning: 'This address only accepts USDC on the Base network. Sending other assets will result in loss.',
+        chainWarning: 'This address only accepts USDC on the Base network. Sending other assets will result in loss.',
     },
 };
 

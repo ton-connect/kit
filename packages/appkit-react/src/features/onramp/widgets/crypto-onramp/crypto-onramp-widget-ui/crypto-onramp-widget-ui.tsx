@@ -21,6 +21,7 @@ import { CryptoOnrampDepositModal } from '../crypto-onramp-deposit-modal';
 import { CryptoOnrampRefundAddressModal } from '../crypto-onramp-refund-address-modal';
 import { InfoBlock } from '../../../../../components/info-block';
 import type { CryptoOnrampContextType } from '../crypto-onramp-widget-provider';
+import { getChainInfo } from '../utils/chains';
 import { formatOnrampAmount } from '../utils/format-onramp-amount';
 import { useI18n } from '../../../../settings/hooks/use-i18n';
 import styles from './crypto-onramp-widget-ui.module.css';
@@ -37,6 +38,7 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
     methodSections,
     selectedMethod,
     setSelectedMethod,
+    chains,
     amount,
     setAmount,
     amountInputMode,
@@ -109,7 +111,7 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
                 to={{
                     title: selectedMethod.symbol,
                     logoSrc: selectedMethod.logo,
-                    networkLogoSrc: selectedMethod.networkLogo,
+                    networkLogoSrc: getChainInfo(selectedMethod.chain, chains).logo,
                 }}
                 onFromClick={() => setIsTokenSelectOpen(true)}
                 onToClick={() => setIsMethodSelectOpen(true)}
@@ -221,6 +223,7 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
                 onClose={() => setIsMethodSelectOpen(false)}
                 methods={paymentMethods}
                 methodSections={methodSections}
+                chains={chains}
                 onSelect={setSelectedMethod}
             />
 
@@ -232,7 +235,7 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
                 symbol={selectedMethod.symbol}
                 memo={deposit?.memo}
                 tokenLogo={selectedMethod.logo}
-                networkWarning={deposit?.networkWarning}
+                chainWarning={deposit?.chainWarning}
                 depositStatus={depositStatus}
                 targetSymbol={selectedToken?.symbol ?? ''}
                 targetBalance={targetBalance}

@@ -36,7 +36,7 @@ All providers accept the same base parameters for `getQuote`:
 interface CryptoOnrampQuoteParams<TProviderOptions = unknown> {
     amount: string;                     // Amount in base units (source or target, see isSourceAmount)
     sourceCurrencyAddress: string;      // Source token contract address (or native zero address)
-    sourceNetwork: string;              // Source chain identifier
+    sourceChain: string;              // Source chain identifier in CAIP-2 format (e.g. 'eip155:1', 'eip155:42161')
     targetCurrencyAddress: string;      // Target TON token address
     recipientAddress: string;           // TON address that will receive the target crypto
     refundAddress?: string;             // Refund address on the source chain (required by some providers)
@@ -50,7 +50,7 @@ interface CryptoOnrampQuoteParams<TProviderOptions = unknown> {
 ```typescript
 const quote = await kit.cryptoOnramp.getQuote({
     sourceCurrencyAddress: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', // USDT on Arbitrum
-    sourceNetwork: '42161', // Arbitrum One chain ID
+    sourceChain: 'eip155:42161', // Arbitrum One in CAIP-2 format
     targetCurrencyAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs', // USDT on TON
     amount: '1000000', // 1 USDT (6 decimals)
     recipientAddress: 'UQ...', // TON address to receive the bridged tokens
@@ -120,7 +120,7 @@ export class MyCryptoOnrampProvider extends CryptoOnrampProvider<MyQuoteOptions>
         // Fetch quote from your bridge API...
         return {
             sourceCurrencyAddress,
-            sourceNetwork: params.sourceNetwork,
+            sourceChain: params.sourceChain,
             targetCurrencyAddress,
             sourceAmount: '...',
             targetAmount: '...',
@@ -132,7 +132,7 @@ export class MyCryptoOnrampProvider extends CryptoOnrampProvider<MyQuoteOptions>
 
     async createDeposit(params: CryptoOnrampDepositParams): Promise<CryptoOnrampDeposit> {
         // params.quote.recipientAddress holds the TON recipient set at quote time
-        return { depositId: '...', address: '0x...', amount: '...', sourceCurrencyAddress: '...', sourceNetwork: '...', providerId: this.providerId };
+        return { depositId: '...', address: '0x...', amount: '...', sourceCurrencyAddress: '...', sourceChain: '...', providerId: this.providerId };
     }
 
     async getStatus(params: CryptoOnrampStatusParams): Promise<CryptoOnrampStatus> {
@@ -154,7 +154,7 @@ export class MyCryptoOnrampProvider extends CryptoOnrampProvider<MyQuoteOptions>
 Get a quote for a crypto-to-TON bridge operation.
 
 **Parameters:**
-- `params: CryptoOnrampQuoteParams<TProviderOptions>` – `sourceCurrencyAddress`, `sourceNetwork`, `targetCurrencyAddress`, `amount`, `recipientAddress`, `isSourceAmount?`, `refundAddress?`, `providerOptions?`
+- `params: CryptoOnrampQuoteParams<TProviderOptions>` – `sourceCurrencyAddress`, `sourceChain`, `targetCurrencyAddress`, `amount`, `recipientAddress`, `isSourceAmount?`, `refundAddress?`, `providerOptions?`
 - `providerId?: string` – Provider to use (uses default if omitted)
 
 **Returns:** `Promise<CryptoOnrampQuote>`

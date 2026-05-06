@@ -19,11 +19,9 @@ export const CRYPTO_PAYMENT_METHODS: CryptoPaymentMethod[] = [
         id: 'usdt0-arbitrum',
         symbol: 'USDT0',
         name: 'Tether USD0',
-        network: 'Arbitrum One',
-        networkId: '42161',
+        chain: 'eip155:42161',
         decimals: 6,
         address: '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9',
         logo: 'https://cdn.layerswap.io/layerswap/currencies/usdt0.png',
-        networkLogo: 'https://cdn.layerswap.io/layerswap/networks/arbitrum_mainnet.png',
     },
 ];
