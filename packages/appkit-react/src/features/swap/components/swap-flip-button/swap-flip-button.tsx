@@ -17,9 +17,9 @@ export interface SwapFlipButtonProps extends ComponentProps<'div'> {
     rotated?: boolean;
 }
 
-export const SwapFlipButton: FC<SwapFlipButtonProps> = ({ onClick, rotated, ...props }) => {
+export const SwapFlipButton: FC<SwapFlipButtonProps> = ({ onClick, rotated, className, ...props }) => {
     return (
-        <div className={styles.container} {...props}>
+        <div className={clsx(styles.container, className)} {...props}>
             <Button className={clsx(styles.flipButton, rotated && styles.rotated)} onClick={onClick}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path

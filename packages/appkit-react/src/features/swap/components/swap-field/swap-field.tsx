@@ -62,7 +62,7 @@ export const SwapField: FC<SwapFieldProps> = ({
             {...props}
         >
             <Input.Header className={styles.header}>
-                <Input.Title>{type === 'pay' ? t('swap.pay') : t('swap.receive')}</Input.Title>
+                <Input.Title className={styles.title}>{type === 'pay' ? t('swap.pay') : t('swap.receive')}</Input.Title>
             </Input.Header>
 
             <Input.Field className={styles.field}>
@@ -89,9 +89,9 @@ export const SwapField: FC<SwapFieldProps> = ({
                                 <Skeleton className={styles.skeletonText} />
                             ) : (
                                 <>
-                                    {t('swap.max')}
                                     <button className={styles.maxButton} onClick={onMaxClick} type="button">
-                                        {displayBalance} {tokenSymbol}
+                                        <span className={styles.max}>{t('swap.max')}</span> {displayBalance}{' '}
+                                        {tokenSymbol}
                                     </button>
                                 </>
                             )}

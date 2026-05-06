@@ -2,14 +2,13 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  padding: 16px;
-  border-radius: var(--ta-border-radius-xl);
-  background-color: var(--ta-color-background-secondary);
 
   width: 100%;
-  border: var(--ta-border-width-m) solid transparent;
-  transition: border-color 0.2s;
   gap: 8px;
+}
+
+.header > .title {
+  color: var(--ta-color-text);
 }
 
 .container .header,
@@ -48,6 +47,11 @@
   align-items: center;
   gap: 4px;
   height: 1lh;
+}
+
+.max {
+  composes: bodySemibold from "../../../../styles/typography.module.css";
+  color: var(--ta-color-text);
 }
 
 .skeletonText {

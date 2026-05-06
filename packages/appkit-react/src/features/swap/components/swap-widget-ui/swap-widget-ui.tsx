@@ -98,7 +98,8 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                 />
 
                 <div className={styles.flipButtonWrapper}>
-                    <SwapFlipButton onClick={handleFlip} rotated={isFlipped} />
+                    <div className={styles.flipButtonSeparator} />
+                    <SwapFlipButton className={styles.flipButton} onClick={handleFlip} rotated={isFlipped} />
                 </div>
 
                 <SwapField
