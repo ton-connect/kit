@@ -15,13 +15,13 @@ import { useSelectedWallet } from '../../../wallets';
 import { SwapField } from '../swap-field';
 import { SwapFlipButton } from '../swap-flip-button';
 import { SwapInfo } from '../swap-info';
-import { SwapSettingsButton } from '../swap-settings-button';
 import { SwapSettingsModal } from '../swap-settings-modal';
 import { SwapTokenSelectModal } from '../swap-token-select-modal';
 import { LowBalanceModal } from '../../../../components/low-balance-modal';
 import styles from './swap-widget-ui.module.css';
 import type { SwapContextType } from '../swap-widget-provider';
 import { ButtonWithConnect } from '../../../../components/button-with-connect';
+import { SettingsButton } from '../../../../components/settings-button';
 
 export type SwapWidgetRenderProps = SwapContextType & ComponentProps<'div'>;
 
@@ -83,11 +83,6 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
 
     return (
         <div className={clsx(styles.widget, className)} {...props}>
-            <div className={styles.header}>
-                <h2 className={styles.headerTitle}>{t('swap.title')}</h2>
-                <SwapSettingsButton onClick={() => setIsSettingsOpen(true)} />
-            </div>
-
             <div className={styles.fieldsContainer}>
                 <SwapField
                     type="pay"
@@ -147,16 +142,18 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                 onCancel={onLowBalanceCancel}
             />
 
-            <ButtonWithConnect
-                className={styles.swapButton}
-                variant="fill"
-                size="l"
-                fullWidth
-                disabled={!canSubmit || isQuoteLoading || isSendingTransaction}
-                onClick={sendSwapTransaction}
-            >
-                {buttonText}
-            </ButtonWithConnect>
+            <div className={styles.actions}>
+                <ButtonWithConnect
+                    variant="fill"
+                    size="l"
+                    fullWidth
+                    disabled={!canSubmit || isQuoteLoading || isSendingTransaction}
+                    onClick={sendSwapTransaction}
+                >
+                    {buttonText}
+                </ButtonWithConnect>
+                <SettingsButton onClick={() => setIsSettingsOpen(true)} />
+            </div>
 
             <SwapInfo
                 quote={quote}

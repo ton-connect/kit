@@ -9,19 +9,20 @@
 import type { ComponentProps, FC } from 'react';
 import clsx from 'clsx';
 
-import { Button } from '../../../../components/button';
-import styles from './swap-settings-button.module.css';
+import { Button } from '../button';
+import styles from './settings-button.module.css';
 
-export interface SwapSettingsButtonProps extends ComponentProps<typeof Button> {
+export interface SettingsButtonProps extends ComponentProps<typeof Button> {
     onClick?: () => void;
 }
 
-export const SwapSettingsButton: FC<SwapSettingsButtonProps> = ({ onClick, className, ...props }) => {
+export const SettingsButton: FC<SettingsButtonProps> = ({ onClick, className, ...props }) => {
     return (
         <Button
             className={clsx(styles.settingsButton, className)}
-            variant="ghost"
-            size="s"
+            variant="gray"
+            size="l"
+            borderRadius="l"
             onClick={onClick}
             {...props}
         >

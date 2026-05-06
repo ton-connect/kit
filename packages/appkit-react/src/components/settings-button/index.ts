@@ -6,4 +6,4 @@
  *
  */
 
-export * from './swap-settings-button';
+export * from './settings-button';

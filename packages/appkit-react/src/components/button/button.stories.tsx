@@ -19,6 +19,10 @@ const meta: Meta<typeof Button> = {
             control: 'select',
             options: ['s', 'm', 'l'],
         },
+        borderRadius: {
+            control: 'select',
+            options: ['s', 'm', 'l', 'xl', '2xl', 'full'],
+        },
         variant: {
             control: 'select',
             options: ['fill', 'bezeled', 'gray'],

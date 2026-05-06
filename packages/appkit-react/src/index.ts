@@ -25,6 +25,7 @@ export * from './components/centered-amount-input';
 export * from './components/amount-presets';
 export * from './components/collapsible';
 export * from './components/low-balance-modal';
+export * from './components/settings-button';
 
 export * from './features/balances';
 export * from './features/jettons';

@@ -57,7 +57,6 @@ export default {
 
     // Swap
     swap: {
-        title: 'Swap',
         pay: 'Pay',
         receive: 'Receive',
         max: 'MAX',

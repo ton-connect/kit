@@ -34,25 +34,40 @@
 .l {
   composes: bodySemibold from "../../styles/typography.module.css";
   padding: 12px 16px;
-  border-radius: var(--ta-border-radius-xl);
 }
 
 .m {
   composes: labelSemibold from "../../styles/typography.module.css";
   padding: 12px 16px;
-  border-radius: var(--ta-border-radius-l);
 }
 
 .s {
   composes: labelSemibold from "../../styles/typography.module.css";
   padding: 9px 12px;
+}
+
+/* Border radius */
+.radiusS {
+  border-radius: var(--ta-border-radius-s);
+}
+
+.radiusM {
+  border-radius: var(--ta-border-radius-m);
+}
+
+.radiusL {
+  border-radius: var(--ta-border-radius-l);
+}
+
+.radiusXl {
+  border-radius: var(--ta-border-radius-xl);
+}
+
+.radius2xl {
   border-radius: var(--ta-border-radius-2xl);
 }
 
-.icon {
-  composes: labelSemibold from "../../styles/typography.module.css";
-  aspect-ratio: 1;
-  padding: 6px;
+.radiusFull {
   border-radius: var(--ta-border-radius-full);
 }
 

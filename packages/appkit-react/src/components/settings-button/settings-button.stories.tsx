@@ -8,15 +8,15 @@
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { SwapSettingsButton } from './swap-settings-button';
+import { SettingsButton } from './settings-button';
 
-const meta: Meta<typeof SwapSettingsButton> = {
-    title: 'Public/Features/Swap/Internal/SwapSettingsButton',
-    component: SwapSettingsButton,
+const meta: Meta<typeof SettingsButton> = {
+    title: 'Public/Components/SettingsButton',
+    component: SettingsButton,
 };
 
 export default meta;
-type Story = StoryObj<typeof SwapSettingsButton>;
+type Story = StoryObj<typeof SettingsButton>;
 
 export const Default: Story = {
     args: {
