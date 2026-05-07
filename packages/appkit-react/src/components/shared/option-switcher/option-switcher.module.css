@@ -1,0 +1,24 @@
+.button {
+  composes: bodyMedium from "../../../styles/typography.module.css";
+
+  display: inline-flex;
+  height: 20px;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--ta-color-text-primary);
+  cursor: pointer;
+}
+
+.button:disabled {
+  cursor: default;
+  color: var(--ta-color-text-secondary);
+}
+
+.singleOption,
+.singleOption:disabled {
+  cursor: default;
+  color: var(--ta-color-text-primary);
+}

@@ -12,7 +12,7 @@ import type { SwapProvider } from '@ton/appkit';
 
 import { Modal } from '../../../../components/ui/modal/modal';
 import { Button } from '../../../../components/ui/button';
-import { ChevronsIcon } from '../../../../components/ui/icons';
+import { OptionSwitcher } from '../../../../components/shared/option-switcher';
 import { useI18n } from '../../../settings/hooks/use-i18n';
 import styles from './swap-settings-modal.module.css';
 
@@ -86,23 +86,11 @@ export const SwapSettingsModal: FC<SwapSettingsModalProps> = ({
             <div className={styles.rows}>
                 <div className={styles.row}>
                     <span className={styles.label}>{t('swap.provider')}</span>
-                    <button
-                        type="button"
-                        className={styles.value}
-                        onClick={cycleProvider}
-                        disabled={providers.length <= 1}
-                    >
-                        {providerName}
-                        <ChevronsIcon />
-                    </button>
+                    <OptionSwitcher value={providerName} onClick={cycleProvider} singleOption={providers.length <= 1} />
                 </div>
-
                 <div className={styles.row}>
                     <span className={styles.label}>{t('swap.slippage')}</span>
-                    <button type="button" className={styles.value} onClick={cycleSlippage}>
-                        {formatSlippage(stagedSlippage)}
-                        <ChevronsIcon />
-                    </button>
+                    <OptionSwitcher value={formatSlippage(stagedSlippage)} onClick={cycleSlippage} />
                 </div>
             </div>
 
