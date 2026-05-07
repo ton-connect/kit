@@ -14,7 +14,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--ta-color-text-primary);
+  color: var(--ta-color-text);
   font-size: 16px;
   font-weight: 500;
 }

@@ -12,19 +12,30 @@ import clsx from 'clsx';
 
 import styles from './button.module.css';
 
-export type ButtonSize = 's' | 'm' | 'l';
+export type ButtonSize = 's' | 'm' | 'l' | 'unset';
 export type ButtonBorderRadius = 's' | 'm' | 'l' | 'xl' | '2xl' | 'full';
+export type ButtonVariant = 'fill' | 'secondary' | 'bezeled' | 'gray' | 'ghost' | 'unstyled';
 
 export interface ButtonProps extends ComponentProps<'button'> {
+    /**
+     * Size class applied to the button. Pass `'unset'` to skip the size class
+     * entirely (no padding, no typography) — useful with `variant="unstyled"`.
+     */
     size?: ButtonSize;
     borderRadius?: ButtonBorderRadius;
-    variant?: 'fill' | 'secondary' | 'bezeled' | 'gray' | 'ghost';
+    /**
+     * Visual variant. Use `'unstyled'` to opt out of all built-in styling —
+     * the consumer is fully responsible for visuals via `className`. The
+     * Button still provides ref forwarding, `disabled`/`loading` plumbing,
+     * and `icon`/`children` rendering.
+     */
+    variant?: ButtonVariant;
     loading?: boolean;
     fullWidth?: boolean;
     icon?: ReactNode;
 }
 
-const SIZE_DEFAULT_RADIUS: Record<ButtonSize, ButtonBorderRadius> = {
+const SIZE_DEFAULT_RADIUS: Record<Exclude<ButtonSize, 'unset'>, ButtonBorderRadius> = {
     s: '2xl',
     m: 'l',
     l: 'xl',
@@ -55,7 +66,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         },
         ref,
     ) => {
-        const radius = borderRadius ?? SIZE_DEFAULT_RADIUS[size];
+        const radius = borderRadius ?? (size === 'unset' ? undefined : SIZE_DEFAULT_RADIUS[size]);
 
         return (
             <button
@@ -63,9 +74,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
                 disabled={disabled || loading}
                 className={clsx(
                     styles.button,
-                    styles[size],
-                    styles[RADIUS_CLASS[radius]],
-                    styles[variant],
+                    size !== 'unset' && styles[size],
+                    radius && styles[RADIUS_CLASS[radius]],
+                    variant !== 'unstyled' && styles[variant],
                     fullWidth && styles.fullWidth,
                     loading && styles.loading,
                     className,

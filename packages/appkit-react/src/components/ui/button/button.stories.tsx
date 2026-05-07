@@ -17,7 +17,7 @@ const meta: Meta<typeof Button> = {
     argTypes: {
         size: {
             control: 'select',
-            options: ['s', 'm', 'l'],
+            options: ['s', 'm', 'l', 'unset'],
         },
         borderRadius: {
             control: 'select',
@@ -25,7 +25,7 @@ const meta: Meta<typeof Button> = {
         },
         variant: {
             control: 'select',
-            options: ['fill', 'bezeled', 'gray'],
+            options: ['fill', 'secondary', 'bezeled', 'gray', 'ghost', 'unstyled'],
         },
         disabled: {
             control: 'boolean',
@@ -109,5 +109,13 @@ export const Loading: Story = {
     args: {
         children: 'Loading Button',
         loading: true,
+    },
+};
+
+export const Unstyled: Story = {
+    args: {
+        children: 'Bare button',
+        variant: 'unstyled',
+        size: 'unset',
     },
 };

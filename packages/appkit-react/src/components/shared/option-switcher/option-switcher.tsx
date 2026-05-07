@@ -6,36 +6,50 @@
  *
  */
 
-import type { ComponentProps, FC } from 'react';
+import type { FC } from 'react';
 import clsx from 'clsx';
 
 import { ChevronsIcon } from '../../ui/icons';
+import { Select } from '../../ui/select';
 import styles from './option-switcher.module.css';
 
-export interface OptionSwitcherProps extends Omit<ComponentProps<'button'>, 'children'> {
-    /** Current value shown in the button. */
+export interface OptionSwitcherOption {
     value: string;
-    /**
-     * When true, there is nothing to switch to: the chevron icon is hidden
-     * and the click is a no-op, but the value keeps the active text color.
-     */
-    singleOption?: boolean;
+    label: string;
+}
+
+export interface OptionSwitcherProps {
+    /** Currently selected option value. */
+    value: string | undefined;
+    /** Available options. */
+    options: OptionSwitcherOption[];
+    /** Called when the user picks an option. */
+    onChange: (value: string) => void;
+    /** When true, the trigger is non-interactive and dimmed. */
+    disabled?: boolean;
+    className?: string;
 }
 
 /**
- * Button that cycles through preset values on click.
- * Used inside settings modals next to a label.
+ * Compact selector used inside settings modals next to a label.
  */
-export const OptionSwitcher: FC<OptionSwitcherProps> = ({ value, className, disabled, singleOption, ...props }) => {
+export const OptionSwitcher: FC<OptionSwitcherProps> = ({ value, options, onChange, disabled, className }) => {
+    const current = options.find((option) => option.value === value);
+    const currentLabel = current?.label ?? value ?? '—';
+
     return (
-        <button
-            type="button"
-            className={clsx(styles.button, singleOption && styles.singleOption, className)}
-            disabled={disabled || singleOption}
-            {...props}
-        >
-            {value}
-            {!singleOption && <ChevronsIcon size={20} />}
-        </button>
+        <Select.Root value={value} onValueChange={onChange} disabled={disabled}>
+            <Select.Trigger variant="unstyled" size="unset" className={clsx(styles.button, className)}>
+                {currentLabel}
+                <ChevronsIcon size={20} />
+            </Select.Trigger>
+            <Select.Content align="end">
+                {options.map((option) => (
+                    <Select.Item key={option.value} value={option.value}>
+                        {option.label}
+                    </Select.Item>
+                ))}
+            </Select.Content>
+        </Select.Root>
     );
 };

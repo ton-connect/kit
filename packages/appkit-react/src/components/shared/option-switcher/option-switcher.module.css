@@ -8,17 +8,11 @@
   padding: 0;
   background: transparent;
   border: none;
-  color: var(--ta-color-text-primary);
+  color: var(--ta-color-text);
   cursor: pointer;
 }
 
 .button:disabled {
   cursor: default;
   color: var(--ta-color-text-secondary);
-}
-
-.singleOption,
-.singleOption:disabled {
-  cursor: default;
-  color: var(--ta-color-text-primary);
 }

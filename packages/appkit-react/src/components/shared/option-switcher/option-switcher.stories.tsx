@@ -22,41 +22,42 @@ export default meta;
 
 type Story = StoryObj<typeof OptionSwitcher>;
 
+const PROVIDER_OPTIONS = [
+    { value: 'stonfi', label: 'STON.fi' },
+    { value: 'dedust', label: 'DeDust' },
+    { value: 'omniston', label: 'Omniston' },
+];
+
+const SLIPPAGE_OPTIONS = [
+    { value: '50', label: '0.50%' },
+    { value: '100', label: '1.00%' },
+    { value: '200', label: '2.00%' },
+];
+
 export const Default: Story = {
-    args: {
-        value: 'STON.fi',
-        onClick: fn(),
+    render: () => {
+        const Wrapper = () => {
+            const [value, setValue] = useState('stonfi');
+            return <OptionSwitcher value={value} options={PROVIDER_OPTIONS} onChange={setValue} />;
+        };
+        return <Wrapper />;
     },
 };
 
 export const Disabled: Story = {
     args: {
-        value: 'STON.fi',
+        value: 'stonfi',
+        options: PROVIDER_OPTIONS,
+        onChange: fn(),
         disabled: true,
-        onClick: fn(),
     },
 };
 
-export const SingleOption: Story = {
-    args: {
-        value: 'STON.fi',
-        singleOption: true,
-        onClick: fn(),
-    },
-};
-
-const SLIPPAGE_PRESETS = ['0.50%', '1.00%', '2.00%'];
-
-export const Cycling: Story = {
+export const Slippage: Story = {
     render: () => {
         const Wrapper = () => {
-            const [index, setIndex] = useState(0);
-            return (
-                <OptionSwitcher
-                    value={SLIPPAGE_PRESETS[index]!}
-                    onClick={() => setIndex((i) => (i + 1) % SLIPPAGE_PRESETS.length)}
-                />
-            );
+            const [value, setValue] = useState('50');
+            return <OptionSwitcher value={value} options={SLIPPAGE_OPTIONS} onChange={setValue} />;
         };
         return <Wrapper />;
     },

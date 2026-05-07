@@ -21,6 +21,8 @@ const SLIPPAGE_PRESETS = [50, 100, 200] as const;
 
 const formatSlippage = (bps: number): string => `${(bps / 100).toFixed(2)}%`;
 
+const SLIPPAGE_OPTIONS = SLIPPAGE_PRESETS.map((bps) => ({ value: String(bps), label: formatSlippage(bps) }));
+
 export interface SwapSettingsModalProps {
     open: boolean;
     onClose: () => void;
@@ -30,12 +32,6 @@ export interface SwapSettingsModalProps {
     providers: SwapProvider[];
     onProviderChange: (providerId: string) => void;
 }
-
-const nextInList = <T,>(list: readonly T[], current: T): T => {
-    if (list.length === 0) return current;
-    const index = list.indexOf(current);
-    return list[(index + 1) % list.length] ?? current;
-};
 
 export const SwapSettingsModal: FC<SwapSettingsModalProps> = ({
     open,
@@ -60,20 +56,10 @@ export const SwapSettingsModal: FC<SwapSettingsModalProps> = ({
         }
     }, [open, provider?.providerId, slippage]);
 
-    const stagedProvider = useMemo(
-        () => providers.find((p) => p.providerId === stagedProviderId),
-        [providers, stagedProviderId],
+    const providerOptions = useMemo(
+        () => providers.map((p) => ({ value: p.providerId, label: p.getMetadata().name })),
+        [providers],
     );
-    const providerName = stagedProvider?.getMetadata().name ?? '—';
-
-    const cycleProvider = () => {
-        if (!stagedProvider) return;
-        setStagedProviderId(nextInList(providers, stagedProvider).providerId);
-    };
-
-    const cycleSlippage = () => {
-        setStagedSlippage(nextInList(SLIPPAGE_PRESETS as readonly number[], stagedSlippage));
-    };
 
     const handleSave = () => {
         if (stagedSlippage !== slippage) onSlippageChange(stagedSlippage);
@@ -86,11 +72,15 @@ export const SwapSettingsModal: FC<SwapSettingsModalProps> = ({
             <div className={styles.rows}>
                 <div className={styles.row}>
                     <span className={styles.label}>{t('swap.provider')}</span>
-                    <OptionSwitcher value={providerName} onClick={cycleProvider} singleOption={providers.length <= 1} />
+                    <OptionSwitcher value={stagedProviderId} options={providerOptions} onChange={setStagedProviderId} />
                 </div>
                 <div className={styles.row}>
                     <span className={styles.label}>{t('swap.slippage')}</span>
-                    <OptionSwitcher value={formatSlippage(stagedSlippage)} onClick={cycleSlippage} />
+                    <OptionSwitcher
+                        value={String(stagedSlippage)}
+                        options={SLIPPAGE_OPTIONS}
+                        onChange={(v) => setStagedSlippage(Number(v))}
+                    />
                 </div>
             </div>
 

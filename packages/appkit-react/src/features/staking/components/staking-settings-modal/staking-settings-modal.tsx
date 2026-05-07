@@ -25,12 +25,6 @@ export interface StakingSettingsModalProps {
     network?: Network;
 }
 
-const nextInList = <T,>(list: readonly T[], current: T): T => {
-    if (list.length === 0) return current;
-    const index = list.indexOf(current);
-    return list[(index + 1) % list.length] ?? current;
-};
-
 const getProviderName = (provider: StakingProvider, network?: Network): string => {
     try {
         return provider.getStakingProviderMetadata(network).name;
@@ -55,16 +49,10 @@ export const StakingSettingsModal: FC<StakingSettingsModalProps> = ({
         if (open) setStagedProviderId(provider?.providerId);
     }, [open, provider?.providerId]);
 
-    const stagedProvider = useMemo(
-        () => providers.find((p) => p.providerId === stagedProviderId),
-        [providers, stagedProviderId],
+    const providerOptions = useMemo(
+        () => providers.map((p) => ({ value: p.providerId, label: getProviderName(p, network) })),
+        [providers, network],
     );
-    const providerName = stagedProvider ? getProviderName(stagedProvider, network) : '—';
-
-    const cycleProvider = () => {
-        if (!stagedProvider) return;
-        setStagedProviderId(nextInList(providers, stagedProvider).providerId);
-    };
 
     const handleSave = () => {
         if (stagedProviderId && stagedProviderId !== provider?.providerId) onProviderChange(stagedProviderId);
@@ -76,7 +64,7 @@ export const StakingSettingsModal: FC<StakingSettingsModalProps> = ({
             <div className={styles.rows}>
                 <div className={styles.row}>
                     <span className={styles.label}>{t('staking.provider')}</span>
-                    <OptionSwitcher value={providerName} onClick={cycleProvider} singleOption={providers.length <= 1} />
+                    <OptionSwitcher value={stagedProviderId} options={providerOptions} onChange={setStagedProviderId} />
                 </div>
             </div>
 

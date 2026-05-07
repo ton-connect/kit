@@ -23,6 +23,7 @@ export * from './components/ui/tabs';
 export * from './components/ui/centered-amount-input';
 export * from './components/shared/amount-presets';
 export * from './components/ui/collapsible';
+export * from './components/ui/select';
 export * from './components/shared/low-balance-modal';
 export * from './components/shared/settings-button';
 export * from './components/shared/option-switcher';
