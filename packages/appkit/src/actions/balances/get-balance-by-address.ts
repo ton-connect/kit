@@ -31,7 +31,7 @@ export type GetBalanceByAddressReturnType = TokenAmount;
  *
  * @param appKit - AppKit runtime instance.
  * @param options - Address to query and optional network override.
- * @returns Balance amount as a `TokenAmount` (string nanos with token metadata).
+ * @returns Balance in TON as a human-readable decimal string.
  *
  * @sample docs/examples/src/appkit/actions/balances#GET_BALANCE_BY_ADDRESS
  *

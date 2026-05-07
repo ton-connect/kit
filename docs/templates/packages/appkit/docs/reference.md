@@ -43,7 +43,7 @@ one currently selected in AppKit. For the selected wallet's balance use
 | `options.address`\* | `string \| Address` | Wallet address as a base64url string or an `Address` instance. |
 | `options.network` | `Network \| undefined` | Network to read the balance from. Defaults to the AppKit's selected network. |
 
-Returns: Balance amount as a `TokenAmount` (string nanos with token metadata).
+Returns: `Promise<string>` — Balance in TON as a human-readable decimal string.
 
 **Example**
 
@@ -68,7 +68,7 @@ Throws `Error('Wallet not connected')` if no wallet is currently selected.
 | `parameters.text`\* | `string` | UTF-8 text the user is asked to sign. |
 | `parameters.network` | `Network \| undefined` | Network to issue the sign request against. Defaults to the AppKit's selected network. |
 
-Returns: Signature and signed payload, as returned by the wallet.
+Returns: `Promise<SignDataResponse>` — Signature and signed payload, as returned by the wallet.
 
 **Example**
 
@@ -95,7 +95,7 @@ separately.
 | `parameters.payload` | `string \| undefined` | Message payload data encoded in Base64 (overrides comment if provided) |
 | `parameters.stateInit` | `string \| undefined` | Initial state for deploying a new contract, encoded in Base64 |
 
-Returns: Wallet response carrying the BoC of the sent transaction.
+Returns: `Promise<SendTransactionResponse>` — Wallet response carrying the BoC of the sent transaction.
 
 **Example**
 
@@ -107,12 +107,11 @@ Returns: Wallet response carrying the BoC of the sent transaction.
 
 #### Balance
 
-Wallet balance for a single token.
-
-Re-exported from `@ton/walletkit` as `TokenAmount`. Carries the raw integer
-amount (in the token's smallest units, e.g. nanotons) together with token
-metadata (decimals, symbol, etc.) so consumers can format it without
-looking up the token separately.
+Wallet balance amount, expressed as a string (alias of `TokenAmount` from
+`@ton/walletkit`). The exact units depend on which API produced the value
+— balance/jetton-balance actions return human-readable decimal strings
+already formatted with the token's decimals; lower-level walletkit APIs
+may return raw integer nano amounts.
 
 ```ts
 type Balance = TokenAmount;

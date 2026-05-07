@@ -14,6 +14,6 @@ export const getBalanceByAddressExample = async (appKit: AppKit) => {
     const balanceByAddress = await getBalanceByAddress(appKit, {
         address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c', // Zero Address
     });
-    console.log('Balance by address:', balanceByAddress.toString());
+    console.log('Balance by address:', balanceByAddress);
     // SAMPLE_END: GET_BALANCE_BY_ADDRESS
 };

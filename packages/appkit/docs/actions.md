@@ -29,7 +29,7 @@ Fetch the TON balance of a specific address.
 const balanceByAddress = await getBalanceByAddress(appKit, {
     address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c', // Zero Address
 });
-console.log('Balance by address:', balanceByAddress.toString());
+console.log('Balance by address:', balanceByAddress);
 ```
 
 ### `watchBalance`

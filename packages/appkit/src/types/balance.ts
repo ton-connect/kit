@@ -9,12 +9,11 @@
 import type { TokenAmount } from '@ton/walletkit';
 
 /**
- * Wallet balance for a single token.
- *
- * Re-exported from `@ton/walletkit` as `TokenAmount`. Carries the raw integer
- * amount (in the token's smallest units, e.g. nanotons) together with token
- * metadata (decimals, symbol, etc.) so consumers can format it without
- * looking up the token separately.
+ * Wallet balance amount, expressed as a string (alias of `TokenAmount` from
+ * `@ton/walletkit`). The exact units depend on which API produced the value
+ * — balance/jetton-balance actions return human-readable decimal strings
+ * already formatted with the token's decimals; lower-level walletkit APIs
+ * may return raw integer nano amounts.
  *
  * @public
  * @category Type

@@ -120,10 +120,12 @@ function renderFunction(entry: ExtractedFunction, level: HeadingLevel): string {
         lines.push(renderParamsTable(entry.params));
         lines.push('');
     }
+    const returnType = `\`${escapeForCell(entry.returnTypeText)}\``;
     if (entry.returnDescription) {
-        lines.push(`Returns: ${entry.returnDescription}`);
+        const desc = entry.returnDescription.replace(/\r?\n/g, ' ');
+        lines.push(`Returns: ${returnType} — ${desc}`);
     } else {
-        lines.push(`Returns: \`${escapeForCell(entry.returnTypeText)}\`.`);
+        lines.push(`Returns: ${returnType}.`);
     }
     appendExamples(lines, entry.examples, entry.samples);
     return lines.join('\n');
