@@ -66,7 +66,7 @@ one currently selected in AppKit. For the selected wallet's balance use
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `appKit`\* | `AppKit` | AppKit runtime instance. |
+| `appKit`\* | [`AppKit`](#appkit) | AppKit runtime instance. |
 | `options`\* | `GetBalanceByAddressOptions` | Address to query and optional network override. |
 | `options.address`\* | `string \| Address` | Wallet address as a base64url string or an `Address` instance. |
 | `options.network` | `Network \| undefined` | Network to read the balance from. Defaults to the AppKit's selected network. |
@@ -96,8 +96,8 @@ Throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `appKit`\* | `AppKit` | AppKit runtime instance. |
-| `parameters`\* | `SignTextParameters` | Text to sign and optional network override. |
+| `appKit`\* | [`AppKit`](#appkit) | AppKit runtime instance. |
+| `parameters`\* | [`SignTextParameters`](#signtextparameters) | Text to sign and optional network override. |
 | `parameters.text`\* | `string` | UTF-8 text the user is asked to sign. |
 | `parameters.network` | `Network \| undefined` | Network to issue the sign request against. Defaults to the AppKit's selected network. |
 
@@ -126,7 +126,7 @@ separately.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `appKit`\* | `AppKit` | AppKit runtime instance. |
+| `appKit`\* | [`AppKit`](#appkit) | AppKit runtime instance. |
 | `parameters`\* | `CreateTransferTonTransactionParameters` | Recipient, amount and optional payload/comment. |
 | `parameters.recipientAddress`\* | `string` | Recipient address |
 | `parameters.amount`\* | `string` | Amount in TONs |

@@ -22,7 +22,11 @@ const TODO_MARKER = '_TODO: describe_';
 
 const CATEGORY_ORDER = ['Class', 'Action', 'Hook', 'Component', 'Type'];
 
+let LINKABLE_NAMES: Set<string> = new Set();
+
 export function render(extracted: Extracted[]): string {
+    LINKABLE_NAMES = new Set(extracted.map((e) => e.name));
+
     const parts: string[] = [];
 
     const byCategory = groupByCategory(extracted);
@@ -120,7 +124,7 @@ function renderFunction(entry: ExtractedFunction, level: HeadingLevel): string {
         lines.push(renderParamsTable(entry.params));
         lines.push('');
     }
-    const returnType = `\`${escapeForCell(entry.returnTypeText)}\``;
+    const returnType = formatTypeCell(entry.returnTypeText);
     if (entry.returnDescription) {
         const desc = entry.returnDescription.replace(/\r?\n/g, ' ');
         lines.push(`Returns: ${returnType} — ${desc}`);
@@ -239,7 +243,7 @@ function renderRowsTable(firstHeader: string, rows: ParamRow[]): string {
         headers,
         rows.map((r) => [
             `\`${r.name}\`${r.required ? '\\*' : ''}`,
-            `\`${escapeForCell(r.typeText)}\``,
+            formatTypeCell(r.typeText),
             r.description ?? TODO_MARKER,
         ]),
     );
@@ -257,4 +261,36 @@ function renderTable(headers: string[], rows: string[][]): string {
 
 function escapeForCell(text: string): string {
     return text.replace(/\|/g, '\\|');
+}
+
+/**
+ * Wraps a type string in inline-code, replacing identifiers that match
+ * documented symbols with markdown links to their anchor in this same file.
+ */
+function formatTypeCell(typeText: string): string {
+    const escaped = escapeForCell(typeText);
+    const re = /\b[A-Z][A-Za-z0-9_]*\b/g;
+    const parts: string[] = [];
+    let cursor = 0;
+    let match: RegExpExecArray | null;
+    while ((match = re.exec(escaped)) !== null) {
+        const name = match[0];
+        if (!LINKABLE_NAMES.has(name)) continue;
+        if (match.index > cursor) {
+            parts.push('`' + escaped.slice(cursor, match.index) + '`');
+        }
+        parts.push(`[\`${name}\`](#${slugify(name)})`);
+        cursor = match.index + name.length;
+    }
+    if (parts.length === 0) {
+        return '`' + escaped + '`';
+    }
+    if (cursor < escaped.length) {
+        parts.push('`' + escaped.slice(cursor) + '`');
+    }
+    return parts.join('');
+}
+
+function slugify(name: string): string {
+    return name.toLowerCase();
 }
