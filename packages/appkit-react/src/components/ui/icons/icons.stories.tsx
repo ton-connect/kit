@@ -9,9 +9,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { FC } from 'react';
 
+import { CheckIcon } from './check-icon';
 import { ChevronsIcon } from './chevrons-icon';
 import { ChevronDownIcon } from './chevron-down-icon';
 import { CloseIcon } from './close-icon';
+import { CopyIcon } from './copy-icon';
 import { FailedIcon } from './failed-icon';
 import { FlipIcon } from './flip-icon';
 import { ImageIcon } from './image-icon';
@@ -24,9 +26,11 @@ import { VerifiedIcon } from './verified-icon';
 import type { IconProps } from './types';
 
 const ICONS: { name: string; Component: FC<IconProps> }[] = [
+    { name: 'CheckIcon', Component: CheckIcon },
     { name: 'ChevronsIcon', Component: ChevronsIcon },
     { name: 'ChevronDownIcon', Component: ChevronDownIcon },
     { name: 'CloseIcon', Component: CloseIcon },
+    { name: 'CopyIcon', Component: CopyIcon },
     { name: 'FailedIcon', Component: FailedIcon },
     { name: 'FlipIcon', Component: FlipIcon },
     { name: 'ImageIcon', Component: ImageIcon },

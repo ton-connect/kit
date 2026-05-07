@@ -8,7 +8,7 @@
 
 import type { ComponentProps, FC } from 'react';
 
-import { CurrencyItem } from '../../../../components/currency-item';
+import { CurrencyItem } from '../../../../components/shared/currency-item';
 import type { OnrampCurrency } from '../../types';
 
 export interface OnrampCurrencyItemProps extends ComponentProps<typeof CurrencyItem.Container> {

@@ -58,7 +58,7 @@ const METHODS: CryptoPaymentMethod[] = [
 ];
 
 const meta: Meta<typeof CryptoMethodSelectModal> = {
-    title: 'Public/Features/Onramp/Internal/CryptoMethodSelectModal',
+    title: 'Features/Onramp/Internal/CryptoMethodSelectModal',
     component: CryptoMethodSelectModal,
 };
 

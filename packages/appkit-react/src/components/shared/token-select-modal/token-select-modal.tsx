@@ -9,8 +9,8 @@
 import { useMemo, useState } from 'react';
 import type { JSX } from 'react';
 
-import { CurrencySelect } from '../../currency-select-modal';
-import { CurrencyItem } from '../../currency-item';
+import { CurrencySelect } from '../currency-select-modal';
+import { CurrencyItem } from '../currency-item';
 import type { AppkitUIToken } from '../../../types/appkit-ui-token';
 import { useI18n } from '../../../features/settings/hooks/use-i18n';
 import { filterTokens, groupTokenSections } from './utils';

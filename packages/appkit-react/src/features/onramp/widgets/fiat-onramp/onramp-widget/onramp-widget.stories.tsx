@@ -12,7 +12,7 @@ import { STORY_TOKENS } from '../../../../../storybook/fixtures/tokens';
 import { OnrampWidget } from './onramp-widget';
 
 const meta: Meta<typeof OnrampWidget> = {
-    title: 'Public/Features/Onramp/OnrampWidget',
+    title: 'Features/Onramp/OnrampWidget',
     component: OnrampWidget,
     tags: ['autodocs'],
 };

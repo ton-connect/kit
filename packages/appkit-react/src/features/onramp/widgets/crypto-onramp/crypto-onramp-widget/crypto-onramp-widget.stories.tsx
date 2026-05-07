@@ -32,7 +32,7 @@ const TOKENS: CryptoOnrampToken[] = [
 ];
 
 const meta: Meta<typeof CryptoOnrampWidget> = {
-    title: 'Public/Features/Onramp/CryptoOnrampWidget',
+    title: 'Features/Onramp/CryptoOnrampWidget',
     component: CryptoOnrampWidget,
     tags: ['autodocs'],
 };

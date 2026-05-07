@@ -9,7 +9,7 @@
 import { useMemo, useState } from 'react';
 import type { FC } from 'react';
 
-import { CurrencySelect } from '../../../../components/currency-select-modal';
+import { CurrencySelect } from '../../../../components/shared/currency-select-modal';
 import type { OnrampCurrency, CurrencySectionConfig } from '../../types';
 import { OnrampCurrencyItem } from '../onramp-currency-item';
 import { useI18n } from '../../../settings/hooks/use-i18n';

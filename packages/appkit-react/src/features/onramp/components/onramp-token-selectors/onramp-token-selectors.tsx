@@ -10,7 +10,7 @@ import type { FC, ComponentProps } from 'react';
 import clsx from 'clsx';
 
 import styles from './onramp-token-selectors.module.css';
-import { TokenSelector } from '../../../../components/token-selector';
+import { TokenSelector } from '../../../../components/shared/token-selector';
 import { useI18n } from '../../../settings/hooks/use-i18n';
 
 export interface OnrampTokenSelectorsProps extends ComponentProps<'div'> {

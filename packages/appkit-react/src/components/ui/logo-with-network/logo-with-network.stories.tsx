@@ -11,7 +11,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { LogoWithNetwork } from './logo-with-network';
 
 const meta: Meta<typeof LogoWithNetwork> = {
-    title: 'Private/Components/LogoWithNetwork',
+    title: 'Components/UI/LogoWithNetwork',
     component: LogoWithNetwork,
     tags: ['autodocs'],
     argTypes: {

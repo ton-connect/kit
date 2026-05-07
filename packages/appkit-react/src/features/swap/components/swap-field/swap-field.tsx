@@ -13,7 +13,7 @@ import clsx from 'clsx';
 import { useI18n } from '../../../settings/hooks/use-i18n';
 import { Input } from '../../../../components/ui/input/input';
 import { Skeleton } from '../../../../components/ui/skeleton';
-import { TokenSelector } from '../../../../components/token-selector';
+import { TokenSelector } from '../../../../components/shared/token-selector';
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
 import { getDisplayAmount } from '../../utils/get-display-amount';
 import styles from './swap-field.module.css';

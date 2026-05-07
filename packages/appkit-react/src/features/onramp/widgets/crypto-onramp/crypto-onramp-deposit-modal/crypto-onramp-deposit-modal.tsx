@@ -12,7 +12,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import type { CryptoOnrampStatus } from '@ton/appkit';
 
 import { Button } from '../../../../../components/ui/button';
-import { CopyButton } from '../../../../../components/copy-button';
+import { CopyButton } from '../../../../../components/shared/copy-button';
 import { Modal } from '../../../../../components/ui/modal';
 import { Skeleton } from '../../../../../components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../../components/ui/tabs';

@@ -14,7 +14,7 @@ const ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
 const TOKEN_LOGO = 'https://assets.coingecko.com/coins/images/6319/standard/USDC.png?1769615602';
 
 const meta: Meta<typeof CryptoOnrampDepositModal> = {
-    title: 'Public/Features/Onramp/Internal/CryptoOnrampDepositModal',
+    title: 'Features/Onramp/Internal/CryptoOnrampDepositModal',
     component: CryptoOnrampDepositModal,
 };
 

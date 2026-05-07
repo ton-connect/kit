@@ -11,7 +11,7 @@ import type { FC } from 'react';
 
 import { Button } from '../../../../components/ui/button';
 import { CenteredAmountInput } from '../../../../components/ui/centered-amount-input';
-import { TokenSelector } from '../../../../components/token-selector';
+import { TokenSelector } from '../../../../components/shared/token-selector';
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
 import { TokenSelectModal } from '../../../../components/shared/token-select-modal';
 import type { TokenSectionConfig } from '../../../../components/shared/token-select-modal';

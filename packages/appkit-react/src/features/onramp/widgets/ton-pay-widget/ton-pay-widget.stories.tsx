@@ -12,7 +12,7 @@ import { STORY_TOKENS } from '../../../../storybook/fixtures/tokens';
 import { TonPayWidget } from './ton-pay-widget';
 
 const meta: Meta<typeof TonPayWidget> = {
-    title: 'Public/Features/Onramp/TonPayWidget',
+    title: 'Features/Onramp/TonPayWidget',
     component: TonPayWidget,
     tags: ['autodocs'],
 };

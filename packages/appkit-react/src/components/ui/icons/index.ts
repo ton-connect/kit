@@ -7,9 +7,11 @@
  */
 
 export * from './types';
+export * from './check-icon';
 export * from './chevrons-icon';
 export * from './chevron-down-icon';
 export * from './close-icon';
+export * from './copy-icon';
 export * from './failed-icon';
 export * from './flip-icon';
 export * from './image-icon';

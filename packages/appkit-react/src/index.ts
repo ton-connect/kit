@@ -13,31 +13,29 @@ export * from '@ton/appkit';
 
 // UI primitives
 export * from './components/ui/block';
-export * from './components/ui/info-block';
 export * from './components/ui/button';
-export * from './components/ui/logo';
-export * from './components/ui/modal';
-export * from './components/ui/skeleton';
-export * from './components/ui/input';
-export * from './components/ui/tabs';
 export * from './components/ui/centered-amount-input';
 export * from './components/ui/collapsible';
-export * from './components/ui/select';
 export * from './components/ui/icons';
+export * from './components/ui/info-block';
+export * from './components/ui/input';
+export * from './components/ui/logo';
+export * from './components/ui/logo-with-network';
+export * from './components/ui/modal';
+export * from './components/ui/select';
+export * from './components/ui/skeleton';
+export * from './components/ui/tabs';
 
 // Shared composites
 export * from './components/shared/amount-presets';
+export * from './components/shared/copy-button';
+export * from './components/shared/currency-item';
+export * from './components/shared/currency-select-modal';
 export * from './components/shared/low-balance-modal';
 export * from './components/shared/option-switcher';
 export * from './components/shared/settings-button';
 export * from './components/shared/token-select-modal';
-
-// Top-level composites
-export * from './components/copy-button';
-export * from './components/currency-item';
-export * from './components/currency-select-modal';
-export * from './components/logo-with-network';
-export * from './components/token-selector';
+export * from './components/shared/token-selector';
 
 export * from './features/balances';
 export * from './features/jettons';

@@ -9,11 +9,11 @@
 import type { FC, ComponentProps } from 'react';
 import clsx from 'clsx';
 
-import type { InputContainerProps } from '../ui/input';
-import { Input } from '../ui/input';
-import type { ModalProps } from '../ui/modal';
-import { Modal } from '../ui/modal';
-import { SearchIcon } from '../ui/icons';
+import type { InputContainerProps } from '../../ui/input';
+import { Input } from '../../ui/input';
+import type { ModalProps } from '../../ui/modal';
+import { Modal } from '../../ui/modal';
+import { SearchIcon } from '../../ui/icons';
 import styles from './currency-select-modal.module.css';
 
 export interface CurrencySelectSearchProps extends Omit<InputContainerProps, 'children'> {

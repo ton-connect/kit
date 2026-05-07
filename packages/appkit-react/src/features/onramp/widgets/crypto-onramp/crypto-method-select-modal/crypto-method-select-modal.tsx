@@ -9,9 +9,9 @@
 import { useMemo, useState } from 'react';
 import type { FC } from 'react';
 
-import { CurrencySelect } from '../../../../../components/currency-select-modal';
-import { LogoWithNetwork } from '../../../../../components/logo-with-network';
-import { CurrencyItem } from '../../../../../components/currency-item';
+import { CurrencySelect } from '../../../../../components/shared/currency-select-modal';
+import { LogoWithNetwork } from '../../../../../components/ui/logo-with-network';
+import { CurrencyItem } from '../../../../../components/shared/currency-item';
 import type { CryptoPaymentMethod, PaymentMethodSectionConfig } from '../../../types';
 import { useI18n } from '../../../../settings/hooks/use-i18n';
 import type { ChainInfo } from '../utils/chains';

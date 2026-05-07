@@ -11,7 +11,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { CryptoOnrampRefundAddressModal } from './crypto-onramp-refund-address-modal';
 
 const meta: Meta<typeof CryptoOnrampRefundAddressModal> = {
-    title: 'Public/Features/Onramp/Internal/CryptoOnrampRefundAddressModal',
+    title: 'Features/Onramp/Internal/CryptoOnrampRefundAddressModal',
     component: CryptoOnrampRefundAddressModal,
 };
 

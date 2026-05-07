@@ -39,7 +39,7 @@
 }
 
 .name {
-    composes: bodySemibold from "../../styles/typography.module.css";
+    composes: bodySemibold from "../../../styles/typography.module.css";
 
     color: var(--ta-color-text);
     white-space: nowrap;
@@ -56,7 +56,7 @@
 }
 
 .ticker {
-    composes: labelMedium from "../../styles/typography.module.css";
+    composes: labelMedium from "../../../styles/typography.module.css";
 
     color: var(--ta-color-text-secondary);
     margin: 0;
@@ -67,14 +67,14 @@
 }
 
 .mainBalance {
-    composes: bodyMedium from "../../styles/typography.module.css";
+    composes: bodyMedium from "../../../styles/typography.module.css";
 
     color: var(--ta-color-text);
     margin: 0;
 }
 
 .underBalance {
-    composes: labelMedium from "../../styles/typography.module.css";
+    composes: labelMedium from "../../../styles/typography.module.css";
 
     color: var(--ta-color-text-secondary);
     margin: 0;

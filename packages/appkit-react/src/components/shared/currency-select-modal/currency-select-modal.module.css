@@ -26,7 +26,7 @@
 }
 
 .sectionHeader {
-  composes: labelSemibold from "../../styles/typography.module.css";
+  composes: labelSemibold from "../../../styles/typography.module.css";
   
   color: var(--ta-color-text-secondary);
   margin: 0;
@@ -42,7 +42,7 @@
 }
 
 .emptyText {
-  composes: bodyRegular from "../../styles/typography.module.css";
+  composes: bodyRegular from "../../../styles/typography.module.css";
   margin: 0;
   color: var(--ta-color-text-secondary);
   text-align: center;
