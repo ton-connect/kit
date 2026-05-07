@@ -1,0 +1,253 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+import type {
+    Extracted,
+    ExtractedClass,
+    ExtractedComponent,
+    ExtractedFunction,
+    ExtractedNamespaceComponent,
+    ExtractedType,
+    ParamRow,
+} from './extract';
+
+export type PackageKey = 'appkit' | 'appkit-react';
+
+const TODO_MARKER = '_TODO: describe_';
+
+const CATEGORY_ORDER = ['Class', 'Action', 'Hook', 'Component', 'Type'];
+
+export function render(extracted: Extracted[]): string {
+    const parts: string[] = [];
+
+    const byCategory = groupByCategory(extracted);
+    const categories = sortCategories([...byCategory.keys()]);
+
+    for (const category of categories) {
+        const entries = byCategory.get(category)!;
+        appendCategoryBlock(parts, category, entries);
+    }
+
+    return (
+        parts
+            .join('\n')
+            .replace(/\n{3,}/g, '\n\n')
+            .trimEnd() + '\n'
+    );
+}
+
+function groupByCategory(extracted: Extracted[]): Map<string, Extracted[]> {
+    const grouped = new Map<string, Extracted[]>();
+    for (const item of extracted) {
+        const list = grouped.get(item.category) ?? [];
+        list.push(item);
+        grouped.set(item.category, list);
+    }
+    return grouped;
+}
+
+function sortCategories(categories: string[]): string[] {
+    const known = CATEGORY_ORDER.filter((t) => categories.includes(t));
+    const others = categories.filter((t) => !CATEGORY_ORDER.includes(t)).sort();
+    return [...known, ...others];
+}
+
+function appendCategoryBlock(parts: string[], category: string, entries: Extracted[]): void {
+    parts.push(`## ${category}`);
+    parts.push('');
+
+    const grouped = new Map<string, Extracted[]>();
+    for (const item of entries) {
+        const list = grouped.get(item.section) ?? [];
+        list.push(item);
+        grouped.set(item.section, list);
+    }
+    for (const list of grouped.values()) {
+        list.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+    }
+
+    const orderedSections = [...grouped.keys()].sort();
+
+    // Skip the section layer when there is only one — the heading would just duplicate context.
+    const skipSection = orderedSections.length <= 1;
+    const entryLevel: HeadingLevel = skipSection ? '###' : '####';
+
+    for (const sectionTitle of orderedSections) {
+        const sectionEntries = grouped.get(sectionTitle)!;
+        if (!skipSection) {
+            parts.push(`### ${sectionTitle}`);
+            parts.push('');
+        }
+        for (const entry of sectionEntries) {
+            parts.push(renderEntry(entry, entryLevel));
+            parts.push('');
+        }
+    }
+}
+
+type HeadingLevel = '###' | '####';
+
+function renderEntry(entry: Extracted, level: HeadingLevel): string {
+    switch (entry.kind) {
+        case 'function':
+        case 'hook':
+            return renderFunction(entry, level);
+        case 'component':
+            return renderComponent(entry, level);
+        case 'componentNamespace':
+            return renderNamespaceComponent(entry, level);
+        case 'type':
+            return renderType(entry, level);
+        case 'class':
+            return renderClass(entry, level);
+        case 'unknown':
+            return `${level} ${entry.name}\n\n${TODO_MARKER}`;
+    }
+}
+
+function renderFunction(entry: ExtractedFunction, level: HeadingLevel): string {
+    const lines: string[] = [];
+    lines.push(`${level} ${entry.name}`);
+    lines.push('');
+    lines.push(entry.summary ?? TODO_MARKER);
+    lines.push('');
+    if (entry.params.length > 0) {
+        lines.push(renderParamsTable(entry.params));
+        lines.push('');
+    }
+    if (entry.returnDescription) {
+        lines.push(`Returns: ${entry.returnDescription}`);
+    } else {
+        lines.push(`Returns: \`${escapeForCell(entry.returnTypeText)}\`.`);
+    }
+    appendExamples(lines, entry.examples);
+    return lines.join('\n');
+}
+
+function renderComponent(entry: ExtractedComponent, level: HeadingLevel): string {
+    const lines: string[] = [];
+    lines.push(`${level} ${entry.name}`);
+    lines.push('');
+    lines.push(entry.summary ?? TODO_MARKER);
+    lines.push('');
+    if (entry.props.length > 0) {
+        lines.push(renderPropsTable(entry.props));
+    } else {
+        lines.push('_No props._');
+    }
+    appendExamples(lines, entry.examples);
+    return lines.join('\n');
+}
+
+function renderNamespaceComponent(entry: ExtractedNamespaceComponent, level: HeadingLevel): string {
+    const memberLevel = level === '###' ? '####' : '#####';
+    const lines: string[] = [];
+    lines.push(`${level} ${entry.name}`);
+    lines.push('');
+    lines.push(entry.summary ?? TODO_MARKER);
+    lines.push('');
+    lines.push(`Compound component. Members:`);
+    lines.push('');
+    for (const member of entry.members) {
+        lines.push(`${memberLevel} ${entry.name}.${member.name}`);
+        lines.push('');
+        lines.push(member.summary ?? TODO_MARKER);
+        lines.push('');
+        if (member.props.length > 0) {
+            lines.push(renderPropsTable(member.props));
+        } else {
+            lines.push('_No props._');
+        }
+        lines.push('');
+    }
+    return lines.join('\n').trimEnd();
+}
+
+function renderType(entry: ExtractedType, level: HeadingLevel): string {
+    const lines: string[] = [];
+    lines.push(`${level} ${entry.name}`);
+    lines.push('');
+    lines.push(entry.summary ?? TODO_MARKER);
+    lines.push('');
+    if (entry.fields && entry.fields.length > 0) {
+        lines.push(renderFieldsTable(entry.fields));
+    } else if (entry.typeText) {
+        lines.push('```ts');
+        lines.push(`type ${entry.name} = ${entry.typeText};`);
+        lines.push('```');
+    } else {
+        lines.push('_Empty type._');
+    }
+    return lines.join('\n');
+}
+
+function renderClass(entry: ExtractedClass, level: HeadingLevel): string {
+    const lines: string[] = [];
+    lines.push(`${level} ${entry.name}`);
+    lines.push('');
+    lines.push(entry.summary ?? TODO_MARKER);
+    lines.push('');
+    if (entry.constructorParams && entry.constructorParams.length > 0) {
+        lines.push(`Constructor: \`new ${entry.name}(${entry.constructorParams.map((p) => p.name).join(', ')})\``);
+        lines.push('');
+        lines.push(renderParamsTable(entry.constructorParams));
+    } else {
+        lines.push(`Constructor: \`new ${entry.name}()\``);
+    }
+    appendExamples(lines, entry.examples);
+    return lines.join('\n');
+}
+
+function appendExamples(lines: string[], examples: string[]): void {
+    if (examples.length === 0) return;
+    lines.push('');
+    lines.push(examples.length > 1 ? '**Examples**' : '**Example**');
+    lines.push('');
+    for (const example of examples) {
+        lines.push(example);
+        lines.push('');
+    }
+}
+
+function renderParamsTable(rows: ParamRow[]): string {
+    return renderRowsTable('Parameter', rows);
+}
+
+function renderPropsTable(rows: ParamRow[]): string {
+    return renderRowsTable('Prop', rows);
+}
+
+function renderFieldsTable(rows: ParamRow[]): string {
+    return renderRowsTable('Field', rows);
+}
+
+function renderRowsTable(firstHeader: string, rows: ParamRow[]): string {
+    const headers = [firstHeader, 'Type', 'Description'];
+    return renderTable(
+        headers,
+        rows.map((r) => [
+            `\`${r.name}\`${r.required ? '\\*' : ''}`,
+            `\`${escapeForCell(r.typeText)}\``,
+            r.description ?? TODO_MARKER,
+        ]),
+    );
+}
+
+function renderTable(headers: string[], rows: string[][]): string {
+    const lines: string[] = [];
+    lines.push(`| ${headers.join(' | ')} |`);
+    lines.push(`| ${headers.map(() => '---').join(' | ')} |`);
+    for (const row of rows) {
+        lines.push(`| ${row.map((cell) => cell.replace(/\r?\n/g, ' ')).join(' | ')} |`);
+    }
+    return lines.join('\n');
+}
+
+function escapeForCell(text: string): string {
+    return text.replace(/\|/g, '\\|');
+}

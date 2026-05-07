@@ -27,8 +27,28 @@ import { AppKitNetworkManager } from '../../network';
 import { Network } from '../../../types/network';
 
 /**
- * Central hub for wallet management.
- * Stores emitter, providers, and manages wallet connections.
+ * Runtime that wires together connectors, networks, providers and the event
+ * emitter for a TON dApp. Every action in `@ton/appkit` takes an `AppKit`
+ * instance as its first argument.
+ *
+ * Construct one at app startup, pass it down through your app (or via
+ * `AppKitProvider` in React), and reuse it for the lifetime of the
+ * application. Tear it down with `dispose()` if you need to recreate it.
+ *
+ * @example
+ * ```ts
+ * import { AppKit, Network } from '@ton/appkit';
+ *
+ * const appKit = new AppKit({
+ *     networks: { [Network.mainnet().chainId]: {} },
+ *     defaultNetwork: Network.mainnet(),
+ *     connectors: [tonConnectConnector],
+ * });
+ * ```
+ *
+ * @public
+ * @category Class
+ * @section Core
  */
 export class AppKit {
     readonly emitter: AppKitEmitter;
@@ -43,6 +63,9 @@ export class AppKit {
     readonly streamingManager: StreamingManager;
     readonly config: AppKitConfig;
 
+    /**
+     * @param config - Networks, connectors, providers and other startup settings.
+     */
     constructor(config: AppKitConfig) {
         this.config = config;
 

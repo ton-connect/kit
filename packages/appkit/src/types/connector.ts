@@ -12,27 +12,36 @@ import type { AppKitNetworkManager } from '../core/network';
 import type { Network } from './network';
 
 /**
- * Interface for wallet connectors
+ * Wallet connector contract.
+ *
+ * A connector is the protocol-specific bridge between AppKit and a wallet
+ * (TonConnect, embedded wallet, etc.). Add your connectors via the AppKit
+ * config; AppKit then drives them through this interface.
+ *
+ * @public
+ * @category Type
+ * @section Connectors and wallets
  */
 export interface Connector {
-    /** Provider unique identifier */
+    /** Stable connector identifier, unique within an AppKit instance. */
     readonly id: string;
 
-    /** Protocol type (e.g. 'tonconnect') */
+    /** Protocol type (e.g. `'tonconnect'`). Multiple connectors can share the same type. */
     readonly type: string;
 
+    /** Display metadata (name, icon) shown in connect UIs. */
     readonly metadata: ConnectorMetadata;
 
-    /** Cleanup connector resources */
+    /** Release any resources held by the connector. Call on app teardown. */
     destroy(): void;
 
-    /** Connect a wallet */
+    /** Initiate a wallet connection flow on the given network. */
     connectWallet(network?: Network): Promise<void>;
 
-    /** Disconnect a wallet */
+    /** Disconnect the currently connected wallet, if any. */
     disconnectWallet(): Promise<void>;
 
-    /** Get connected wallets */
+    /** Wallets currently connected through this connector. */
     getConnectedWallets(): WalletInterface[];
 }
 

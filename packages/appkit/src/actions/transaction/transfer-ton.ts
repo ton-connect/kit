@@ -20,7 +20,29 @@ export type TransferTonReturnType = SendTransactionResponse;
 export type TransferTonErrorType = Error;
 
 /**
- * Transfer TON - creates and sends a TON transfer transaction
+ * Send a TON transfer from the selected wallet.
+ *
+ * Builds a transfer transaction and sends it through the connected wallet
+ * in one step. If you need to inspect or sign the transaction before
+ * sending, use `createTransferTonTransaction` and `sendTransaction`
+ * separately.
+ *
+ * @param appKit - AppKit runtime instance.
+ * @param parameters - Recipient, amount and optional payload/comment.
+ * @returns Wallet response carrying the BoC of the sent transaction.
+ *
+ * @example
+ * ```ts
+ * await transferTon(appKit, {
+ *     recipientAddress: 'EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N',
+ *     amount: '1.5',
+ *     comment: 'Hello',
+ * });
+ * ```
+ *
+ * @public
+ * @category Action
+ * @section Transactions
  */
 export const transferTon = async (
     appKit: AppKit,

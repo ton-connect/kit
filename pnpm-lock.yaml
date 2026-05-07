@@ -637,6 +637,19 @@ importers:
         specifier: ~5.9.3
         version: 5.9.3
 
+  docs/reference-generator:
+    dependencies:
+      ts-morph:
+        specifier: ^28.0.0
+        version: 28.0.0
+    devDependencies:
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+
   packages/appkit:
     dependencies:
       '@ton/crypto':
@@ -4072,6 +4085,9 @@ packages:
   '@truecarry/webext-bridge@6.0.2':
     resolution: {integrity: sha512-Q2gmBkfbForHKxvDKI2Ep5LGih7+wEsjluXqNxUHNXW2b8ztNmuI77nZBqNLb83B3AeKGxe0txPnCycPVgYzXA==}
 
+  '@ts-morph/common@0.29.0':
+    resolution: {integrity: sha512-35oUmphHbJvQ/+UTwFNme/t2p3FoKiGJ5auTjjpNTop2dyREspirjMy82PLSC1pnDJ8ah1GU98hwpVt64YXQsg==}
+
   '@tsconfig/node10@1.0.12':
     resolution: {integrity: sha512-UCYBaeFvM11aU2y3YPZ//O5Rhj+xKyzy7mvcIoAjASbigy8mHMryP5cK7dgjlz2hWxh1g5pLw084E0a/wlUSFQ==}
 
@@ -5195,6 +5211,9 @@ packages:
   co@4.6.0:
     resolution: {integrity: sha512-QVb0dM5HvG+uaxitm8wONl7jltx8dqhfU33DcqtOZcLSVIKSDDLDi7+0LbAKiyI8hD9u42m2YxXSkMGWThaecQ==}
     engines: {iojs: '>= 1.0.0', node: '>= 0.12.0'}
+
+  code-block-writer@13.0.3:
+    resolution: {integrity: sha512-Oofo0pq3IKnsFtuHqSF7TqBfr71aeyZDVJ0HpmqB7FBM2qEigL0iPONSCZSO9pE9dZTAxANe5XHG9Uy0YMv8cg==}
 
   collect-v8-coverage@1.0.3:
     resolution: {integrity: sha512-1L5aqIkwPfiodaMgQunkF1zRhNqifHBmtbbbxcr6yVxxBnliw4TDOW6NxpO8DJLgJ16OT+Y4ztZqP6p/FtXnAw==}
@@ -9394,6 +9413,9 @@ packages:
     engines: {node: '>=22.0.0'}
     hasBin: true
 
+  ts-morph@28.0.0:
+    resolution: {integrity: sha512-Wp3tnZ2bzwxyTZMtgWVzXDfm7lB1Drz+y9DmmYH/L702PQhPyVrp3pkou3yIz4qjS14GY9kcpmLiOOMvl8oG1g==}
+
   ts-node@10.9.2:
     resolution: {integrity: sha512-f0FFpIdcHgn8zcPSbf1dRevwt047YMnaiJM3u2w2RewrB+fob/zePZcrOyQoLMMO7aBIddLcQIEK5dYjkLnGrQ==}
     hasBin: true
@@ -9673,14 +9695,17 @@ packages:
 
   uuid@7.0.3:
     resolution: {integrity: sha512-DPSke0pXhTZgoF/d+WSt2QaKMCFSfx7QegxEWT+JOuHF5aWrKEn0G+ztjuJg/gG8/ItK+rbPCD/yNv8yyih6Cg==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   v8-compile-cache-lib@3.0.1:
@@ -14085,6 +14110,12 @@ snapshots:
       tiny-uid: 1.1.2
       webextension-polyfill: 0.9.0
 
+  '@ts-morph/common@0.29.0':
+    dependencies:
+      minimatch: 10.2.5
+      path-browserify: 1.0.1
+      tinyglobby: 0.2.16
+
   '@tsconfig/node10@1.0.12': {}
 
   '@tsconfig/node12@1.0.11': {}
@@ -15433,6 +15464,8 @@ snapshots:
   clsx@2.1.1: {}
 
   co@4.6.0: {}
+
+  code-block-writer@13.0.3: {}
 
   collect-v8-coverage@1.0.3: {}
 
@@ -20459,6 +20492,11 @@ snapshots:
       safe-stable-stringify: 2.5.0
       tslib: 2.8.1
       typescript: 5.9.3
+
+  ts-morph@28.0.0:
+    dependencies:
+      '@ts-morph/common': 0.29.0
+      code-block-writer: 13.0.3
 
   ts-node@10.9.2(@types/node@25.6.0)(typescript@5.9.3):
     dependencies:
