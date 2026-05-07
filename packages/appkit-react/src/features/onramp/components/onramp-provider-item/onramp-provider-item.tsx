@@ -10,7 +10,7 @@ import type { ComponentProps, FC } from 'react';
 import clsx from 'clsx';
 
 import type { OnrampProvider } from '../../types';
-import { Logo } from '../../../../components/logo';
+import { Logo } from '../../../../components/ui/logo';
 import styles from './onramp-provider-item.module.css';
 
 export interface OnrampProviderItemProps extends ComponentProps<'button'> {

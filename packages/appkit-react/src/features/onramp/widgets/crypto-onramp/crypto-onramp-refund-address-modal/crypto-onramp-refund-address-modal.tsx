@@ -8,10 +8,10 @@
 
 import type { FC } from 'react';
 
-import { Modal } from '../../../../../components/modal';
+import { Modal } from '../../../../../components/ui/modal';
 import { useI18n } from '../../../../settings/hooks/use-i18n';
-import { Button } from '../../../../../components/button';
-import { Input } from '../../../../../components/input';
+import { Button } from '../../../../../components/ui/button';
+import { Input } from '../../../../../components/ui/input';
 import styles from './crypto-onramp-refund-address-modal.module.css';
 
 export interface CryptoOnrampRefundAddressModalProps {

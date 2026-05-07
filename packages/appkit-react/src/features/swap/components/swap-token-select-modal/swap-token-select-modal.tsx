@@ -8,8 +8,8 @@
 
 import type { FC } from 'react';
 
-import { TokenSelectModal } from '../../../../components/token-select-modal';
-import type { TokenSelectModalProps } from '../../../../components/token-select-modal';
+import { TokenSelectModal } from '../../../../components/shared/token-select-modal';
+import type { TokenSelectModalProps } from '../../../../components/shared/token-select-modal';
 import { useI18n } from '../../../settings/hooks/use-i18n';
 
 export type SwapTokenSelectModalProps = Omit<TokenSelectModalProps, 'title' | 'searchPlaceholder'>;

@@ -59,7 +59,6 @@ export default {
 
     // Swap
     swap: {
-        title: 'Swap',
         pay: 'Pay',
         receive: 'Receive',
         max: 'MAX',
@@ -175,5 +174,7 @@ export default {
         whenAvailableLimit: 'No limits',
         yourBalance: 'Your balance',
         provider: 'Provider',
+        settings: 'Staking settings',
+        save: 'Save',
     },
 } as const;

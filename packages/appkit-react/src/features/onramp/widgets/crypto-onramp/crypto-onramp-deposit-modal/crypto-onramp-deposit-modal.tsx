@@ -11,11 +11,11 @@ import type { FC } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { CryptoOnrampStatus } from '@ton/appkit';
 
-import { Button } from '../../../../../components/button';
+import { Button } from '../../../../../components/ui/button';
 import { CopyButton } from '../../../../../components/copy-button';
-import { Modal } from '../../../../../components/modal';
-import { Skeleton } from '../../../../../components/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../../components/tabs';
+import { Modal } from '../../../../../components/ui/modal';
+import { Skeleton } from '../../../../../components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../../components/ui/tabs';
 import { useI18n } from '../../../../settings/hooks/use-i18n';
 import { formatOnrampAmount } from '../utils/format-onramp-amount';
 import { truncateAddress } from '../utils/truncate-address';

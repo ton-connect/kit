@@ -10,7 +10,7 @@ import type { ComponentProps, FC } from 'react';
 import type { StakingQuote, StakingProviderInfo, StakingQuoteDirection } from '@ton/appkit';
 import type { StakingProviderMetadata } from '@ton/appkit';
 
-import { InfoBlock } from '../../../../components/info-block';
+import { InfoBlock } from '../../../../components/ui/info-block';
 import { useI18n } from '../../../settings/hooks/use-i18n';
 import { formatAmount } from './utils';
 

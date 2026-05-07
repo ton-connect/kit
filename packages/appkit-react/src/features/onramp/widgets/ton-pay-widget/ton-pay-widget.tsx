@@ -9,19 +9,19 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { FC } from 'react';
 
-import { Button } from '../../../../components/button';
-import { CenteredAmountInput } from '../../../../components/centered-amount-input';
+import { Button } from '../../../../components/ui/button';
+import { CenteredAmountInput } from '../../../../components/ui/centered-amount-input';
 import { TokenSelector } from '../../../../components/token-selector';
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
-import { TokenSelectModal } from '../../../../components/token-select-modal';
-import type { TokenSectionConfig } from '../../../../components/token-select-modal';
+import { TokenSelectModal } from '../../../../components/shared/token-select-modal';
+import type { TokenSectionConfig } from '../../../../components/shared/token-select-modal';
 import { useConnectedWallets } from '../../../wallets/hooks/use-connected-wallets';
 import { useI18n } from '../../../settings/hooks/use-i18n';
 import { OnrampCurrencySelectModal } from '../../components/onramp-currency-select-modal';
 import { ONRAMP_CURRENCIES } from '../../mock-data/currencies';
 import type { OnrampAmountPreset, OnrampCurrency, CurrencySectionConfig } from '../../types';
 import styles from './ton-pay-widget.module.css';
-import { AmountPresets } from '../../../../components/amount-presets';
+import { AmountPresets } from '../../../../components/shared/amount-presets';
 
 const TON_PAY_API_URL = 'https://testnet.pay.ton.org/api/merchant/v1/create-moonpay-transfer';
 const SUPPORTED_ASSETS = ['TON', 'USDT'] as const;

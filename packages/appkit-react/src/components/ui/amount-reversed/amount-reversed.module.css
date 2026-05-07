@@ -1,0 +1,34 @@
+.container {
+    composes: bodySemibold from '../../../styles/typography.module.css';
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: text;
+    width: 100%;
+    overflow: hidden;
+    color: var(--ta-color-text-secondary);
+    gap: 8px;
+}
+
+.skeleton {
+    width: 70px;
+    height: calc(var(--ta-body-regular-line-height) - 4px);
+    margin: 2px 0;
+}
+
+.changeDirection {
+    width: 14px;
+    height: 14px;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    outline: none;
+    color: var(--ta-color-text);
+    transition: opacity 0.2s ease-in-out;
+}
+
+.changeDirection:hover {
+    opacity: 0.8;
+}

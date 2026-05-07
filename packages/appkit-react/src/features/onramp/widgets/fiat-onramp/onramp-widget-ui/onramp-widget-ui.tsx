@@ -9,12 +9,12 @@
 import { useCallback, useState } from 'react';
 import type { FC } from 'react';
 
-import { Button } from '../../../../../components/button';
+import { Button } from '../../../../../components/ui/button';
 import type { OnrampContextType } from '../onramp-widget-provider';
 import { OnrampTokenSelectors } from '../../../components/onramp-token-selectors';
-import { CenteredAmountInput } from '../../../../../components/centered-amount-input';
-import { AmountPresets } from '../../../../../components/amount-presets';
-import { TokenSelectModal } from '../../../../../components/token-select-modal';
+import { CenteredAmountInput } from '../../../../../components/ui/centered-amount-input';
+import { AmountPresets } from '../../../../../components/shared/amount-presets';
+import { TokenSelectModal } from '../../../../../components/shared/token-select-modal';
 import { OnrampCurrencySelectModal } from '../../../components/onramp-currency-select-modal';
 import { OnrampProviderSelect } from '../../../components/onramp-provider-select';
 import styles from './onramp-widget-ui.module.css';

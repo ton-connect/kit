@@ -9,8 +9,8 @@
 import type { FC, ComponentProps } from 'react';
 import clsx from 'clsx';
 
-import { Logo } from '../logo';
-import type { LogoProps } from '../logo';
+import { Logo } from '../ui/logo';
+import type { LogoProps } from '../ui/logo';
 import styles from './currency-item.module.css';
 
 export interface CurrencyItemProps extends ComponentProps<'button'> {

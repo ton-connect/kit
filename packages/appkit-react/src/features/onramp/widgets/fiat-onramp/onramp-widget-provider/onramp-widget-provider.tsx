@@ -10,7 +10,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { FC, PropsWithChildren } from 'react';
 
 import type { AppkitUIToken } from '../../../../../types/appkit-ui-token';
-import type { TokenSectionConfig } from '../../../../../components/token-select-modal';
+import type { TokenSectionConfig } from '../../../../../components/shared/token-select-modal';
 import type {
     OnrampCurrency,
     OnrampProvider as OnrampWidgetProviderType,

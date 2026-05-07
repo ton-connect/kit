@@ -11,7 +11,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { BalanceBadge } from './balance-badge';
 
 const meta: Meta = {
-    title: 'Public/Features/Balances/BalanceBadge',
+    title: 'Features/Balances/BalanceBadge',
     tags: ['autodocs'],
 };
 

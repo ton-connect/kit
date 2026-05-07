@@ -12,7 +12,7 @@ import { UnstakeMode } from '@ton/appkit';
 import { StakingBalanceBlock } from './staking-balance-block';
 
 const meta: Meta<typeof StakingBalanceBlock> = {
-    title: 'Public/Features/Staking/Internal/StakingBalanceBlock',
+    title: 'Features/Staking/Internal/StakingBalanceBlock',
     component: StakingBalanceBlock,
 };
 

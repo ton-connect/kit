@@ -12,8 +12,8 @@ import type { SendTransactionParameters, SendTransactionReturnType } from '@ton/
 
 import { useI18n } from '../../../settings/hooks/use-i18n';
 import { SendProvider, useSendContext } from '../transaction-provider';
-import { Button } from '../../../../components/button';
-import type { ButtonProps } from '../../../../components/button';
+import { Button } from '../../../../components/ui/button';
+import type { ButtonProps } from '../../../../components/ui/button';
 
 export interface SendRenderProps {
     isLoading: boolean;

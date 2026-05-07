@@ -8,8 +8,8 @@
 
 import type { FC } from 'react';
 
-import { AmountReversed } from '../../../../components/amount-reversed';
-import type { AmountReversedProps } from '../../../../components/amount-reversed';
+import { AmountReversed } from '../../../../components/ui/amount-reversed';
+import type { AmountReversedProps } from '../../../../components/ui/amount-reversed';
 
 export interface OnrampAmountReversedProps extends Omit<AmountReversedProps, 'onChangeDirection'> {
     onChangeDirection: () => void;

@@ -12,7 +12,7 @@ import { UnstakeMode, Network } from '@ton/appkit';
 import { StakingInfo } from './staking-info';
 
 const meta: Meta<typeof StakingInfo> = {
-    title: 'Public/Features/Staking/Internal/StakingInfo',
+    title: 'Features/Staking/Internal/StakingInfo',
     component: StakingInfo,
 };
 

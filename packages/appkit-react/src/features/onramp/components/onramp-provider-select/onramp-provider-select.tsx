@@ -8,7 +8,7 @@
 
 import type { FC } from 'react';
 
-import { Modal } from '../../../../components/modal';
+import { Modal } from '../../../../components/ui/modal';
 import type { OnrampProvider } from '../../types';
 import styles from './onramp-provider-select.module.css';
 import { OnrampProviderItem } from '../onramp-provider-item';

@@ -12,7 +12,7 @@ import { Network } from '@ton/appkit';
 import { StakingWidget } from './staking-widget';
 
 const meta: Meta<typeof StakingWidget> = {
-    title: 'Public/Features/Staking/StakingWidget',
+    title: 'Features/Staking/StakingWidget',
     component: StakingWidget,
     tags: ['autodocs'],
 };

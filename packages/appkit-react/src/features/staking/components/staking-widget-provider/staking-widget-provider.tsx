@@ -8,8 +8,14 @@
 
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { FC, PropsWithChildren } from 'react';
-import type { Network, StakingQuoteDirection, TonShortfall } from '@ton/appkit';
-import { calcMaxSpendable, formatUnits, getTonShortfall, validateNumericString } from '@ton/appkit';
+import type { Network, StakingProvider, StakingQuoteDirection, TonShortfall } from '@ton/appkit';
+import {
+    calcMaxSpendable,
+    formatUnits,
+    getTonShortfall,
+    setDefaultStakingProvider,
+    validateNumericString,
+} from '@ton/appkit';
 import type {
     StakingQuote,
     StakingProviderInfo,
@@ -20,9 +26,11 @@ import type {
 import { UnstakeMode } from '@ton/appkit';
 
 import { useNetwork } from '../../../network';
+import { useAppKit } from '../../../settings/hooks/use-app-kit';
 import { useStakingQuote } from '../../hooks/use-staking-quote';
 import type { UseStakingQuoteParameters } from '../../hooks/use-staking-quote';
 import { useStakingProvider } from '../../hooks/use-staking-provider';
+import { useStakingProviders } from '../../hooks/use-staking-providers';
 import { useStakingProviderInfo } from '../../hooks/use-staking-provider-info';
 import { useStakingProviderMetadata } from '../../hooks/use-staking-provider-metadata';
 import { useStakedBalance } from '../../hooks/use-staked-balance';
@@ -53,6 +61,14 @@ export interface StakingContextType {
     providerInfo: StakingProviderInfo | undefined;
     /** Staking provider static metadata */
     providerMetadata: StakingProviderMetadata | undefined;
+    /** Currently selected staking provider (defaults to the first registered one) */
+    stakingProvider: StakingProvider | undefined;
+    /** All registered staking providers */
+    stakingProviders: StakingProvider[];
+    /** Updates the selected staking provider */
+    setStakingProviderId: (providerId: string) => void;
+    /** Network the widget is operating on (resolved from prop or wallet) */
+    network: Network | undefined;
     /** Current operation direction: 'stake' or 'unstake' */
     direction: StakingQuoteDirection;
     /** True while provider info is being fetched */
@@ -105,6 +121,10 @@ export const StakingContext = createContext<StakingContextType>({
     error: null,
     providerInfo: undefined,
     providerMetadata: undefined,
+    stakingProvider: undefined,
+    stakingProviders: [],
+    setStakingProviderId: () => {},
+    network: undefined,
     direction: 'stake',
     isProviderInfoLoading: false,
     balance: undefined,
@@ -158,7 +178,15 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
     const network = networkProp ?? walletNetwork;
 
     const address = useAddress();
+    const appKit = useAppKit();
     const stakingProvider = useStakingProvider();
+    const stakingProviders = useStakingProviders();
+    const setStakingProviderId = useCallback(
+        (providerId: string) => {
+            setDefaultStakingProvider(appKit, { providerId });
+        },
+        [appKit],
+    );
 
     const isNetworkSupported = useMemo(
         () =>
@@ -327,6 +355,10 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
             error,
             providerInfo,
             providerMetadata,
+            stakingProvider,
+            stakingProviders,
+            setStakingProviderId,
+            network,
             isProviderInfoLoading,
             balance,
             isBalanceLoading,
@@ -358,6 +390,10 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
             error,
             providerInfo,
             providerMetadata,
+            stakingProvider,
+            stakingProviders,
+            setStakingProviderId,
+            network,
             isProviderInfoLoading,
             balance,
             isBalanceLoading,

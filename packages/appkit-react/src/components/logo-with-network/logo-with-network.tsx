@@ -10,7 +10,7 @@ import { forwardRef } from 'react';
 import type { ComponentPropsWithoutRef, ComponentRef } from 'react';
 import clsx from 'clsx';
 
-import { Logo } from '../logo';
+import { Logo } from '../ui/logo';
 import styles from './logo-with-network.module.css';
 
 export interface LogoWithNetworkProps extends ComponentPropsWithoutRef<'span'> {

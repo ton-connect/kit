@@ -10,9 +10,9 @@ import type { FC } from 'react';
 import clsx from 'clsx';
 
 import styles from './token-selector.module.css';
-import { Button } from '../button';
-import type { ButtonProps } from '../button';
-import { Logo } from '../logo';
+import { Button } from '../ui/button';
+import type { ButtonProps } from '../ui/button';
+import { Logo } from '../ui/logo';
 import { LogoWithNetwork } from '../logo-with-network';
 
 export interface TokenSelectorProps extends ButtonProps {

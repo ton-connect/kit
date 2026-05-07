@@ -1,0 +1,32 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.list {
+  display: flex;
+  width: 100%;
+  padding: 4px;
+  gap: 4px;
+  box-sizing: border-box;
+  border-radius: var(--ta-border-radius-2xl);
+  background-color: var(--ta-color-background-secondary);
+}
+
+.trigger {
+  composes: labelSemibold from "../../../styles/typography.module.css";
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: calc(var(--ta-border-radius-2xl) - 4px);
+  background: transparent;
+  color: var(--ta-color-text);
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+  outline: none;
+}
+
+.trigger[data-state="active"] {
+  background-color: var(--ta-color-background);
+}

@@ -12,7 +12,7 @@ import { STORY_TOKENS } from '../../../../storybook/fixtures/tokens';
 import { SwapWidget } from './swap-widget';
 
 const meta: Meta<typeof SwapWidget> = {
-    title: 'Public/Features/Swap/SwapWidget',
+    title: 'Features/Swap/SwapWidget',
     component: SwapWidget,
     tags: ['autodocs'],
 };

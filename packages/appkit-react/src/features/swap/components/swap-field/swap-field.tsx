@@ -11,8 +11,8 @@ import { calcFiatValue, formatLargeValue } from '@ton/appkit';
 import clsx from 'clsx';
 
 import { useI18n } from '../../../settings/hooks/use-i18n';
-import { Input } from '../../../../components/input/input';
-import { Skeleton } from '../../../../components/skeleton';
+import { Input } from '../../../../components/ui/input/input';
+import { Skeleton } from '../../../../components/ui/skeleton';
 import { TokenSelector } from '../../../../components/token-selector';
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
 import { getDisplayAmount } from '../../utils/get-display-amount';
@@ -62,7 +62,7 @@ export const SwapField: FC<SwapFieldProps> = ({
             {...props}
         >
             <Input.Header className={styles.header}>
-                <Input.Title>{type === 'pay' ? t('swap.pay') : t('swap.receive')}</Input.Title>
+                <Input.Title className={styles.title}>{type === 'pay' ? t('swap.pay') : t('swap.receive')}</Input.Title>
             </Input.Header>
 
             <Input.Field className={styles.field}>
@@ -89,9 +89,9 @@ export const SwapField: FC<SwapFieldProps> = ({
                                 <Skeleton className={styles.skeletonText} />
                             ) : (
                                 <>
-                                    {t('swap.max')}
                                     <button className={styles.maxButton} onClick={onMaxClick} type="button">
-                                        {displayBalance} {tokenSymbol}
+                                        <span className={styles.max}>{t('swap.max')}</span> {displayBalance}{' '}
+                                        {tokenSymbol}
                                     </button>
                                 </>
                             )}

@@ -43,7 +43,7 @@ const TransactionProgressPreview = ({
 };
 
 const meta: Meta<typeof TransactionProgressPreview> = {
-    title: 'Public/Features/Transaction/TransactionProgress',
+    title: 'Features/Transaction/TransactionProgress',
     component: TransactionProgressPreview,
     tags: ['autodocs'],
 };
