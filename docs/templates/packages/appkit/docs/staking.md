@@ -16,13 +16,13 @@ Staking providers are included in the `@ton/appkit` package. No extra dependenci
 
 You can set up staking providers by passing them to the `AppKit` constructor.
 
-%%demo/examples/src/appkit/staking#STAKING_PROVIDER_INIT%%
+%%docs/examples/src/appkit/staking#STAKING_PROVIDER_INIT%%
 
 ### Register Dynamically
 
 Alternatively, you can register providers dynamically using `registerProvider`:
 
-%%demo/examples/src/appkit/staking#STAKING_PROVIDER_REGISTER%%
+%%docs/examples/src/appkit/staking#STAKING_PROVIDER_REGISTER%%
 
 ## Configuration
 

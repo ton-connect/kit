@@ -10,7 +10,7 @@ For detailed information about Omniston features and capabilities, see the [offi
 
 ## Quick Start
 
-%%demo/examples/src/appkit/swap#OMNISTON_QUICK_START%%
+%%docs/examples/src/appkit/swap#OMNISTON_QUICK_START%%
 
 ## Configuration
 
@@ -30,15 +30,15 @@ interface OmnistonSwapProviderConfig {
 
 ### Usage Example
 
-%%demo/examples/src/appkit/swap#OMNISTON_USAGE_EXAMPLE%%
+%%docs/examples/src/appkit/swap#OMNISTON_USAGE_EXAMPLE%%
 
 ## Referral Fees
 
-%%demo/examples/src/appkit/swap#OMNISTON_REFERRAL_FEES%%
+%%docs/examples/src/appkit/swap#OMNISTON_REFERRAL_FEES%%
 
 ### Overriding Referral Settings
 
-%%demo/examples/src/appkit/swap#OMNISTON_OVERRIDING_REFERRAL%%
+%%docs/examples/src/appkit/swap#OMNISTON_OVERRIDING_REFERRAL%%
 
 ## Resources
 

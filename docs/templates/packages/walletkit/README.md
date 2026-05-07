@@ -48,7 +48,7 @@ npm install @ton/walletkit
 
 ## Initialize the kit
 
-%%demo/examples/src#INIT_KIT%%
+%%docs/examples/src#INIT_KIT%%
 
 ## Understanding previews (for your UI)
 
@@ -64,18 +64,18 @@ You can display these previews directly in your confirmation modals.
 
 Register callbacks that show UI and then approve or reject via kit methods. Note: `getSelectedWalletAddress()` is a placeholder for your own wallet selection logic.
 
-%%demo/examples/src#LISTEN_FOR_REQUESTS%%
+%%docs/examples/src#LISTEN_FOR_REQUESTS%%
 
 
 ### Handle TON Connect links
 
 When users scan a QR code or click a deep link from a dApp, pass the TON Connect URL to the kit. This will trigger your `onConnectRequest` callback.
 
-%%demo/examples/src#ON_TON_CONNECT_LINK%%
+%%docs/examples/src#ON_TON_CONNECT_LINK%%
 
 ### Basic wallet operations
 
-%%demo/examples/src#BASIC_WALLET_OPERATIONS%%
+%%docs/examples/src#BASIC_WALLET_OPERATIONS%%
 
 ### Rendering previews (reference)
 
@@ -83,23 +83,23 @@ The snippets below mirror how the demo wallet renders previews in its modals. Ad
 
 Render Connect preview:
 
-%%demo/examples/src#RENDER_CONNECT_PREVIEW%%
+%%docs/examples/src#RENDER_CONNECT_PREVIEW%%
 
 Render Transaction preview (money flow overview):
 
-%%demo/examples/src#SUMMARIZE_TRANSACTION%%
+%%docs/examples/src#SUMMARIZE_TRANSACTION%%
 
 Example UI rendering:
 
-%%demo/examples/src#RENDER_MONEY_FLOW%%
+%%docs/examples/src#RENDER_MONEY_FLOW%%
 
 Render Sign-Data preview:
 
-%%demo/examples/src#RENDER_SIGN_DATA_PREVIEW%%
+%%docs/examples/src#RENDER_SIGN_DATA_PREVIEW%%
 
 **Tip:** For jetton names/symbols and images in transaction previews, you can enrich the UI using:
 
-%%demo/examples/src#GET_JETTON_INFO%%
+%%docs/examples/src#GET_JETTON_INFO%%
 
 ## Sending assets programmatically
 
@@ -107,11 +107,11 @@ You can create transactions from your wallet app (not from dApps) and feed them 
 
 ### Send TON
 
-%%demo/examples/src#SEND_TON%%
+%%docs/examples/src#SEND_TON%%
 
 ### Send Jettons (fungible tokens)
 
-%%demo/examples/src#SEND_JETTONS%%
+%%docs/examples/src#SEND_JETTONS%%
 
 **Notes:**
 - `amount` is the raw integer amount (apply jetton decimals yourself)
@@ -119,17 +119,17 @@ You can create transactions from your wallet app (not from dApps) and feed them 
 
 ### Send NFTs
 
-%%demo/examples/src#SEND_NFTS%%
+%%docs/examples/src#SEND_NFTS%%
 
 **Fetching NFTs:**
 
-%%demo/examples/src#FETCHING_NFTS%%
+%%docs/examples/src#FETCHING_NFTS%%
 
 Note: The `getNfts` method returns `NFTsResponse` with a `nfts` field (not `items`).
 
 ## Example: minimal UI state wiring
 
-%%demo/examples/src#MINIMAL_UI_STATE_WIRING%%
+%%docs/examples/src#MINIMAL_UI_STATE_WIRING%%
 
 ## Demo wallet reference
 

@@ -8,11 +8,17 @@
 
 import fs from 'fs/promises';
 import path from 'path';
+import { dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
 
 import { ESLint } from 'eslint';
 import * as prettier from 'prettier';
 
 import { extractSamplesFromFile } from './extract-samples';
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = resolve(HERE, '../../..');
+const TEMPLATES_DIR_NAME = 'docs/templates';
 
 type Placeholder = {
     raw: string;
@@ -35,7 +41,6 @@ function validateDirPath(dirPath: string): void {
 }
 
 function isJSXCode(code: string): boolean {
-    // Check if code contains JSX syntax (tags like <div>, <span>, etc.)
     const jsxPattern = /<[A-Za-z][A-Za-z0-9]*(\s|>)/;
     return jsxPattern.test(code);
 }
@@ -50,16 +55,16 @@ async function formatSampleCode(sample: string, filePath?: string): Promise<stri
     const parser = isJSX ? 'typescript' : 'typescript';
     const tempFilePath = filePath || (isJSX ? 'temp.tsx' : 'temp.ts');
 
-    const prettierConfig = await prettier.resolveConfig(process.cwd());
+    const prettierConfig = await prettier.resolveConfig(REPO_ROOT);
     let formatted = await prettier.format(trimmed, {
         ...prettierConfig,
         parser,
     });
     formatted = formatted.trimEnd();
 
-    const eslintConfigPath = path.resolve(process.cwd(), 'eslint.config.js');
+    const eslintConfigPath = path.resolve(REPO_ROOT, 'eslint.config.js');
     const eslint = new ESLint({
-        cwd: process.cwd(),
+        cwd: REPO_ROOT,
         overrideConfigFile: eslintConfigPath,
         overrideConfig: {
             rules: {
@@ -81,7 +86,7 @@ async function formatSampleCode(sample: string, filePath?: string): Promise<stri
 }
 
 async function findTemplateFiles(): Promise<string[]> {
-    const templateDir = path.resolve('template');
+    const templateDir = path.resolve(REPO_ROOT, TEMPLATES_DIR_NAME);
     try {
         const stat = await fs.stat(templateDir);
         if (!stat.isDirectory()) {
@@ -223,7 +228,6 @@ async function resolvePlaceholder(
         }
     }
 
-    // SAMPLE_NAME_1, SAMPLE_NAME_2, ..., SAMPLE_NAME_N
     let sample = allSamples.get(placeholder.sampleName);
 
     if (!sample) {
@@ -237,7 +241,6 @@ async function resolvePlaceholder(
                 if (!isNaN(index)) {
                     parts.push({ name, code, index });
                     if (!sourceFilePath) {
-                        // Find the file that contains this sample
                         for (const file of files) {
                             const fileSamples = sampleCache.get(file);
                             if (fileSamples?.has(name)) {
@@ -259,7 +262,6 @@ async function resolvePlaceholder(
         parts.sort((a, b) => a.index - b.index);
         sample = parts.map((p) => p.code).join('\n\n');
     } else {
-        // Find the file that contains this sample
         for (const file of files) {
             const fileSamples = sampleCache.get(file);
             if (fileSamples?.has(placeholder.sampleName)) {
@@ -277,7 +279,6 @@ async function resolvePlaceholder(
 }
 
 async function processTemplateFile(templatePath: string): Promise<void> {
-    const cwd = process.cwd();
     const templateContent = await fs.readFile(templatePath, 'utf8');
 
     const { params, body: templateBody } = parseTemplateParams(templateContent);
@@ -286,16 +287,14 @@ async function processTemplateFile(templatePath: string): Promise<void> {
 
     const sampleCache = new Map<string, Map<string, string>>();
 
-    // Replace placeholders
     let result = templateBody;
     for (const placeholder of placeholders) {
-        const injected = await resolvePlaceholder(cwd, placeholder, sampleCache);
+        const injected = await resolvePlaceholder(REPO_ROOT, placeholder, sampleCache);
         result = result.replace(placeholder.raw, injected);
     }
 
-    // Use target from template parameters
-    const outPath = path.resolve(cwd, params.target);
-    const sourceRelative = path.relative(cwd, templatePath);
+    const outPath = path.resolve(REPO_ROOT, params.target);
+    const sourceRelative = path.relative(REPO_ROOT, templatePath);
     const generatedHeader = `<!--
 This file is auto-generated. Do not edit manually.
 Changes will be overwritten when running the docs update script.
@@ -305,18 +304,20 @@ Source template: ${sourceRelative}
 `;
     await fs.mkdir(path.dirname(outPath), { recursive: true });
     await fs.writeFile(outPath, generatedHeader + result, 'utf8');
-    console.log(`Updated markdown: ${path.relative(cwd, outPath)} from ${path.relative(cwd, templatePath)}`);
+    console.log(
+        `Updated markdown: ${path.relative(REPO_ROOT, outPath)} from ${path.relative(REPO_ROOT, templatePath)}`,
+    );
 }
 
 async function main(): Promise<void> {
     const templates = await findTemplateFiles();
     if (templates.length === 0) {
-        console.log('No template/*.md files found, nothing to update.');
+        console.log(`No ${TEMPLATES_DIR_NAME}/**/*.md files found, nothing to update.`);
         return;
     }
 
     for (const templatePath of templates) {
-        console.log(`Processing template: ${templatePath}`);
+        console.log(`Processing template: ${path.relative(REPO_ROOT, templatePath)}`);
         await processTemplateFile(templatePath);
     }
 }

@@ -35,17 +35,17 @@ npm install @ton/appkit @ton/core @ton/crypto
 
 ## Initialize AppKit and wrap wallet
 
-%%demo/examples/src/appkit#APPKIT_INIT%%
+%%docs/examples/src/appkit#APPKIT_INIT%%
 
 ## Usage
  
 ### Get Balance
  
-%%demo/examples/src/appkit/actions/balances#GET_BALANCE%%
+%%docs/examples/src/appkit/actions/balances#GET_BALANCE%%
  
 ### Transfer TON
  
-%%demo/examples/src/appkit/actions/transaction#TRANSFER_TON%%
+%%docs/examples/src/appkit/actions/transaction#TRANSFER_TON%%
  
 > See all available actions in the [Actions Documentation](https://github.com/ton-connect/kit/tree/main/packages/appkit/docs/actions.md).
 

@@ -60,15 +60,18 @@ function generateForPackage(pkg: PackageKey): { output: string; entryCount: numb
 
 function main(): void {
     const targets = parseTargets(process.argv.slice(2));
-    const outputDir = join(REPO_ROOT, 'docs/reference');
-    mkdirSync(outputDir, { recursive: true });
 
     for (const pkg of targets) {
         const { output, entryCount } = generateForPackage(pkg);
-        const outPath = join(outputDir, `${pkg}.mdx`);
-        writeFileSync(outPath, output);
+        const outPath = join(REPO_ROOT, 'docs/templates/packages', pkg, 'docs/reference.md');
+        const target = `packages/${pkg}/docs/reference.md`;
+        const frontMatter = `---\ntarget: ${target}\n---\n\n`;
+
+        mkdirSync(dirname(outPath), { recursive: true });
+        writeFileSync(outPath, frontMatter + output);
+
         const relativePath = outPath.slice(REPO_ROOT.length + 1);
-        console.log(`✓ ${relativePath} (${entryCount} entries)`);
+        console.log(`✓ ${relativePath} (${entryCount} entries) → target ${target}`);
     }
 }
 

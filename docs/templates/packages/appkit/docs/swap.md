@@ -23,13 +23,13 @@ npm install @ston-fi/omniston-sdk
 
 You can set up swap providers by passing them to the `AppKit` constructor.
 
-%%demo/examples/src/appkit/swap#SWAP_PROVIDER_INIT%%
+%%docs/examples/src/appkit/swap#SWAP_PROVIDER_INIT%%
 
 ### Register Dynamically
 
 Alternatively, you can register providers dynamically using `registerProvider`:
 
-%%demo/examples/src/appkit/swap#SWAP_PROVIDER_REGISTER%%
+%%docs/examples/src/appkit/swap#SWAP_PROVIDER_REGISTER%%
 
 ## Configuration
 

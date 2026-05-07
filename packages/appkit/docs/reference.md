@@ -1,3 +1,9 @@
+<!--
+This file is auto-generated. Do not edit manually.
+Changes will be overwritten when running the docs update script.
+Source template: docs/templates/packages/appkit/docs/reference.md
+-->
+
 ## Class
 
 ### AppKit

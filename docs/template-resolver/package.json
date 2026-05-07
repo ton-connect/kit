@@ -1,0 +1,19 @@
+{
+    "name": "@ton/template-resolver",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "description": "Resolves %%dir/path#SAMPLE_NAME%% placeholders in docs/templates/**/*.md by injecting code from SAMPLE_START/SAMPLE_END blocks in the source tree.",
+    "scripts": {
+        "resolve": "tsx src/index.ts",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "eslint": "^9.39.4",
+        "prettier": "^3.6.2"
+    },
+    "devDependencies": {
+        "tsx": "^4.21.0",
+        "typescript": "~5.9.3"
+    }
+}

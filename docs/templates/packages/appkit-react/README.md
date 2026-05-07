@@ -38,7 +38,7 @@ Initialize `QueryClient` and `AppKit`, then wrap your application in `QueryClien
 > [!NOTE]
 > Don't forget to import styles from `@ton/appkit-react/styles.css`.
 
-%%demo/examples/src/appkit#APPKIT_REACT_INIT%%
+%%docs/examples/src/appkit#APPKIT_REACT_INIT%%
 [Read more about TanStack Query](https://tanstack.com/query/latest/docs/framework/react/overview)
 
 ### TonConnect Configuration
@@ -105,7 +105,7 @@ export const Balance = () => {
 
 Use the `Send` component to trigger a transaction from a button. It handles the entire send flow.
 
-%%demo/examples/src/appkit/components/transaction#TRANSACTION%%
+%%docs/examples/src/appkit/components/transaction#TRANSACTION%%
 
 For a custom UI, use `SendProvider` with `useSendContext` — see [Components Documentation](./docs/components.md#sendprovider).
 
@@ -125,7 +125,7 @@ npm install @ston-fi/omniston-sdk
 
 Initialize `AppKit` with `OmnistonSwapProvider`:
 
-%%demo/examples/src/appkit/swap#SWAP_PROVIDER_INIT%%
+%%docs/examples/src/appkit/swap#SWAP_PROVIDER_INIT%%
 
 ### Hooks
 
@@ -143,9 +143,9 @@ Use `useStakingQuote` to get a staking/unstaking quote and `useBuildStakeTransac
 
 [Read more about Staking](https://github.com/ton-connect/kit/tree/main/packages/appkit/docs/staking.md)
 
-%%demo/examples/src/appkit/hooks/staking#USE_STAKING_QUOTE%%
+%%docs/examples/src/appkit/hooks/staking#USE_STAKING_QUOTE%%
 
-%%demo/examples/src/appkit/hooks/staking#USE_BUILD_STAKE_TRANSACTION%%
+%%docs/examples/src/appkit/hooks/staking#USE_BUILD_STAKE_TRANSACTION%%
 
 ## Migration from TonConnect UI
 
@@ -153,7 +153,7 @@ Use `useStakingQuote` to get a staking/unstaking quote and `useBuildStakeTransac
 
 You can use standard TonConnect hooks in your components:
 
-%%demo/examples/src/appkit#APPKIT_REACT_TONCONNECT_HOOKS%%
+%%docs/examples/src/appkit#APPKIT_REACT_TONCONNECT_HOOKS%%
 
 ## License
 

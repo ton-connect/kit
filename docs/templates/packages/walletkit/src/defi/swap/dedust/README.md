@@ -10,7 +10,7 @@ For detailed information about DeDust Router, see the [official documentation](h
 
 ## Quick Start
 
-%%demo/examples/src/appkit/swap#DEDUST_QUICK_START%%
+%%docs/examples/src/appkit/swap#DEDUST_QUICK_START%%
 
 ## Configuration
 
@@ -32,15 +32,15 @@ interface DeDustSwapProviderConfig {
 
 ## Protocol Routing
 
-%%demo/examples/src/appkit/swap#DEDUST_PROTOCOL_ROUTING%%
+%%docs/examples/src/appkit/swap#DEDUST_PROTOCOL_ROUTING%%
 
 ## Referral Fees
 
-%%demo/examples/src/appkit/swap#DEDUST_REFERRAL_FEES%%
+%%docs/examples/src/appkit/swap#DEDUST_REFERRAL_FEES%%
 
 ### Overriding Referral Settings
 
-%%demo/examples/src/appkit/swap#DEDUST_OVERRIDING_REFERRAL%%
+%%docs/examples/src/appkit/swap#DEDUST_OVERRIDING_REFERRAL%%
 
 ## Resources
 

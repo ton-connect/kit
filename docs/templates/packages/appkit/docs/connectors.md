@@ -28,17 +28,17 @@ import { TonConnectConnector } from '@ton/appkit/tonconnect';
 
 You can set up `TonConnectConnector` by passing `tonConnectOptions`. The connector will create the `TonConnectUI` instance internally.
 
-%%demo/examples/src/appkit/connectors/tonconnect#TON_CONNECT_OPTIONS%%
+%%docs/examples/src/appkit/connectors/tonconnect#TON_CONNECT_OPTIONS%%
 
 Alternatively, you can pass an existing `TonConnectUI` instance:
 
-%%demo/examples/src/appkit/connectors/tonconnect#TON_CONNECT_CONNECTOR%%
+%%docs/examples/src/appkit/connectors/tonconnect#TON_CONNECT_CONNECTOR%%
 
 ### Add Connector Dynamically
 
 In some cases, you may need to add a connector after initialization. You can use the `addConnector` method for this purpose.
 
-%%demo/examples/src/appkit/connectors/tonconnect#ADD_CONNECTOR%%
+%%docs/examples/src/appkit/connectors/tonconnect#ADD_CONNECTOR%%
 
 ### Configuration
 
