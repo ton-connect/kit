@@ -13,15 +13,39 @@ import { WALLETS_EVENTS } from '../../core/app-kit';
 import { getSelectedWallet } from '../wallets/get-selected-wallet';
 import { watchBalanceByAddress } from './watch-balance-by-address';
 
+/**
+ * Options for {@link watchBalance}.
+ *
+ * @public
+ * @category Type
+ * @section Balances
+ */
 export interface WatchBalanceOptions {
+    /** Network to watch on. Defaults to the selected wallet's network. */
     network?: Network;
+    /** Callback fired on every balance update from the streaming provider. */
     onChange: (update: BalanceUpdate) => void;
 }
 
 export type WatchBalanceReturnType = () => void;
 
 /**
- * Watch account balance changes for the selected wallet.
+ * Subscribe to Toncoin balance updates for the currently selected wallet.
+ *
+ * The subscription transparently follows the selected wallet — if the user
+ * connects, switches, or disconnects, the underlying watcher is rebound
+ * without any extra wiring on the caller side. For a fixed address use
+ * `watchBalanceByAddress`.
+ *
+ * @param appKit - AppKit runtime instance.
+ * @param options - Update callback and optional network override.
+ * @returns Unsubscribe function — call it to stop receiving updates.
+ *
+ * @sample docs/examples/src/appkit/actions/balances#WATCH_BALANCE
+ *
+ * @public
+ * @category Action
+ * @section Balances
  */
 export const watchBalance = (appKit: AppKit, options: WatchBalanceOptions): WatchBalanceReturnType => {
     const { network, onChange } = options;

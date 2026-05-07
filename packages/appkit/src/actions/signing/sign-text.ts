@@ -31,10 +31,6 @@ export type SignTextReturnType = SignDataResponse;
 /**
  * Ask the connected wallet to sign a plain text message.
  *
- * Returns the signature plus the canonical payload that was actually signed
- * — wallets normalize whitespace and encoding, so verify against the
- * returned payload, not against the original input string.
- *
  * Throws `Error('Wallet not connected')` if no wallet is currently selected.
  *
  * @param appKit - AppKit runtime instance.

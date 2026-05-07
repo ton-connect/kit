@@ -12,16 +12,40 @@ import type { BalanceUpdate, Network } from '@ton/walletkit';
 import type { AppKit } from '../../core/app-kit';
 import { resolveNetwork } from '../../utils/network/resolve-network';
 
+/**
+ * Options for {@link watchBalanceByAddress}.
+ *
+ * @public
+ * @category Type
+ * @section Balances
+ */
 export interface WatchBalanceByAddressOptions {
+    /** Wallet address as a base64url string or an `Address` instance. */
     address: string | Address;
+    /** Network to watch on. Defaults to the AppKit's selected network. */
     network?: Network;
+    /** Callback fired on every balance update from the streaming provider. */
     onChange: (update: BalanceUpdate) => void;
 }
 
 export type WatchBalanceByAddressReturnType = () => void;
 
 /**
- * Watch account balance changes by address.
+ * Subscribe to Toncoin balance updates for an arbitrary address.
+ *
+ * Useful when you need to monitor a wallet that is not currently selected
+ * in AppKit (e.g. a watched address, a recipient before they connect).
+ * For the selected wallet's balance use `watchBalance`.
+ *
+ * @param appKit - AppKit runtime instance.
+ * @param options - Address, update callback and optional network override.
+ * @returns Unsubscribe function — call it to stop receiving updates.
+ *
+ * @sample docs/examples/src/appkit/actions/balances#WATCH_BALANCE_BY_ADDRESS
+ *
+ * @public
+ * @category Action
+ * @section Balances
  */
 export const watchBalanceByAddress = (
     appKit: AppKit,

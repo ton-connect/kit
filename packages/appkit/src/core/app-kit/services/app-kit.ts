@@ -33,7 +33,7 @@ import { Network } from '../../../types/network';
  *
  * Construct one at app startup, pass it down through your app (or via
  * `AppKitProvider` in React), and reuse it for the lifetime of the
- * application. Tear it down with `dispose()` if you need to recreate it.
+ * application.
  *
  * @sample docs/examples/src/appkit#APPKIT_INIT
  *

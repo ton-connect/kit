@@ -14,7 +14,7 @@ instance as its first argument.
 
 Construct one at app startup, pass it down through your app (or via
 `AppKitProvider` in React), and reuse it for the lifetime of the
-application. Tear it down with `dispose()` if you need to recreate it.
+application.
 
 Constructor: `new AppKit(config)`
 
@@ -56,6 +56,31 @@ const appKit = new AppKit({
 
 ### Balances
 
+#### getBalance
+
+Read the Toncoin balance of the currently selected wallet.
+
+Returns `null` when no wallet is connected (rather than throwing), so the
+UI layer can render an empty state without an error path. For an
+arbitrary address use `getBalanceByAddress`.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | AppKit runtime instance. |
+| `options` | [`GetBalanceOptions`](#getbalanceoptions) | Optional network override. |
+| `options.network` | `Network \| undefined` | Network to read the balance from. Defaults to the selected wallet's network. |
+
+Returns: `Promise<GetBalanceReturnType>` — Balance in TON as a human-readable decimal string, or `null` if no wallet is selected.
+
+**Example**
+
+```ts
+const balance = await getBalance(appKit);
+if (balance) {
+    console.log('Balance:', balance.toString());
+}
+```
+
 #### getBalanceByAddress
 
 Read the Toncoin balance of an arbitrary address.
@@ -67,7 +92,7 @@ one currently selected in AppKit. For the selected wallet's balance use
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | AppKit runtime instance. |
-| `options`\* | `GetBalanceByAddressOptions` | Address to query and optional network override. |
+| `options`\* | [`GetBalanceByAddressOptions`](#getbalancebyaddressoptions) | Address to query and optional network override. |
 | `options.address`\* | `string \| Address` | Wallet address as a base64url string or an `Address` instance. |
 | `options.network` | `Network \| undefined` | Network to read the balance from. Defaults to the AppKit's selected network. |
 
@@ -82,15 +107,72 @@ const balanceByAddress = await getBalanceByAddress(appKit, {
 console.log('Balance by address:', balanceByAddress);
 ```
 
+#### watchBalance
+
+Subscribe to Toncoin balance updates for the currently selected wallet.
+
+The subscription transparently follows the selected wallet — if the user
+connects, switches, or disconnects, the underlying watcher is rebound
+without any extra wiring on the caller side. For a fixed address use
+`watchBalanceByAddress`.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | AppKit runtime instance. |
+| `options`\* | [`WatchBalanceOptions`](#watchbalanceoptions) | Update callback and optional network override. |
+| `options.network` | `Network \| undefined` | Network to watch on. Defaults to the selected wallet's network. |
+| `options.onChange`\* | `(update: BalanceUpdate) => void` | Callback fired on every balance update from the streaming provider. |
+
+Returns: `WatchBalanceReturnType` — Unsubscribe function — call it to stop receiving updates.
+
+**Example**
+
+```ts
+const unsubscribe = watchBalance(appKit, {
+    onChange: (update) => {
+        console.log('Balance updated:', update.balance);
+    },
+});
+
+// Later: unsubscribe();
+```
+
+#### watchBalanceByAddress
+
+Subscribe to Toncoin balance updates for an arbitrary address.
+
+Useful when you need to monitor a wallet that is not currently selected
+in AppKit (e.g. a watched address, a recipient before they connect).
+For the selected wallet's balance use `watchBalance`.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | AppKit runtime instance. |
+| `options`\* | [`WatchBalanceByAddressOptions`](#watchbalancebyaddressoptions) | Address, update callback and optional network override. |
+| `options.address`\* | `string \| Address` | Wallet address as a base64url string or an `Address` instance. |
+| `options.network` | `Network \| undefined` | Network to watch on. Defaults to the AppKit's selected network. |
+| `options.onChange`\* | `(update: BalanceUpdate) => void` | Callback fired on every balance update from the streaming provider. |
+
+Returns: `WatchBalanceByAddressReturnType` — Unsubscribe function — call it to stop receiving updates.
+
+**Example**
+
+```ts
+const unsubscribe = watchBalanceByAddress(appKit, {
+    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+    onChange: (update) => {
+        console.log('Balance by address updated:', update.balance);
+    },
+});
+
+// Later: unsubscribe();
+```
+
 ### Signing
 
 #### signText
 
 Ask the connected wallet to sign a plain text message.
-
-Returns the signature plus the canonical payload that was actually signed
-— wallets normalize whitespace and encoding, so verify against the
-returned payload, not against the original input string.
 
 Throws `Error('Wallet not connected')` if no wallet is currently selected.
 
@@ -163,6 +245,42 @@ may return raw integer nano amounts.
 ```ts
 type Balance = TokenAmount;
 ```
+
+#### GetBalanceByAddressOptions
+
+Options for getBalanceByAddress.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `address`\* | `string \| Address` | Wallet address as a base64url string or an `Address` instance. |
+| `network` | `Network \| undefined` | Network to read the balance from. Defaults to the AppKit's selected network. |
+
+#### GetBalanceOptions
+
+Options for getBalance.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `network` | `Network \| undefined` | Network to read the balance from. Defaults to the selected wallet's network. |
+
+#### WatchBalanceByAddressOptions
+
+Options for watchBalanceByAddress.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `address`\* | `string \| Address` | Wallet address as a base64url string or an `Address` instance. |
+| `network` | `Network \| undefined` | Network to watch on. Defaults to the AppKit's selected network. |
+| `onChange`\* | `(update: BalanceUpdate) => void` | Callback fired on every balance update from the streaming provider. |
+
+#### WatchBalanceOptions
+
+Options for watchBalance.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `network` | `Network \| undefined` | Network to watch on. Defaults to the selected wallet's network. |
+| `onChange`\* | `(update: BalanceUpdate) => void` | Callback fired on every balance update from the streaming provider. |
 
 ### Connectors and wallets
 

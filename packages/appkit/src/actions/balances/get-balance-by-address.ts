@@ -13,6 +13,13 @@ import { formatUnits } from '@ton/walletkit';
 import type { AppKit } from '../../core/app-kit';
 import { resolveNetwork } from '../../utils/network/resolve-network';
 
+/**
+ * Options for {@link getBalanceByAddress}.
+ *
+ * @public
+ * @category Type
+ * @section Balances
+ */
 export interface GetBalanceByAddressOptions {
     /** Wallet address as a base64url string or an `Address` instance. */
     address: string | Address;
