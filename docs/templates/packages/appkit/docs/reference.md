@@ -22,15 +22,7 @@ Constructor: `new AppKit(config)`
 
 **Example**
 
-```ts
-import { AppKit, Network } from '@ton/appkit';
-
-const appKit = new AppKit({
-    networks: { [Network.mainnet().chainId]: {} },
-    defaultNetwork: Network.mainnet(),
-    connectors: [tonConnectConnector],
-});
-```
+%%docs/examples/src/appkit#APPKIT_INIT%%
 
 ## Action
 
@@ -55,12 +47,7 @@ Returns: Balance amount as a `TokenAmount` (string nanos with token metadata).
 
 **Example**
 
-```ts
-const balance = await getBalanceByAddress(appKit, {
-    address: 'EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N',
-});
-console.log(balance);
-```
+%%docs/examples/src/appkit/actions/balances#GET_BALANCE_BY_ADDRESS%%
 
 ### Signing
 
@@ -85,10 +72,7 @@ Returns: Signature and signed payload, as returned by the wallet.
 
 **Example**
 
-```ts
-const result = await signText(appKit, { text: 'Hello World' });
-console.log(result.signature);
-```
+%%docs/examples/src/appkit/actions/signing#SIGN_TEXT%%
 
 ### Transactions
 
@@ -115,13 +99,7 @@ Returns: Wallet response carrying the BoC of the sent transaction.
 
 **Example**
 
-```ts
-await transferTon(appKit, {
-    recipientAddress: 'EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N',
-    amount: '1.5',
-    comment: 'Hello',
-});
-```
+%%docs/examples/src/appkit/actions/transaction#TRANSFER_TON%%
 
 ## Type
 

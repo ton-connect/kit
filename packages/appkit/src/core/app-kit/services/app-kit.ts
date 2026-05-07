@@ -35,16 +35,7 @@ import { Network } from '../../../types/network';
  * `AppKitProvider` in React), and reuse it for the lifetime of the
  * application. Tear it down with `dispose()` if you need to recreate it.
  *
- * @example
- * ```ts
- * import { AppKit, Network } from '@ton/appkit';
- *
- * const appKit = new AppKit({
- *     networks: { [Network.mainnet().chainId]: {} },
- *     defaultNetwork: Network.mainnet(),
- *     connectors: [tonConnectConnector],
- * });
- * ```
+ * @sample docs/examples/src/appkit#APPKIT_INIT
  *
  * @public
  * @category Class

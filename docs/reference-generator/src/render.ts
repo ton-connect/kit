@@ -125,7 +125,7 @@ function renderFunction(entry: ExtractedFunction, level: HeadingLevel): string {
     } else {
         lines.push(`Returns: \`${escapeForCell(entry.returnTypeText)}\`.`);
     }
-    appendExamples(lines, entry.examples);
+    appendExamples(lines, entry.examples, entry.samples);
     return lines.join('\n');
 }
 
@@ -140,7 +140,7 @@ function renderComponent(entry: ExtractedComponent, level: HeadingLevel): string
     } else {
         lines.push('_No props._');
     }
-    appendExamples(lines, entry.examples);
+    appendExamples(lines, entry.examples, entry.samples);
     return lines.join('\n');
 }
 
@@ -199,17 +199,22 @@ function renderClass(entry: ExtractedClass, level: HeadingLevel): string {
     } else {
         lines.push(`Constructor: \`new ${entry.name}()\``);
     }
-    appendExamples(lines, entry.examples);
+    appendExamples(lines, entry.examples, entry.samples);
     return lines.join('\n');
 }
 
-function appendExamples(lines: string[], examples: string[]): void {
-    if (examples.length === 0) return;
+function appendExamples(lines: string[], examples: string[], samples: string[]): void {
+    const total = examples.length + samples.length;
+    if (total === 0) return;
     lines.push('');
-    lines.push(examples.length > 1 ? '**Examples**' : '**Example**');
+    lines.push(total > 1 ? '**Examples**' : '**Example**');
     lines.push('');
     for (const example of examples) {
         lines.push(example);
+        lines.push('');
+    }
+    for (const sample of samples) {
+        lines.push(`%%${sample}%%`);
         lines.push('');
     }
 }

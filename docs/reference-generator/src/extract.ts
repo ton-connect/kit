@@ -43,6 +43,7 @@ export interface ExtractedFunction {
     returnTypeText: string;
     returnDescription: string | null;
     examples: string[];
+    samples: string[];
 }
 
 export interface ExtractedComponent {
@@ -54,6 +55,7 @@ export interface ExtractedComponent {
     summary: string | null;
     props: ParamRow[];
     examples: string[];
+    samples: string[];
 }
 
 export interface ExtractedNamespaceComponent {
@@ -86,6 +88,7 @@ export interface ExtractedClass {
     summary: string | null;
     constructorParams: ParamRow[] | null;
     examples: string[];
+    samples: string[];
 }
 
 export interface ExtractedUnknown {
@@ -207,11 +210,12 @@ function extractFunctionLike(
     const paramTags = readParamTags(jsdoc);
     const returnDescription = readReturnDescription(jsdoc);
     const examples = readExamples(jsdoc);
+    const samples = readSamples(jsdoc);
 
     const params = expandParameters(decl.getParameters(), decl, paramTags);
     const returnTypeText = formatType(decl.getReturnType(), decl);
 
-    return { kind, name, sourcePath, summary, params, returnTypeText, returnDescription, examples };
+    return { kind, name, sourcePath, summary, params, returnTypeText, returnDescription, examples, samples };
 }
 
 function extractVariableFunction(
@@ -227,6 +231,7 @@ function extractVariableFunction(
     const paramTags = readParamTags(jsdoc);
     const returnDescription = readReturnDescription(jsdoc);
     const examples = readExamples(jsdoc);
+    const samples = readSamples(jsdoc);
 
     if (!Node.isArrowFunction(init) && !Node.isFunctionExpression(init)) {
         return {
@@ -238,13 +243,14 @@ function extractVariableFunction(
             returnTypeText: 'unknown',
             returnDescription,
             examples,
+            samples,
         };
     }
 
     const params = expandParameters(init.getParameters(), decl, paramTags);
     const returnTypeText = formatType(init.getReturnType(), decl);
 
-    return { kind, name, sourcePath, summary, params, returnTypeText, returnDescription, examples };
+    return { kind, name, sourcePath, summary, params, returnTypeText, returnDescription, examples, samples };
 }
 
 function extractFunctionAsComponent(
@@ -255,8 +261,9 @@ function extractFunctionAsComponent(
     const jsdoc = pickJsDoc(decl.getJsDocs());
     const summary = readSummary(jsdoc);
     const examples = readExamples(jsdoc);
+    const samples = readSamples(jsdoc);
     const props = expandComponentProps(decl.getParameters(), decl);
-    return { kind: 'component', name, sourcePath, summary, props, examples };
+    return { kind: 'component', name, sourcePath, summary, props, examples, samples };
 }
 
 function extractVariableAsComponent(
@@ -268,6 +275,7 @@ function extractVariableAsComponent(
     const jsdoc = pickJsDoc(stmt?.getJsDocs() ?? []);
     const summary = readSummary(jsdoc);
     const examples = readExamples(jsdoc);
+    const samples = readSamples(jsdoc);
 
     const init = decl.getInitializer();
     let propsType: Type | null = null;
@@ -284,7 +292,7 @@ function extractVariableAsComponent(
     }
 
     const props = propsType ? readPropsFromType(propsType, decl) : [];
-    return { kind: 'component', name, sourcePath, summary, props, examples };
+    return { kind: 'component', name, sourcePath, summary, props, examples, samples };
 }
 
 function extractNamespaceComponent(
@@ -343,14 +351,15 @@ function extractClass(
     const jsdoc = pickJsDoc(decl.getJsDocs());
     const summary = readSummary(jsdoc);
     const examples = readExamples(jsdoc);
+    const samples = readSamples(jsdoc);
     const ctor = decl.getConstructors()[0];
     if (!ctor) {
-        return { kind: 'class', name, sourcePath, summary, constructorParams: null, examples };
+        return { kind: 'class', name, sourcePath, summary, constructorParams: null, examples, samples };
     }
     const ctorJsDoc = pickJsDoc(ctor.getJsDocs());
     const ctorParamTags = readParamTags(ctorJsDoc);
     const constructorParams = expandParameters(ctor.getParameters(), decl, ctorParamTags);
-    return { kind: 'class', name, sourcePath, summary, constructorParams, examples };
+    return { kind: 'class', name, sourcePath, summary, constructorParams, examples, samples };
 }
 
 function expandParameters(
@@ -508,6 +517,21 @@ function readExamples(jsdoc: JSDoc | null): string[] {
         if (tag.getTagName() !== 'example') continue;
         const text = tag.getCommentText()?.trim();
         if (text) out.push(text);
+    }
+    return out;
+}
+
+function readSamples(jsdoc: JSDoc | null): string[] {
+    if (!jsdoc) return [];
+    const out: string[] = [];
+    for (const tag of jsdoc.getTags()) {
+        if (tag.getTagName() !== 'sample') continue;
+        const text = tag.getCommentText()?.trim();
+        if (!text) continue;
+        if (!text.includes('#')) {
+            throw new Error(`Invalid @sample value: "${text}". Expected format \`dir/path#SAMPLE_NAME\`.`);
+        }
+        out.push(text);
     }
     return out;
 }

@@ -33,13 +33,7 @@ export type GetBalanceByAddressReturnType = TokenAmount;
  * @param options - Address to query and optional network override.
  * @returns Balance amount as a `TokenAmount` (string nanos with token metadata).
  *
- * @example
- * ```ts
- * const balance = await getBalanceByAddress(appKit, {
- *     address: 'EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N',
- * });
- * console.log(balance);
- * ```
+ * @sample docs/examples/src/appkit/actions/balances#GET_BALANCE_BY_ADDRESS
  *
  * @public
  * @category Action

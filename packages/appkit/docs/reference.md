@@ -25,12 +25,30 @@ Constructor: `new AppKit(config)`
 **Example**
 
 ```ts
-import { AppKit, Network } from '@ton/appkit';
-
+// Initialize AppKit
 const appKit = new AppKit({
-    networks: { [Network.mainnet().chainId]: {} },
-    defaultNetwork: Network.mainnet(),
-    connectors: [tonConnectConnector],
+    networks: {
+        [Network.mainnet().chainId]: {
+            apiClient: {
+                url: 'https://toncenter.com',
+                key: 'your-key',
+            },
+        },
+        // Optional: add testnet
+        // [Network.testnet().chainId]: {
+        //     apiClient: {
+        //         url: 'https://testnet.toncenter.com',
+        //         key: 'your-key',
+        //     },
+        // },
+    },
+    connectors: [
+        createTonConnectConnector({
+            tonConnectOptions: {
+                manifestUrl: 'https://tonconnect-sdk-demo-dapp.vercel.app/tonconnect-manifest.json',
+            },
+        }),
+    ],
 });
 ```
 
@@ -58,10 +76,10 @@ Returns: Balance amount as a `TokenAmount` (string nanos with token metadata).
 **Example**
 
 ```ts
-const balance = await getBalanceByAddress(appKit, {
-    address: 'EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N',
+const balanceByAddress = await getBalanceByAddress(appKit, {
+    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c', // Zero Address
 });
-console.log(balance);
+console.log('Balance by address:', balanceByAddress.toString());
 ```
 
 ### Signing
@@ -88,8 +106,11 @@ Returns: Signature and signed payload, as returned by the wallet.
 **Example**
 
 ```ts
-const result = await signText(appKit, { text: 'Hello World' });
-console.log(result.signature);
+const result = await signText(appKit, {
+    text: 'Hello, TON!',
+});
+
+console.log('Signature:', result.signature);
 ```
 
 ### Transactions
@@ -118,11 +139,13 @@ Returns: Wallet response carrying the BoC of the sent transaction.
 **Example**
 
 ```ts
-await transferTon(appKit, {
-    recipientAddress: 'EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N',
-    amount: '1.5',
-    comment: 'Hello',
+const result = await transferTon(appKit, {
+    recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+    amount: '0.1', // 0.1 TON (human-readable format)
+    comment: 'Hello from AppKit!',
 });
+
+console.log('Transfer Result:', result);
 ```
 
 ## Type

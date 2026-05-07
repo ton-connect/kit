@@ -41,11 +41,7 @@ export type SignTextReturnType = SignDataResponse;
  * @param parameters - Text to sign and optional network override.
  * @returns Signature and signed payload, as returned by the wallet.
  *
- * @example
- * ```ts
- * const result = await signText(appKit, { text: 'Hello World' });
- * console.log(result.signature);
- * ```
+ * @sample docs/examples/src/appkit/actions/signing#SIGN_TEXT
  *
  * @public
  * @category Action

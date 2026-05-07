@@ -31,14 +31,7 @@ export type TransferTonErrorType = Error;
  * @param parameters - Recipient, amount and optional payload/comment.
  * @returns Wallet response carrying the BoC of the sent transaction.
  *
- * @example
- * ```ts
- * await transferTon(appKit, {
- *     recipientAddress: 'EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N',
- *     amount: '1.5',
- *     comment: 'Hello',
- * });
- * ```
+ * @sample docs/examples/src/appkit/actions/transaction#TRANSFER_TON
  *
  * @public
  * @category Action
