@@ -1,0 +1,43 @@
+.rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 0;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ta-color-text-primary);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.value {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--ta-color-text-primary);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.value:disabled {
+  cursor: default;
+  color: var(--ta-color-text-secondary);
+}
+
+.saveButton {
+  margin-top: 16px;
+}

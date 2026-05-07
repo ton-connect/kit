@@ -143,6 +143,11 @@ export {
     type GetStakingProviderReturnType,
 } from './staking/get-staking-provider';
 export {
+    setDefaultStakingProvider,
+    type SetDefaultStakingProviderParameters,
+    type SetDefaultStakingProviderReturnType,
+} from './staking/set-default-staking-provider';
+export {
     watchStakingProviders,
     type WatchStakingProvidersParameters,
     type WatchStakingProvidersReturnType,

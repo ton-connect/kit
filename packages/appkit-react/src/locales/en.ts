@@ -116,5 +116,7 @@ export default {
         whenAvailableLimit: 'No limits',
         yourBalance: 'Your balance',
         provider: 'Provider',
+        settings: 'Staking settings',
+        save: 'Save',
     },
 } as const;

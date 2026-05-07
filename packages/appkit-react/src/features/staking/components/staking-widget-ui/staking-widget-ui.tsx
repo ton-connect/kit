@@ -6,8 +6,8 @@
  *
  */
 
-import { useMemo } from 'react';
-import type { ComponentProps, FC } from 'react';
+import { useMemo, useState } from 'react';
+import type { ComponentProps, FC, ReactNode } from 'react';
 import type { StakingQuoteDirection } from '@ton/appkit';
 import clsx from 'clsx';
 
@@ -17,11 +17,13 @@ import { useI18n } from '../../../settings/hooks/use-i18n';
 import { StakingBalanceBlock } from '../staking-balance-block';
 import { StakingInfo } from '../staking-info';
 import { SelectUnstakeMode } from '../select-unstake-mode';
+import { StakingSettingsModal } from '../staking-settings-modal';
 import styles from './staking-widget-ui.module.css';
 import type { StakingContextType } from '../staking-widget-provider';
 import { ButtonWithConnect } from '../../../../components/button-with-connect';
 import { AmountReversed } from '../../../../components/amount-reversed';
 import { LowBalanceModal } from '../../../../components/low-balance-modal';
+import { SettingsButton } from '../../../../components/settings-button';
 
 export type StakingWidgetRenderProps = StakingContextType & ComponentProps<'div'>;
 
@@ -32,6 +34,10 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
     error,
     providerInfo,
     providerMetadata,
+    stakingProvider,
+    stakingProviders,
+    setStakingProviderId,
+    network,
     isProviderInfoLoading,
     setAmount,
     direction,
@@ -59,6 +65,8 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
 }) => {
     const { t } = useI18n();
 
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
     const receiveToken = providerMetadata?.receiveToken;
     const stakeToken = providerMetadata?.stakeToken;
 
@@ -66,6 +74,21 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
         if (error) return t(error);
         return direction === 'stake' ? t('staking.continue') : t('staking.unstake');
     }, [error, direction, t]);
+
+    const submitActions: ReactNode = (
+        <div className={styles.actions}>
+            <ButtonWithConnect
+                variant="fill"
+                size="l"
+                fullWidth
+                disabled={!canSubmit || isQuoteLoading || isSendingTransaction}
+                onClick={sendTransaction}
+            >
+                {buttonText}
+            </ButtonWithConnect>
+            <SettingsButton onClick={() => setIsSettingsOpen(true)} />
+        </div>
+    );
 
     return (
         <div className={clsx(styles.widget, className)} {...props}>
@@ -99,15 +122,7 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
                             onMaxClick={onMaxClick}
                         />
 
-                        <ButtonWithConnect
-                            variant="fill"
-                            size="l"
-                            fullWidth
-                            disabled={!canSubmit || isQuoteLoading || isSendingTransaction}
-                            onClick={sendTransaction}
-                        >
-                            {buttonText}
-                        </ButtonWithConnect>
+                        {submitActions}
                     </div>
                 </TabsContent>
 
@@ -142,15 +157,7 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
                             onMaxClick={onMaxClick}
                         />
 
-                        <ButtonWithConnect
-                            variant="fill"
-                            size="l"
-                            fullWidth
-                            disabled={!canSubmit || isQuoteLoading || isSendingTransaction}
-                            onClick={sendTransaction}
-                        >
-                            {buttonText}
-                        </ButtonWithConnect>
+                        {submitActions}
 
                         <SelectUnstakeMode
                             value={unstakeMode}
@@ -177,6 +184,15 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
                 requiredTon={lowBalanceRequiredTon}
                 onChange={onLowBalanceChange}
                 onCancel={onLowBalanceCancel}
+            />
+
+            <StakingSettingsModal
+                open={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+                provider={stakingProvider}
+                providers={stakingProviders}
+                onProviderChange={setStakingProviderId}
+                network={network}
             />
         </div>
     );

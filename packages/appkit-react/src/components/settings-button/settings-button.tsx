@@ -20,7 +20,7 @@ export const SettingsButton: FC<SettingsButtonProps> = ({ onClick, className, ..
     return (
         <Button
             className={clsx(styles.settingsButton, className)}
-            variant="gray"
+            variant="secondary"
             size="l"
             borderRadius="l"
             onClick={onClick}
