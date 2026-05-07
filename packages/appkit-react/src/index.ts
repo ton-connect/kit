@@ -11,21 +11,21 @@ export { I18nProvider } from './providers/i18n-provider';
 
 export * from '@ton/appkit';
 
-export * from './components/block';
-export * from './components/info-block';
-export * from './components/button';
-export * from './components/logo';
-export * from './components/modal';
-export * from './components/skeleton';
-export * from './components/ton-icon';
-export * from './components/input';
-export * from './components/token-select-modal';
-export * from './components/tabs';
-export * from './components/centered-amount-input';
-export * from './components/amount-presets';
-export * from './components/collapsible';
-export * from './components/low-balance-modal';
-export * from './components/settings-button';
+export * from './components/ui/block';
+export * from './components/ui/info-block';
+export * from './components/ui/button';
+export * from './components/ui/logo';
+export * from './components/ui/modal';
+export * from './components/ui/skeleton';
+export * from './components/ui/input';
+export * from './components/shared/token-select-modal';
+export * from './components/ui/tabs';
+export * from './components/ui/centered-amount-input';
+export * from './components/shared/amount-presets';
+export * from './components/ui/collapsible';
+export * from './components/shared/low-balance-modal';
+export * from './components/shared/settings-button';
+export * from './components/ui/icons';
 
 export * from './features/balances';
 export * from './features/jettons';

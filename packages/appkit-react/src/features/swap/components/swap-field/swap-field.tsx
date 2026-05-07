@@ -11,8 +11,8 @@ import { calcFiatValue, formatLargeValue } from '@ton/appkit';
 import clsx from 'clsx';
 
 import { useI18n } from '../../../settings/hooks/use-i18n';
-import { Input } from '../../../../components/input/input';
-import { Skeleton } from '../../../../components/skeleton';
+import { Input } from '../../../../components/ui/input/input';
+import { Skeleton } from '../../../../components/ui/skeleton';
 import { TokenSelector } from '../token-selector/token-selector';
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
 import { getDisplayAmount } from '../../utils/get-display-amount';

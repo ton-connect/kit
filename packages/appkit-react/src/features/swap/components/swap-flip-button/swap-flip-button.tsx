@@ -10,7 +10,8 @@ import type { ComponentProps, FC } from 'react';
 import clsx from 'clsx';
 
 import styles from './swap-flip-button.module.css';
-import { Button } from '../../../../components/button';
+import { Button } from '../../../../components/ui/button';
+import { FlipIcon } from '../../../../components/ui/icons';
 
 export interface SwapFlipButtonProps extends ComponentProps<'div'> {
     onClick?: () => void;
@@ -21,22 +22,7 @@ export const SwapFlipButton: FC<SwapFlipButtonProps> = ({ onClick, rotated, clas
     return (
         <div className={clsx(styles.container, className)} {...props}>
             <Button className={clsx(styles.flipButton, rotated && styles.rotated)} onClick={onClick}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                        d="M7 19V4M7 4L3.5 7.5M7 4L10.5 7.5"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    />
-                    <path
-                        d="M17 5V20M17 20L13.5 16.5M17 20L20.5 16.5"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    />
-                </svg>
+                <FlipIcon />
             </Button>
         </div>
     );

@@ -22,7 +22,7 @@ const stonfi = makeProvider('stonfi', 'STON.fi');
 const dedust = makeProvider('dedust', 'DeDust');
 
 const meta: Meta<typeof SwapSettingsModal> = {
-    title: 'Public/Features/Swap/Internal/SwapSettingsModal',
+    title: 'Features/Swap/Internal/SwapSettingsModal',
     component: SwapSettingsModal,
 };
 

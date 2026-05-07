@@ -11,8 +11,8 @@ import type { ComponentProps, FC, ReactNode } from 'react';
 import type { StakingQuoteDirection } from '@ton/appkit';
 import clsx from 'clsx';
 
-import { CenteredAmountInput } from '../../../../components/centered-amount-input';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../../components/tabs';
+import { CenteredAmountInput } from '../../../../components/ui/centered-amount-input';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../../components/ui/tabs';
 import { useI18n } from '../../../settings/hooks/use-i18n';
 import { StakingBalanceBlock } from '../staking-balance-block';
 import { StakingInfo } from '../staking-info';
@@ -20,10 +20,10 @@ import { SelectUnstakeMode } from '../select-unstake-mode';
 import { StakingSettingsModal } from '../staking-settings-modal';
 import styles from './staking-widget-ui.module.css';
 import type { StakingContextType } from '../staking-widget-provider';
-import { ButtonWithConnect } from '../../../../components/button-with-connect';
-import { AmountReversed } from '../../../../components/amount-reversed';
-import { LowBalanceModal } from '../../../../components/low-balance-modal';
-import { SettingsButton } from '../../../../components/settings-button';
+import { ButtonWithConnect } from '../../../../components/shared/button-with-connect';
+import { AmountReversed } from '../../../../components/ui/amount-reversed';
+import { LowBalanceModal } from '../../../../components/shared/low-balance-modal';
+import { SettingsButton } from '../../../../components/shared/settings-button';
 
 export type StakingWidgetRenderProps = StakingContextType & ComponentProps<'div'>;
 

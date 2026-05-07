@@ -9,7 +9,7 @@
 import type { ComponentProps, FC } from 'react';
 import type { SwapQuote, SwapProvider } from '@ton/appkit';
 
-import { InfoBlock } from '../../../../components/info-block';
+import { InfoBlock } from '../../../../components/ui/info-block';
 import { useI18n } from '../../../settings/hooks/use-i18n';
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
 import { getDisplayAmount } from '../../utils/get-display-amount';

@@ -10,18 +10,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 import clsx from 'clsx';
 
+import { ImageIcon } from '../../../../components/ui/icons';
 import styles from './nft-item.module.css';
-
-const PlaceholderIcon = () => (
-    <svg className={styles.placeholderIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-        />
-    </svg>
-);
 
 const NftItemPreview = ({
     name,
@@ -41,7 +31,11 @@ const NftItemPreview = ({
     return (
         <button onClick={onClick} className={clsx(styles.nftItem, className)}>
             <div className={styles.imageWrapper}>
-                {image ? <img src={image} alt={name} className={styles.image} /> : <PlaceholderIcon />}
+                {image ? (
+                    <img src={image} alt={name} className={styles.image} />
+                ) : (
+                    <ImageIcon className={styles.placeholderIcon} />
+                )}
                 {isOnSale && <span className={styles.saleBadge}>On Sale</span>}
             </div>
             <div className={styles.info}>
@@ -53,7 +47,7 @@ const NftItemPreview = ({
 };
 
 const meta: Meta<typeof NftItemPreview> = {
-    title: 'Public/Features/NFT/NftItem',
+    title: 'Features/NFT/NftItem',
     component: NftItemPreview,
     tags: ['autodocs'],
     parameters: {

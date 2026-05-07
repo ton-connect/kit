@@ -11,7 +11,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SwapFlipButton } from './swap-flip-button';
 
 const meta: Meta<typeof SwapFlipButton> = {
-    title: 'Public/Features/Swap/Internal/SwapFlipButton',
+    title: 'Features/Swap/Internal/SwapFlipButton',
     component: SwapFlipButton,
 };
 

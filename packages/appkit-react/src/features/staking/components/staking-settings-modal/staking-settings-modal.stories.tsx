@@ -22,7 +22,7 @@ const tonstakers = makeProvider('tonstakers', 'Tonstakers');
 const bemo = makeProvider('bemo', 'bemo');
 
 const meta: Meta<typeof StakingSettingsModal> = {
-    title: 'Public/Features/Staking/Internal/StakingSettingsModal',
+    title: 'Features/Staking/Internal/StakingSettingsModal',
     component: StakingSettingsModal,
 };
 

@@ -9,8 +9,9 @@
 import type { FC } from 'react';
 
 import styles from './token-selector.module.css';
-import { Button } from '../../../../components/button';
-import { Logo } from '../../../../components/logo';
+import { Button } from '../../../../components/ui/button';
+import { ChevronDownIcon } from '../../../../components/ui/icons';
+import { Logo } from '../../../../components/ui/logo';
 import { useI18n } from '../../../settings/hooks/use-i18n';
 
 export interface TokenSelectorProps {
@@ -28,15 +29,7 @@ export const TokenSelector: FC<TokenSelectorProps> = ({ symbol, icon, onClick })
         <Button className={styles.tokenSelector} onClick={onClick} variant="gray" size="s">
             {symbol && <Logo size={24} src={icon} fallback={fallback} alt={symbol} />}
             <span style={{ lineHeight: '24px' }}>{label}</span>
-            <svg width="12" height="8" viewBox="0 0 12 8" fill="none" className={styles.chevron}>
-                <path
-                    d="M1 1.5L6 6.5L11 1.5"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                />
-            </svg>
+            <ChevronDownIcon size={16} className={styles.chevron} />
         </Button>
     );
 };

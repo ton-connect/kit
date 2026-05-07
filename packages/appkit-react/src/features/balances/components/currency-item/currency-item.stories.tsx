@@ -12,7 +12,7 @@ import { fn } from 'storybook/test';
 import { CurrencyItem } from './currency-item';
 
 const meta: Meta<typeof CurrencyItem> = {
-    title: 'Public/Features/Balances/CurrencyItem',
+    title: 'Features/Balances/CurrencyItem',
     component: CurrencyItem,
     tags: ['autodocs'],
     args: {

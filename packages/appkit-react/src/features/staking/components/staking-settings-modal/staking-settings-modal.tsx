@@ -10,29 +10,11 @@ import { useEffect, useMemo, useState } from 'react';
 import type { FC } from 'react';
 import type { Network, StakingProvider } from '@ton/appkit';
 
-import { Modal } from '../../../../components/modal/modal';
-import { Button } from '../../../../components/button';
+import { Modal } from '../../../../components/ui/modal/modal';
+import { Button } from '../../../../components/ui/button';
+import { ChevronsIcon } from '../../../../components/ui/icons';
 import { useI18n } from '../../../settings/hooks/use-i18n';
 import styles from './staking-settings-modal.module.css';
-
-const ChevronsIcon: FC = () => (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path
-            d="M6 13L9.29289 16.2929C9.68342 16.6834 10.3166 16.6834 10.7071 16.2929L14 13"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        />
-        <path
-            d="M14 6.58578L10.7071 3.29289C10.3166 2.90237 9.68342 2.90237 9.29289 3.29289L6 6.58578"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        />
-    </svg>
-);
 
 export interface StakingSettingsModalProps {
     open: boolean;

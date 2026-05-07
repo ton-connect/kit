@@ -12,7 +12,7 @@ import { STORY_TOKENS } from '../../../../storybook/fixtures/tokens';
 import { SwapField } from './swap-field';
 
 const meta: Meta<typeof SwapField> = {
-    title: 'Public/Features/Swap/Internal/SwapField',
+    title: 'Features/Swap/Internal/SwapField',
     component: SwapField,
 };
 

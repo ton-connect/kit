@@ -13,7 +13,7 @@ import { SwapInfo } from './swap-info';
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
 
 const meta: Meta<typeof SwapInfo> = {
-    title: 'Public/Features/Swap/Internal/SwapInfo',
+    title: 'Features/Swap/Internal/SwapInfo',
     component: SwapInfo,
 };
 

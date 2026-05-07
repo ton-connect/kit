@@ -13,11 +13,11 @@ import clsx from 'clsx';
 import { formatLargeValue } from '@ton/appkit';
 
 import { useI18n } from '../../../settings/hooks/use-i18n';
-import { TonIconCircle } from '../../../../components/ton-icon';
-import { Button } from '../../../../components/button';
-import { Skeleton } from '../../../../components/skeleton';
+import { TonIconCircle } from '../../../../components/ui/icons';
+import { Button } from '../../../../components/ui/button';
+import { Skeleton } from '../../../../components/ui/skeleton';
 import styles from './staking-balance-block.module.css';
-import { Logo } from '../../../../components/logo';
+import { Logo } from '../../../../components/ui/logo';
 import { useJettonInfo } from '../../../jettons';
 
 export interface StakingBalanceBlockProps extends ComponentProps<'div'> {
