@@ -650,6 +650,30 @@ Subscribe to crypto-onramp provider lifecycle — fires `onChange` whenever a ne
 
 Returns: <a href="#watchcryptoonrampprovidersreturntype"><code>WatchCryptoOnrampProvidersReturnType</code></a> — Unsubscribe function — call it to stop receiving updates.
 
+### DeFi
+
+#### registerProvider
+
+Register a DeFi / onramp provider at runtime — equivalent to passing it via [`AppKitConfig`](#appkitconfig)`.providers` at construction, but available after AppKit is up. AppKit emits `provider:registered`, picked up by domain-specific subscribers like [`watchSwapProviders`](#watchswapproviders) and [`watchCryptoOnrampProviders`](#watchcryptoonrampproviders).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `provider`\* | [`RegisterProviderOptions`](#registerprovideroptions) | Provider instance or factory to register. |
+
+Returns: `void`.
+
+**Example**
+
+```ts
+registerProvider(
+    appKit,
+    createOmnistonProvider({
+        defaultSlippageBps: 100, // 1%
+    }),
+);
+```
+
 ### Jettons
 
 #### createTransferJettonTransaction
@@ -2084,6 +2108,14 @@ Either a ready-made DeFi/onramp provider instance or a factory that produces one
 
 ```ts
 type ProviderInput = T | ProviderFactory<T>;
+```
+
+#### RegisterProviderOptions
+
+Provider instance or factory accepted by [`registerProvider`](#registerprovider) — same shape used in [`AppKitConfig`](#appkitconfig)`.providers`. AppKit dispatches it to the right manager based on `provider.type` (`'swap'`, `'staking'`, `'onramp'`, `'crypto-onramp'`).
+
+```ts
+type RegisterProviderOptions = ProviderInput;
 ```
 
 ### Jettons
