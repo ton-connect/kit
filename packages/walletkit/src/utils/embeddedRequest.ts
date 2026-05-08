@@ -6,8 +6,8 @@
  *
  */
 
-import type { ParsedEmbeddedRequest } from '@tonconnect/protocol';
-import { parseEmbeddedRequest } from '@tonconnect/protocol';
+import type { AppRequest } from '@tonconnect/protocol';
+import { decodeEmbeddedRequestParam } from '@tonconnect/protocol';
 
 import type { EmbeddedRequest } from '../api/models';
 import type { RawConnectTransactionParamContent, RawBridgeEventSignData } from '../types/internal';
@@ -26,7 +26,7 @@ const log = globalLogger.createChild('embeddedRequestParser');
  */
 export function parseEmbeddedRequestFromReqParam(reqParam: string): EmbeddedRequest | undefined {
     try {
-        const parsed = parseEmbeddedRequest(reqParam);
+        const parsed = decodeEmbeddedRequestParam(reqParam);
         return toEmbeddedRequest(parsed);
     } catch (error) {
         log.warn('Failed to parse embedded request req parameter', { error });
@@ -34,7 +34,9 @@ export function parseEmbeddedRequestFromReqParam(reqParam: string): EmbeddedRequ
     }
 }
 
-function toEmbeddedRequest(parsed: ParsedEmbeddedRequest): EmbeddedRequest | undefined {
+function toEmbeddedRequest(
+    parsed: Omit<AppRequest<'sendTransaction' | 'signMessage' | 'signData'>, 'id'>,
+): EmbeddedRequest | undefined {
     switch (parsed.method) {
         case 'sendTransaction':
         case 'signMessage': {

@@ -9,7 +9,6 @@
 import React, { memo, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
-import { Base64ToHex } from '@ton/walletkit';
 import type { ToncenterTraceItem } from '@ton/walletkit';
 import { useWalletKit, useWalletStore, getChainNetwork } from '@demo/wallet-core';
 
