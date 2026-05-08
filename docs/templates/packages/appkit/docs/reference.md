@@ -165,21 +165,9 @@ Returns: `Promise<SendTransactionResponse>` — Wallet response carrying the BoC
 
 ### Balances
 
-#### Balance
-
-Wallet balance amount, expressed as a string (alias of `TokenAmount` from
-`@ton/walletkit`). The exact units depend on which API produced the value
-— balance/jetton-balance actions return human-readable decimal strings
-already formatted with the token's decimals; lower-level walletkit APIs
-may return raw integer nano amounts.
-
-```ts
-type Balance = TokenAmount;
-```
-
 #### GetBalanceByAddressOptions
 
-Options for getBalanceByAddress.
+Options for [`getBalanceByAddress`](#getbalancebyaddress).
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -188,7 +176,7 @@ Options for getBalanceByAddress.
 
 #### GetBalanceOptions
 
-Options for getBalance.
+Options for [`getBalance`](#getbalance).
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -196,7 +184,7 @@ Options for getBalance.
 
 #### WatchBalanceByAddressOptions
 
-Options for watchBalanceByAddress.
+Options for [`watchBalanceByAddress`](#watchbalancebyaddress).
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -206,7 +194,7 @@ Options for watchBalanceByAddress.
 
 #### WatchBalanceOptions
 
-Options for watchBalance.
+Options for [`watchBalance`](#watchbalance).
 
 | Field | Type | Description |
 | --- | --- | --- |

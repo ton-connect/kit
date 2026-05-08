@@ -6,6 +6,7 @@
  *
  */
 
+import { LINK_MARKER_CLOSE, LINK_MARKER_OPEN } from './extract';
 import type {
     Extracted,
     ExtractedClass,
@@ -118,7 +119,7 @@ function renderFunction(entry: ExtractedFunction, level: HeadingLevel): string {
     const lines: string[] = [];
     lines.push(`${level} ${entry.name}`);
     lines.push('');
-    lines.push(entry.summary ?? TODO_MARKER);
+    lines.push(resolveLinks(entry.summary ?? TODO_MARKER));
     lines.push('');
     if (entry.params.length > 0) {
         lines.push(renderParamsTable(entry.params));
@@ -126,7 +127,7 @@ function renderFunction(entry: ExtractedFunction, level: HeadingLevel): string {
     }
     const returnType = formatTypeCell(entry.returnTypeText);
     if (entry.returnDescription) {
-        const desc = entry.returnDescription.replace(/\r?\n/g, ' ');
+        const desc = resolveLinks(entry.returnDescription).replace(/\r?\n/g, ' ');
         lines.push(`Returns: ${returnType} — ${desc}`);
     } else {
         lines.push(`Returns: ${returnType}.`);
@@ -139,7 +140,7 @@ function renderComponent(entry: ExtractedComponent, level: HeadingLevel): string
     const lines: string[] = [];
     lines.push(`${level} ${entry.name}`);
     lines.push('');
-    lines.push(entry.summary ?? TODO_MARKER);
+    lines.push(resolveLinks(entry.summary ?? TODO_MARKER));
     lines.push('');
     if (entry.props.length > 0) {
         lines.push(renderPropsTable(entry.props));
@@ -155,14 +156,14 @@ function renderNamespaceComponent(entry: ExtractedNamespaceComponent, level: Hea
     const lines: string[] = [];
     lines.push(`${level} ${entry.name}`);
     lines.push('');
-    lines.push(entry.summary ?? TODO_MARKER);
+    lines.push(resolveLinks(entry.summary ?? TODO_MARKER));
     lines.push('');
     lines.push(`Compound component. Members:`);
     lines.push('');
     for (const member of entry.members) {
         lines.push(`${memberLevel} ${entry.name}.${member.name}`);
         lines.push('');
-        lines.push(member.summary ?? TODO_MARKER);
+        lines.push(resolveLinks(member.summary ?? TODO_MARKER));
         lines.push('');
         if (member.props.length > 0) {
             lines.push(renderPropsTable(member.props));
@@ -178,7 +179,7 @@ function renderType(entry: ExtractedType, level: HeadingLevel): string {
     const lines: string[] = [];
     lines.push(`${level} ${entry.name}`);
     lines.push('');
-    lines.push(entry.summary ?? TODO_MARKER);
+    lines.push(resolveLinks(entry.summary ?? TODO_MARKER));
     lines.push('');
     if (entry.fields && entry.fields.length > 0) {
         lines.push(renderFieldsTable(entry.fields));
@@ -196,7 +197,7 @@ function renderClass(entry: ExtractedClass, level: HeadingLevel): string {
     const lines: string[] = [];
     lines.push(`${level} ${entry.name}`);
     lines.push('');
-    lines.push(entry.summary ?? TODO_MARKER);
+    lines.push(resolveLinks(entry.summary ?? TODO_MARKER));
     lines.push('');
     if (entry.constructorParams && entry.constructorParams.length > 0) {
         lines.push(`Constructor: \`new ${entry.name}(${entry.constructorParams.map((p) => p.name).join(', ')})\``);
@@ -244,7 +245,7 @@ function renderRowsTable(firstHeader: string, rows: ParamRow[]): string {
         rows.map((r) => [
             `\`${r.name}\`${r.required ? '\\*' : ''}`,
             formatTypeCell(r.typeText),
-            r.description ?? TODO_MARKER,
+            resolveLinks(r.description ?? TODO_MARKER),
         ]),
     );
 }
@@ -293,4 +294,36 @@ function formatTypeCell(typeText: string): string {
 
 function slugify(name: string): string {
     return name.toLowerCase();
+}
+
+/**
+ * Resolves `{@link Foo}` markers (planted by sanitizeJsDocText) into markdown
+ * links — when `Foo` is documented in this same reference — or plain code
+ * spans otherwise.
+ */
+function resolveLinks(text: string): string {
+    if (!text.includes(LINK_MARKER_OPEN)) return text;
+    const out: string[] = [];
+    let cursor = 0;
+    while (cursor < text.length) {
+        const start = text.indexOf(LINK_MARKER_OPEN, cursor);
+        if (start === -1) {
+            out.push(text.slice(cursor));
+            break;
+        }
+        out.push(text.slice(cursor, start));
+        const end = text.indexOf(LINK_MARKER_CLOSE, start + LINK_MARKER_OPEN.length);
+        if (end === -1) {
+            out.push(text.slice(start));
+            break;
+        }
+        const name = text.slice(start + LINK_MARKER_OPEN.length, end).trim();
+        if (LINKABLE_NAMES.has(name)) {
+            out.push(`[\`${name}\`](#${slugify(name)})`);
+        } else {
+            out.push(`\`${name}\``);
+        }
+        cursor = end + LINK_MARKER_CLOSE.length;
+    }
+    return out.join('');
 }

@@ -555,14 +555,24 @@ function readPropertyJsDoc(node: Node): string | null {
     return desc || null;
 }
 
+export const LINK_MARKER_OPEN = ' LINK:';
+export const LINK_MARKER_CLOSE = '';
+
 /**
- * Replaces JSDoc inline tags ({@link Foo}, {@linkcode Foo}, etc.) with their
- * label/target text, then escapes any remaining `{`/`}` so the output is safe
- * to embed in MDX (where `{` starts a JS expression).
+ * Replaces JSDoc inline tags with sanitized text. {@link Foo} survives as a
+ * sentinel marker (LINK_MARKER_OPEN…LINK_MARKER_CLOSE) so the renderer can
+ * later turn it into a markdown link if `Foo` is itself documented in the
+ * same reference. Other inline tags ({@linkcode}, {@see}, …) collapse to
+ * their target/label text. Loose `{`/`}` are escaped so MDX doesn't treat
+ * them as JS expressions.
  */
 function sanitizeJsDocText(text: string): string {
-    const withoutInlineTags = text.replace(
-        /\{@(link|linkcode|linkplain|inheritDoc|see|tutorial|label)\s+([^}]*)\}/g,
+    let result = text.replace(
+        /\{@link\s+([^}|]+?)(?:\s*\|\s*[^}]*)?\}/g,
+        (_, target: string) => `${LINK_MARKER_OPEN}${target.trim()}${LINK_MARKER_CLOSE}`,
+    );
+    result = result.replace(
+        /\{@(linkcode|linkplain|inheritDoc|see|tutorial|label)\s+([^}]*)\}/g,
         (_, _tag: string, body: string) => {
             const trimmed = body.trim();
             const pipeIdx = trimmed.indexOf('|');
@@ -570,5 +580,5 @@ function sanitizeJsDocText(text: string): string {
             return trimmed;
         },
     );
-    return withoutInlineTags.replace(/[{}]/g, (m) => `\\${m}`).trim();
+    return result.replace(/[{}]/g, (m) => `\\${m}`).trim();
 }
