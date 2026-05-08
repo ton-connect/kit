@@ -11,18 +11,46 @@ import { Address } from '@ton/core';
 import type { AppKit } from '../../core/app-kit';
 import type { TransactionsUpdate } from '../../core/streaming';
 import type { Network } from '../../types/network';
+import type { UserFriendlyAddress } from '../../types/primitives';
 import { resolveNetwork } from '../../utils/network/resolve-network';
 
+/**
+ * Options for {@link watchTransactionsByAddress}.
+ *
+ * @public
+ * @category Type
+ * @section Transactions
+ */
 export interface WatchTransactionsByAddressOptions {
-    address: string | Address;
+    /** Address to watch — pass a {@link UserFriendlyAddress} string or an `Address` instance from `@ton/core`. */
+    address: UserFriendlyAddress | Address;
+    /** Callback fired on every transactions update from the streaming provider. */
     onChange: (update: TransactionsUpdate) => void;
+    /** Network to watch on. Defaults to the connected wallet's network, or the configured default if no wallet is connected. */
     network?: Network;
 }
 
+/**
+ * Return type of {@link watchTransactionsByAddress} — call to stop receiving updates.
+ *
+ * @public
+ * @category Type
+ * @section Transactions
+ */
 export type WatchTransactionsByAddressReturnType = () => void;
 
 /**
- * Watch transactions by address.
+ * Subscribe to incoming-transaction events for an arbitrary address (use {@link watchTransactions} for the selected wallet).
+ *
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param options - {@link WatchTransactionsByAddressOptions} Address, update callback and optional network override.
+ * @returns Unsubscribe function — call it to stop receiving updates.
+ *
+ * @expand options
+ *
+ * @public
+ * @category Action
+ * @section Transactions
  */
 export const watchTransactionsByAddress = (
     appKit: AppKit,

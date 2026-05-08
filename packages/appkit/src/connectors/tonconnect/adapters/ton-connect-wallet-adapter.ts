@@ -20,17 +20,27 @@ import { asHex, createWalletId, getNormalizedExtMessageHash } from '../../../uti
 import { getValidUntil } from '../utils/transaction';
 
 /**
- * Configuration for TonConnectWalletAdapter
+ * Configuration accepted by {@link TonConnectWalletAdapter} when wrapping a TonConnect wallet for AppKit.
+ *
+ * @public
+ * @category Type
+ * @section Wallets
  */
 export interface TonConnectWalletAdapterConfig {
+    /** Id of the connector that produced this wallet — surfaced as `WalletInterface.connectorId`. */
     connectorId: string;
+    /** Underlying TonConnect wallet object. */
     tonConnectWallet: TonConnectWallet;
+    /** TonConnect UI instance used to drive `sendTransaction` and `signData` calls. */
     tonConnectUI: TonConnectUI;
 }
 
 /**
- * Minimal adapter that makes TonConnect wallet compatible with WalletInterface.
- * Only implements identity and signing methods - data fetching is done via actions.
+ * {@link WalletInterface} implementation backed by a TonConnect wallet. Built for you by {@link TonConnectConnector} — apps interact with it through standard AppKit actions ({@link sendTransaction}, {@link signText}/{@link signBinary}/{@link signCell}); reads (balance, jettons, NFTs) go through AppKit actions using `appKit.networkManager`, not this adapter.
+ *
+ * @public
+ * @category Class
+ * @section Wallets
  */
 export class TonConnectWalletAdapter implements WalletInterface {
     public readonly tonConnectWallet: TonConnectWallet;

@@ -227,6 +227,18 @@ class MySwapProvider extends SwapProvider {
 }
 ```
 
+### Wallets
+
+#### TonConnectWalletAdapter
+
+[`WalletInterface`](#walletinterface) implementation backed by a TonConnect wallet. Built for you by [`TonConnectConnector`](#tonconnectconnector) — apps interact with it through standard AppKit actions ([`sendTransaction`](#sendtransaction), [`signText`](#signtext)/[`signBinary`](#signbinary)/[`signCell`](#signcell)); reads (balance, jettons, NFTs) go through AppKit actions using `appKit.networkManager`, not this adapter.
+
+Constructor: `new TonConnectWalletAdapter(config)`
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `config`\* | <a href="#tonconnectwalletadapterconfig"><code>TonConnectWalletAdapterConfig</code></a> | _TODO: describe_ |
+
 ## Action
 
 ### Balances
@@ -359,6 +371,20 @@ Identity helper for typing a [`ConnectorFactory`](#connectorfactory) inline — 
 | `factory`\* | [`ConnectorFactory`](#connectorfactory) | Factory to wrap. |
 
 Returns: <a href="#connectorfactory"><code>ConnectorFactory</code></a> — The same factory, typed as [`ConnectorFactory`](#connectorfactory).
+
+#### createTonConnectConnector
+
+Build a TonConnect-backed [`Connector`](#connector) for AppKit; pass the result to [`AppKitConfig`](#appkitconfig)`.connectors` or [`addConnector`](#addconnector).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `config`\* | [`TonConnectConnectorConfig`](#tonconnectconnectorconfig) | Connector id, metadata override and TonConnect options or pre-built UI instance. |
+
+Returns: <a href="#connectorfactory"><code>ConnectorFactory</code></a> — Factory function consumed by AppKit at registration time.
+
+**Example**
+
+%%docs/examples/src/appkit/connectors/tonconnect#TON_CONNECT_CONNECTOR%%
 
 #### disconnect
 
@@ -1260,25 +1286,98 @@ Returns: <a href="#watchswapprovidersreturntype"><code>WatchSwapProvidersReturnT
 
 ### Transactions
 
-#### transferTon
+#### createTransferTonTransaction
 
-Build and send a TON transfer from the selected wallet in one step (use `createTransferTonTransaction` + `sendTransaction` if you need to inspect the transaction first).
+Build a TON transfer [`TransactionRequest`](#transactionrequest) for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing; throws `Error('Wallet not connected')` if no wallet is selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
-| `parameters`\* | `TransferTonParameters` | Recipient, amount and optional payload/comment. |
-| `parameters.recipientAddress`\* | `string` | Recipient address |
-| `parameters.amount`\* | `string` | Amount in TONs |
-| `parameters.comment` | `string` | Human-readable text comment (will be converted to payload) |
-| `parameters.payload` | `string` | Message payload data encoded in Base64 (overrides comment if provided) |
-| `parameters.stateInit` | `string` | Initial state for deploying a new contract, encoded in Base64 |
+| `parameters`\* | [`CreateTransferTonTransactionParameters`](#createtransfertontransactionparameters) | Recipient, amount and optional payload/comment/stateInit. |
+| `parameters.recipientAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Recipient address. |
+| `parameters.amount`\* | `string` | Amount in TONs as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. |
+| `parameters.comment` | `string` | Human-readable text comment; converted to a Base64 payload when no `payload` is supplied. |
+| `parameters.payload` | <a href="#base64string"><code>Base64String</code></a> | Raw Base64 message payload — wins over `comment` when both are set. |
+| `parameters.stateInit` | <a href="#base64string"><code>Base64String</code></a> | Initial state for deploying a new contract, encoded as Base64. |
 
-Returns: `Promise<TransferTonReturnType>` — Wallet response carrying the BoC of the sent transaction.
+Returns: <a href="#createtransfertontransactionreturntype"><code>CreateTransferTonTransactionReturnType</code></a> — Transaction request ready to pass to `sendTransaction`.
+
+**Example**
+
+%%docs/examples/src/appkit/actions/transaction#CREATE_TRANSFER_TON_TRANSACTION%%
+
+#### getTransactionStatus
+
+Read the status of a sent transaction by its BoC or normalized hash. In TON a single external message triggers a tree of internal messages — the transaction is `'completed'` only when the entire trace finishes; until then it stays `'pending'`. Throws when neither `boc` nor `normalizedHash` is provided.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`GetTransactionStatusParameters`](#gettransactionstatusparameters) | `boc` xor `normalizedHash` and optional network override. |
+
+Returns: <code>Promise&lt;</code><a href="#gettransactionstatusreturntype"><code>GetTransactionStatusReturnType</code></a><code>&gt;</code> — Status response with current state, completed/total message counts and trace details.
+
+#### sendTransaction
+
+Hand a pre-built [`TransactionRequest`](#transactionrequest) to the selected wallet for signing and broadcast — usually the second step after [`createTransferTonTransaction`](#createtransfertontransaction), [`buildSwapTransaction`](#buildswaptransaction) or [`buildStakeTransaction`](#buildstaketransaction); throws `Error('Wallet not connected')` if no wallet is selected.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`SendTransactionParameters`](#sendtransactionparameters) | Transaction request to broadcast. |
+
+Returns: <code>Promise&lt;</code><a href="#sendtransactionreturntype"><code>SendTransactionReturnType</code></a><code>&gt;</code> — Wallet response carrying the BoC of the sent transaction.
+
+**Example**
+
+%%docs/examples/src/appkit/actions/transaction#SEND_TRANSACTION%%
+
+#### transferTon
+
+Build and send a TON transfer from the selected wallet in one step (use [`createTransferTonTransaction`](#createtransfertontransaction) + [`sendTransaction`](#sendtransaction) if you need to inspect the transaction first); throws `Error('Wallet not connected')` if no wallet is selected.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`TransferTonParameters`](#transfertonparameters) | Recipient, amount and optional payload/comment/stateInit. |
+| `parameters.recipientAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Recipient address. |
+| `parameters.amount`\* | `string` | Amount in TONs as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. |
+| `parameters.comment` | `string` | Human-readable text comment; converted to a Base64 payload when no `payload` is supplied. |
+| `parameters.payload` | <a href="#base64string"><code>Base64String</code></a> | Raw Base64 message payload — wins over `comment` when both are set. |
+| `parameters.stateInit` | <a href="#base64string"><code>Base64String</code></a> | Initial state for deploying a new contract, encoded as Base64. |
+
+Returns: <code>Promise&lt;</code><a href="#transfertonreturntype"><code>TransferTonReturnType</code></a><code>&gt;</code> — Wallet response carrying the BoC of the sent transaction.
 
 **Example**
 
 %%docs/examples/src/appkit/actions/transaction#TRANSFER_TON%%
+
+#### watchTransactions
+
+Subscribe to incoming-transaction events for the currently selected wallet, automatically rebinding when the user connects, switches, or disconnects (use [`watchTransactionsByAddress`](#watchtransactionsbyaddress) for a fixed address).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`WatchTransactionsOptions`](#watchtransactionsoptions) | Update callback and optional network override. |
+| `options.onChange`\* | <code>(update: </code><a href="#transactionsupdate"><code>TransactionsUpdate</code></a><code>) =&gt; void</code> | Callback fired on every transactions update from the streaming provider. |
+| `options.network` | <a href="#network"><code>Network</code></a> | Network to watch on. Defaults to the selected wallet's network. |
+
+Returns: <a href="#watchtransactionsreturntype"><code>WatchTransactionsReturnType</code></a> — Unsubscribe function — call it to stop receiving updates.
+
+#### watchTransactionsByAddress
+
+Subscribe to incoming-transaction events for an arbitrary address (use [`watchTransactions`](#watchtransactions) for the selected wallet).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`WatchTransactionsByAddressOptions`](#watchtransactionsbyaddressoptions) | Address, update callback and optional network override. |
+| `options.address`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code> \| Address</code> | Address to watch — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
+| `options.onChange`\* | <code>(update: </code><a href="#transactionsupdate"><code>TransactionsUpdate</code></a><code>) =&gt; void</code> | Callback fired on every transactions update from the streaming provider. |
+| `options.network` | <a href="#network"><code>Network</code></a> | Network to watch on. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+
+Returns: <a href="#watchtransactionsbyaddressreturntype"><code>WatchTransactionsByAddressReturnType</code></a> — Unsubscribe function — call it to stop receiving updates.
 
 ### Wallets
 
@@ -1656,6 +1755,28 @@ Return type of [`getConnectors`](#getconnectors) — read-only snapshot of regis
 ```ts
 type GetConnectorsReturnType = readonly Connector[];
 ```
+
+#### TonConnectConnector
+
+[`Connector`](#connector) produced by [`createTonConnectConnector`](#createtonconnectconnector) — extends the base interface with the underlying `TonConnectUI` instance for advanced flows that need direct access (e.g., custom modals).
+
+```ts
+type TonConnectConnector = Connector & {
+    type: 'tonconnect';
+    tonConnectUI: TonConnectUI | null;
+};
+```
+
+#### TonConnectConnectorConfig
+
+Configuration accepted by [`createTonConnectConnector`](#createtonconnectconnector).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | `string` | Connector id. Defaults to [`TONCONNECT_DEFAULT_CONNECTOR_ID`](#tonconnect_default_connector_id) (`'tonconnect'`); set this when you need to register multiple TonConnect-flavoured connectors side by side. |
+| `metadata` | <a href="#connectormetadata"><code>ConnectorMetadata</code></a> | Display metadata override; merged on top of TonConnect's default name and icon. |
+| `tonConnectOptions` | `TonConnectUiCreateOptions` | Options forwarded to the underlying `TonConnectUI` constructor (manifest URL, etc.). Ignored when `tonConnectUI` is supplied. |
+| `tonConnectUI` | `TonConnectUI` | Pre-built `TonConnectUI` instance to reuse; when set, the connector skips its own instantiation and `tonConnectOptions` is ignored. |
 
 #### WatchConnectorByIdParameters
 
@@ -3199,6 +3320,64 @@ type WatchSwapProvidersReturnType = () => void;
 
 ### Transactions
 
+#### CreateTransferTonTransactionParameters
+
+Parameters accepted by [`createTransferTonTransaction`](#createtransfertontransaction) and [`transferTon`](#transferton).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `recipientAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Recipient address. |
+| `amount`\* | `string` | Amount in TONs as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. |
+| `comment` | `string` | Human-readable text comment; converted to a Base64 payload when no `payload` is supplied. |
+| `payload` | <a href="#base64string"><code>Base64String</code></a> | Raw Base64 message payload — wins over `comment` when both are set. |
+| `stateInit` | <a href="#base64string"><code>Base64String</code></a> | Initial state for deploying a new contract, encoded as Base64. |
+
+#### CreateTransferTonTransactionReturnType
+
+Return type of [`createTransferTonTransaction`](#createtransfertontransaction).
+
+```ts
+type CreateTransferTonTransactionReturnType = TransactionRequest;
+```
+
+#### GetTransactionStatusParameters
+
+Parameters accepted by [`getTransactionStatus`](#gettransactionstatus) — must carry exactly one of `boc` or `normalizedHash`, plus an optional network override.
+
+```ts
+type GetTransactionStatusParameters = {
+    /** Network to check the transaction on. Defaults to the connected wallet's network, or the configured default if no wallet is connected. */
+    network?: Network;
+} & (
+    | {
+          /** Base64-encoded BoC of the sent transaction (returned by {@link sendTransaction}). */
+          boc: string;
+          normalizedHash?: never;
+      }
+    | {
+          boc?: never;
+          /** Hex-encoded normalized hash of the external-in message (returned by {@link sendTransaction} as `normalizedHash`). */
+          normalizedHash: string;
+      }
+);
+```
+
+#### GetTransactionStatusReturnType
+
+Return type of [`getTransactionStatus`](#gettransactionstatus).
+
+```ts
+type GetTransactionStatusReturnType = TransactionStatusResponse;
+```
+
+#### SendTransactionParameters
+
+Parameters accepted by [`sendTransaction`](#sendtransaction) — same shape as [`TransactionRequest`](#transactionrequest).
+
+```ts
+type SendTransactionParameters = TransactionRequest;
+```
+
 #### SendTransactionResponse
 
 Wallet response carrying the BoC (bag of cells) of the external message that was signed and broadcast — used to track or hash the resulting transaction.
@@ -3208,6 +3387,41 @@ Wallet response carrying the BoC (bag of cells) of the external message that was
 | `boc`\* | <a href="#base64string"><code>Base64String</code></a> | BOC of the sent transaction |
 | `normalizedBoc`\* | <a href="#base64string"><code>Base64String</code></a> | Normalized BOC of the external-in message |
 | `normalizedHash`\* | <a href="#hex"><code>Hex</code></a> | Hash of the normalized external-in message |
+
+#### SendTransactionReturnType
+
+Return type of [`sendTransaction`](#sendtransaction).
+
+```ts
+type SendTransactionReturnType = SendTransactionResponse;
+```
+
+#### Transaction
+
+Single transaction record carried inside [`TransactionsUpdate`](#transactionsupdate)`.transactions` — account, lt/hash, in/out messages and emulation result.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `account`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Account of the transaction |
+| `accountStateBefore` | `AccountState` | The state of the account before the transaction was executed |
+| `accountStateAfter` | `AccountState` | * The state of the account after the transaction has been applied |
+| `description` | `TransactionDescription` | The detailed breakdown of the transaction execution |
+| `hash`\* | <a href="#hex"><code>Hex</code></a> | Hash of the transaction |
+| `logicalTime`\* | `LogicalTime` | The logical time of the transaction |
+| `now`\* | `number` | Unix timestamp of the transaction |
+| `mcBlockSeqno`\* | `number` | Masterchain block sequence number |
+| `traceExternalHash`\* | <a href="#hex"><code>Hex</code></a> | External hash of the trace |
+| `traceId` | `string` | ID of the trace |
+| `previousTransactionHash` | `string` | The hash of the previous transaction |
+| `previousTransactionLogicalTime` | `LogicalTime` | The logical time of the previous transaction |
+| `origStatus` | `AccountStatus` | Original status of the transaction |
+| `endStatus` | `AccountStatus` | End status of the transaction |
+| `totalFees` | <a href="#tokenamount"><code>TokenAmount</code></a> | Total fees of the transaction |
+| `totalFeesExtraCurrencies` | <a href="#extracurrencies"><code>ExtraCurrencies</code></a> | Extra currencies in the total fees |
+| `blockRef` | `TransactionBlockRef` | The reference to the block in which the transaction was included |
+| `inMessage` | `TransactionMessage` | The incoming message associated with the transaction |
+| `outMessages`\* | `TransactionMessage[]` | The list of outgoing messages produced by the transaction |
+| `isEmulated`\* | `boolean` | Emulated state of the transaction |
 
 #### TransactionRequest
 
@@ -3231,6 +3445,71 @@ Individual message inside a [`TransactionRequest`](#transactionrequest) — reci
 | `extraCurrency` | <a href="#extracurrencies"><code>ExtraCurrencies</code></a> | Additional currencies to include in the transfer |
 | `stateInit` | `string` | Initial state for deploying a new contract, encoded in Base64 |
 | `payload` | `string` | Message payload data encoded in Base64 |
+
+#### TransactionsUpdate
+
+Update payload delivered to [`watchTransactions`](#watchtransactions) / [`watchTransactionsByAddress`](#watchtransactionsbyaddress) subscribers when transactions land for the watched address.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `type`\* | `'transactions'` | The update type field |
+| `address`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | The account address |
+| `transactions`\* | <a href="#transaction"><code>Transaction</code></a><code>[]</code> | The array of transactions |
+| `traceHash`\* | <a href="#hex"><code>Hex</code></a> | The hash of the trace |
+| `addressBook` | <a href="#addressbook"><code>AddressBook</code></a> | Address book from streaming v2 notification |
+| `metadata` | `TransactionAddressMetadata` | Metadata from streaming v2 notification |
+| `status`\* | <a href="#streamingupdatestatus"><code>StreamingUpdateStatus</code></a> | The finality of the update |
+
+#### TransferTonParameters
+
+Parameters accepted by [`transferTon`](#transferton) — same shape as [`CreateTransferTonTransactionParameters`](#createtransfertontransactionparameters).
+
+```ts
+type TransferTonParameters = CreateTransferTonTransactionParameters;
+```
+
+#### TransferTonReturnType
+
+Return type of [`transferTon`](#transferton).
+
+```ts
+type TransferTonReturnType = SendTransactionResponse;
+```
+
+#### WatchTransactionsByAddressOptions
+
+Options for [`watchTransactionsByAddress`](#watchtransactionsbyaddress).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `address`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code> \| Address</code> | Address to watch — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
+| `onChange`\* | <code>(update: </code><a href="#transactionsupdate"><code>TransactionsUpdate</code></a><code>) =&gt; void</code> | Callback fired on every transactions update from the streaming provider. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to watch on. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+
+#### WatchTransactionsByAddressReturnType
+
+Return type of [`watchTransactionsByAddress`](#watchtransactionsbyaddress) — call to stop receiving updates.
+
+```ts
+type WatchTransactionsByAddressReturnType = () => void;
+```
+
+#### WatchTransactionsOptions
+
+Options for [`watchTransactions`](#watchtransactions).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `onChange`\* | <code>(update: </code><a href="#transactionsupdate"><code>TransactionsUpdate</code></a><code>) =&gt; void</code> | Callback fired on every transactions update from the streaming provider. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to watch on. Defaults to the selected wallet's network. |
+
+#### WatchTransactionsReturnType
+
+Return type of [`watchTransactions`](#watchtransactions) — call to stop receiving updates.
+
+```ts
+type WatchTransactionsReturnType = () => void;
+```
 
 ### Wallets
 
@@ -3265,6 +3544,16 @@ Return type of [`setSelectedWalletId`](#setselectedwalletid).
 ```ts
 type SetSelectedWalletIdReturnType = void;
 ```
+
+#### TonConnectWalletAdapterConfig
+
+Configuration accepted by [`TonConnectWalletAdapter`](#tonconnectwalletadapter) when wrapping a TonConnect wallet for AppKit.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `connectorId`\* | `string` | Id of the connector that produced this wallet — surfaced as `WalletInterface.connectorId`. |
+| `tonConnectWallet`\* | `TonConnectWallet` | Underlying TonConnect wallet object. |
+| `tonConnectUI`\* | `TonConnectUI` | TonConnect UI instance used to drive `sendTransaction` and `signData` calls. |
 
 #### WalletInterface
 
@@ -3325,6 +3614,14 @@ const CONNECTOR_EVENTS = {
     CONNECTED: 'connector:connected',
     DISCONNECTED: 'connector:disconnected',
 } as const;
+```
+
+#### TONCONNECT_DEFAULT_CONNECTOR_ID
+
+Default id assigned to the TonConnect connector when none is supplied to [`createTonConnectConnector`](#createtonconnectconnector); pass this to [`connect`](#connect) / [`disconnect`](#disconnect) to drive the TonConnect flow without hard-coding the literal.
+
+```ts
+const TONCONNECT_DEFAULT_CONNECTOR_ID = 'tonconnect';
 ```
 
 ### Networks

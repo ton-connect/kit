@@ -12,17 +12,31 @@ import { createTransferTonTransaction } from './create-transfer-ton-transaction'
 import type { CreateTransferTonTransactionParameters } from './create-transfer-ton-transaction';
 import { sendTransaction } from './send-transaction';
 
+/**
+ * Parameters accepted by {@link transferTon} — same shape as {@link CreateTransferTonTransactionParameters}.
+ *
+ * @public
+ * @category Type
+ * @section Transactions
+ */
 export type TransferTonParameters = CreateTransferTonTransactionParameters;
 
+/**
+ * Return type of {@link transferTon}.
+ *
+ * @public
+ * @category Type
+ * @section Transactions
+ */
 export type TransferTonReturnType = SendTransactionResponse;
 
 export type TransferTonErrorType = Error;
 
 /**
- * Build and send a TON transfer from the selected wallet in one step (use `createTransferTonTransaction` + `sendTransaction` if you need to inspect the transaction first).
+ * Build and send a TON transfer from the selected wallet in one step (use {@link createTransferTonTransaction} + {@link sendTransaction} if you need to inspect the transaction first); throws `Error('Wallet not connected')` if no wallet is selected.
  *
  * @param appKit - {@link AppKit} Runtime instance.
- * @param parameters - Recipient, amount and optional payload/comment.
+ * @param parameters - {@link TransferTonParameters} Recipient, amount and optional payload/comment/stateInit.
  * @returns Wallet response carrying the BoC of the sent transaction.
  *
  * @sample docs/examples/src/appkit/actions/transaction#TRANSFER_TON

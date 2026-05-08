@@ -20,12 +20,30 @@ export type {
     StreamingAPI,
     TonCenterStreamingProviderConfig,
     TonApiStreamingProviderConfig,
-    TransactionsUpdate,
-    Transaction,
     StreamingUpdate,
     StreamingWatchType,
     StreamingEvents,
 } from '@ton/walletkit';
+
+/**
+ * Update payload delivered to {@link watchTransactions} / {@link watchTransactionsByAddress} subscribers when transactions land for the watched address.
+ *
+ * @extract
+ * @public
+ * @category Type
+ * @section Transactions
+ */
+export type { TransactionsUpdate } from '@ton/walletkit';
+
+/**
+ * Single transaction record carried inside {@link TransactionsUpdate}`.transactions` — account, lt/hash, in/out messages and emulation result.
+ *
+ * @extract
+ * @public
+ * @category Type
+ * @section Transactions
+ */
+export type { Transaction } from '@ton/walletkit';
 
 /**
  * Update payload delivered to {@link watchJettons} / {@link watchJettonsByAddress} subscribers when the watched owner's jetton balance changes.

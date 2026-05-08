@@ -12,43 +12,50 @@ import type { TransactionStatusResponse } from '../../types/transaction';
 import { getTransactionStatusFromClient as walletKitGetTransactionStatus } from '../../utils';
 import { resolveNetwork } from '../../utils/network/resolve-network';
 
+/**
+ * Parameters accepted by {@link getTransactionStatus} — must carry exactly one of `boc` or `normalizedHash`, plus an optional network override.
+ *
+ * @public
+ * @category Type
+ * @section Transactions
+ */
 export type GetTransactionStatusParameters = {
-    /** Network to check the transaction on */
+    /** Network to check the transaction on. Defaults to the connected wallet's network, or the configured default if no wallet is connected. */
     network?: Network;
 } & (
     | {
-          /** BOC of the sent transaction (base64) */
+          /** Base64-encoded BoC of the sent transaction (returned by {@link sendTransaction}). */
           boc: string;
-          /** Hash of the sent transaction (hex) */
           normalizedHash?: never;
       }
     | {
-          /** BOC of the sent transaction (base64) */
           boc?: never;
-          /** Normalized Hash of the external-in transaction (hex) */
+          /** Hex-encoded normalized hash of the external-in message (returned by {@link sendTransaction} as `normalizedHash`). */
           normalizedHash: string;
       }
 );
 
+/**
+ * Return type of {@link getTransactionStatus}.
+ *
+ * @public
+ * @category Type
+ * @section Transactions
+ */
 export type GetTransactionStatusReturnType = TransactionStatusResponse;
 
 export type GetTransactionStatusErrorType = Error;
 
 /**
- * Get the status of a transaction by its BOC.
+ * Read the status of a sent transaction by its BoC or normalized hash. In TON a single external message triggers a tree of internal messages — the transaction is `'completed'` only when the entire trace finishes; until then it stays `'pending'`. Throws when neither `boc` nor `normalizedHash` is provided.
  *
- * In TON, a single external message triggers a tree of internal messages.
- * The transaction is "complete" only when the entire trace finishes.
- * This action checks toncenter's trace endpoints to determine the current status.
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param parameters - {@link GetTransactionStatusParameters} `boc` xor `normalizedHash` and optional network override.
+ * @returns Status response with current state, completed/total message counts and trace details.
  *
- * @example
- * ```ts
- * const result = await sendTransaction(appKit, { messages: [...] });
- * const status = await getTransactionStatus(appKit, { boc: result.boc });
- * // status.status === 'pending' | 'completed' | 'failed'
- * // status.completedMessages === 3
- * // status.totalMessages === 5
- * ```
+ * @public
+ * @category Action
+ * @section Transactions
  */
 export const getTransactionStatus = async (
     appKit: AppKit,
