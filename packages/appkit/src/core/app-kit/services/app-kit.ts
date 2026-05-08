@@ -27,13 +27,7 @@ import { AppKitNetworkManager } from '../../network';
 import { Network } from '../../../types/network';
 
 /**
- * Runtime that wires together connectors, networks, providers and the event
- * emitter for a TON dApp. Every action in `@ton/appkit` takes an `AppKit`
- * instance as its first argument.
- *
- * Construct one at app startup, pass it down through your app (or via
- * `AppKitProvider` in React), and reuse it for the lifetime of the
- * application.
+ * Runtime that wires connectors, networks, providers and the event emitter for a TON dApp; construct once at startup and reuse for the app's lifetime.
  *
  * @sample docs/examples/src/appkit#APPKIT_INIT
  *
@@ -55,7 +49,8 @@ export class AppKit {
     readonly config: AppKitConfig;
 
     /**
-     * @param config - Networks, connectors, providers and other startup settings.
+     * @param config - {@link AppKitConfig} Networks, connectors, providers and runtime flags.
+     * @expand config
      */
     constructor(config: AppKitConfig) {
         this.config = config;

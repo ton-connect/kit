@@ -90,6 +90,8 @@ export interface ExtractedType {
     summary: string | null;
     fields: ParamRow[] | null;
     typeText: string | null;
+    /** True for `const X = ...` declarations; renderer uses `const`-form code block. */
+    isConstant: boolean;
 }
 
 export interface ExtractedClass {
@@ -150,10 +152,14 @@ function extractByCategory(
 
     switch (expectedKind) {
         case 'type':
-            if (Node.isInterfaceDeclaration(declaration) || Node.isTypeAliasDeclaration(declaration)) {
+            if (
+                Node.isInterfaceDeclaration(declaration) ||
+                Node.isTypeAliasDeclaration(declaration) ||
+                Node.isVariableDeclaration(declaration)
+            ) {
                 return extractType(name, declaration, sourcePath);
             }
-            throw mismatch(name, category, 'interface or type alias');
+            throw mismatch(name, category, 'interface, type alias, or const declaration');
 
         case 'class':
             if (Node.isClassDeclaration(declaration)) {
@@ -342,25 +348,34 @@ function extractNamespaceComponent(
 
 function extractType(
     name: string,
-    decl: InterfaceDeclaration | TypeAliasDeclaration,
+    decl: InterfaceDeclaration | TypeAliasDeclaration | VariableDeclaration,
     sourcePath: string,
 ): Omit<ExtractedType, 'section' | 'category'> {
+    if (Node.isVariableDeclaration(decl)) {
+        const stmt = decl.getVariableStatement();
+        const jsdoc = pickJsDoc(stmt?.getJsDocs() ?? []);
+        const summary = readSummary(jsdoc);
+        const init = decl.getInitializer();
+        const typeText = init ? init.getText() : decl.getType().getText(decl, FORMAT_FLAGS);
+        return { kind: 'type', name, sourcePath, summary, fields: null, typeText, isConstant: true };
+    }
+
     const jsdoc = pickJsDoc(decl.getJsDocs());
     const summary = readSummary(jsdoc);
 
     if (Node.isInterfaceDeclaration(decl)) {
         const fields = readPropsFromType(decl.getType(), decl);
-        return { kind: 'type', name, sourcePath, summary, fields, typeText: null };
+        return { kind: 'type', name, sourcePath, summary, fields, typeText: null, isConstant: false };
     }
 
     const typeNode = decl.getTypeNode();
     if (typeNode && Node.isTypeLiteral(typeNode)) {
         const fields = readPropsFromType(decl.getType(), decl);
-        return { kind: 'type', name, sourcePath, summary, fields, typeText: null };
+        return { kind: 'type', name, sourcePath, summary, fields, typeText: null, isConstant: false };
     }
 
     const typeText = typeNode ? typeNode.getText() : decl.getType().getText(decl, FORMAT_FLAGS);
-    return { kind: 'type', name, sourcePath, summary, fields: null, typeText };
+    return { kind: 'type', name, sourcePath, summary, fields: null, typeText, isConstant: false };
 }
 
 function extractClass(

@@ -12,11 +12,7 @@ import type { AppKitNetworkManager } from '../core/network';
 import type { Network } from './network';
 
 /**
- * Wallet connector contract.
- *
- * A connector is the protocol-specific bridge between AppKit and a wallet
- * (TonConnect, embedded wallet, etc.). Add your connectors via the AppKit
- * config; AppKit then drives them through this interface.
+ * Wallet connector contract — the protocol-specific bridge (TonConnect, embedded wallet, …) AppKit drives once you register it via `AppKitConfig.connectors`.
  *
  * @public
  * @category Type

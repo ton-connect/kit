@@ -10,19 +10,18 @@ Source template: docs/templates/packages/appkit/docs/reference.md
 
 #### AppKit
 
-Runtime that wires together connectors, networks, providers and the event
-emitter for a TON dApp. Every action in `@ton/appkit` takes an `AppKit`
-instance as its first argument.
-
-Construct one at app startup, pass it down through your app (or via
-`AppKitProvider` in React), and reuse it for the lifetime of the
-application.
+Runtime that wires connectors, networks, providers and the event emitter for a TON dApp; construct once at startup and reuse for the app's lifetime.
 
 Constructor: `new AppKit(config)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config`\* | `AppKitConfig` | Networks, connectors, providers and other startup settings. |
+| `config`\* | [`AppKitConfig`](#appkitconfig) | Networks, connectors, providers and runtime flags. |
+| `config.networks` | `NetworkAdapters \| undefined` | Map of chain id to api-client config; if omitted, AppKit defaults to mainnet only. |
+| `config.connectors` | `Array<ConnectorInput> \| undefined` | Wallet connectors registered at startup. |
+| `config.defaultNetwork` | `Network \| undefined` | Default network connectors (e.g. TonConnect) enforce on new connections; `undefined` to allow any. |
+| `config.providers` | `Array<ProviderInput> \| undefined` | Defi/onramp providers registered at startup. |
+| `config.ssr` | `boolean \| undefined` | Set to `true` to enable server-side rendering support. |
 
 **Example**
 
@@ -60,19 +59,15 @@ const appKit = new AppKit({
 
 #### getBalance
 
-Read the Toncoin balance of the currently selected wallet.
-
-Returns `null` when no wallet is connected (rather than throwing), so the
-UI layer can render an empty state without an error path. For an
-arbitrary address use [`getBalanceByAddress`](#getbalancebyaddress).
+Read the Toncoin balance of the currently selected wallet, returning `null` when no wallet is connected (use [`getBalanceByAddress`](#getbalancebyaddress) for an arbitrary address).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `appKit`\* | [`AppKit`](#appkit) | runtime instance. |
-| `options` | [`GetBalanceOptions`](#getbalanceoptions) | with optional network override. |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options` | [`GetBalanceOptions`](#getbalanceoptions) | Optional network override. |
 | `options.network` | `Network \| undefined` | Network to read the balance from. Defaults to the selected wallet's network. |
 
-Returns: `Promise<GetBalanceReturnType>` — Balance in TON as a human-readable decimal string, or `null` if no wallet is selected.
+Returns: `Promise<GetBalanceReturnType>` — Balance in TON as a human-readable decimal string, or `null` when no wallet is selected.
 
 **Example**
 
@@ -85,16 +80,12 @@ if (balance) {
 
 #### getBalanceByAddress
 
-Read the Toncoin balance of an arbitrary address.
-
-Use this when you need to look up a balance for any wallet, not just the
-one currently selected in AppKit. For the selected wallet's balance use
-[`getBalance`](#getbalance).
+Read the Toncoin balance of an arbitrary address — useful for wallets that aren't selected in AppKit (use [`getBalance`](#getbalance) for the selected wallet).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `appKit`\* | [`AppKit`](#appkit) | runtime instance. |
-| `options`\* | [`GetBalanceByAddressOptions`](#getbalancebyaddressoptions) | carrying the target address and optional network. |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`GetBalanceByAddressOptions`](#getbalancebyaddressoptions) | Target address and optional network. |
 | `options.address`\* | `string \| Address` | Wallet address as a base64url string or an `Address` instance. |
 | `options.network` | `Network \| undefined` | Network to read the balance from. Defaults to the AppKit's selected network. |
 
@@ -111,17 +102,12 @@ console.log('Balance by address:', balanceByAddress);
 
 #### watchBalance
 
-Subscribe to Toncoin balance updates for the currently selected wallet.
-
-The subscription transparently follows the selected wallet — if the user
-connects, switches, or disconnects, the underlying watcher is rebound
-without any extra wiring on the caller side. For a fixed address use
-[`watchBalanceByAddress`](#watchbalancebyaddress).
+Subscribe to Toncoin balance updates for the currently selected wallet, automatically rebinding when the user connects, switches, or disconnects (use [`watchBalanceByAddress`](#watchbalancebyaddress) for a fixed address).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `appKit`\* | [`AppKit`](#appkit) | runtime instance. |
-| `options`\* | [`WatchBalanceOptions`](#watchbalanceoptions) | carrying the update callback and optional network override. |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`WatchBalanceOptions`](#watchbalanceoptions) | Update callback and optional network override. |
 | `options.network` | `Network \| undefined` | Network to watch on. Defaults to the selected wallet's network. |
 | `options.onChange`\* | `(update: BalanceUpdate) => void` | Callback fired on every balance update from the streaming provider. |
 
@@ -141,16 +127,12 @@ const unsubscribe = watchBalance(appKit, {
 
 #### watchBalanceByAddress
 
-Subscribe to Toncoin balance updates for an arbitrary address.
-
-Useful when you need to monitor a wallet that is not currently selected
-in AppKit (e.g. a watched address, a recipient before they connect).
-For the selected wallet's balance use [`watchBalance`](#watchbalance).
+Subscribe to Toncoin balance updates for an arbitrary address, useful for monitoring wallets that are not currently selected in AppKit (use [`watchBalance`](#watchbalance) for the selected wallet).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `appKit`\* | [`AppKit`](#appkit) | runtime instance. |
-| `options`\* | [`WatchBalanceByAddressOptions`](#watchbalancebyaddressoptions) | carrying the address, update callback and optional network override. |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`WatchBalanceByAddressOptions`](#watchbalancebyaddressoptions) | Target address, update callback and optional network override. |
 | `options.address`\* | `string \| Address` | Wallet address as a base64url string or an `Address` instance. |
 | `options.network` | `Network \| undefined` | Network to watch on. Defaults to the AppKit's selected network. |
 | `options.onChange`\* | `(update: BalanceUpdate) => void` | Callback fired on every balance update from the streaming provider. |
@@ -174,14 +156,12 @@ const unsubscribe = watchBalanceByAddress(appKit, {
 
 #### signText
 
-Ask the connected wallet to sign a plain text message.
-
-Throws `Error('Wallet not connected')` if no wallet is currently selected.
+Ask the connected wallet to sign a plain text message; throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `appKit`\* | [`AppKit`](#appkit) | runtime instance. |
-| `parameters`\* | [`SignTextParameters`](#signtextparameters) | carrying the text to sign and optional network override. |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`SignTextParameters`](#signtextparameters) | Text to sign and optional network override. |
 | `parameters.text`\* | `string` | UTF-8 text the user is asked to sign. |
 | `parameters.network` | `Network \| undefined` | Network to issue the sign request against. Defaults to the AppKit's selected network. |
 
@@ -201,16 +181,11 @@ console.log('Signature:', result.signature);
 
 #### transferTon
 
-Send a TON transfer from the selected wallet.
-
-Builds a transfer transaction and sends it through the connected wallet
-in one step. If you need to inspect or sign the transaction before
-sending, use `createTransferTonTransaction` and `sendTransaction`
-separately.
+Build and send a TON transfer from the selected wallet in one step (use `createTransferTonTransaction` + `sendTransaction` if you need to inspect the transaction first).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `appKit`\* | [`AppKit`](#appkit) | runtime instance. |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `parameters`\* | `CreateTransferTonTransactionParameters` | Recipient, amount and optional payload/comment. |
 | `parameters.recipientAddress`\* | `string` | Recipient address |
 | `parameters.amount`\* | `string` | Amount in TONs |
@@ -276,11 +251,7 @@ Options for [`watchBalance`](#watchbalance).
 
 #### Connector
 
-Wallet connector contract.
-
-A connector is the protocol-specific bridge between AppKit and a wallet
-(TonConnect, embedded wallet, etc.). Add your connectors via the AppKit
-config; AppKit then drives them through this interface.
+Wallet connector contract — the protocol-specific bridge (TonConnect, embedded wallet, …) AppKit drives once you register it via `AppKitConfig.connectors`.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -291,6 +262,106 @@ config; AppKit then drives them through this interface.
 | `connectWallet`\* | `(network?: Network) => Promise<void>` | Initiate a wallet connection flow on the given network. |
 | `disconnectWallet`\* | `() => Promise<void>` | Disconnect the currently connected wallet, if any. |
 | `getConnectedWallets`\* | `() => WalletInterface[]` | Wallets currently connected through this connector. |
+
+### Core
+
+#### AppKitConfig
+
+Constructor options for [`AppKit`](#appkit) — networks, connectors, providers and runtime flags.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `networks` | `NetworkAdapters \| undefined` | Map of chain id to api-client config; if omitted, AppKit defaults to mainnet only. |
+| `connectors` | `Array<ConnectorInput> \| undefined` | Wallet connectors registered at startup. |
+| `defaultNetwork` | `Network \| undefined` | Default network connectors (e.g. TonConnect) enforce on new connections; `undefined` to allow any. |
+| `providers` | `Array<ProviderInput> \| undefined` | Defi/onramp providers registered at startup. |
+| `ssr` | `boolean \| undefined` | Set to `true` to enable server-side rendering support. |
+
+#### AppKitEmitter
+
+Strongly-typed event emitter exposed as [`AppKit`](#appkit)`.emitter`; `appKit.emitter.on(name, handler)` returns an unsubscribe function.
+
+```ts
+type AppKitEmitter = EventEmitter<AppKitEvents>;
+```
+
+#### AppKitEvents
+
+Map of every event name AppKit can emit to its payload type, used to type listeners on [`AppKitEmitter`](#appkitemitter).
+
+```ts
+type AppKitEvents = {
+    // Connector events
+    [CONNECTOR_EVENTS.CONNECTED]: WalletConnectedPayload;
+    [CONNECTOR_EVENTS.DISCONNECTED]: WalletDisconnectedPayload;
+
+    // Wallets events
+    [WALLETS_EVENTS.UPDATED]: { wallets: WalletInterface[] };
+    [WALLETS_EVENTS.SELECTION_CHANGED]: { walletId: string | null };
+
+    // Networks events
+    [NETWORKS_EVENTS.UPDATED]: Record<string, never>;
+    [NETWORKS_EVENTS.DEFAULT_CHANGED]: DefaultNetworkChangedPayload;
+} & SharedKitEvents;
+```
+
+#### CONNECTOR_EVENTS
+
+Event names AppKit emits on wallet connection and disconnection; payloads are [`WalletConnectedPayload`](#walletconnectedpayload) and [`WalletDisconnectedPayload`](#walletdisconnectedpayload).
+
+```ts
+const CONNECTOR_EVENTS = {
+    CONNECTED: 'connector:connected',
+    DISCONNECTED: 'connector:disconnected',
+} as const;
+```
+
+#### DefaultNetworkChangedPayload
+
+Payload of `networks:default-changed` events — the new default network, or `undefined` when cleared.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `network`\* | `Network \| undefined` | _TODO: describe_ |
+
+#### NETWORKS_EVENTS
+
+Event names AppKit emits on network changes; `DEFAULT_CHANGED` carries a [`DefaultNetworkChangedPayload`](#defaultnetworkchangedpayload).
+
+```ts
+const NETWORKS_EVENTS = {
+    UPDATED: 'networks:updated',
+    DEFAULT_CHANGED: 'networks:default-changed',
+} as const;
+```
+
+#### WALLETS_EVENTS
+
+Event names AppKit emits when the available wallet list (`UPDATED`) or the active wallet (`SELECTION_CHANGED`) changes.
+
+```ts
+const WALLETS_EVENTS = {
+    UPDATED: 'wallets:updated',
+    SELECTION_CHANGED: 'wallets:selection-changed',
+} as const;
+```
+
+#### WalletConnectedPayload
+
+Payload of `connector:connected` events — newly connected wallets and the originating connector id.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `wallets`\* | `Array<WalletInterface>` | _TODO: describe_ |
+| `connectorId`\* | `string` | _TODO: describe_ |
+
+#### WalletDisconnectedPayload
+
+Payload of `connector:disconnected` events — id of the connector whose wallet was just disconnected.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `connectorId`\* | `string` | _TODO: describe_ |
 
 ### Signing
 

@@ -178,7 +178,9 @@ function renderType(entry: ExtractedType, level: HeadingLevel): string {
         lines.push(renderFieldsTable(entry.fields));
     } else if (entry.typeText) {
         lines.push('```ts');
-        lines.push(`type ${entry.name} = ${entry.typeText};`);
+        const keyword = entry.isConstant ? 'const' : 'type';
+        const operator = entry.isConstant ? '=' : '=';
+        lines.push(`${keyword} ${entry.name} ${operator} ${entry.typeText};`);
         lines.push('```');
     } else {
         lines.push('_Empty type._');
@@ -193,7 +195,8 @@ function renderClass(entry: ExtractedClass, level: HeadingLevel): string {
     lines.push(resolveLinks(entry.summary ?? TODO_MARKER));
     lines.push('');
     if (entry.constructorParams && entry.constructorParams.length > 0) {
-        lines.push(`Constructor: \`new ${entry.name}(${entry.constructorParams.map((p) => p.name).join(', ')})\``);
+        const topLevelNames = entry.constructorParams.filter((p) => !p.name.includes('.')).map((p) => p.name);
+        lines.push(`Constructor: \`new ${entry.name}(${topLevelNames.join(', ')})\``);
         lines.push('');
         lines.push(renderParamsTable(entry.constructorParams));
     } else {

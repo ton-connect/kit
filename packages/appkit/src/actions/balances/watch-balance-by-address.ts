@@ -31,14 +31,10 @@ export interface WatchBalanceByAddressOptions {
 export type WatchBalanceByAddressReturnType = () => void;
 
 /**
- * Subscribe to Toncoin balance updates for an arbitrary address.
+ * Subscribe to Toncoin balance updates for an arbitrary address, useful for monitoring wallets that are not currently selected in AppKit (use {@link watchBalance} for the selected wallet).
  *
- * Useful when you need to monitor a wallet that is not currently selected
- * in AppKit (e.g. a watched address, a recipient before they connect).
- * For the selected wallet's balance use {@link watchBalance}.
- *
- * @param appKit - {@link AppKit} runtime instance.
- * @param options - {@link WatchBalanceByAddressOptions} carrying the address, update callback and optional network override.
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param options - {@link WatchBalanceByAddressOptions} Target address, update callback and optional network override.
  * @returns Unsubscribe function — call it to stop receiving updates.
  *
  * @sample docs/examples/src/appkit/actions/balances#WATCH_BALANCE_BY_ADDRESS

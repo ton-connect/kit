@@ -12,19 +12,47 @@ import type { SharedKitEvents } from '../../emitter';
 import type { EventEmitter } from '../../emitter';
 import type { WalletInterface } from '../../../types/wallet';
 
+/**
+ * Payload of `connector:connected` events — newly connected wallets and the originating connector id.
+ *
+ * @public
+ * @category Type
+ * @section Core
+ */
 export interface WalletConnectedPayload {
     wallets: WalletInterface[];
     connectorId: string;
 }
 
+/**
+ * Payload of `connector:disconnected` events — id of the connector whose wallet was just disconnected.
+ *
+ * @public
+ * @category Type
+ * @section Core
+ */
 export interface WalletDisconnectedPayload {
     connectorId: string;
 }
 
+/**
+ * Payload of `networks:default-changed` events — the new default network, or `undefined` when cleared.
+ *
+ * @public
+ * @category Type
+ * @section Core
+ */
 export interface DefaultNetworkChangedPayload {
     network: Network | undefined;
 }
 
+/**
+ * Map of every event name AppKit can emit to its payload type, used to type listeners on {@link AppKitEmitter}.
+ *
+ * @public
+ * @category Type
+ * @section Core
+ */
 export type AppKitEvents = {
     // Connector events
     [CONNECTOR_EVENTS.CONNECTED]: WalletConnectedPayload;
@@ -39,4 +67,11 @@ export type AppKitEvents = {
     [NETWORKS_EVENTS.DEFAULT_CHANGED]: DefaultNetworkChangedPayload;
 } & SharedKitEvents;
 
+/**
+ * Strongly-typed event emitter exposed as {@link AppKit}`.emitter`; `appKit.emitter.on(name, handler)` returns an unsubscribe function.
+ *
+ * @public
+ * @category Type
+ * @section Core
+ */
 export type AppKitEmitter = EventEmitter<AppKitEvents>;

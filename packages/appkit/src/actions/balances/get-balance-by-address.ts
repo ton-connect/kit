@@ -30,14 +30,10 @@ export interface GetBalanceByAddressOptions {
 export type GetBalanceByAddressReturnType = TokenAmount;
 
 /**
- * Read the Toncoin balance of an arbitrary address.
+ * Read the Toncoin balance of an arbitrary address — useful for wallets that aren't selected in AppKit (use {@link getBalance} for the selected wallet).
  *
- * Use this when you need to look up a balance for any wallet, not just the
- * one currently selected in AppKit. For the selected wallet's balance use
- * {@link getBalance}.
- *
- * @param appKit - {@link AppKit} runtime instance.
- * @param options - {@link GetBalanceByAddressOptions} carrying the target address and optional network.
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param options - {@link GetBalanceByAddressOptions} Target address and optional network.
  * @returns Balance in TON as a human-readable decimal string.
  *
  * @sample docs/examples/src/appkit/actions/balances#GET_BALANCE_BY_ADDRESS

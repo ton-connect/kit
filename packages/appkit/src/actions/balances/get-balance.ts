@@ -28,15 +28,11 @@ export interface GetBalanceOptions {
 export type GetBalanceReturnType = TokenAmount | null;
 
 /**
- * Read the Toncoin balance of the currently selected wallet.
+ * Read the Toncoin balance of the currently selected wallet, returning `null` when no wallet is connected (use {@link getBalanceByAddress} for an arbitrary address).
  *
- * Returns `null` when no wallet is connected (rather than throwing), so the
- * UI layer can render an empty state without an error path. For an
- * arbitrary address use {@link getBalanceByAddress}.
- *
- * @param appKit - {@link AppKit} runtime instance.
- * @param options - {@link GetBalanceOptions} with optional network override.
- * @returns Balance in TON as a human-readable decimal string, or `null` if no wallet is selected.
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param options - {@link GetBalanceOptions} Optional network override.
+ * @returns Balance in TON as a human-readable decimal string, or `null` when no wallet is selected.
  *
  * @sample docs/examples/src/appkit/actions/balances#GET_BALANCE
  * @expand options
