@@ -1175,6 +1175,55 @@ const unsubscribe = watchNetworks(appKit, {
 
 ### Signing
 
+#### signBinary
+
+Ask the connected wallet to sign a binary blob; throws `Error('Wallet not connected')` if no wallet is currently selected.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`SignBinaryParameters`](#signbinaryparameters) | Binary content and optional network override. |
+| `parameters.bytes`\* | <a href="#base64string"><code>Base64String</code></a> | Binary blob the user is asked to sign, encoded as Base64. |
+| `parameters.network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against. Defaults to AppKit's configured default network. |
+
+Returns: <code>Promise&lt;</code><a href="#signbinaryreturntype"><code>SignBinaryReturnType</code></a><code>&gt;</code> — Signature and signed payload, as returned by the wallet.
+
+**Example**
+
+```ts
+// Example: sign "Hello" in base64
+const result = await signBinary(appKit, {
+    bytes: 'SGVsbG8=' as Base64String,
+});
+
+console.log('Binary Signature:', result.signature);
+```
+
+#### signCell
+
+Ask the connected wallet to sign a TON cell — typically used so the signature can later be verified on-chain; throws `Error('Wallet not connected')` if no wallet is currently selected.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`SignCellParameters`](#signcellparameters) | Cell content, TL-B schema and optional network override. |
+| `parameters.cell`\* | <a href="#base64string"><code>Base64String</code></a> | TON cell content encoded as Base64 (BoC). |
+| `parameters.schema`\* | `string` | TL-B-style schema describing the cell layout so the wallet can render the payload to the user. |
+| `parameters.network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against. Defaults to AppKit's configured default network. |
+
+Returns: <code>Promise&lt;</code><a href="#signcellreturntype"><code>SignCellReturnType</code></a><code>&gt;</code> — Signature and signed payload, as returned by the wallet.
+
+**Example**
+
+```ts
+const result = await signCell(appKit, {
+    cell: 'te6ccgEBAQEAAgAAGA==' as Base64String, // Example BOC
+    schema: 'transfer#abc123 amount:uint64 = Transfer',
+});
+
+console.log('Cell Signature:', result.signature);
+```
+
 #### signText
 
 Ask the connected wallet to sign a plain text message; throws `Error('Wallet not connected')` if no wallet is currently selected.
@@ -1184,9 +1233,9 @@ Ask the connected wallet to sign a plain text message; throws `Error('Wallet not
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `parameters`\* | [`SignTextParameters`](#signtextparameters) | Text to sign and optional network override. |
 | `parameters.text`\* | `string` | UTF-8 text the user is asked to sign. |
-| `parameters.network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against. Defaults to the AppKit's selected network. |
+| `parameters.network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against. Defaults to AppKit's configured default network. |
 
-Returns: `Promise<SignTextReturnType>` — Signature and signed payload, as returned by the wallet.
+Returns: <code>Promise&lt;</code><a href="#signtextreturntype"><code>SignTextReturnType</code></a><code>&gt;</code> — Signature and signed payload, as returned by the wallet.
 
 **Example**
 
@@ -2608,6 +2657,41 @@ type UserFriendlyAddress = string;
 
 ### Signing
 
+#### SignBinaryParameters
+
+Parameters accepted by [`signBinary`](#signbinary).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `bytes`\* | <a href="#base64string"><code>Base64String</code></a> | Binary blob the user is asked to sign, encoded as Base64. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against. Defaults to AppKit's configured default network. |
+
+#### SignBinaryReturnType
+
+Return type of [`signBinary`](#signbinary).
+
+```ts
+type SignBinaryReturnType = SignDataResponse;
+```
+
+#### SignCellParameters
+
+Parameters accepted by [`signCell`](#signcell).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `cell`\* | <a href="#base64string"><code>Base64String</code></a> | TON cell content encoded as Base64 (BoC). |
+| `schema`\* | `string` | TL-B-style schema describing the cell layout so the wallet can render the payload to the user. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against. Defaults to AppKit's configured default network. |
+
+#### SignCellReturnType
+
+Return type of [`signCell`](#signcell).
+
+```ts
+type SignCellReturnType = SignDataResponse;
+```
+
 #### SignData
 
 Payload the user is asked to sign — discriminated union over `'text'`, `'binary'`, and `'cell'`; nested under [`SignDataRequest`](#signdatarequest)`.data`.
@@ -2667,12 +2751,20 @@ Plain-text variant of [`SignData`](#signdata) — UTF-8 string the user is asked
 
 #### SignTextParameters
 
-Parameters accepted by `signText`.
+Parameters accepted by [`signText`](#signtext).
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `text`\* | `string` | UTF-8 text the user is asked to sign. |
-| `network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against. Defaults to the AppKit's selected network. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against. Defaults to AppKit's configured default network. |
+
+#### SignTextReturnType
+
+Return type of [`signText`](#signtext).
+
+```ts
+type SignTextReturnType = SignDataResponse;
+```
 
 ### Staking
 

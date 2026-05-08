@@ -13,7 +13,7 @@ import { getSelectedWallet } from '../wallets/get-selected-wallet';
 import { getDefaultNetwork } from '../network/get-default-network';
 
 /**
- * Parameters accepted by `signText`.
+ * Parameters accepted by {@link signText}.
  *
  * @public
  * @category Type
@@ -22,10 +22,17 @@ import { getDefaultNetwork } from '../network/get-default-network';
 export interface SignTextParameters {
     /** UTF-8 text the user is asked to sign. */
     text: string;
-    /** Network to issue the sign request against. Defaults to the AppKit's selected network. */
+    /** Network to issue the sign request against. Defaults to AppKit's configured default network. */
     network?: Network;
 }
 
+/**
+ * Return type of {@link signText}.
+ *
+ * @public
+ * @category Type
+ * @section Signing
+ */
 export type SignTextReturnType = SignDataResponse;
 
 /**
