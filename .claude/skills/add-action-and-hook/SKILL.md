@@ -61,6 +61,10 @@ export {
 } from './<category>/get-xxx';
 ```
 
+### 1.4 Document the action
+
+Add `@public` JSDoc to the action and to `GetXxxOptions` so they show up in the auto-generated reference. Follow the [`document-public-api`](../document-public-api/SKILL.md) skill for the exact tag set, allowed `@category` values, and style rules (one-sentence summaries, `{@link X}` syntax for type cells, `@expand` for options-bag flattening, `@sample` for code examples).
+
 ---
 
 ## Step 2: Create the Query or Mutation in `appkit` (for get actions only)
@@ -219,12 +223,16 @@ Add to `packages/appkit-react/src/features/<category>/index.ts`:
 export { useXxx, type UseXxxParameters, type UseXxxReturnType } from './hooks/use-xxx';
 ```
 
+### Document the hook
+
+Tag the hook (and `UseXxxParameters` / `UseXxxReturnType` if useful) with `@public` JSDoc. Use `@category Hook` and `@section <Domain>`. The full ruleset (required tags, allowed values, `{@link}` linking, `@sample` placeholders) is in the [`document-public-api`](../document-public-api/SKILL.md) skill.
+
 ---
 
 ## Step 4: Add Examples and Tests
 
 ### 4.1 Action example
-Create `demo/examples/src/appkit/actions/<category>/get-xxx.ts`:
+Create `docs/examples/src/appkit/actions/<category>/get-xxx.ts`:
 ```ts
 import type { AppKit } from '@ton/appkit';
 import { getXxx } from '@ton/appkit';
@@ -237,10 +245,12 @@ export const getXxxExample = async (appKit: AppKit) => {
 };
 ```
 
-Export it in `demo/examples/src/appkit/actions/<category>/index.ts`.
+Export it in `docs/examples/src/appkit/actions/<category>/index.ts`.
+
+The `// SAMPLE_START: GET_XXX … // SAMPLE_END: GET_XXX` block is what `@sample docs/examples/src/appkit/actions/<category>#GET_XXX` in the action's JSDoc will pull into the reference (see [`document-public-api`](../document-public-api/SKILL.md)).
 
 ### 4.2 Hook example
-Create `demo/examples/src/appkit/hooks/<category>/use-xxx.tsx`:
+Create `docs/examples/src/appkit/hooks/<category>/use-xxx.tsx`:
 ```tsx
 import { useXxx } from '@ton/appkit-react';
 
@@ -252,7 +262,7 @@ export const UseXxxExample = () => {
 };
 ```
 
-Export it in `demo/examples/src/appkit/hooks/<category>/index.ts`.
+Export it in `docs/examples/src/appkit/hooks/<category>/index.ts`.
 
 ### 4.3 Write tests
 **Important:** Do NOT create a new test file per example. Add tests to the existing `<category>.test.ts` / `<category>.test.tsx` file in the same directory.
@@ -280,24 +290,26 @@ If the mock `appKit` in `beforeEach` doesn't have the required mocks (e.g., `get
 
 ## Step 5: Update Templates and Docs
 
-### 5.1 Update action template
-Edit `template/appkit-actions.md`, add after the nearest related action:
+The reference at `packages/<pkg>/docs/reference.md` is fully generated from `@public` JSDoc, so once Step 1.4 / Step 3.1 are done your action and hook are already in the reference. The two steps below update the older hand-curated `actions.md` / `hooks.md` listings.
+
+### 5.1 Update action listing
+Edit `docs/templates/packages/appkit/docs/actions.md`, add after the nearest related action:
 ```md
 ### `getXxx`
 
 Description of what the action does.
 
-%%demo/examples/src/appkit/actions/<category>#GET_XXX%%
+%%docs/examples/src/appkit/actions/<category>#GET_XXX%%
 ```
 
-### 5.2 Update hooks template
-Edit `template/appkit-hooks.md`, add after the nearest related hook:
+### 5.2 Update hooks listing
+Edit `docs/templates/packages/appkit-react/docs/hooks.md`, add after the nearest related hook:
 ```md
 ### `useXxx`
 
 Hook to ...
 
-%%demo/examples/src/appkit/hooks/<category>#USE_XXX%%
+%%docs/examples/src/appkit/hooks/<category>#USE_XXX%%
 ```
 
 ### 5.3 Run quality check
@@ -310,4 +322,4 @@ All tests and type checks must pass before continuing.
 ```bash
 pnpm docs:update
 ```
-Verify the relevant `.md` files in `packages/appkit/docs/` and `packages/appkit-react/docs/` were updated.
+Runs `docs:reference` (regenerates `reference.md` from `@public` JSDoc) followed by `docs:template` (resolves `%%path#SAMPLE%%` placeholders into real code blocks). Verify the resulting `.md` files in `packages/appkit/docs/` and `packages/appkit-react/docs/` were updated.
