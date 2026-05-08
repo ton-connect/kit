@@ -213,7 +213,7 @@ if (!wallet) {
 }
 // Query balance
 const balance = await wallet.getBalance();
-console.log('WalletBalance', wallet.getAddress(), balance.toString());
+console.log('WalletBalance', wallet.getAddress(), balance);
 ```
 
 ### Rendering previews (reference)

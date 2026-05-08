@@ -12,7 +12,6 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import * as AppKitReact from '@ton/appkit-react';
-import { Address } from '@ton/core';
 
 import { UseNftExample } from './use-nft';
 import { UseNftsByAddressExample } from './use-nfts-by-address';
@@ -67,7 +66,7 @@ describe('NFT Hooks Examples', () => {
                 data: {
                     info: { name: 'Epic NFT' },
                     collection: { name: 'Epic Collection' },
-                    ownerAddress: Address.parse('EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c'),
+                    ownerAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
                 },
                 error: null,
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -87,7 +86,7 @@ describe('NFT Hooks Examples', () => {
                 data: {
                     nfts: [
                         {
-                            address: Address.parse('EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c'),
+                            address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
                             info: { name: 'NFT 1' },
                             collection: { name: 'Coll 1' },
                         },
@@ -110,7 +109,7 @@ describe('NFT Hooks Examples', () => {
                 data: {
                     nfts: [
                         {
-                            address: Address.parse('EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c'),
+                            address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
                             info: { name: 'My NFT' },
                             collection: { name: 'My Coll' },
                         },

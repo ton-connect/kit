@@ -42,7 +42,7 @@ export async function main() {
         }
         // Query balance
         const balance = await wallet.getBalance();
-        console.log('WalletBalance', wallet.getAddress(), balance.toString());
+        console.log('WalletBalance', wallet.getAddress(), balance);
         // SAMPLE_END: BASIC_WALLET_OPERATIONS_1
     }
 

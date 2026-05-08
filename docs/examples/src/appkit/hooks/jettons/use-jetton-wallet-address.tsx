@@ -6,14 +6,6 @@
  *
  */
 
-/**
- * Copyright (c) TonTech.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- *
- */
-
 import { useJettonWalletAddress } from '@ton/appkit-react';
 
 export const UseJettonWalletAddressExample = () => {
@@ -35,6 +27,6 @@ export const UseJettonWalletAddressExample = () => {
         return <div>Error: {error.message}</div>;
     }
 
-    return <div>Jetton Wallet Address: {walletAddress?.toString()}</div>;
+    return <div>Jetton Wallet Address: {walletAddress}</div>;
     // SAMPLE_END: USE_JETTON_WALLET_ADDRESS
 };

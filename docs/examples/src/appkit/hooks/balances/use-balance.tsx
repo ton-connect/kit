@@ -20,6 +20,6 @@ export const UseBalanceExample = () => {
         return <div>Error: {error.message}</div>;
     }
 
-    return <div>Balance: {balance?.toString()}</div>;
+    return <div>Balance: {balance}</div>;
     // SAMPLE_END: USE_BALANCE
 };

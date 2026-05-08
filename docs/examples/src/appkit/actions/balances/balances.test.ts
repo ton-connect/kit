@@ -63,11 +63,8 @@ describe('Balance Actions Examples (Integration)', () => {
 
             appKit.walletsManager.setWallets([mockWallet]);
 
-            // Setup balance response
-            // Using a simple object that mimics TokenAmount to avoid constructor issues if any,
-            // or we could use `new TokenAmount(1000000000n, 9)` if available.
-            // Since we test the example which calls .toString(), this is sufficient.
-            const balanceValue = { toString: () => '1000000000' } as TokenAmount;
+            // Setup balance response. TokenAmount is a string alias.
+            const balanceValue: TokenAmount = '1000000000';
             mockGetBalance.mockResolvedValue(balanceValue);
 
             await getBalanceExample(appKit);

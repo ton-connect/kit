@@ -17,6 +17,6 @@ export const getJettonsExample = async (appKit: AppKit) => {
         return;
     }
     console.log('Jettons:', response.jettons.length);
-    response.jettons.forEach((j) => console.log(`- ${j.info.name}: ${j.balance.toString()}`));
+    response.jettons.forEach((j) => console.log(`- ${j.info.name}: ${j.balance}`));
     // SAMPLE_END: GET_JETTONS
 };

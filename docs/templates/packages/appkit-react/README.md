@@ -95,7 +95,7 @@ export const Balance = () => {
         return <div>Loading...</div>;
     }
 
-    return <div>Balance: {balance?.toString()} TON</div>;
+    return <div>Balance: {balance || 0} TON</div>;
 };
 ```
 

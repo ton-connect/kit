@@ -17,7 +17,7 @@ Get the TON balance of the currently selected wallet.
 ```ts
 const balance = await getBalance(appKit);
 if (balance) {
-    console.log('Balance:', balance.toString());
+    console.log('Balance:', balance);
 }
 ```
 
@@ -167,7 +167,7 @@ if (!response) {
     return;
 }
 console.log('Jettons:', response.jettons.length);
-response.jettons.forEach((j) => console.log(`- ${j.info.name}: ${j.balance.toString()}`));
+response.jettons.forEach((j) => console.log(`- ${j.info.name}: ${j.balance}`));
 ```
 
 ### `getJettonsByAddress`
@@ -185,7 +185,7 @@ const response = await getJettonsByAddress(appKit, {
     address: selectedWallet.getAddress(),
 });
 console.log('Jettons by Address:', response.jettons.length);
-response.jettons.forEach((j) => console.log(`- ${j.info.name}: ${j.balance.toString()}`));
+response.jettons.forEach((j) => console.log(`- ${j.info.name}: ${j.balance}`));
 ```
 
 ### `getJettonBalance`
@@ -204,7 +204,7 @@ const balance = await getJettonBalance(appKit, {
     ownerAddress: selectedWallet.getAddress(),
     jettonDecimals: 6,
 });
-console.log('Jetton Balance:', balance.toString());
+console.log('Jetton Balance:', balance);
 ```
 
 ### `getJettonInfo`

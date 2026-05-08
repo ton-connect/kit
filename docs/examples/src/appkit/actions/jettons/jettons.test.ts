@@ -139,10 +139,7 @@ describe('Jetton Actions Examples (Integration)', () => {
                 'get_wallet_address',
                 expect.any(Array),
             );
-            expect(consoleSpy).toHaveBeenCalledWith(
-                'Jetton Wallet Address:',
-                Address.parse(JETTON_WALLET_ADDRESS).toString(),
-            );
+            expect(consoleSpy).toHaveBeenCalledWith('Jetton Wallet Address:', JETTON_WALLET_ADDRESS);
         });
 
         it('should log message if no wallet selected', async () => {

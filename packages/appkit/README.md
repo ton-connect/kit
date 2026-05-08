@@ -72,7 +72,7 @@ const appKit = new AppKit({
 ```ts
 const balance = await getBalance(appKit);
 if (balance) {
-    console.log('Balance:', balance.toString());
+    console.log('Balance:', balance);
 }
 ```
  

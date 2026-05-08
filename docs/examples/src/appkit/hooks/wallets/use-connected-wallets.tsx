@@ -18,7 +18,7 @@ export const UseConnectedWalletsExample = () => {
             <ul>
                 {connectedWallets.map((wallet) => (
                     <li key={wallet.getAddress()}>
-                        {wallet.getAddress()} ({wallet.getNetwork().toString()})
+                        {wallet.getAddress()} ({wallet.getNetwork().chainId})
                     </li>
                 ))}
             </ul>

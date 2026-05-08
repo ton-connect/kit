@@ -31,7 +31,7 @@ export const UseNftsExample = () => {
             <h3>My NFTs</h3>
             <ul>
                 {nfts?.nfts.map((nft) => (
-                    <li key={nft.address.toString()}>
+                    <li key={nft.address}>
                         {nft.info?.name} ({nft.collection?.name})
                     </li>
                 ))}

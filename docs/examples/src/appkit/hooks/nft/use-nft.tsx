@@ -31,7 +31,7 @@ export const UseNftExample = () => {
             <h3>NFT Details</h3>
             <p>Name: {nft?.info?.name}</p>
             <p>Collection: {nft?.collection?.name}</p>
-            <p>Owner: {nft?.ownerAddress?.toString()}</p>
+            <p>Owner: {nft?.ownerAddress}</p>
         </div>
     );
     // SAMPLE_END: USE_NFT

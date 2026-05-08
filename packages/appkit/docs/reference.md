@@ -79,7 +79,7 @@ Returns: `Promise<GetBalanceReturnType>` — Balance in TON as a human-readable 
 ```ts
 const balance = await getBalance(appKit);
 if (balance) {
-    console.log('Balance:', balance.toString());
+    console.log('Balance:', balance);
 }
 ```
 

@@ -13,7 +13,7 @@ export const getBalanceExample = async (appKit: AppKit) => {
     // SAMPLE_START: GET_BALANCE
     const balance = await getBalance(appKit);
     if (balance) {
-        console.log('Balance:', balance.toString());
+        console.log('Balance:', balance);
     }
     // SAMPLE_END: GET_BALANCE
 };

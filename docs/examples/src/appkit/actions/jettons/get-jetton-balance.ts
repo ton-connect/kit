@@ -22,6 +22,6 @@ export const getJettonBalanceExample = async (appKit: AppKit) => {
         ownerAddress: selectedWallet.getAddress(),
         jettonDecimals: 6,
     });
-    console.log('Jetton Balance:', balance.toString());
+    console.log('Jetton Balance:', balance);
     // SAMPLE_END: GET_JETTON_BALANCE
 };

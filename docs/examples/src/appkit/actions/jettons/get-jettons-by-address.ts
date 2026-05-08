@@ -21,6 +21,6 @@ export const getJettonsByAddressExample = async (appKit: AppKit) => {
         address: selectedWallet.getAddress(),
     });
     console.log('Jettons by Address:', response.jettons.length);
-    response.jettons.forEach((j) => console.log(`- ${j.info.name}: ${j.balance.toString()}`));
+    response.jettons.forEach((j) => console.log(`- ${j.info.name}: ${j.balance}`));
     // SAMPLE_END: GET_JETTONS_BY_ADDRESS
 };
