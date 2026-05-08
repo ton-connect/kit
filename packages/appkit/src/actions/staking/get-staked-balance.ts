@@ -6,9 +6,10 @@
  *
  */
 
-import type { StakingBalance, UserFriendlyAddress, Network } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
+import type { StakingBalance } from '../../staking';
+import type { Network } from '../../types/network';
+import type { UserFriendlyAddress } from '../../types/primitives';
 import { resolveNetwork } from '../../utils';
 
 export type GetStakedBalanceOptions = {

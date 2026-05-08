@@ -6,12 +6,11 @@
  *
  */
 
-import type { ApiClient } from '@ton/walletkit';
-import { KitNetworkManager } from '@ton/walletkit';
-
+import type { ApiClient } from '../../../types/api-client';
+import type { Network } from '../../../types/network';
 import { NETWORKS_EVENTS } from '../../app-kit/constants/events';
 import type { AppKitEmitter } from '../../app-kit/types/events';
-import type { Network } from '../../../types/network';
+import { KitNetworkManager } from '../walletkit';
 
 export class AppKitNetworkManager extends KitNetworkManager {
     private emitter: AppKitEmitter;

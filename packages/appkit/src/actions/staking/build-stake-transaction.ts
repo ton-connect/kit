@@ -6,10 +6,9 @@
  *
  */
 
-import type { StakeParams } from '@ton/walletkit';
-
-import type { TransactionRequest } from '../../types/transaction';
 import type { AppKit } from '../../core/app-kit';
+import type { StakeParams } from '../../staking';
+import type { TransactionRequest } from '../../types/transaction';
 
 export type BuildStakeTransactionOptions = StakeParams & {
     providerId?: string;

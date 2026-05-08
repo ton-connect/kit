@@ -6,9 +6,8 @@
  *
  */
 
-import type { SwapQuote, SwapQuoteParams } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
+import type { SwapQuote, SwapQuoteParams } from '../../swap';
 import { resolveNetwork } from '../../utils';
 
 export type GetSwapQuoteOptions<T = unknown> = SwapQuoteParams<T> & {

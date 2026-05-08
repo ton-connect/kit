@@ -6,10 +6,10 @@
  *
  */
 
-import type { StakingProviderInfo, Network } from '@ton/walletkit';
-
-import { resolveNetwork } from '../../utils';
 import type { AppKit } from '../../core/app-kit';
+import type { StakingProviderInfo } from '../../staking';
+import type { Network } from '../../types/network';
+import { resolveNetwork } from '../../utils';
 
 export type GetStakingProviderInfoOptions = {
     network?: Network;

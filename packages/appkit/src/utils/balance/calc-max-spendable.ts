@@ -6,7 +6,7 @@
  *
  */
 
-import { formatUnits, parseUnits } from '@ton/walletkit';
+import { formatUnits, parseUnits } from '..';
 
 /**
  * Default TON reserve subtracted from balance when computing the max spendable amount

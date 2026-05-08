@@ -6,7 +6,7 @@
  *
  */
 
-import { formatUnits, parseUnits } from '@ton/walletkit';
+import { formatUnits, parseUnits } from '..';
 
 /** Default extra TON buffer added on top of built transaction outflow when checking balance before sending. */
 export const DEFAULT_GAS_BUFFER_NANOS = 100_000_000n;

@@ -6,9 +6,8 @@
  *
  */
 
-import type { OnrampManager } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
+import type { OnrampManager } from '../../onramp';
 
 export type GetOnrampManagerReturnType = OnrampManager;
 

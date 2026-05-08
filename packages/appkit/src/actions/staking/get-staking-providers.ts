@@ -6,9 +6,8 @@
  *
  */
 
-import type { StakingProviderInterface } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
+import type { StakingProviderInterface } from '../../staking';
 
 export type GetStakingProvidersReturnType = StakingProviderInterface[];
 

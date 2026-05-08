@@ -6,10 +6,10 @@
  *
  */
 
-import type { StakingProviderMetadata, Network } from '@ton/walletkit';
-
-import { resolveNetwork } from '../../utils';
 import type { AppKit } from '../../core/app-kit';
+import type { StakingProviderMetadata } from '../../staking';
+import type { Network } from '../../types/network';
+import { resolveNetwork } from '../../utils';
 
 export type GetStakingProviderMetadataOptions = {
     network?: Network;

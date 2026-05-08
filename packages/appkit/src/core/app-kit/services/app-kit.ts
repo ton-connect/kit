@@ -6,25 +6,25 @@
  *
  */
 
-import { SwapManager, StreamingManager, OnrampManager, CryptoOnrampManager } from '@ton/walletkit';
-import type {
-    ProviderInput,
-    SwapProviderInterface,
-    StakingProviderInterface,
-    OnrampProviderInterface,
-    CryptoOnrampProviderInterface,
-} from '@ton/walletkit';
-
-import type { AppKitConfig } from '../types/config';
-import { CONNECTOR_EVENTS, WALLETS_EVENTS } from '../constants/events';
+import { CryptoOnrampManager } from '../../../crypto-onramp';
+import type { CryptoOnrampProviderInterface } from '../../../crypto-onramp';
+import { OnrampManager } from '../../../onramp';
+import type { OnrampProviderInterface } from '../../../onramp';
 import { StakingManager } from '../../../staking';
+import type { StakingProviderInterface } from '../../../staking';
+import { SwapManager } from '../../../swap';
+import type { SwapProviderInterface } from '../../../swap';
 import type { Connector, ConnectorFactoryContext, ConnectorInput } from '../../../types/connector';
-import { EventEmitter } from '../../emitter';
-import type { AppKitEmitter, AppKitEvents } from '../types/events';
-import type { WalletInterface } from '../../../types/wallet';
-import { WalletsManager } from '../../wallets-manager';
-import { AppKitNetworkManager } from '../../network';
 import { Network } from '../../../types/network';
+import type { ProviderInput } from '../../../types/provider';
+import type { WalletInterface } from '../../../types/wallet';
+import { EventEmitter } from '../../emitter';
+import { AppKitNetworkManager } from '../../network';
+import { StreamingManager } from '../../streaming';
+import { WalletsManager } from '../../wallets-manager';
+import { CONNECTOR_EVENTS, WALLETS_EVENTS } from '../constants/events';
+import type { AppKitEmitter, AppKitEvents } from '../types/events';
+import type { AppKitConfig } from '../types/config';
 
 /**
  * Runtime that wires connectors, networks, providers and the event emitter for a TON dApp; construct once at startup and reuse for the app's lifetime.

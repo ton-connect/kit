@@ -6,9 +6,8 @@
  *
  */
 
-import type { StakingManager } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
+import type { StakingManager } from '../../staking';
 
 export type GetStakingManagerReturnType = StakingManager;
 

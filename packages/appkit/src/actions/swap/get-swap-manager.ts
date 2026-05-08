@@ -6,9 +6,8 @@
  *
  */
 
-import type { SwapManager } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
+import type { SwapManager } from '../../swap';
 
 export type GetSwapManagerReturnType = SwapManager;
 

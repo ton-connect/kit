@@ -6,9 +6,8 @@
  *
  */
 
-import type { StakingQuote, StakingQuoteParams } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
+import type { StakingQuote, StakingQuoteParams } from '../../staking';
 import { resolveNetwork } from '../../utils';
 
 export type GetStakingQuoteOptions = StakingQuoteParams & {

@@ -6,9 +6,8 @@
  *
  */
 
-import type { SwapProviderInterface } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
+import type { SwapProviderInterface } from '../../swap';
 
 export interface GetSwapProviderOptions {
     id?: string;

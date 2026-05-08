@@ -6,10 +6,9 @@
  *
  */
 
-import type { NetworkAdapters, ProviderInput } from '@ton/walletkit';
-
 import type { ConnectorInput } from '../../../types/connector';
-import type { Network } from '../../../types/network';
+import type { Network, NetworkAdapters } from '../../../types/network';
+import type { ProviderInput } from '../../../types/provider';
 
 /**
  * Constructor options for {@link AppKit} — networks, connectors, providers and runtime flags.

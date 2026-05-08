@@ -6,9 +6,8 @@
  *
  */
 
-import type { UserFriendlyAddress } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
+import type { UserFriendlyAddress } from '../../types/primitives';
 import { getJettonWalletAddress } from '../../actions/jettons/get-jetton-wallet-address';
 import type { GetJettonWalletAddressOptions as GetJettonWalletAddressParameters } from '../../actions/jettons/get-jetton-wallet-address';
 import type { QueryOptions, QueryParameter } from '../../types/query';

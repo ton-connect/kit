@@ -6,9 +6,8 @@
  *
  */
 
-import type { CryptoOnrampProviderInterface } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
+import type { CryptoOnrampProviderInterface } from '../../crypto-onramp';
 
 export interface GetCryptoOnrampProviderOptions {
     id?: string;

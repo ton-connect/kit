@@ -6,9 +6,8 @@
  *
  */
 
-import { Network } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
+import { Network } from '../../types/network';
 
 export interface GetBlockNumberOptions {
     network?: Network;

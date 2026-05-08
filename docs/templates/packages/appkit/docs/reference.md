@@ -539,21 +539,6 @@ Dynamic staking information for a provider
 | `instantUnstakeAvailable` | `string \| undefined` | Amount available for instant unstake |
 | `exchangeRate` | `string \| undefined` | Exchange rate between stakeToken and receiveToken (e.g. 1 TON = 0.95 tsTON). Undefined when there is no receiveToken (direct/custodial staking). |
 
-#### StakingProviderInterface
-
-Interface that all staking providers must implement
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `type`\* | `"staking"` | _TODO: describe_ |
-| `providerId`\* | `string` | Unique identifier for the provider |
-| `getQuote`\* | `(params: StakingQuoteParams) => Promise<StakingQuote>` | Get a quote for staking or unstaking |
-| `buildStakeTransaction`\* | `(params: StakeParams) => Promise<TransactionRequest>` | Build a transaction for staking |
-| `getStakedBalance`\* | `(userAddress: UserFriendlyAddress, network?: Network) => Promise<StakingBalance>` | Get user's staked balance |
-| `getStakingProviderInfo`\* | `(network?: Network) => Promise<StakingProviderInfo>` | Get staking provider information |
-| `getStakingProviderMetadata`\* | `(network?: Network) => StakingProviderMetadata` | Get static metadata for this staking provider |
-| `getSupportedNetworks`\* | `() => Network[]` | Networks this provider can operate on. Consumers should check before calling provider methods. Implementations may return a static list or compute it dynamically (e.g. from runtime config). |
-
 #### StakingProviderMetadata
 
 Static metadata for a staking provider
