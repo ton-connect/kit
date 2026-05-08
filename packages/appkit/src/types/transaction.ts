@@ -51,7 +51,11 @@ export interface TransactionRequest {
 }
 
 /**
- * Individual message within a transaction request.
+ * Individual message inside a {@link TransactionRequest} — recipient, amount, optional payload and contract `stateInit`.
+ *
+ * @public
+ * @category Type
+ * @section Transactions
  */
 export interface TransactionRequestMessage {
     /**

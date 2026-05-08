@@ -18,7 +18,7 @@ Constructor: `new AppKit(config)`
 | `config.networks` | <a href="#networkadapters"><code>NetworkAdapters</code></a> | Map of chain id to api-client config; if omitted, AppKit defaults to mainnet only. |
 | `config.connectors` | <a href="#connectorinput"><code>ConnectorInput</code></a><code>[]</code> | Wallet connectors registered at startup. |
 | `config.defaultNetwork` | <a href="#network"><code>Network</code></a> | Default network connectors (e.g. TonConnect) enforce on new connections; `undefined` to allow any. |
-| `config.providers` | `ProviderInput[]` | Defi/onramp providers registered at startup. |
+| `config.providers` | <a href="#providerinput"><code>ProviderInput</code></a><code>[]</code> | Defi/onramp providers registered at startup. |
 | `config.ssr` | `boolean` | Set to `true` to enable server-side rendering support. |
 
 **Example**
@@ -102,8 +102,18 @@ Constructor: `new AppKitNetworkManager(options, emitter)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `options`\* | `ConstructorParameters<typeof KitNetworkManager>[0]` | _TODO: describe_ |
+| `options`\* | <code>ConstructorParameters&lt;typeof </code><a href="#kitnetworkmanager"><code>KitNetworkManager</code></a><code>&gt;[0]</code> | _TODO: describe_ |
 | `emitter`\* | <a href="#appkitemitter"><code>AppKitEmitter</code></a> | _TODO: describe_ |
+
+#### KitNetworkManager
+
+Walletkit-side network manager — the base class [`AppKitNetworkManager`](#appkitnetworkmanager) extends with default-network state and AppKit event emission. Apps usually interact with the [`AppKitNetworkManager`](#appkitnetworkmanager) subclass via [`AppKit`](#appkit)`.networkManager`.
+
+Constructor: `new KitNetworkManager(options)`
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `options`\* | <a href="#tonwalletkitoptions"><code>TonWalletKitOptions</code></a> | _TODO: describe_ |
 
 ### Staking
 
@@ -116,7 +126,7 @@ Constructor: `new StakingError(message, code, details)`
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `message`\* | `string` | _TODO: describe_ |
-| `code`\* | `StakingErrorCode` | _TODO: describe_ |
+| `code`\* | <a href="#stakingerrorcode"><code>StakingErrorCode</code></a> | _TODO: describe_ |
 | `details` | `unknown` | _TODO: describe_ |
 
 #### StakingManager
@@ -481,6 +491,166 @@ Subscribe to crypto-onramp provider lifecycle — fires `onChange` whenever a ne
 
 Returns: <a href="#watchcryptoonrampprovidersreturntype"><code>WatchCryptoOnrampProvidersReturnType</code></a> — Unsubscribe function — call it to stop receiving updates.
 
+### Jettons
+
+#### createTransferJettonTransaction
+
+Build a jetton transfer [`TransactionRequest`](#transactionrequest) for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing; throws `Error('Wallet not connected')` when no wallet is selected.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`CreateTransferJettonTransactionParameters`](#createtransferjettontransactionparameters) | Jetton, recipient, amount, decimals and optional comment. |
+| `parameters.jettonAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Jetton master contract address being transferred. |
+| `parameters.recipientAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Recipient who should receive the jettons. |
+| `parameters.amount`\* | `string` | Amount in jetton units as a human-readable decimal string (e.g., `"1.5"`). |
+| `parameters.jettonDecimals`\* | `number` | Decimals declared by the jetton master; used to convert `amount` into raw smallest units. |
+| `parameters.comment` | `string` | Optional human-readable comment attached to the transfer. |
+
+Returns: <code>Promise&lt;</code><a href="#createtransferjettontransactionreturntype"><code>CreateTransferJettonTransactionReturnType</code></a><code>&gt;</code> — Transaction request ready to pass to `sendTransaction`.
+
+**Example**
+
+%%docs/examples/src/appkit/actions/jettons#CREATE_TRANSFER_JETTON_TRANSACTION%%
+
+#### getJettonBalance
+
+Read a jetton balance for a given owner — derives the owner's jetton-wallet address from the master, then fetches and formats the balance using the supplied decimals.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`GetJettonBalanceOptions`](#getjettonbalanceoptions) | Jetton master, owner address, decimals and optional network override. |
+| `options.jettonAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Jetton master contract address (the token, not the user's wallet for it). |
+| `options.ownerAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Owner of the jetton wallet — typically the connected user's address. |
+| `options.jettonDecimals`\* | `number` | Decimals declared by the jetton master; used to format the raw balance into a human-readable string. |
+| `options.network` | <a href="#network"><code>Network</code></a> | Network to read the balance from. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+
+Returns: <code>Promise&lt;</code><a href="#getjettonbalancereturntype"><code>GetJettonBalanceReturnType</code></a><code>&gt;</code> — Balance as a human-readable decimal string in the jetton's units.
+
+**Example**
+
+%%docs/examples/src/appkit/actions/jettons#GET_JETTON_BALANCE%%
+
+#### getJettonInfo
+
+Fetch token metadata for a jetton master — name, symbol, decimals, image and description as reported by the indexer; returns `null` when no metadata is available.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`GetJettonInfoOptions`](#getjettoninfooptions) | Jetton master address and optional network override. |
+| `options.address`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Jetton master contract address whose metadata is being fetched. |
+| `options.network` | <a href="#network"><code>Network</code></a> | Network to query. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+
+Returns: <code>Promise&lt;</code><a href="#getjettoninforeturntype"><code>GetJettonInfoReturnType</code></a><code>&gt;</code> — Jetton metadata, or `null` if the indexer has no record.
+
+**Example**
+
+%%docs/examples/src/appkit/actions/jettons#GET_JETTON_INFO%%
+
+#### getJettonWalletAddress
+
+Derive the jetton-wallet address for a given owner — the per-owner contract that actually holds the jetton balance for `jettonAddress`.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`GetJettonWalletAddressOptions`](#getjettonwalletaddressoptions) | Jetton master, owner address and optional network override. |
+| `options.jettonAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Jetton master contract address. |
+| `options.ownerAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Owner whose jetton wallet should be derived. |
+| `options.network` | <a href="#network"><code>Network</code></a> | Network to query. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+
+Returns: <code>Promise&lt;</code><a href="#getjettonwalletaddressreturntype"><code>GetJettonWalletAddressReturnType</code></a><code>&gt;</code> — User-friendly address of the owner's jetton wallet.
+
+**Example**
+
+%%docs/examples/src/appkit/actions/jettons#GET_JETTON_WALLET_ADDRESS%%
+
+#### getJettons
+
+List jettons held by the currently selected wallet, returning `null` when no wallet is connected (use [`getJettonsByAddress`](#getjettonsbyaddress) for an arbitrary address).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options` | [`GetJettonsOptions`](#getjettonsoptions) | Optional network override and pagination. |
+| `options.network` | <a href="#network"><code>Network</code></a> | Network to read jettons from. Defaults to the selected wallet's network. |
+| `options.limit` | `number` | Maximum number of jettons to return. |
+| `options.offset` | `number` | Number of jettons to skip before returning results — used for pagination. |
+
+Returns: <code>Promise&lt;</code><a href="#getjettonsreturntype"><code>GetJettonsReturnType</code></a><code>&gt;</code> — Jettons response for the selected wallet, or `null` when none is selected.
+
+**Example**
+
+%%docs/examples/src/appkit/actions/jettons#GET_JETTONS%%
+
+#### getJettonsByAddress
+
+List jettons held by an arbitrary address — useful for inspecting wallets that aren't selected in AppKit (use [`getJettons`](#getjettons) for the selected wallet); raw balances are formatted with each jetton's declared decimals, and entries without decimals are dropped.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`GetJettonsByAddressOptions`](#getjettonsbyaddressoptions) | Owner address, optional network override and pagination. |
+| `options.address`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code> \| Address</code> | Owner address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
+| `options.network` | <a href="#network"><code>Network</code></a> | Network to read the jettons from. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+| `options.limit` | `number` | Maximum number of jettons to return. |
+| `options.offset` | `number` | Number of jettons to skip before returning results — used for pagination. |
+
+Returns: <code>Promise&lt;</code><a href="#getjettonsbyaddressreturntype"><code>GetJettonsByAddressReturnType</code></a><code>&gt;</code> — Jettons response with formatted balances.
+
+**Example**
+
+%%docs/examples/src/appkit/actions/jettons#GET_JETTONS_BY_ADDRESS%%
+
+#### transferJetton
+
+Build and send a jetton transfer from the selected wallet in one step (use [`createTransferJettonTransaction`](#createtransferjettontransaction) + `sendTransaction` if you need to inspect the transaction first); throws `Error('Wallet not connected')` when no wallet is selected.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`TransferJettonParameters`](#transferjettonparameters) | Jetton, recipient, amount, decimals and optional comment. |
+| `parameters.jettonAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Jetton master contract address being transferred. |
+| `parameters.recipientAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Recipient who should receive the jettons. |
+| `parameters.amount`\* | `string` | Amount in jetton units as a human-readable decimal string (e.g., `"1.5"`). |
+| `parameters.jettonDecimals`\* | `number` | Decimals declared by the jetton master; used to convert `amount` into raw smallest units. |
+| `parameters.comment` | `string` | Optional human-readable comment attached to the transfer. |
+
+Returns: <code>Promise&lt;</code><a href="#transferjettonreturntype"><code>TransferJettonReturnType</code></a><code>&gt;</code> — Wallet response carrying the BoC of the sent transaction.
+
+**Example**
+
+%%docs/examples/src/appkit/actions/jettons#TRANSFER_JETTON%%
+
+#### watchJettons
+
+Subscribe to jetton-balance updates for the currently selected wallet, automatically rebinding when the user connects, switches, or disconnects (use [`watchJettonsByAddress`](#watchjettonsbyaddress) for a fixed address).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`WatchJettonsOptions`](#watchjettonsoptions) | Update callback and optional network override. |
+| `options.onChange`\* | <code>(update: </code><a href="#jettonupdate"><code>JettonUpdate</code></a><code>) =&gt; void</code> | Callback fired on every jetton-balance update from the streaming provider. |
+| `options.network` | <a href="#network"><code>Network</code></a> | Network to watch on. Defaults to the selected wallet's network. |
+
+Returns: <a href="#watchjettonsreturntype"><code>WatchJettonsReturnType</code></a> — Unsubscribe function — call it to stop receiving updates.
+
+#### watchJettonsByAddress
+
+Subscribe to jetton-balance updates for an arbitrary owner address (use [`watchJettons`](#watchjettons) for the selected wallet).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`WatchJettonsByAddressOptions`](#watchjettonsbyaddressoptions) | Owner address, update callback and optional network override. |
+| `options.address`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code> \| Address</code> | Owner address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
+| `options.onChange`\* | <code>(update: </code><a href="#jettonupdate"><code>JettonUpdate</code></a><code>) =&gt; void</code> | Callback fired on every jetton-balance update from the streaming provider. |
+| `options.network` | <a href="#network"><code>Network</code></a> | Network to watch on. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+
+Returns: <a href="#watchjettonsbyaddressreturntype"><code>WatchJettonsByAddressReturnType</code></a> — Unsubscribe function — call it to stop receiving updates.
+
 ### Signing
 
 #### signText
@@ -781,7 +951,7 @@ Constructor options for [`AppKit`](#appkit) — networks, connectors, providers 
 | `networks` | <a href="#networkadapters"><code>NetworkAdapters</code></a> | Map of chain id to api-client config; if omitted, AppKit defaults to mainnet only. |
 | `connectors` | <a href="#connectorinput"><code>ConnectorInput</code></a><code>[]</code> | Wallet connectors registered at startup. |
 | `defaultNetwork` | <a href="#network"><code>Network</code></a> | Default network connectors (e.g. TonConnect) enforce on new connections; `undefined` to allow any. |
-| `providers` | `ProviderInput[]` | Defi/onramp providers registered at startup. |
+| `providers` | <a href="#providerinput"><code>ProviderInput</code></a><code>[]</code> | Defi/onramp providers registered at startup. |
 | `ssr` | `boolean` | Set to `true` to enable server-side rendering support. |
 
 #### AppKitEmitter
@@ -1101,7 +1271,7 @@ Swap API interface exposed by SwapManager
 | Field | Type | Description |
 | --- | --- | --- |
 | `createFactoryContext`\* | `() => ProviderFactoryContext` | _TODO: describe_ |
-| `registerProvider`\* | `(provider: ProviderInput<T>) => void` | Register a new provider. If a provider with the same id is already registered, it is replaced. |
+| `registerProvider`\* | <code>(provider: </code><a href="#providerinput"><code>ProviderInput</code></a><code>&lt;T&gt;) =&gt; void</code> | Register a new provider. If a provider with the same id is already registered, it is replaced. |
 | `removeProvider`\* | `(provider: T) => void` | Remove a previously registered provider. No-op if the provider was not registered. |
 | `setDefaultProvider`\* | `(providerId: string) => void` | Set the default provider |
 | `getProvider`\* | `(providerId?: string) => T` | Get a registered provider |
@@ -1114,9 +1284,288 @@ Base interface for all DeFi providers
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `type`\* | `DefiProviderType` | _TODO: describe_ |
+| `type`\* | <a href="#defiprovidertype"><code>DefiProviderType</code></a> | _TODO: describe_ |
 | `getSupportedNetworks`\* | <code>() =&gt; </code><a href="#network"><code>Network</code></a><code>[]</code> | Networks this provider can operate on. Consumers should check before calling provider methods. Implementations may return a static list or compute it dynamically (e.g. from runtime config). |
 | `providerId`\* | `string` | _TODO: describe_ |
+
+#### DefiProviderType
+
+Discriminator that tags every [`DefiProvider`](#defiprovider) with its kind — `'swap'`, `'staking'`, `'onramp'`, or `'crypto-onramp'`; used by [`registerProvider`](#registerprovider) to dispatch to the right manager.
+
+```ts
+type DefiProviderType = 'swap' | 'staking' | 'onramp' | 'crypto-onramp';
+```
+
+#### ProviderInput
+
+Either a ready-made DeFi/onramp provider instance or a factory that produces one — the value accepted by [`AppKitConfig`](#appkitconfig)`.providers` and [`registerProvider`](#registerprovider).
+
+```ts
+type ProviderInput = T | ProviderFactory<T>;
+```
+
+### Jettons
+
+#### AddressBook
+
+Map of raw addresses to their resolved metadata, returned alongside indexed lists (e.g. [`JettonsResponse`](#jettonsresponse)) so consumers can render labels without extra lookups.
+
+```ts
+type AddressBook = {
+    [key: UserFriendlyAddress]: AddressBookEntry;
+};
+```
+
+#### AddressBookEntry
+
+Single entry inside an [`AddressBook`](#addressbook) — pairs the user-friendly address with optional domain name and the list of contract interfaces it implements.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `address` | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | The human-readable representation of the blockchain address |
+| `domain` | `string` | The domain name associated with the address if available |
+| `interfaces`\* | `string[]` | List of supported interfaces by the address |
+
+#### CreateTransferJettonTransactionParameters
+
+Parameters accepted by [`createTransferJettonTransaction`](#createtransferjettontransaction) and [`transferJetton`](#transferjetton).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `jettonAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Jetton master contract address being transferred. |
+| `recipientAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Recipient who should receive the jettons. |
+| `amount`\* | `string` | Amount in jetton units as a human-readable decimal string (e.g., `"1.5"`). |
+| `jettonDecimals`\* | `number` | Decimals declared by the jetton master; used to convert `amount` into raw smallest units. |
+| `comment` | `string` | Optional human-readable comment attached to the transfer. |
+
+#### CreateTransferJettonTransactionReturnType
+
+Return type of [`createTransferJettonTransaction`](#createtransferjettontransaction).
+
+```ts
+type CreateTransferJettonTransactionReturnType = TransactionRequest;
+```
+
+#### GetJettonBalanceOptions
+
+Options for [`getJettonBalance`](#getjettonbalance).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `jettonAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Jetton master contract address (the token, not the user's wallet for it). |
+| `ownerAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Owner of the jetton wallet — typically the connected user's address. |
+| `jettonDecimals`\* | `number` | Decimals declared by the jetton master; used to format the raw balance into a human-readable string. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to read the balance from. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+
+#### GetJettonBalanceReturnType
+
+Return type of [`getJettonBalance`](#getjettonbalance).
+
+```ts
+type GetJettonBalanceReturnType = TokenAmount;
+```
+
+#### GetJettonInfoOptions
+
+Options for [`getJettonInfo`](#getjettoninfo).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `address`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Jetton master contract address whose metadata is being fetched. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to query. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+
+#### GetJettonInfoReturnType
+
+Return type of [`getJettonInfo`](#getjettoninfo) — `null` when the indexer has no record for that master address.
+
+```ts
+type GetJettonInfoReturnType = JettonInfo | null;
+```
+
+#### GetJettonWalletAddressOptions
+
+Options for [`getJettonWalletAddress`](#getjettonwalletaddress).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `jettonAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Jetton master contract address. |
+| `ownerAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Owner whose jetton wallet should be derived. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to query. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+
+#### GetJettonWalletAddressReturnType
+
+Return type of [`getJettonWalletAddress`](#getjettonwalletaddress).
+
+```ts
+type GetJettonWalletAddressReturnType = UserFriendlyAddress;
+```
+
+#### GetJettonsByAddressOptions
+
+Options for [`getJettonsByAddress`](#getjettonsbyaddress).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `address`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code> \| Address</code> | Owner address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to read the jettons from. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+| `limit` | `number` | Maximum number of jettons to return. |
+| `offset` | `number` | Number of jettons to skip before returning results — used for pagination. |
+
+#### GetJettonsByAddressReturnType
+
+Return type of [`getJettonsByAddress`](#getjettonsbyaddress).
+
+```ts
+type GetJettonsByAddressReturnType = JettonsResponse;
+```
+
+#### GetJettonsOptions
+
+Options for [`getJettons`](#getjettons).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `network` | <a href="#network"><code>Network</code></a> | Network to read jettons from. Defaults to the selected wallet's network. |
+| `limit` | `number` | Maximum number of jettons to return. |
+| `offset` | `number` | Number of jettons to skip before returning results — used for pagination. |
+
+#### GetJettonsReturnType
+
+Return type of [`getJettons`](#getjettons) — `null` when no wallet is currently selected.
+
+```ts
+type GetJettonsReturnType = JettonsResponse | null;
+```
+
+#### Jetton
+
+Fungible TEP-74 token held in the user's TON wallet — carries the master contract address, the user's jetton-wallet address, current balance, and token metadata.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `address`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | The Jetton contract address |
+| `walletAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | The Jetton wallet address |
+| `balance`\* | <a href="#tokenamount"><code>TokenAmount</code></a> | The current jetton balance |
+| `info`\* | <a href="#tokeninfo"><code>TokenInfo</code></a> | Information about the token |
+| `decimalsNumber` | `number` | The number of decimal places used by the token |
+| `isVerified`\* | `boolean` | Indicates if the jetton is verified |
+| `prices`\* | `JettonPrice[]` | Current prices of the jetton in various currencies |
+| `extra` | `{         [key: string]: unknown;     }` | Additional arbitrary data related to the jetton |
+
+#### JettonInfo
+
+Token metadata for a jetton master — name, symbol, decimals, image, and verification status as reported by the indexer.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `address`\* | `string` | _TODO: describe_ |
+| `name`\* | `string` | _TODO: describe_ |
+| `symbol`\* | `string` | _TODO: describe_ |
+| `description`\* | `string` | _TODO: describe_ |
+| `decimals` | `number` | _TODO: describe_ |
+| `totalSupply` | `string` | _TODO: describe_ |
+| `image` | `string` | _TODO: describe_ |
+| `image_data` | `string` | _TODO: describe_ |
+| `uri` | `string` | _TODO: describe_ |
+| `verification` | <a href="#jettonverification"><code>JettonVerification</code></a> | _TODO: describe_ |
+| `metadata` | `Record<string, unknown>` | _TODO: describe_ |
+
+#### JettonUpdate
+
+Update payload delivered to [`watchJettons`](#watchjettons) / [`watchJettonsByAddress`](#watchjettonsbyaddress) subscribers when the watched owner's jetton balance changes.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `type`\* | `'jettons'` | The update type field |
+| `masterAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | The master jetton contract address |
+| `walletAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | The jetton wallet contract address |
+| `ownerAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | The owner of the jetton wallet |
+| `rawBalance`\* | <a href="#tokenamount"><code>TokenAmount</code></a> | Balance in raw smallest units (e.g. nano) |
+| `decimals` | `number` | Decimals mapped from metadata if available |
+| `balance` | `string` | Human readable formatted balance if decimals are known |
+| `status`\* | <a href="#streamingupdatestatus"><code>StreamingUpdateStatus</code></a> | The finality of the update |
+
+#### JettonVerification
+
+Verification metadata reported by the indexer for a [`JettonInfo`](#jettoninfo) — `verified` flag plus optional verifier source.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `verified`\* | `boolean` | _TODO: describe_ |
+| `source` | `'toncenter' \| 'community' \| 'manual'` | _TODO: describe_ |
+| `warnings` | `string[]` | _TODO: describe_ |
+
+#### JettonsResponse
+
+Response payload of [`getJettons`](#getjettons) / [`getJettonsByAddress`](#getjettonsbyaddress) — the list of [`Jetton`](#jetton)s plus the address book that resolves raw addresses inside it.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `addressBook`\* | <a href="#addressbook"><code>AddressBook</code></a> | Address book mapping |
+| `jettons`\* | <a href="#jetton"><code>Jetton</code></a><code>[]</code> | List of Jettons |
+
+#### TokenInfo
+
+Display metadata for a token (TON, jetton, or NFT) — name, symbol, image and animation as reported by the indexer; surfaced as [`Jetton`](#jetton)`.info`.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `name` | `string` | Display name of the token |
+| `description` | `string` | Human-readable description of the token |
+| `image` | `TokenImage` | Token image in various sizes |
+| `animation` | `TokenAnimation` | Animated media associated with the token |
+| `symbol` | `string` | Ticker symbol of the token (e.g., "TON", "USDT") |
+
+#### TransferJettonParameters
+
+Parameters accepted by [`transferJetton`](#transferjetton) — same shape as [`CreateTransferJettonTransactionParameters`](#createtransferjettontransactionparameters).
+
+```ts
+type TransferJettonParameters = CreateTransferJettonTransactionParameters;
+```
+
+#### TransferJettonReturnType
+
+Return type of [`transferJetton`](#transferjetton).
+
+```ts
+type TransferJettonReturnType = SendTransactionResponse;
+```
+
+#### WatchJettonsByAddressOptions
+
+Options for [`watchJettonsByAddress`](#watchjettonsbyaddress).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `address`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code> \| Address</code> | Owner address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
+| `onChange`\* | <code>(update: </code><a href="#jettonupdate"><code>JettonUpdate</code></a><code>) =&gt; void</code> | Callback fired on every jetton-balance update from the streaming provider. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to watch on. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+
+#### WatchJettonsByAddressReturnType
+
+Return type of [`watchJettonsByAddress`](#watchjettonsbyaddress) — call to stop receiving updates.
+
+```ts
+type WatchJettonsByAddressReturnType = () => void;
+```
+
+#### WatchJettonsOptions
+
+Options for [`watchJettons`](#watchjettons).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `onChange`\* | <code>(update: </code><a href="#jettonupdate"><code>JettonUpdate</code></a><code>) =&gt; void</code> | Callback fired on every jetton-balance update from the streaming provider. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to watch on. Defaults to the selected wallet's network. |
+
+#### WatchJettonsReturnType
+
+Return type of [`watchJettons`](#watchjettons) — call to stop receiving updates.
+
+```ts
+type WatchJettonsReturnType = () => void;
+```
 
 ### Networks
 
@@ -1156,7 +1605,44 @@ Network configuration for a specific chain
 | --- | --- | --- |
 | `apiClient` | <a href="#apiclientconfig"><code>ApiClientConfig</code></a><code> \| ApiClient</code> | API client configuration or instance |
 
+#### TonWalletKitOptions
+
+Walletkit-side options shape consumed by [`KitNetworkManager`](#kitnetworkmanager)'s constructor — chiefly the `networks` map keyed by chain id. [`AppKit`](#appkit) constructs the manager for you, so apps rarely instantiate this directly.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `walletManifest` | `WalletInfo` | _TODO: describe_ |
+| `deviceInfo` | `DeviceInfo` | _TODO: describe_ |
+| `sessionManager` | `TONConnectSessionManager` | Custom session manager implementation. If not provided, TONConnectStoredSessionManager will be used. |
+| `networks` | <a href="#networkadapters"><code>NetworkAdapters</code></a> | Network configuration |
+| `bridge` | `BridgeConfig` | Bridge settings |
+| `storage` | `StorageConfig \| StorageAdapter` | Storage settings |
+| `validation` | `{         strictMode?: boolean;         allowUnknownWalletVersions?: boolean;     }` | Validation settings |
+| `eventProcessor` | `EventProcessorConfig` | Event processor settings |
+| `analytics` | `AnalyticsManagerOptions & {         enabled?: boolean;     }` | _TODO: describe_ |
+| `dev` | `{         disableNetworkSend?: boolean;         disableManifestDomainCheck?: boolean;     }` | _TODO: describe_ |
+
 ### Primitives
+
+#### Base64String
+
+Base64-encoded byte string — used for transaction payloads, BoCs, signatures, and other opaque binary blobs that travel through TonConnect and the indexer APIs.
+
+```ts
+type Base64String = string & {
+    readonly [base64StringBrand]: never;
+};
+```
+
+#### ExtraCurrencies
+
+Map of extra-currency ids to raw amounts attached to a transaction message — TON's mechanism for transferring non-jetton native tokens (e.g., wrapped or testnet currencies). Keys are the extra-currency ids defined by the masterchain configuration.
+
+```ts
+type ExtraCurrencies = {
+    [key: string]: string;
+};
+```
 
 #### Hex
 
@@ -1186,6 +1672,33 @@ type UserFriendlyAddress = string;
 
 ### Signing
 
+#### SignData
+
+Payload the user is asked to sign — discriminated union over `'text'`, `'binary'`, and `'cell'`; nested under [`SignDataRequest`](#signdatarequest)`.data`.
+
+```ts
+type SignData = | { type: 'text'; value: SignDataText }
+    | { type: 'binary'; value: SignDataBinary }
+    | { type: 'cell'; value: SignDataCell };
+```
+
+#### SignDataBinary
+
+Binary variant of [`SignData`](#signdata) — opaque byte content the user is asked to sign.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `content`\* | <a href="#base64string"><code>Base64String</code></a> | Raw binary content encoded as Base64. |
+
+#### SignDataCell
+
+TON cell variant of [`SignData`](#signdata) — Base64-encoded cell payload paired with the schema needed to parse it.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `schema`\* | `string` | TL-B-style schema describing the cell layout so the wallet can render the payload to the user. |
+| `content`\* | <a href="#base64string"><code>Base64String</code></a> | Cell content encoded as Base64. |
+
 #### SignDataRequest
 
 Sign-data payload sent to [`WalletInterface`](#walletinterface)`.signData` — discriminated by `data.type` (`'text'`, `'binary'`, or `'cell'`).
@@ -1194,7 +1707,7 @@ Sign-data payload sent to [`WalletInterface`](#walletinterface)`.signData` — d
 | --- | --- | --- |
 | `network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against; defaults to the wallet's current network. |
 | `from` | `string` | Sender address in raw format; usually omitted, the wallet fills it in. |
-| `data`\* | `SignData` | Payload the user is asked to sign. |
+| `data`\* | <a href="#signdata"><code>SignData</code></a> | Payload the user is asked to sign. |
 
 #### SignDataResponse
 
@@ -1207,6 +1720,14 @@ Wallet response to a [`SignDataRequest`](#signdatarequest) — carries the signa
 | `timestamp`\* | `number` | Unix timestamp the wallet stamped onto the signature. |
 | `domain`\* | `string` | dApp domain the wallet bound the signature to. |
 | `payload`\* | <a href="#signdatarequest"><code>SignDataRequest</code></a> | Original payload that was signed, echoed back for binding. |
+
+#### SignDataText
+
+Plain-text variant of [`SignData`](#signdata) — UTF-8 string the user is asked to sign.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `content`\* | `string` | UTF-8 text the user signs. |
 
 #### SignTextParameters
 
@@ -1241,7 +1762,7 @@ Staking API interface exposed by StakingManager
 | `getStakingProviderInfo`\* | <code>(network?: </code><a href="#network"><code>Network</code></a><code>, providerId?: string) =&gt; Promise&lt;</code><a href="#stakingproviderinfo"><code>StakingProviderInfo</code></a><code>&gt;</code> | Get staking provider information |
 | `getStakingProviderMetadata`\* | <code>(network?: </code><a href="#network"><code>Network</code></a><code>, providerId?: string) =&gt; </code><a href="#stakingprovidermetadata"><code>StakingProviderMetadata</code></a> | Get static metadata for a staking provider |
 | `createFactoryContext`\* | `() => ProviderFactoryContext` | _TODO: describe_ |
-| `registerProvider`\* | `(provider: ProviderInput<StakingProviderInterface>) => void` | Register a new provider. If a provider with the same id is already registered, it is replaced. |
+| `registerProvider`\* | <code>(provider: </code><a href="#providerinput"><code>ProviderInput</code></a><code>&lt;StakingProviderInterface&gt;) =&gt; void</code> | Register a new provider. If a provider with the same id is already registered, it is replaced. |
 | `removeProvider`\* | `(provider: StakingProviderInterface) => void` | Remove a previously registered provider. No-op if the provider was not registered. |
 | `setDefaultProvider`\* | `(providerId: string) => void` | Set the default provider |
 | `getProvider`\* | `(providerId?: string) => StakingProviderInterface` | Get a registered provider |
@@ -1351,7 +1872,7 @@ Swap API interface exposed by SwapManager
 | `getQuote`\* | <code>(params: </code><a href="#swapquoteparams"><code>SwapQuoteParams</code></a><code>, providerId?: string) =&gt; Promise&lt;</code><a href="#swapquote"><code>SwapQuote</code></a><code>&gt;</code> | Get a quote for swapping tokens |
 | `buildSwapTransaction`\* | <code>(params: </code><a href="#swapparams"><code>SwapParams</code></a><code>) =&gt; Promise&lt;</code><a href="#transactionrequest"><code>TransactionRequest</code></a><code>&gt;</code> | Build a transaction for a swap. Provider is taken from `params.quote.providerId`, or the manager default. |
 | `createFactoryContext`\* | `() => ProviderFactoryContext` | _TODO: describe_ |
-| `registerProvider`\* | `(provider: ProviderInput<SwapProviderInterface<unknown, unknown>>) => void` | Register a new provider. If a provider with the same id is already registered, it is replaced. |
+| `registerProvider`\* | <code>(provider: </code><a href="#providerinput"><code>ProviderInput</code></a><code>&lt;SwapProviderInterface&lt;unknown, unknown&gt;&gt;) =&gt; void</code> | Register a new provider. If a provider with the same id is already registered, it is replaced. |
 | `removeProvider`\* | `(provider: SwapProviderInterface<unknown, unknown>) => void` | Remove a previously registered provider. No-op if the provider was not registered. |
 | `setDefaultProvider`\* | `(providerId: string) => void` | Set the default provider |
 | `getProvider`\* | `(providerId?: string) => SwapProviderInterface<unknown, unknown>` | Get a registered provider |
@@ -1427,8 +1948,8 @@ Wallet response carrying the BoC (bag of cells) of the external message that was
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `boc`\* | `Base64String` | BOC of the sent transaction |
-| `normalizedBoc`\* | `Base64String` | Normalized BOC of the external-in message |
+| `boc`\* | <a href="#base64string"><code>Base64String</code></a> | BOC of the sent transaction |
+| `normalizedBoc`\* | <a href="#base64string"><code>Base64String</code></a> | Normalized BOC of the external-in message |
 | `normalizedHash`\* | <a href="#hex"><code>Hex</code></a> | Hash of the normalized external-in message |
 
 #### TransactionRequest
@@ -1437,10 +1958,22 @@ Transaction payload passed to [`WalletInterface`](#walletinterface)`.sendTransac
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `messages`\* | `TransactionRequestMessage[]` | List of messages to include in the transaction |
+| `messages`\* | <a href="#transactionrequestmessage"><code>TransactionRequestMessage</code></a><code>[]</code> | List of messages to include in the transaction |
 | `network` | <a href="#network"><code>Network</code></a> | Network to execute the transaction on |
 | `validUntil` | `number` | Unix timestamp after which the transaction becomes invalid |
 | `fromAddress` | `string` | Sender wallet address in received format(raw, user friendly) |
+
+#### TransactionRequestMessage
+
+Individual message inside a [`TransactionRequest`](#transactionrequest) — recipient, amount, optional payload and contract `stateInit`.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `address`\* | `string` | Recipient wallet address in format received from caller (raw, user friendly) |
+| `amount`\* | <a href="#tokenamount"><code>TokenAmount</code></a> | Amount to transfer in nanos |
+| `extraCurrency` | <a href="#extracurrencies"><code>ExtraCurrencies</code></a> | Additional currencies to include in the transfer |
+| `stateInit` | `string` | Initial state for deploying a new contract, encoded in Base64 |
+| `payload` | `string` | Message payload data encoded in Base64 |
 
 ### Wallets
 
@@ -1487,6 +2020,15 @@ const NETWORKS_EVENTS = {
 ```
 
 ### Staking
+
+#### StakingErrorCode
+
+Discriminator carried on every [`StakingError`](#stakingerror)`.code` — `'INVALID_PARAMS'` (the request was malformed) or `'UNSUPPORTED_OPERATION'` (the provider doesn't support this call).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `InvalidParams`\* | `"INVALID_PARAMS"` | _TODO: describe_ |
+| `UnsupportedOperation`\* | `"UNSUPPORTED_OPERATION"` | _TODO: describe_ |
 
 #### UnstakeMode
 

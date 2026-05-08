@@ -16,7 +16,14 @@
  */
 export { StakingProvider, StakingError, StakingManager } from '@ton/walletkit';
 
-// `StakingErrorCode` is a TS enum; not currently surfaced in the reference (the generator does not yet handle enum declarations).
+/**
+ * Discriminator carried on every {@link StakingError}`.code` — `'INVALID_PARAMS'` (the request was malformed) or `'UNSUPPORTED_OPERATION'` (the provider doesn't support this call).
+ *
+ * @extract
+ * @public
+ * @category Constants
+ * @section Staking
+ */
 export { StakingErrorCode } from '@ton/walletkit';
 
 /**

@@ -45,7 +45,7 @@ Putting `@category Class` on an interface raises `[X] @category Class requires t
 - `@extract` — for type aliases that re-export a type from another package (typically walletkit). The renderer follows the alias to the original `interface` / `type` and uses **its** structure (field table or code block). `@public`/`@category`/`@section` still live on the alias; the source's JSDoc supplies field-level descriptions. See "Re-exporting from walletkit" below.
 - `@title <Override>` — override the top-level heading for this single symbol. Rarely needed; usually omit.
 
-`@param` and `@returns` accept the same `{@link X}`-as-type-override syntax described below.
+`@param` accepts a `{@link X}`-as-type-override at the very start of its description (see below); `@returns` does **not** — see the warning in that section.
 
 ---
 
@@ -55,7 +55,7 @@ Putting `@category Class` on an interface raises `[X] @category Class requires t
 
 1. **Anywhere in a description** (summary, field doc, `@param` description, `@returns` description). The text reads `... see {@link getBalance} ...` and renders `... see [\`getBalance\`](#getbalance) ...`.
 
-2. **At the very start of `@param` or `@returns` description** — the link is extracted and used as the **Type column** for that row. The text after the link goes into the Description column.
+2. **At the very start of `@param` description** — the link is extracted and used as the **Type column** for that row. The text after the link goes into the Description column.
 
    ```ts
    @param config - {@link AppKitConfig} Networks, connectors, providers and runtime flags.
@@ -68,6 +68,8 @@ Putting `@category Class` on an interface raises `[X] @category Class requires t
    | `config`* | [`AppKitConfig`](#appkitconfig) | Networks, connectors, providers and runtime flags. |
 
    The TS-inferred type is replaced by the link. Use this when the inferred type is verbose or you want a cleaner cell.
+
+   ⚠ **Don't put `{@link X}` at the start of `@returns`.** ts-morph's JSDoc parser interprets a leading `{…}` as a legacy type annotation (`@returns {Type} desc`) and silently drops it from the comment text — both the type-override and the description disappear. Write the description as plain prose; the inferred return type is auto-linked anyway. If you really want to mention a type, put `{@link X}` mid-sentence: `@returns The wallet response carrying …`.
 
 `X` must name another `@public` symbol in the same reference — the generator does not validate this, so a typo or an undocumented target produces a dead link.
 

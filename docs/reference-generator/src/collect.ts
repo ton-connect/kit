@@ -9,7 +9,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { Node, Project } from 'ts-morph';
+import { Node, Project, SymbolFlags } from 'ts-morph';
 import type { JSDoc, SourceFile, Symbol as TsSymbol } from 'ts-morph';
 
 export interface CollectedSymbol {
@@ -76,11 +76,7 @@ export function collectPublicApi(options: CollectOptions): CollectedSymbol[] {
             let extracted = false;
 
             if (!realInPkg) {
-                const aliasDecls = exportSymbol
-                    .getDeclarations()
-                    .filter((d) => d.getSourceFile().getFilePath().startsWith(srcPrefix));
-                if (aliasDecls.length === 0) continue;
-                const annotated = aliasDecls.find((d) => hasExtractTag(d) && hasPublicTag(d));
+                const annotated = findAnnotatedAlias(exportSymbol, srcPrefix);
                 if (!annotated) continue;
                 metadataDecl = annotated;
                 extracted = true;
@@ -162,6 +158,36 @@ function unwrapAlias(symbol: TsSymbol): TsSymbol {
         next = current.getAliasedSymbol();
     }
     return current;
+}
+
+/**
+ * Walks the alias chain looking for an alias declaration in our package whose
+ * parent `export { … } from '…'` carries both `@extract` and `@public`.
+ *
+ * `exportSymbol.getDeclarations()` only returns the immediate alias hop, so when
+ * a symbol is re-exported through multiple files (root → core/network → walletkit
+ * leaf) we have to follow each ExportSpecifier's own immediately-aliased symbol
+ * to find an annotated link further down the chain.
+ */
+function findAnnotatedAlias(exportSymbol: TsSymbol, srcPrefix: string): Node | null {
+    const visited = new Set<TsSymbol>();
+    let cursor: TsSymbol | undefined = exportSymbol;
+    while (cursor !== undefined && !visited.has(cursor)) {
+        const node: TsSymbol = cursor;
+        visited.add(node);
+
+        const localDecls = node.getDeclarations().filter((d) => d.getSourceFile().getFilePath().startsWith(srcPrefix));
+        const annotated = localDecls.find((d) => hasExtractTag(d) && hasPublicTag(d));
+        if (annotated) return annotated;
+
+        // Step one hop down the alias chain. `getImmediatelyAliasedSymbol` only
+        // works on alias-flagged symbols (export specifiers, imports, namespace
+        // imports); it asserts otherwise. Bail out cleanly when we've hit the
+        // real declaration and there's nowhere further to walk.
+        const isAlias = (node.getFlags() & SymbolFlags.Alias) !== 0;
+        cursor = isAlias ? node.getImmediatelyAliasedSymbol() : undefined;
+    }
+    return null;
 }
 
 interface ConditionalExport {

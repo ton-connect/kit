@@ -50,6 +50,7 @@ export * from './types/nft';
 export * from './types/transaction';
 export * from './types/primitives';
 export * from './types/signing';
+export * from './types/provider';
 
 // Utils
 export * from './utils';

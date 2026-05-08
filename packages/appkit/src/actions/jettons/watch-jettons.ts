@@ -13,15 +13,41 @@ import type { Network } from '../../types/network';
 import { getSelectedWallet } from '../wallets/get-selected-wallet';
 import { watchJettonsByAddress } from './watch-jettons-by-address';
 
+/**
+ * Options for {@link watchJettons}.
+ *
+ * @public
+ * @category Type
+ * @section Jettons
+ */
 export interface WatchJettonsOptions {
+    /** Callback fired on every jetton-balance update from the streaming provider. */
     onChange: (update: JettonUpdate) => void;
+    /** Network to watch on. Defaults to the selected wallet's network. */
     network?: Network;
 }
 
+/**
+ * Return type of {@link watchJettons} — call to stop receiving updates.
+ *
+ * @public
+ * @category Type
+ * @section Jettons
+ */
 export type WatchJettonsReturnType = () => void;
 
 /**
- * Watch jetton updates for the selected wallet.
+ * Subscribe to jetton-balance updates for the currently selected wallet, automatically rebinding when the user connects, switches, or disconnects (use {@link watchJettonsByAddress} for a fixed address).
+ *
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param options - {@link WatchJettonsOptions} Update callback and optional network override.
+ * @returns Unsubscribe function — call it to stop receiving updates.
+ *
+ * @expand options
+ *
+ * @public
+ * @category Action
+ * @section Jettons
  */
 export const watchJettons = (appKit: AppKit, options: WatchJettonsOptions): WatchJettonsReturnType => {
     const { network, onChange } = options;

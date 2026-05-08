@@ -9,6 +9,7 @@
 import { Node, TypeFormatFlags } from 'ts-morph';
 import type {
     ClassDeclaration,
+    EnumDeclaration,
     FunctionDeclaration,
     InterfaceDeclaration,
     JSDoc,
@@ -158,10 +159,10 @@ function extractByCategory(
             throw mismatch(name, category, 'interface or type alias');
 
         case 'Constants':
-            if (Node.isVariableDeclaration(declaration)) {
+            if (Node.isVariableDeclaration(declaration) || Node.isEnumDeclaration(declaration)) {
                 return extractType(name, declaration, sourcePath);
             }
-            throw mismatch(name, category, 'const declaration');
+            throw mismatch(name, category, 'const or enum declaration');
 
         case 'Class':
             if (Node.isClassDeclaration(declaration)) {
@@ -354,7 +355,7 @@ function extractNamespaceComponent(
 
 function extractType(
     name: string,
-    decl: InterfaceDeclaration | TypeAliasDeclaration | VariableDeclaration,
+    decl: InterfaceDeclaration | TypeAliasDeclaration | VariableDeclaration | EnumDeclaration,
     sourcePath: string,
 ): Omit<ExtractedType, 'section' | 'category'> {
     if (Node.isVariableDeclaration(decl)) {
@@ -364,6 +365,23 @@ function extractType(
         const init = decl.getInitializer();
         const typeText = init ? init.getText() : decl.getType().getText(decl, FORMAT_FLAGS);
         return { kind: 'type', name, sourcePath, summary, fields: null, typeText, isConstant: true };
+    }
+
+    if (Node.isEnumDeclaration(decl)) {
+        const summary = readSummary(pickJsDoc(decl.getJsDocs()));
+        const fields: ParamRow[] = decl.getMembers().map((member) => {
+            const init = member.getInitializer();
+            const valueText = init ? init.getText() : 'auto';
+            const desc = readSummary(pickJsDoc(member.getJsDocs()));
+            return {
+                name: member.getName(),
+                typeText: valueText,
+                typeOverride: null,
+                required: true,
+                description: desc,
+            };
+        });
+        return { kind: 'type', name, sourcePath, summary, fields, typeText: null, isConstant: true };
     }
 
     const jsdoc = pickJsDoc(decl.getJsDocs());

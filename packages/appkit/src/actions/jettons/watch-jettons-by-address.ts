@@ -11,18 +11,46 @@ import { Address } from '@ton/core';
 import type { AppKit } from '../../core/app-kit';
 import type { JettonUpdate } from '../../core/streaming';
 import type { Network } from '../../types/network';
+import type { UserFriendlyAddress } from '../../types/primitives';
 import { resolveNetwork } from '../../utils/network/resolve-network';
 
+/**
+ * Options for {@link watchJettonsByAddress}.
+ *
+ * @public
+ * @category Type
+ * @section Jettons
+ */
 export interface WatchJettonsByAddressOptions {
-    address: string | Address;
+    /** Owner address — pass a {@link UserFriendlyAddress} string or an `Address` instance from `@ton/core`. */
+    address: UserFriendlyAddress | Address;
+    /** Callback fired on every jetton-balance update from the streaming provider. */
     onChange: (update: JettonUpdate) => void;
+    /** Network to watch on. Defaults to the connected wallet's network, or the configured default if no wallet is connected. */
     network?: Network;
 }
 
+/**
+ * Return type of {@link watchJettonsByAddress} — call to stop receiving updates.
+ *
+ * @public
+ * @category Type
+ * @section Jettons
+ */
 export type WatchJettonsByAddressReturnType = () => void;
 
 /**
- * Watch jetton updates by owner address.
+ * Subscribe to jetton-balance updates for an arbitrary owner address (use {@link watchJettons} for the selected wallet).
+ *
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param options - {@link WatchJettonsByAddressOptions} Owner address, update callback and optional network override.
+ * @returns Unsubscribe function — call it to stop receiving updates.
+ *
+ * @expand options
+ *
+ * @public
+ * @category Action
+ * @section Jettons
  */
 export const watchJettonsByAddress = (
     appKit: AppKit,

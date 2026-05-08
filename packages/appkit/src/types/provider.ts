@@ -14,4 +14,12 @@ import type { StakingProviderInterface } from '../staking';
  */
 export type Provider = SwapProviderInterface | StakingProviderInterface;
 
+/**
+ * Either a ready-made DeFi/onramp provider instance or a factory that produces one — the value accepted by {@link AppKitConfig}`.providers` and {@link registerProvider}.
+ *
+ * @extract
+ * @public
+ * @category Type
+ * @section DeFi
+ */
 export type { ProviderInput } from '@ton/walletkit';

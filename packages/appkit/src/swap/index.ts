@@ -31,6 +31,16 @@ export { SwapError, SwapProvider, SwapManager } from '@ton/walletkit';
 export type { DefiManagerAPI, DefiProvider } from '@ton/walletkit';
 
 /**
+ * Discriminator that tags every {@link DefiProvider} with its kind — `'swap'`, `'staking'`, `'onramp'`, or `'crypto-onramp'`; used by {@link registerProvider} to dispatch to the right manager.
+ *
+ * @extract
+ * @public
+ * @category Type
+ * @section DeFi
+ */
+export type { DefiProviderType } from '@ton/walletkit';
+
+/**
  * @extract
  * @public
  * @category Type

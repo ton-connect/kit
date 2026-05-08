@@ -6,7 +6,25 @@
  *
  */
 
-export type { Base64String, ExtraCurrencies } from '@ton/walletkit';
+/**
+ * Map of extra-currency ids to raw amounts attached to a transaction message — TON's mechanism for transferring non-jetton native tokens (e.g., wrapped or testnet currencies). Keys are the extra-currency ids defined by the masterchain configuration.
+ *
+ * @extract
+ * @public
+ * @category Type
+ * @section Primitives
+ */
+export type { ExtraCurrencies } from '@ton/walletkit';
+
+/**
+ * Base64-encoded byte string — used for transaction payloads, BoCs, signatures, and other opaque binary blobs that travel through TonConnect and the indexer APIs.
+ *
+ * @extract
+ * @public
+ * @category Type
+ * @section Primitives
+ */
+export type { Base64String } from '@ton/walletkit';
 
 /**
  * `0x`-prefixed hexadecimal string used for public keys and other hashes.
