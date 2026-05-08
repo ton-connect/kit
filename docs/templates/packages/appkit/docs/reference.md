@@ -15,9 +15,9 @@ Constructor: `new AppKit(config)`
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `config`\* | [`AppKitConfig`](#appkitconfig) | Networks, connectors, providers and runtime flags. |
-| `config.networks` | [`NetworkAdapters`](#networkadapters) | Map of chain id to api-client config; if omitted, AppKit defaults to mainnet only. |
-| `config.connectors` | [`ConnectorInput`](#connectorinput)`[]` | Wallet connectors registered at startup. |
-| `config.defaultNetwork` | [`Network`](#network) | Default network connectors (e.g. TonConnect) enforce on new connections; `undefined` to allow any. |
+| `config.networks` | <a href="#networkadapters"><code>NetworkAdapters</code></a> | Map of chain id to api-client config; if omitted, AppKit defaults to mainnet only. |
+| `config.connectors` | <a href="#connectorinput"><code>ConnectorInput</code></a><code>[]</code> | Wallet connectors registered at startup. |
+| `config.defaultNetwork` | <a href="#network"><code>Network</code></a> | Default network connectors (e.g. TonConnect) enforce on new connections; `undefined` to allow any. |
 | `config.providers` | `ProviderInput[]` | Defi/onramp providers registered at startup. |
 | `config.ssr` | `boolean` | Set to `true` to enable server-side rendering support. |
 
@@ -31,6 +31,52 @@ Global event emitter for the TonWalletKit
 Allows components to send and receive events throughout the kit.
 
 Constructor: `new EventEmitter()`
+
+### Crypto Onramp
+
+#### CryptoOnrampError
+
+Error thrown by [`CryptoOnrampManager`](#cryptoonrampmanager) and crypto-onramp providers — extends [`DefiError`](#defierror) with a `'crypto-onramp'` discriminator.
+
+Constructor: `new CryptoOnrampError(message, code, details)`
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `message`\* | `string` | _TODO: describe_ |
+| `code`\* | `string` | _TODO: describe_ |
+| `details` | `unknown` | _TODO: describe_ |
+
+#### CryptoOnrampManager
+
+CryptoOnrampManager — manages crypto onramp providers and delegates crypto onramp operations.
+
+Allows registration of multiple crypto onramp providers and provides a unified API
+for crypto-to-TON onramp operations. Providers can be switched dynamically.
+
+Constructor: `new CryptoOnrampManager()`
+
+#### CryptoOnrampProvider
+
+Abstract base class for crypto onramp providers
+
+Provides a common interface for implementing crypto-to-TON onramp functionality
+across different gateways.
+
+Constructor: `new CryptoOnrampProvider()`
+
+**Example**
+
+```typescript
+class MyCryptoOnrampProvider extends CryptoOnrampProvider {
+  async getQuote(params: CryptoOnrampQuoteParams): Promise<CryptoOnrampQuote> {
+    // Implementation
+  }
+
+  async createDeposit(params: CryptoOnrampDepositParams): Promise<CryptoOnrampDeposit> {
+    // Implementation
+  }
+}
+```
 
 ### DeFi
 
@@ -57,7 +103,7 @@ Constructor: `new AppKitNetworkManager(options, emitter)`
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `options`\* | `ConstructorParameters<typeof KitNetworkManager>[0]` | _TODO: describe_ |
-| `emitter`\* | [`AppKitEmitter`](#appkitemitter) | _TODO: describe_ |
+| `emitter`\* | <a href="#appkitemitter"><code>AppKitEmitter</code></a> | _TODO: describe_ |
 
 ### Staking
 
@@ -161,9 +207,9 @@ Read the Toncoin balance of the currently selected wallet, returning `null` when
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options` | [`GetBalanceOptions`](#getbalanceoptions) | Optional network override. |
-| `options.network` | [`Network`](#network) | Network to read the balance from. Defaults to the selected wallet's network. |
+| `options.network` | <a href="#network"><code>Network</code></a> | Network to read the balance from. Defaults to the selected wallet's network. |
 
-Returns: `Promise<`[`GetBalanceReturnType`](#getbalancereturntype)`>` — Balance in TON as a human-readable decimal string, or `null` when no wallet is selected.
+Returns: <code>Promise&lt;</code><a href="#getbalancereturntype"><code>GetBalanceReturnType</code></a><code>&gt;</code> — Balance in TON as a human-readable decimal string, or `null` when no wallet is selected.
 
 **Example**
 
@@ -177,10 +223,10 @@ Read the Toncoin balance of an arbitrary address — useful for wallets that are
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options`\* | [`GetBalanceByAddressOptions`](#getbalancebyaddressoptions) | Target address and optional network. |
-| `options.address`\* | [`UserFriendlyAddress`](#userfriendlyaddress)` \| Address` | Wallet address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
-| `options.network` | [`Network`](#network) | Network to read the balance from. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+| `options.address`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code> \| Address</code> | Wallet address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
+| `options.network` | <a href="#network"><code>Network</code></a> | Network to read the balance from. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
 
-Returns: `Promise<`[`GetBalanceByAddressReturnType`](#getbalancebyaddressreturntype)`>` — Balance in TON as a human-readable decimal string.
+Returns: <code>Promise&lt;</code><a href="#getbalancebyaddressreturntype"><code>GetBalanceByAddressReturnType</code></a><code>&gt;</code> — Balance in TON as a human-readable decimal string.
 
 **Example**
 
@@ -194,10 +240,10 @@ Subscribe to Toncoin balance updates for the currently selected wallet, automati
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options`\* | [`WatchBalanceOptions`](#watchbalanceoptions) | Update callback and optional network override. |
-| `options.network` | [`Network`](#network) | Network to watch on. Defaults to the selected wallet's network. |
-| `options.onChange`\* | `(update: `[`BalanceUpdate`](#balanceupdate)`) => void` | Callback fired on every balance update from the streaming provider. |
+| `options.network` | <a href="#network"><code>Network</code></a> | Network to watch on. Defaults to the selected wallet's network. |
+| `options.onChange`\* | <code>(update: </code><a href="#balanceupdate"><code>BalanceUpdate</code></a><code>) =&gt; void</code> | Callback fired on every balance update from the streaming provider. |
 
-Returns: [`WatchBalanceReturnType`](#watchbalancereturntype) — Unsubscribe function — call it to stop receiving updates.
+Returns: <a href="#watchbalancereturntype"><code>WatchBalanceReturnType</code></a> — Unsubscribe function — call it to stop receiving updates.
 
 **Example**
 
@@ -211,11 +257,11 @@ Subscribe to Toncoin balance updates for an arbitrary address, useful for monito
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options`\* | [`WatchBalanceByAddressOptions`](#watchbalancebyaddressoptions) | Target address, update callback and optional network override. |
-| `options.address`\* | [`UserFriendlyAddress`](#userfriendlyaddress)` \| Address` | Wallet address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
-| `options.network` | [`Network`](#network) | Network to watch on. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
-| `options.onChange`\* | `(update: `[`BalanceUpdate`](#balanceupdate)`) => void` | Callback fired on every balance update from the streaming provider. |
+| `options.address`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code> \| Address</code> | Wallet address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
+| `options.network` | <a href="#network"><code>Network</code></a> | Network to watch on. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+| `options.onChange`\* | <code>(update: </code><a href="#balanceupdate"><code>BalanceUpdate</code></a><code>) =&gt; void</code> | Callback fired on every balance update from the streaming provider. |
 
-Returns: [`WatchBalanceByAddressReturnType`](#watchbalancebyaddressreturntype) — Unsubscribe function — call it to stop receiving updates.
+Returns: <a href="#watchbalancebyaddressreturntype"><code>WatchBalanceByAddressReturnType</code></a> — Unsubscribe function — call it to stop receiving updates.
 
 **Example**
 
@@ -232,7 +278,7 @@ Register a wallet connector at runtime — equivalent to passing it via [`AppKit
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `connectorFn`\* | [`AddConnectorParameters`](#addconnectorparameters) | Connector instance or factory to register. |
 
-Returns: [`AddConnectorReturnType`](#addconnectorreturntype) — Function that unregisters the connector when called.
+Returns: <a href="#addconnectorreturntype"><code>AddConnectorReturnType</code></a> — Function that unregisters the connector when called.
 
 **Example**
 
@@ -248,7 +294,7 @@ Trigger the connection flow on a registered connector by id; throws when no conn
 | `parameters`\* | [`ConnectParameters`](#connectparameters) | Connector to connect through. |
 | `parameters.connectorId`\* | `string` | Id of the registered connector to drive the connection through (e.g., `'tonconnect'`). |
 
-Returns: `Promise<`[`ConnectReturnType`](#connectreturntype)`>` — Resolves once the connector finishes its handshake — the wallet is then available via [`getSelectedWallet`](#getselectedwallet).
+Returns: <code>Promise&lt;</code><a href="#connectreturntype"><code>ConnectReturnType</code></a><code>&gt;</code> — Resolves once the connector finishes its handshake — the wallet is then available via [`getSelectedWallet`](#getselectedwallet).
 
 **Example**
 
@@ -262,7 +308,7 @@ Identity helper for typing a [`ConnectorFactory`](#connectorfactory) inline — 
 | --- | --- | --- |
 | `factory`\* | [`ConnectorFactory`](#connectorfactory) | Factory to wrap. |
 
-Returns: [`ConnectorFactory`](#connectorfactory) — The same factory, typed as [`ConnectorFactory`](#connectorfactory).
+Returns: <a href="#connectorfactory"><code>ConnectorFactory</code></a> — The same factory, typed as [`ConnectorFactory`](#connectorfactory).
 
 #### disconnect
 
@@ -274,7 +320,7 @@ Disconnect the wallet currently connected through a registered connector; throws
 | `parameters`\* | [`DisconnectParameters`](#disconnectparameters) | Connector to disconnect. |
 | `parameters.connectorId`\* | `string` | Id of the registered connector whose wallet should be disconnected. |
 
-Returns: `Promise<`[`DisconnectReturnType`](#disconnectreturntype)`>` — Resolves once the connector tears down its session.
+Returns: <code>Promise&lt;</code><a href="#disconnectreturntype"><code>DisconnectReturnType</code></a><code>&gt;</code> — Resolves once the connector tears down its session.
 
 **Example**
 
@@ -290,7 +336,7 @@ Look up a registered connector by its id.
 | `options`\* | [`GetConnectorByIdOptions`](#getconnectorbyidoptions) | Id of the connector to find. |
 | `options.id`\* | `string` | Id of the connector to look up. |
 
-Returns: [`GetConnectorByIdReturnType`](#getconnectorbyidreturntype) — The matching [`Connector`](#connector), or `undefined` if none with that id is registered.
+Returns: <a href="#getconnectorbyidreturntype"><code>GetConnectorByIdReturnType</code></a> — The matching [`Connector`](#connector), or `undefined` if none with that id is registered.
 
 **Example**
 
@@ -304,7 +350,7 @@ List every connector registered on this AppKit instance — both those passed vi
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 
-Returns: [`GetConnectorsReturnType`](#getconnectorsreturntype) — Read-only array of registered [`Connector`](#connector)s.
+Returns: <a href="#getconnectorsreturntype"><code>GetConnectorsReturnType</code></a> — Read-only array of registered [`Connector`](#connector)s.
 
 **Example**
 
@@ -319,9 +365,9 @@ Subscribe to a connector by id; the callback fires after every wallet-connection
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `parameters`\* | [`WatchConnectorByIdParameters`](#watchconnectorbyidparameters) | Connector id and update callback. |
 | `parameters.id`\* | `string` | Id of the connector to watch. |
-| `parameters.onChange`\* | `(connector: `[`Connector`](#connector)` \| undefined) => void` | Callback fired after each wallet-connection event with the current connector (or `undefined` when none is registered under this id). |
+| `parameters.onChange`\* | <code>(connector: </code><a href="#connector"><code>Connector</code></a><code> \| undefined) =&gt; void</code> | Callback fired after each wallet-connection event with the current connector (or `undefined` when none is registered under this id). |
 
-Returns: [`WatchConnectorByIdReturnType`](#watchconnectorbyidreturntype) — Unsubscribe function — call it to stop receiving updates.
+Returns: <a href="#watchconnectorbyidreturntype"><code>WatchConnectorByIdReturnType</code></a> — Unsubscribe function — call it to stop receiving updates.
 
 **Example**
 
@@ -335,13 +381,105 @@ Subscribe to the list of registered connectors; the callback fires after every w
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `parameters`\* | [`WatchConnectorsParameters`](#watchconnectorsparameters) | Update callback. |
-| `parameters.onChange`\* | `(connectors: readonly `[`Connector`](#connector)`[]) => void` | Callback fired after each wallet-connection event with the current list of registered connectors. |
+| `parameters.onChange`\* | <code>(connectors: readonly </code><a href="#connector"><code>Connector</code></a><code>[]) =&gt; void</code> | Callback fired after each wallet-connection event with the current list of registered connectors. |
 
-Returns: [`WatchConnectorsReturnType`](#watchconnectorsreturntype) — Unsubscribe function — call it to stop receiving updates.
+Returns: <a href="#watchconnectorsreturntype"><code>WatchConnectorsReturnType</code></a> — Unsubscribe function — call it to stop receiving updates.
 
 **Example**
 
 %%docs/examples/src/appkit/actions/connectors#WATCH_CONNECTORS%%
+
+### Crypto Onramp
+
+#### createCryptoOnrampDeposit
+
+Create a crypto-onramp deposit from a quote previously obtained via [`getCryptoOnrampQuote`](#getcryptoonrampquote) — the returned [`CryptoOnrampDeposit`](#cryptoonrampdeposit) carries the address and amount the user must send on the source chain.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`CreateCryptoOnrampDepositOptions`](#createcryptoonrampdepositoptions) | Quote, refund address, and optional provider override. |
+| `options.quote`\* | <a href="#cryptoonrampquote"><code>CryptoOnrampQuote</code></a><code>&lt;TQuoteMetadata&gt;</code> | Quote to execute the deposit against (contains recipientAddress and provider metadata) |
+| `options.refundAddress`\* | `string` | Address to refund the crypto to in case of failure |
+| `options.providerOptions` | `TProviderOptions` | Provider-specific options |
+| `options.providerId` | `string` | Provider to create the deposit through; defaults to `quote.providerId`, then to the default provider. |
+
+Returns: <a href="#createcryptoonrampdepositreturntype"><code>CreateCryptoOnrampDepositReturnType</code></a> — Deposit details the UI should show to the user (address, amount, expiry).
+
+#### getCryptoOnrampProvider
+
+Get a registered crypto-onramp provider by id, or the default provider when no id is given; throws when the id does not match any registered provider.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options` | [`GetCryptoOnrampProviderOptions`](#getcryptoonrampprovideroptions) | Optional provider id. |
+| `options.id` | `string` | Provider id to look up; when omitted, returns the registered default provider. |
+
+Returns: <a href="#getcryptoonrampproviderreturntype"><code>GetCryptoOnrampProviderReturnType</code></a> — The matching [`CryptoOnrampProviderInterface`](#cryptoonrampproviderinterface).
+
+**Example**
+
+%%docs/examples/src/appkit/actions/onramp#GET_CRYPTO_ONRAMP_PROVIDER%%
+
+#### getCryptoOnrampProviders
+
+List every crypto-onramp provider registered on this AppKit instance — both those passed via [`AppKitConfig`](#appkitconfig)`.providers` and those added later through [`registerProvider`](#registerprovider).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+
+Returns: <a href="#getcryptoonrampprovidersreturntype"><code>GetCryptoOnrampProvidersReturnType</code></a> — Array of registered [`CryptoOnrampProviderInterface`](#cryptoonrampproviderinterface)s.
+
+**Example**
+
+%%docs/examples/src/appkit/actions/onramp#GET_CRYPTO_ONRAMP_PROVIDERS%%
+
+#### getCryptoOnrampQuote
+
+Quote a crypto-to-TON onramp — given a source asset/chain and target TON asset, returns the rate, expected amount, and provider metadata needed to call [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`GetCryptoOnrampQuoteOptions`](#getcryptoonrampquoteoptions) | Source asset, target asset, amount and optional provider override. |
+| `options.amount`\* | `string` | Amount to onramp (either source or target crypto, depending on isSourceAmount) |
+| `options.sourceCurrencyAddress`\* | `string` | Source crypto currency address (contract address or 0x0... for native) |
+| `options.sourceChain`\* | `string` | Source chain identifier in CAIP-2 format (e.g. 'eip155:1' for Ethereum mainnet, 'eip155:42161' for Arbitrum One). Providers map this to their own chain identifiers internally. |
+| `options.targetCurrencyAddress`\* | `string` | Target crypto currency address on TON (contract address or 0x0... for native) |
+| `options.recipientAddress`\* | `string` | TON address that will receive the target crypto |
+| `options.refundAddress` | `string` | Refund address for the source crypto |
+| `options.isSourceAmount` | `boolean` | If true, `amount` is the source amount to spend. If false, `amount` is the target amount to receive. Defaults to true when omitted. |
+| `options.providerOptions` | `TProviderOptions` | Provider-specific options |
+| `options.providerId` | `string` | Provider to quote against; defaults to the registered default provider. |
+
+Returns: <a href="#getcryptoonrampquotereturntype"><code>GetCryptoOnrampQuoteReturnType</code></a> — Quote with pricing details and the provider metadata required to create a deposit.
+
+#### getCryptoOnrampStatus
+
+Read the current status of a crypto-onramp deposit by id — typically polled until the result is `'success'` or `'failed'`.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`GetCryptoOnrampStatusOptions`](#getcryptoonrampstatusoptions) | Deposit id, originating provider id and optional provider override. |
+| `options.depositId`\* | `string` | Deposit id |
+| `options.providerId`\* | `string` | Identifier of the provider that issued this deposit |
+
+Returns: <a href="#getcryptoonrampstatusreturntype"><code>GetCryptoOnrampStatusReturnType</code></a> — Current [`CryptoOnrampStatus`](#cryptoonrampstatus) of the deposit.
+
+#### watchCryptoOnrampProviders
+
+Subscribe to crypto-onramp provider lifecycle — fires `onChange` whenever a new provider is registered or the default crypto-onramp provider switches.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`WatchCryptoOnrampProvidersParameters`](#watchcryptoonrampprovidersparameters) | Update callback. |
+| `parameters.onChange`\* | `() => void` | Callback fired whenever a crypto-onramp provider is registered or the default crypto-onramp provider changes. |
+
+Returns: <a href="#watchcryptoonrampprovidersreturntype"><code>WatchCryptoOnrampProvidersReturnType</code></a> — Unsubscribe function — call it to stop receiving updates.
 
 ### Signing
 
@@ -354,7 +492,7 @@ Ask the connected wallet to sign a plain text message; throws `Error('Wallet not
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `parameters`\* | [`SignTextParameters`](#signtextparameters) | Text to sign and optional network override. |
 | `parameters.text`\* | `string` | UTF-8 text the user is asked to sign. |
-| `parameters.network` | [`Network`](#network) | Network to issue the sign request against. Defaults to the AppKit's selected network. |
+| `parameters.network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against. Defaults to the AppKit's selected network. |
 
 Returns: `Promise<SignTextReturnType>` — Signature and signed payload, as returned by the wallet.
 
@@ -395,10 +533,10 @@ Update payload delivered to [`watchBalance`](#watchbalance) / [`watchBalanceByAd
 | Field | Type | Description |
 | --- | --- | --- |
 | `type`\* | `'balance'` | The update type field |
-| `address`\* | [`UserFriendlyAddress`](#userfriendlyaddress) | The account address |
-| `rawBalance`\* | [`TokenAmount`](#tokenamount) | The account balance in nano units |
+| `address`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | The account address |
+| `rawBalance`\* | <a href="#tokenamount"><code>TokenAmount</code></a> | The account balance in nano units |
 | `balance`\* | `string` | The formatted balance |
-| `status`\* | [`StreamingUpdateStatus`](#streamingupdatestatus) | The finality of the update |
+| `status`\* | <a href="#streamingupdatestatus"><code>StreamingUpdateStatus</code></a> | The finality of the update |
 
 #### GetBalanceByAddressOptions
 
@@ -406,8 +544,8 @@ Options for [`getBalanceByAddress`](#getbalancebyaddress).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `address`\* | [`UserFriendlyAddress`](#userfriendlyaddress)` \| Address` | Wallet address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
-| `network` | [`Network`](#network) | Network to read the balance from. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+| `address`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code> \| Address</code> | Wallet address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to read the balance from. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
 
 #### GetBalanceByAddressReturnType
 
@@ -423,7 +561,7 @@ Options for [`getBalance`](#getbalance).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `network` | [`Network`](#network) | Network to read the balance from. Defaults to the selected wallet's network. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to read the balance from. Defaults to the selected wallet's network. |
 
 #### GetBalanceReturnType
 
@@ -447,9 +585,9 @@ Options for [`watchBalanceByAddress`](#watchbalancebyaddress).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `address`\* | [`UserFriendlyAddress`](#userfriendlyaddress)` \| Address` | Wallet address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
-| `network` | [`Network`](#network) | Network to watch on. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
-| `onChange`\* | `(update: `[`BalanceUpdate`](#balanceupdate)`) => void` | Callback fired on every balance update from the streaming provider. |
+| `address`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code> \| Address</code> | Wallet address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to watch on. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+| `onChange`\* | <code>(update: </code><a href="#balanceupdate"><code>BalanceUpdate</code></a><code>) =&gt; void</code> | Callback fired on every balance update from the streaming provider. |
 
 #### WatchBalanceByAddressReturnType
 
@@ -465,8 +603,8 @@ Options for [`watchBalance`](#watchbalance).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `network` | [`Network`](#network) | Network to watch on. Defaults to the selected wallet's network. |
-| `onChange`\* | `(update: `[`BalanceUpdate`](#balanceupdate)`) => void` | Callback fired on every balance update from the streaming provider. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to watch on. Defaults to the selected wallet's network. |
+| `onChange`\* | <code>(update: </code><a href="#balanceupdate"><code>BalanceUpdate</code></a><code>) =&gt; void</code> | Callback fired on every balance update from the streaming provider. |
 
 #### WatchBalanceReturnType
 
@@ -518,11 +656,11 @@ Wallet connector contract — the protocol-specific bridge (TonConnect, embedded
 | --- | --- | --- |
 | `id`\* | `string` | Stable connector identifier, unique within an AppKit instance. |
 | `type`\* | `string` | Protocol type (e.g. `'tonconnect'`). Multiple connectors can share the same type. |
-| `metadata`\* | [`ConnectorMetadata`](#connectormetadata) | Display metadata (name, icon) shown in connect UIs. |
+| `metadata`\* | <a href="#connectormetadata"><code>ConnectorMetadata</code></a> | Display metadata (name, icon) shown in connect UIs. |
 | `destroy`\* | `() => void` | Release any resources held by the connector. Call on app teardown. |
-| `connectWallet`\* | `(network?: `[`Network`](#network)`) => Promise<void>` | Initiate a wallet connection flow on the given network. |
+| `connectWallet`\* | <code>(network?: </code><a href="#network"><code>Network</code></a><code>) =&gt; Promise&lt;void&gt;</code> | Initiate a wallet connection flow on the given network. |
 | `disconnectWallet`\* | `() => Promise<void>` | Disconnect the currently connected wallet, if any. |
-| `getConnectedWallets`\* | `() => `[`WalletInterface`](#walletinterface)`[]` | Wallets currently connected through this connector. |
+| `getConnectedWallets`\* | <code>() =&gt; </code><a href="#walletinterface"><code>WalletInterface</code></a><code>[]</code> | Wallets currently connected through this connector. |
 
 #### ConnectorFactory
 
@@ -538,8 +676,8 @@ Context that AppKit injects into a [`ConnectorFactory`](#connectorfactory) when 
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `networkManager`\* | [`AppKitNetworkManager`](#appkitnetworkmanager) | Network manager the connector should use for client lookups and default-network reads. |
-| `eventEmitter`\* | [`AppKitEmitter`](#appkitemitter) | Event emitter the connector should publish wallet/connection events to. |
+| `networkManager`\* | <a href="#appkitnetworkmanager"><code>AppKitNetworkManager</code></a> | Network manager the connector should use for client lookups and default-network reads. |
+| `eventEmitter`\* | <a href="#appkitemitter"><code>AppKitEmitter</code></a> | Event emitter the connector should publish wallet/connection events to. |
 | `ssr` | `boolean` | `true` when the connector is constructed during server-side rendering — connectors may skip browser-only setup. |
 
 #### ConnectorInput
@@ -606,12 +744,12 @@ Wallet contract surfaced by every [`Connector`](#connector) — covers identity 
 | Field | Type | Description |
 | --- | --- | --- |
 | `connectorId`\* | `string` | Id of the [`Connector`](#connector) that produced this wallet. |
-| `getAddress`\* | `() => `[`UserFriendlyAddress`](#userfriendlyaddress) | Wallet address as a user-friendly base64url string. |
-| `getPublicKey`\* | `() => `[`Hex`](#hex) | Wallet public key as a `0x`-prefixed hex string. |
-| `getNetwork`\* | `() => `[`Network`](#network) | Network the wallet is currently connected to. |
+| `getAddress`\* | <code>() =&gt; </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Wallet address as a user-friendly base64url string. |
+| `getPublicKey`\* | <code>() =&gt; </code><a href="#hex"><code>Hex</code></a> | Wallet public key as a `0x`-prefixed hex string. |
+| `getNetwork`\* | <code>() =&gt; </code><a href="#network"><code>Network</code></a> | Network the wallet is currently connected to. |
 | `getWalletId`\* | `() => string` | Stable identifier combining address and network — unique across AppKit's connected wallets. |
-| `sendTransaction`\* | `(request: `[`TransactionRequest`](#transactionrequest)`) => Promise<`[`SendTransactionResponse`](#sendtransactionresponse)`>` | Send a transaction — the wallet signs and broadcasts it. |
-| `signData`\* | `(payload: `[`SignDataRequest`](#signdatarequest)`) => Promise<`[`SignDataResponse`](#signdataresponse)`>` | Sign arbitrary data via the TonConnect signData flow. |
+| `sendTransaction`\* | <code>(request: </code><a href="#transactionrequest"><code>TransactionRequest</code></a><code>) =&gt; Promise&lt;</code><a href="#sendtransactionresponse"><code>SendTransactionResponse</code></a><code>&gt;</code> | Send a transaction — the wallet signs and broadcasts it. |
+| `signData`\* | <code>(payload: </code><a href="#signdatarequest"><code>SignDataRequest</code></a><code>) =&gt; Promise&lt;</code><a href="#signdataresponse"><code>SignDataResponse</code></a><code>&gt;</code> | Sign arbitrary data via the TonConnect signData flow. |
 
 #### WatchConnectorByIdParameters
 
@@ -620,7 +758,7 @@ Parameters accepted by [`watchConnectorById`](#watchconnectorbyid).
 | Field | Type | Description |
 | --- | --- | --- |
 | `id`\* | `string` | Id of the connector to watch. |
-| `onChange`\* | `(connector: `[`Connector`](#connector)` \| undefined) => void` | Callback fired after each wallet-connection event with the current connector (or `undefined` when none is registered under this id). |
+| `onChange`\* | <code>(connector: </code><a href="#connector"><code>Connector</code></a><code> \| undefined) =&gt; void</code> | Callback fired after each wallet-connection event with the current connector (or `undefined` when none is registered under this id). |
 
 #### WatchConnectorByIdReturnType
 
@@ -636,7 +774,7 @@ Parameters accepted by [`watchConnectors`](#watchconnectors).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `onChange`\* | `(connectors: readonly `[`Connector`](#connector)`[]) => void` | Callback fired after each wallet-connection event with the current list of registered connectors. |
+| `onChange`\* | <code>(connectors: readonly </code><a href="#connector"><code>Connector</code></a><code>[]) =&gt; void</code> | Callback fired after each wallet-connection event with the current list of registered connectors. |
 
 #### WatchConnectorsReturnType
 
@@ -654,9 +792,9 @@ Constructor options for [`AppKit`](#appkit) — networks, connectors, providers 
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `networks` | [`NetworkAdapters`](#networkadapters) | Map of chain id to api-client config; if omitted, AppKit defaults to mainnet only. |
-| `connectors` | [`ConnectorInput`](#connectorinput)`[]` | Wallet connectors registered at startup. |
-| `defaultNetwork` | [`Network`](#network) | Default network connectors (e.g. TonConnect) enforce on new connections; `undefined` to allow any. |
+| `networks` | <a href="#networkadapters"><code>NetworkAdapters</code></a> | Map of chain id to api-client config; if omitted, AppKit defaults to mainnet only. |
+| `connectors` | <a href="#connectorinput"><code>ConnectorInput</code></a><code>[]</code> | Wallet connectors registered at startup. |
+| `defaultNetwork` | <a href="#network"><code>Network</code></a> | Default network connectors (e.g. TonConnect) enforce on new connections; `undefined` to allow any. |
 | `providers` | `ProviderInput[]` | Defi/onramp providers registered at startup. |
 | `ssr` | `boolean` | Set to `true` to enable server-side rendering support. |
 
@@ -694,7 +832,7 @@ Payload of `networks:default-changed` events — the new default network, or `un
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `network`\* | [`Network`](#network)` \| undefined` | _TODO: describe_ |
+| `network`\* | <a href="#network"><code>Network</code></a><code> \| undefined</code> | _TODO: describe_ |
 
 #### EventListener
 
@@ -740,7 +878,7 @@ Payload of `connector:connected` events — newly connected wallets and the orig
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `wallets`\* | [`WalletInterface`](#walletinterface)`[]` | _TODO: describe_ |
+| `wallets`\* | <a href="#walletinterface"><code>WalletInterface</code></a><code>[]</code> | _TODO: describe_ |
 | `connectorId`\* | `string` | _TODO: describe_ |
 
 #### WalletDisconnectedPayload
@@ -750,6 +888,223 @@ Payload of `connector:disconnected` events — id of the connector whose wallet 
 | Field | Type | Description |
 | --- | --- | --- |
 | `connectorId`\* | `string` | _TODO: describe_ |
+
+### Crypto Onramp
+
+#### CreateCryptoOnrampDepositOptions
+
+Options for [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit) — extends [`CryptoOnrampDepositParams`](#cryptoonrampdepositparams) with an optional provider override.
+
+```ts
+type CreateCryptoOnrampDepositOptions = CryptoOnrampDepositParams<T> & {
+    /** Provider to create the deposit through; defaults to `quote.providerId`, then to the default provider. */
+    providerId?: string;
+};
+```
+
+#### CreateCryptoOnrampDepositReturnType
+
+Return type of [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit).
+
+```ts
+type CreateCryptoOnrampDepositReturnType = Promise<CryptoOnrampDeposit>;
+```
+
+#### CryptoOnrampDeposit
+
+Deposit details returned by a crypto onramp provider.
+
+The user must send `amount` of `sourceCurrencyAddress` to `address` on `sourceChain`
+to complete the onramp; the provider then delivers the target crypto to the
+user's TON address.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `depositId`\* | `string` | Deposit id |
+| `address`\* | `string` | Deposit address on the source chain |
+| `amount`\* | `string` | Exact amount of source crypto the user must send |
+| `sourceCurrencyAddress`\* | `string` | Source crypto currency address (contract address or 0x0... for native) |
+| `sourceChain`\* | `string` | Source chain identifier in CAIP-2 format (e.g. 'eip155:42161'). |
+| `memo` | `string` | Optional memo / tag required by some chains (e.g. XRP, TON comment) |
+| `expiresAt` | `number` | Unix timestamp (ms) after which the deposit offer is no longer valid |
+| `chainWarning` | `string` | Chain-specific warning to show the user (e.g. "send only on Solana") |
+| `providerId`\* | `string` | Identifier of the provider that issued this deposit |
+
+#### CryptoOnrampDepositParams
+
+Parameters for creating a crypto onramp deposit.
+
+The recipient is taken from `quote.recipientAddress` set at quote time.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `quote`\* | <a href="#cryptoonrampquote"><code>CryptoOnrampQuote</code></a><code>&lt;TQuoteMetadata&gt;</code> | Quote to execute the deposit against (contains recipientAddress and provider metadata) |
+| `refundAddress`\* | `string` | Address to refund the crypto to in case of failure |
+| `providerOptions` | `TProviderOptions` | Provider-specific options |
+
+#### CryptoOnrampProviderInterface
+
+Interface that all crypto onramp providers must implement
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `type`\* | `'crypto-onramp'` | _TODO: describe_ |
+| `providerId`\* | `string` | Unique identifier for the provider |
+| `getMetadata`\* | <code>() =&gt; </code><a href="#cryptoonrampprovidermetadata"><code>CryptoOnrampProviderMetadata</code></a> | Get static metadata for the provider (display name, logo, url). |
+| `getQuote`\* | <code>(params: </code><a href="#cryptoonrampquoteparams"><code>CryptoOnrampQuoteParams</code></a><code>&lt;TQuoteOptions&gt;) =&gt; Promise&lt;</code><a href="#cryptoonrampquote"><code>CryptoOnrampQuote</code></a><code>&gt;</code> | Get a quote for onramping from another crypto asset into a TON asset |
+| `createDeposit`\* | <code>(params: </code><a href="#cryptoonrampdepositparams"><code>CryptoOnrampDepositParams</code></a><code>&lt;TDepositOptions&gt;) =&gt; Promise&lt;</code><a href="#cryptoonrampdeposit"><code>CryptoOnrampDeposit</code></a><code>&gt;</code> | Create a deposit for a previously obtained quote |
+| `getStatus`\* | <code>(params: </code><a href="#cryptoonrampstatusparams"><code>CryptoOnrampStatusParams</code></a><code>) =&gt; Promise&lt;</code><a href="#cryptoonrampstatus"><code>CryptoOnrampStatus</code></a><code>&gt;</code> | Get the status of a deposit |
+| `getSupportedNetworks`\* | <code>() =&gt; </code><a href="#network"><code>Network</code></a><code>[]</code> | Networks this provider can operate on. Consumers should check before calling provider methods. Implementations may return a static list or compute it dynamically (e.g. from runtime config). |
+
+#### CryptoOnrampProviderMetadata
+
+Static metadata for a crypto-onramp provider.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `name`\* | `string` | Human-readable provider name (e.g. 'Swaps.xyz') |
+| `logo` | `string` | URL to the provider's logo image |
+| `url` | `string` | URL to the provider's website |
+| `isRefundAddressRequired` | `boolean` | Whether this provider requires a refund address on the source chain. When true, the UI must collect a refund address before creating a deposit. |
+| `isReversedAmountSupported` | `boolean` | Whether this provider supports reversed (target-amount) quotes. When false, the UI should hide the direction toggle and only allow source-amount input. |
+
+#### CryptoOnrampProviderMetadataOverride
+
+Used in provider configuration to override fields of the provider's metadata.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `name` | `string` | Override the provider's display name |
+| `logo` | `string` | Override the provider's logo URL |
+| `url` | `string` | Override the provider's website URL |
+
+#### CryptoOnrampQuote
+
+Crypto onramp quote response with pricing information
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `sourceCurrencyAddress`\* | `string` | Source crypto currency address (contract address or 0x0... for native) |
+| `sourceChain`\* | `string` | Source chain identifier in CAIP-2 format (e.g. 'eip155:42161'). |
+| `targetCurrencyAddress`\* | `string` | Target crypto currency address on TON (contract address or 0x0... for native) |
+| `sourceAmount`\* | `string` | Amount of source crypto to send |
+| `targetAmount`\* | `string` | Amount of target crypto to receive |
+| `rate`\* | `string` | Exchange rate (amount of target per 1 unit of source) |
+| `recipientAddress`\* | `string` | TON address that will receive the target crypto |
+| `providerId`\* | `string` | Identifier of the crypto onramp provider |
+| `metadata` | `TMetadata` | Provider-specific metadata for the quote (e.g. raw response needed to execute) |
+
+#### CryptoOnrampQuoteParams
+
+Parameters for requesting a crypto-to-crypto onramp quote.
+
+The target network is always TON, so only the source side is parameterised.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `amount`\* | `string` | Amount to onramp (either source or target crypto, depending on isSourceAmount) |
+| `sourceCurrencyAddress`\* | `string` | Source crypto currency address (contract address or 0x0... for native) |
+| `sourceChain`\* | `string` | Source chain identifier in CAIP-2 format (e.g. 'eip155:1' for Ethereum mainnet, 'eip155:42161' for Arbitrum One). Providers map this to their own chain identifiers internally. |
+| `targetCurrencyAddress`\* | `string` | Target crypto currency address on TON (contract address or 0x0... for native) |
+| `recipientAddress`\* | `string` | TON address that will receive the target crypto |
+| `refundAddress` | `string` | Refund address for the source crypto |
+| `isSourceAmount` | `boolean` | If true, `amount` is the source amount to spend. If false, `amount` is the target amount to receive. Defaults to true when omitted. |
+| `providerOptions` | `TProviderOptions` | Provider-specific options |
+
+#### CryptoOnrampStatus
+
+Final state of a crypto-onramp deposit returned by [`getCryptoOnrampStatus`](#getcryptoonrampstatus) — `'success'` (delivered to the recipient), `'pending'` (still in flight), or `'failed'` (provider could not complete the deposit).
+
+```ts
+type CryptoOnrampStatus = 'success' | 'pending' | 'failed';
+```
+
+#### CryptoOnrampStatusParams
+
+Parameters accepted by [`getCryptoOnrampStatus`](#getcryptoonrampstatus) — identifies a previously created deposit and the provider that issued it.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `depositId`\* | `string` | Deposit id |
+| `providerId`\* | `string` | Identifier of the provider that issued this deposit |
+
+#### GetCryptoOnrampProviderOptions
+
+Options for [`getCryptoOnrampProvider`](#getcryptoonrampprovider).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | `string` | Provider id to look up; when omitted, returns the registered default provider. |
+
+#### GetCryptoOnrampProviderReturnType
+
+Return type of [`getCryptoOnrampProvider`](#getcryptoonrampprovider).
+
+```ts
+type GetCryptoOnrampProviderReturnType = CryptoOnrampProviderInterface;
+```
+
+#### GetCryptoOnrampProvidersReturnType
+
+Return type of [`getCryptoOnrampProviders`](#getcryptoonrampproviders).
+
+```ts
+type GetCryptoOnrampProvidersReturnType = CryptoOnrampProviderInterface[];
+```
+
+#### GetCryptoOnrampQuoteOptions
+
+Options for [`getCryptoOnrampQuote`](#getcryptoonrampquote) — extends [`CryptoOnrampQuoteParams`](#cryptoonrampquoteparams) with an optional provider override.
+
+```ts
+type GetCryptoOnrampQuoteOptions = CryptoOnrampQuoteParams<T> & {
+    /** Provider to quote against; defaults to the registered default provider. */
+    providerId?: string;
+};
+```
+
+#### GetCryptoOnrampQuoteReturnType
+
+Return type of [`getCryptoOnrampQuote`](#getcryptoonrampquote).
+
+```ts
+type GetCryptoOnrampQuoteReturnType = Promise<CryptoOnrampQuote>;
+```
+
+#### GetCryptoOnrampStatusOptions
+
+Options for [`getCryptoOnrampStatus`](#getcryptoonrampstatus) — extends [`CryptoOnrampStatusParams`](#cryptoonrampstatusparams) with an optional provider override.
+
+```ts
+type GetCryptoOnrampStatusOptions = CryptoOnrampStatusParams & {
+    /** Provider that issued the deposit; defaults to the registered default provider. */
+    providerId?: string;
+};
+```
+
+#### GetCryptoOnrampStatusReturnType
+
+Return type of [`getCryptoOnrampStatus`](#getcryptoonrampstatus).
+
+```ts
+type GetCryptoOnrampStatusReturnType = Promise<CryptoOnrampStatus>;
+```
+
+#### WatchCryptoOnrampProvidersParameters
+
+Parameters accepted by [`watchCryptoOnrampProviders`](#watchcryptoonrampproviders).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `onChange`\* | `() => void` | Callback fired whenever a crypto-onramp provider is registered or the default crypto-onramp provider changes. |
+
+#### WatchCryptoOnrampProvidersReturnType
+
+Return type of [`watchCryptoOnrampProviders`](#watchcryptoonrampproviders) — call to stop receiving updates.
+
+```ts
+type WatchCryptoOnrampProvidersReturnType = () => void;
+```
 
 ### DeFi
 
@@ -774,7 +1129,7 @@ Base interface for all DeFi providers
 | Field | Type | Description |
 | --- | --- | --- |
 | `type`\* | `DefiProviderType` | _TODO: describe_ |
-| `getSupportedNetworks`\* | `() => `[`Network`](#network)`[]` | Networks this provider can operate on. Consumers should check before calling provider methods. Implementations may return a static list or compute it dynamically (e.g. from runtime config). |
+| `getSupportedNetworks`\* | <code>() =&gt; </code><a href="#network"><code>Network</code></a><code>[]</code> | Networks this provider can operate on. Consumers should check before calling provider methods. Implementations may return a static list or compute it dynamically (e.g. from runtime config). |
 | `providerId`\* | `string` | _TODO: describe_ |
 
 ### Networks
@@ -813,7 +1168,7 @@ Network configuration for a specific chain
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `apiClient` | [`ApiClientConfig`](#apiclientconfig)` \| ApiClient` | API client configuration or instance |
+| `apiClient` | <a href="#apiclientconfig"><code>ApiClientConfig</code></a><code> \| ApiClient</code> | API client configuration or instance |
 
 ### Primitives
 
@@ -851,7 +1206,7 @@ Sign-data payload sent to [`WalletInterface`](#walletinterface)`.signData` — d
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `network` | [`Network`](#network) | Network to issue the sign request against; defaults to the wallet's current network. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against; defaults to the wallet's current network. |
 | `from` | `string` | Sender address in raw format; usually omitted, the wallet fills it in. |
 | `data`\* | `SignData` | Payload the user is asked to sign. |
 
@@ -865,7 +1220,7 @@ Wallet response to a [`SignDataRequest`](#signdatarequest) — carries the signa
 | `address`\* | `string` | Wallet address that signed, in user-friendly format. |
 | `timestamp`\* | `number` | Unix timestamp the wallet stamped onto the signature. |
 | `domain`\* | `string` | dApp domain the wallet bound the signature to. |
-| `payload`\* | [`SignDataRequest`](#signdatarequest) | Original payload that was signed, echoed back for binding. |
+| `payload`\* | <a href="#signdatarequest"><code>SignDataRequest</code></a> | Original payload that was signed, echoed back for binding. |
 
 #### SignTextParameters
 
@@ -874,7 +1229,7 @@ Parameters accepted by `signText`.
 | Field | Type | Description |
 | --- | --- | --- |
 | `text`\* | `string` | UTF-8 text the user is asked to sign. |
-| `network` | [`Network`](#network) | Network to issue the sign request against. Defaults to the AppKit's selected network. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against. Defaults to the AppKit's selected network. |
 
 ### Staking
 
@@ -884,8 +1239,8 @@ Parameters for staking TON
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `quote`\* | [`StakingQuote`](#stakingquote) | The staking quote based on which the transaction is built |
-| `userAddress`\* | [`UserFriendlyAddress`](#userfriendlyaddress) | Address of the user performing the staking |
+| `quote`\* | <a href="#stakingquote"><code>StakingQuote</code></a> | The staking quote based on which the transaction is built |
+| `userAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Address of the user performing the staking |
 | `providerOptions` | `TProviderOptions` | Provider-specific options |
 
 #### StakingAPI
@@ -894,11 +1249,11 @@ Staking API interface exposed by StakingManager
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `getQuote`\* | `(params: `[`StakingQuoteParams`](#stakingquoteparams)`, providerId?: string) => Promise<`[`StakingQuote`](#stakingquote)`>` | Get a quote for staking or unstaking |
-| `buildStakeTransaction`\* | `(params: `[`StakeParams`](#stakeparams)`, providerId?: string) => Promise<`[`TransactionRequest`](#transactionrequest)`>` | Build a transaction for staking |
-| `getStakedBalance`\* | `(userAddress: `[`UserFriendlyAddress`](#userfriendlyaddress)`, network?: `[`Network`](#network)`, providerId?: string) => Promise<`[`StakingBalance`](#stakingbalance)`>` | Get user's staked balance |
-| `getStakingProviderInfo`\* | `(network?: `[`Network`](#network)`, providerId?: string) => Promise<`[`StakingProviderInfo`](#stakingproviderinfo)`>` | Get staking provider information |
-| `getStakingProviderMetadata`\* | `(network?: `[`Network`](#network)`, providerId?: string) => `[`StakingProviderMetadata`](#stakingprovidermetadata) | Get static metadata for a staking provider |
+| `getQuote`\* | <code>(params: </code><a href="#stakingquoteparams"><code>StakingQuoteParams</code></a><code>, providerId?: string) =&gt; Promise&lt;</code><a href="#stakingquote"><code>StakingQuote</code></a><code>&gt;</code> | Get a quote for staking or unstaking |
+| `buildStakeTransaction`\* | <code>(params: </code><a href="#stakeparams"><code>StakeParams</code></a><code>, providerId?: string) =&gt; Promise&lt;</code><a href="#transactionrequest"><code>TransactionRequest</code></a><code>&gt;</code> | Build a transaction for staking |
+| `getStakedBalance`\* | <code>(userAddress: </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code>, network?: </code><a href="#network"><code>Network</code></a><code>, providerId?: string) =&gt; Promise&lt;</code><a href="#stakingbalance"><code>StakingBalance</code></a><code>&gt;</code> | Get user's staked balance |
+| `getStakingProviderInfo`\* | <code>(network?: </code><a href="#network"><code>Network</code></a><code>, providerId?: string) =&gt; Promise&lt;</code><a href="#stakingproviderinfo"><code>StakingProviderInfo</code></a><code>&gt;</code> | Get staking provider information |
+| `getStakingProviderMetadata`\* | <code>(network?: </code><a href="#network"><code>Network</code></a><code>, providerId?: string) =&gt; </code><a href="#stakingprovidermetadata"><code>StakingProviderMetadata</code></a> | Get static metadata for a staking provider |
 | `createFactoryContext`\* | `() => ProviderFactoryContext` | _TODO: describe_ |
 | `registerProvider`\* | `(provider: ProviderInput<StakingProviderInterface>) => void` | Register a new provider. If a provider with the same id is already registered, it is replaced. |
 | `removeProvider`\* | `(provider: StakingProviderInterface) => void` | Remove a previously registered provider. No-op if the provider was not registered. |
@@ -913,9 +1268,9 @@ Staking balance information for a user
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `rawStakedBalance`\* | [`TokenAmount`](#tokenamount) | Amount currently staked |
+| `rawStakedBalance`\* | <a href="#tokenamount"><code>TokenAmount</code></a> | Amount currently staked |
 | `stakedBalance`\* | `string` | Amount currently staked |
-| `rawInstantUnstakeAvailable`\* | [`TokenAmount`](#tokenamount) | Amount available for instant unstake |
+| `rawInstantUnstakeAvailable`\* | <a href="#tokenamount"><code>TokenAmount</code></a> | Amount available for instant unstake |
 | `instantUnstakeAvailable`\* | `string` | Amount available for instant unstake |
 | `providerId`\* | `string` | Identifier of the staking provider |
 
@@ -926,7 +1281,7 @@ Dynamic staking information for a provider
 | Field | Type | Description |
 | --- | --- | --- |
 | `apy`\* | `number` | Annual Percentage Yield in basis points (100 = 1%) |
-| `rawInstantUnstakeAvailable` | [`TokenAmount`](#tokenamount) | Amount available for instant unstake |
+| `rawInstantUnstakeAvailable` | <a href="#tokenamount"><code>TokenAmount</code></a> | Amount available for instant unstake |
 | `instantUnstakeAvailable` | `string` | Amount available for instant unstake |
 | `exchangeRate` | `string` | Exchange rate between stakeToken and receiveToken (e.g. 1 TON = 0.95 tsTON). Undefined when there is no receiveToken (direct/custodial staking). |
 
@@ -937,11 +1292,11 @@ Static metadata for a staking provider
 | Field | Type | Description |
 | --- | --- | --- |
 | `name`\* | `string` | Human-readable provider name (e.g. "Tonstakers") |
-| `supportedUnstakeModes`\* | [`UnstakeModes`](#unstakemodes)`[]` | Supported unstake modes for this provider |
+| `supportedUnstakeModes`\* | <a href="#unstakemodes"><code>UnstakeModes</code></a><code>[]</code> | Supported unstake modes for this provider |
 | `supportsReversedQuote`\* | `boolean` | Whether provider supports reversed quote format (e.g., passing TON instead of tsTON for unstake) |
-| `stakeToken`\* | [`StakingTokenInfo`](#stakingtokeninfo) | Token that the user sends when staking (e.g. TON) |
-| `receiveToken` | [`StakingTokenInfo`](#stakingtokeninfo) | Token that the user receives when staking (e.g. tsTON for liquid staking). Absent for direct/custodial staking. |
-| `contractAddress` | [`UserFriendlyAddress`](#userfriendlyaddress) | Provider contract address (optional — custodial providers may not have one) |
+| `stakeToken`\* | <a href="#stakingtokeninfo"><code>StakingTokenInfo</code></a> | Token that the user sends when staking (e.g. TON) |
+| `receiveToken` | <a href="#stakingtokeninfo"><code>StakingTokenInfo</code></a> | Token that the user receives when staking (e.g. tsTON for liquid staking). Absent for direct/custodial staking. |
+| `contractAddress` | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Provider contract address (optional — custodial providers may not have one) |
 
 #### StakingQuote
 
@@ -949,14 +1304,14 @@ Staking quote response with pricing information
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `direction`\* | [`StakingQuoteDirection`](#stakingquotedirection) | Direction of the quote (stake or unstake) |
-| `rawAmountIn`\* | [`TokenAmount`](#tokenamount) | Amount of tokens being provided |
-| `rawAmountOut`\* | [`TokenAmount`](#tokenamount) | Estimated amount of tokens to be received |
+| `direction`\* | <a href="#stakingquotedirection"><code>StakingQuoteDirection</code></a> | Direction of the quote (stake or unstake) |
+| `rawAmountIn`\* | <a href="#tokenamount"><code>TokenAmount</code></a> | Amount of tokens being provided |
+| `rawAmountOut`\* | <a href="#tokenamount"><code>TokenAmount</code></a> | Estimated amount of tokens to be received |
 | `amountIn`\* | `string` | Formatted amount of tokens being provided |
 | `amountOut`\* | `string` | Formatted estimated amount of tokens to be received |
-| `network`\* | [`Network`](#network) | Network on which the staking will be executed |
+| `network`\* | <a href="#network"><code>Network</code></a> | Network on which the staking will be executed |
 | `providerId`\* | `string` | Identifier of the staking provider |
-| `unstakeMode` | [`UnstakeModes`](#unstakemodes) | Mode of unstaking (if applicable) |
+| `unstakeMode` | <a href="#unstakemodes"><code>UnstakeModes</code></a> | Mode of unstaking (if applicable) |
 | `metadata` | `unknown` | Provider-specific metadata for the quote |
 
 #### StakingQuoteDirection
@@ -973,11 +1328,11 @@ Parameters for getting a staking quote
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `direction`\* | [`StakingQuoteDirection`](#stakingquotedirection) | Direction of the quote (stake or unstake) |
+| `direction`\* | <a href="#stakingquotedirection"><code>StakingQuoteDirection</code></a> | Direction of the quote (stake or unstake) |
 | `amount`\* | `string` | Amount of tokens to stake or unstake |
-| `userAddress` | [`UserFriendlyAddress`](#userfriendlyaddress) | Address of the user |
-| `network` | [`Network`](#network) | Network on which the staking will be executed |
-| `unstakeMode` | [`UnstakeModes`](#unstakemodes) | Requested mode of unstaking |
+| `userAddress` | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Address of the user |
+| `network` | <a href="#network"><code>Network</code></a> | Network on which the staking will be executed |
+| `unstakeMode` | <a href="#unstakemodes"><code>UnstakeModes</code></a> | Requested mode of unstaking |
 | `isReversed` | `boolean` | If true, for unstake requests the amount is specified in the staking coin (e.g. TON) instead of the Liquid Staking Token (e.g. tsTON). |
 | `providerOptions` | `TProviderOptions` | Provider-specific options |
 
@@ -1007,8 +1362,8 @@ Swap API interface exposed by SwapManager
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `getQuote`\* | `(params: `[`SwapQuoteParams`](#swapquoteparams)`, providerId?: string) => Promise<`[`SwapQuote`](#swapquote)`>` | Get a quote for swapping tokens |
-| `buildSwapTransaction`\* | `(params: `[`SwapParams`](#swapparams)`) => Promise<`[`TransactionRequest`](#transactionrequest)`>` | Build a transaction for a swap. Provider is taken from `params.quote.providerId`, or the manager default. |
+| `getQuote`\* | <code>(params: </code><a href="#swapquoteparams"><code>SwapQuoteParams</code></a><code>, providerId?: string) =&gt; Promise&lt;</code><a href="#swapquote"><code>SwapQuote</code></a><code>&gt;</code> | Get a quote for swapping tokens |
+| `buildSwapTransaction`\* | <code>(params: </code><a href="#swapparams"><code>SwapParams</code></a><code>) =&gt; Promise&lt;</code><a href="#transactionrequest"><code>TransactionRequest</code></a><code>&gt;</code> | Build a transaction for a swap. Provider is taken from `params.quote.providerId`, or the manager default. |
 | `createFactoryContext`\* | `() => ProviderFactoryContext` | _TODO: describe_ |
 | `registerProvider`\* | `(provider: ProviderInput<SwapProviderInterface<unknown, unknown>>) => void` | Register a new provider. If a provider with the same id is already registered, it is replaced. |
 | `removeProvider`\* | `(provider: SwapProviderInterface<unknown, unknown>) => void` | Remove a previously registered provider. No-op if the provider was not registered. |
@@ -1023,9 +1378,9 @@ Parameters for building swap transaction
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `quote`\* | [`SwapQuote`](#swapquote) | The swap quote based on which the transaction is built |
-| `userAddress`\* | [`UserFriendlyAddress`](#userfriendlyaddress) | Address of the user performing the swap |
-| `destinationAddress` | [`UserFriendlyAddress`](#userfriendlyaddress) | Address to receive the swapped tokens (defaults to userAddress) |
+| `quote`\* | <a href="#swapquote"><code>SwapQuote</code></a> | The swap quote based on which the transaction is built |
+| `userAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Address of the user performing the swap |
+| `destinationAddress` | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Address to receive the swapped tokens (defaults to userAddress) |
 | `slippageBps` | `number` | Slippage tolerance in basis points (1 bp = 0.01%) |
 | `deadline` | `number` | Transaction deadline in unix timestamp |
 | `providerOptions` | `TProviderOptions` | Provider-specific options |
@@ -1036,15 +1391,15 @@ Swap quote response with pricing information
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `fromToken`\* | [`SwapToken`](#swaptoken) | Token being sold |
-| `toToken`\* | [`SwapToken`](#swaptoken) | Token being bought |
-| `rawFromAmount`\* | [`TokenAmount`](#tokenamount) | Amount of tokens to sell |
-| `rawToAmount`\* | [`TokenAmount`](#tokenamount) | Amount of tokens to buy |
+| `fromToken`\* | <a href="#swaptoken"><code>SwapToken</code></a> | Token being sold |
+| `toToken`\* | <a href="#swaptoken"><code>SwapToken</code></a> | Token being bought |
+| `rawFromAmount`\* | <a href="#tokenamount"><code>TokenAmount</code></a> | Amount of tokens to sell |
+| `rawToAmount`\* | <a href="#tokenamount"><code>TokenAmount</code></a> | Amount of tokens to buy |
 | `fromAmount`\* | `string` | Amount of tokens to sell |
 | `toAmount`\* | `string` | Amount of tokens to buy |
-| `rawMinReceived`\* | [`TokenAmount`](#tokenamount) | Minimum amount of tokens to receive (after slippage) |
+| `rawMinReceived`\* | <a href="#tokenamount"><code>TokenAmount</code></a> | Minimum amount of tokens to receive (after slippage) |
 | `minReceived`\* | `string` | Minimum amount of tokens to receive (after slippage) |
-| `network`\* | [`Network`](#network) | Network on which the swap will be executed |
+| `network`\* | <a href="#network"><code>Network</code></a> | Network on which the swap will be executed |
 | `priceImpact` | `number` | Price impact of the swap in basis points (100 = 1%) |
 | `providerId`\* | `string` | Identifier of the swap provider |
 | `expiresAt` | `number` | Unix timestamp in seconds when the quote expires |
@@ -1057,9 +1412,9 @@ Base parameters for requesting a swap quote
 | Field | Type | Description |
 | --- | --- | --- |
 | `amount`\* | `string` | Amount of tokens to swap (incoming or outgoing depending on isReverseSwap) |
-| `from`\* | [`SwapToken`](#swaptoken) | Token to swap from |
-| `to`\* | [`SwapToken`](#swaptoken) | Token to swap to |
-| `network`\* | [`Network`](#network) | Network on which the swap will be executed |
+| `from`\* | <a href="#swaptoken"><code>SwapToken</code></a> | Token to swap from |
+| `to`\* | <a href="#swaptoken"><code>SwapToken</code></a> | Token to swap to |
+| `network`\* | <a href="#network"><code>Network</code></a> | Network on which the swap will be executed |
 | `slippageBps` | `number` | Slippage tolerance in basis points (1 bp = 0.01%) |
 | `maxOutgoingMessages` | `number` | Maximum number of outgoing messages |
 | `providerOptions` | `TProviderOptions` | Provider-specific options |
@@ -1088,7 +1443,7 @@ Wallet response carrying the BoC (bag of cells) of the external message that was
 | --- | --- | --- |
 | `boc`\* | `Base64String` | BOC of the sent transaction |
 | `normalizedBoc`\* | `Base64String` | Normalized BOC of the external-in message |
-| `normalizedHash`\* | [`Hex`](#hex) | Hash of the normalized external-in message |
+| `normalizedHash`\* | <a href="#hex"><code>Hex</code></a> | Hash of the normalized external-in message |
 
 #### TransactionRequest
 
@@ -1097,7 +1452,7 @@ Transaction payload passed to [`WalletInterface`](#walletinterface)`.sendTransac
 | Field | Type | Description |
 | --- | --- | --- |
 | `messages`\* | `TransactionRequestMessage[]` | List of messages to include in the transaction |
-| `network` | [`Network`](#network) | Network to execute the transaction on |
+| `network` | <a href="#network"><code>Network</code></a> | Network to execute the transaction on |
 | `validUntil` | `number` | Unix timestamp after which the transaction becomes invalid |
 | `fromAddress` | `string` | Sender wallet address in received format(raw, user friendly) |
 

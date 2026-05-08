@@ -9,14 +9,40 @@
 import type { AppKit } from '../../core/app-kit';
 import type { CryptoOnrampProviderInterface } from '../../crypto-onramp';
 
+/**
+ * Options for {@link getCryptoOnrampProvider}.
+ *
+ * @public
+ * @category Type
+ * @section Crypto Onramp
+ */
 export interface GetCryptoOnrampProviderOptions {
+    /** Provider id to look up; when omitted, returns the registered default provider. */
     id?: string;
 }
 
+/**
+ * Return type of {@link getCryptoOnrampProvider}.
+ *
+ * @public
+ * @category Type
+ * @section Crypto Onramp
+ */
 export type GetCryptoOnrampProviderReturnType = CryptoOnrampProviderInterface;
 
 /**
- * Get a registered crypto-onramp provider by id, or the default one when no id is given.
+ * Get a registered crypto-onramp provider by id, or the default provider when no id is given; throws when the id does not match any registered provider.
+ *
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param options - {@link GetCryptoOnrampProviderOptions} Optional provider id.
+ * @returns The matching {@link CryptoOnrampProviderInterface}.
+ *
+ * @sample docs/examples/src/appkit/actions/onramp#GET_CRYPTO_ONRAMP_PROVIDER
+ * @expand options
+ *
+ * @public
+ * @category Action
+ * @section Crypto Onramp
  */
 export const getCryptoOnrampProvider = (
     appKit: AppKit,

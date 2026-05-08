@@ -41,7 +41,7 @@ export {
     type WatchConnectorByIdReturnType,
 } from './connectors/watch-connector-by-id';
 
-// Crypto onramp
+// Crypto Onramp
 export {
     getCryptoOnrampProvider,
     type GetCryptoOnrampProviderOptions,

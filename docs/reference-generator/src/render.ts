@@ -260,6 +260,19 @@ function escapeForCell(text: string): string {
     return text.replace(/\|/g, '\\|');
 }
 
+/**
+ * Renders a type cell as one or more inline-code "chips":
+ *   - linked names → `<a href="#name"><code>Name</code></a>` (chip-link)
+ *   - surrounding syntax → `<code>…</code>` (plain chip)
+ *
+ * Each segment is its own HTML element, so adjacent backtick code spans never
+ * sit flush against a markdown link (a combo MDX mishandled in Mintlify) and
+ * the link scope stays tight to the type name itself instead of wrapping the
+ * whole compound type.
+ *
+ * Both segment forms collapse to the same `<code>` DOM element Mintlify
+ * styles as a chip, matching {@link formatTypeOverride}'s markdown chips.
+ */
 function formatTypeCell(typeText: string): string {
     if (LINKABLE_NAMES.size === 0) return '`' + escapeForCell(typeText) + '`';
 
@@ -271,16 +284,20 @@ function formatTypeCell(typeText: string): string {
     let match: RegExpExecArray | null;
     while ((match = pattern.exec(typeText)) !== null) {
         if (match.index > lastIndex) {
-            segments.push('`' + escapeForCell(typeText.slice(lastIndex, match.index)) + '`');
+            segments.push(`<code>${escapeHtmlInCell(typeText.slice(lastIndex, match.index))}</code>`);
         }
-        segments.push(`[\`${match[1]}\`](#${slugify(match[1])})`);
+        segments.push(`<a href="#${slugify(match[1])}"><code>${match[1]}</code></a>`);
         lastIndex = pattern.lastIndex;
     }
     if (segments.length === 0) return '`' + escapeForCell(typeText) + '`';
     if (lastIndex < typeText.length) {
-        segments.push('`' + escapeForCell(typeText.slice(lastIndex)) + '`');
+        segments.push(`<code>${escapeHtmlInCell(typeText.slice(lastIndex))}</code>`);
     }
     return segments.join('');
+}
+
+function escapeHtmlInCell(text: string): string {
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\|/g, '\\|');
 }
 
 function escapeRegex(str: string): string {

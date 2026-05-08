@@ -595,7 +595,10 @@ function readPropsFromType(type: Type, contextNode: Node): ParamRow[] {
 }
 
 function isFlattenableObjectType(type: Type): boolean {
-    if (type.isUnion() || type.isIntersection()) return false;
+    if (type.isUnion()) return false;
+    // Intersections like `Params & { providerId?: string }` resolve to a clean property bag —
+    // flattening them is fine as long as `getProperties()` returns something usable.
+    if (type.isIntersection()) return type.getProperties().length > 0;
     if (!type.isObject()) return false;
     if (type.getCallSignatures().length > 0) return false;
     if (type.getConstructSignatures().length > 0) return false;
