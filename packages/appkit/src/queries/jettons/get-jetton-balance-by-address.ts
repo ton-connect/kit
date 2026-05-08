@@ -8,6 +8,7 @@
 
 import type { QueryClient } from '@tanstack/query-core';
 import type { TokenAmount } from '@ton/walletkit';
+import { Address } from '@ton/core';
 
 import type { AppKit } from '../../core/app-kit';
 import { getJettonBalance } from '../../actions/jettons/get-jetton-balance';
@@ -59,8 +60,23 @@ export type GetJettonBalanceQueryFnData = Compute<TokenAmount>;
 export const getJettonBalanceByAddressQueryKey = (
     options: Compute<ExactPartial<GetJettonBalanceParameters>> = {},
 ): GetJettonBalanceByAddressQueryKey => {
-    return ['jetton-balance', filterQueryOptions(options)] as const;
+    const filteredOptions = filterQueryOptions(options);
+    if (filteredOptions.jettonAddress) {
+        filteredOptions.jettonAddress = normalizeAddress(filteredOptions.jettonAddress);
+    }
+    if (filteredOptions.ownerAddress) {
+        filteredOptions.ownerAddress = normalizeAddress(filteredOptions.ownerAddress);
+    }
+    return ['jetton-balance', filteredOptions] as const;
 };
+
+function normalizeAddress(address: string): string {
+    try {
+        return Address.parse(address).toString({ bounceable: true, urlSafe: true });
+    } catch {
+        return address;
+    }
+}
 
 export type GetJettonBalanceByAddressQueryKey = readonly [
     'jetton-balance',
