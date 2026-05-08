@@ -64,12 +64,12 @@ Read the Toncoin balance of the currently selected wallet.
 
 Returns `null` when no wallet is connected (rather than throwing), so the
 UI layer can render an empty state without an error path. For an
-arbitrary address use `getBalanceByAddress`.
+arbitrary address use [`getBalanceByAddress`](#getbalancebyaddress).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `appKit`\* | `AppKit` | AppKit runtime instance. |
-| `options` | `GetBalanceOptions` | Optional network override. |
+| `appKit`\* | [`AppKit`](#appkit) | runtime instance. |
+| `options` | [`GetBalanceOptions`](#getbalanceoptions) | with optional network override. |
 | `options.network` | `Network \| undefined` | Network to read the balance from. Defaults to the selected wallet's network. |
 
 Returns: `Promise<GetBalanceReturnType>` — Balance in TON as a human-readable decimal string, or `null` if no wallet is selected.
@@ -89,12 +89,12 @@ Read the Toncoin balance of an arbitrary address.
 
 Use this when you need to look up a balance for any wallet, not just the
 one currently selected in AppKit. For the selected wallet's balance use
-`getBalance`.
+[`getBalance`](#getbalance).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `appKit`\* | `AppKit` | AppKit runtime instance. |
-| `options`\* | `GetBalanceByAddressOptions` | Address to query and optional network override. |
+| `appKit`\* | [`AppKit`](#appkit) | runtime instance. |
+| `options`\* | [`GetBalanceByAddressOptions`](#getbalancebyaddressoptions) | carrying the target address and optional network. |
 | `options.address`\* | `string \| Address` | Wallet address as a base64url string or an `Address` instance. |
 | `options.network` | `Network \| undefined` | Network to read the balance from. Defaults to the AppKit's selected network. |
 
@@ -116,12 +116,12 @@ Subscribe to Toncoin balance updates for the currently selected wallet.
 The subscription transparently follows the selected wallet — if the user
 connects, switches, or disconnects, the underlying watcher is rebound
 without any extra wiring on the caller side. For a fixed address use
-`watchBalanceByAddress`.
+[`watchBalanceByAddress`](#watchbalancebyaddress).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `appKit`\* | `AppKit` | AppKit runtime instance. |
-| `options`\* | `WatchBalanceOptions` | Update callback and optional network override. |
+| `appKit`\* | [`AppKit`](#appkit) | runtime instance. |
+| `options`\* | [`WatchBalanceOptions`](#watchbalanceoptions) | carrying the update callback and optional network override. |
 | `options.network` | `Network \| undefined` | Network to watch on. Defaults to the selected wallet's network. |
 | `options.onChange`\* | `(update: BalanceUpdate) => void` | Callback fired on every balance update from the streaming provider. |
 
@@ -145,12 +145,12 @@ Subscribe to Toncoin balance updates for an arbitrary address.
 
 Useful when you need to monitor a wallet that is not currently selected
 in AppKit (e.g. a watched address, a recipient before they connect).
-For the selected wallet's balance use `watchBalance`.
+For the selected wallet's balance use [`watchBalance`](#watchbalance).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `appKit`\* | `AppKit` | AppKit runtime instance. |
-| `options`\* | `WatchBalanceByAddressOptions` | Address, update callback and optional network override. |
+| `appKit`\* | [`AppKit`](#appkit) | runtime instance. |
+| `options`\* | [`WatchBalanceByAddressOptions`](#watchbalancebyaddressoptions) | carrying the address, update callback and optional network override. |
 | `options.address`\* | `string \| Address` | Wallet address as a base64url string or an `Address` instance. |
 | `options.network` | `Network \| undefined` | Network to watch on. Defaults to the AppKit's selected network. |
 | `options.onChange`\* | `(update: BalanceUpdate) => void` | Callback fired on every balance update from the streaming provider. |
@@ -180,8 +180,8 @@ Throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `appKit`\* | `AppKit` | AppKit runtime instance. |
-| `parameters`\* | `SignTextParameters` | Text to sign and optional network override. |
+| `appKit`\* | [`AppKit`](#appkit) | runtime instance. |
+| `parameters`\* | [`SignTextParameters`](#signtextparameters) | carrying the text to sign and optional network override. |
 | `parameters.text`\* | `string` | UTF-8 text the user is asked to sign. |
 | `parameters.network` | `Network \| undefined` | Network to issue the sign request against. Defaults to the AppKit's selected network. |
 
@@ -210,7 +210,7 @@ separately.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `appKit`\* | `AppKit` | AppKit runtime instance. |
+| `appKit`\* | [`AppKit`](#appkit) | runtime instance. |
 | `parameters`\* | `CreateTransferTonTransactionParameters` | Recipient, amount and optional payload/comment. |
 | `parameters.recipientAddress`\* | `string` | Recipient address |
 | `parameters.amount`\* | `string` | Amount in TONs |

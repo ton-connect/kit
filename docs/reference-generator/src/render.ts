@@ -23,7 +23,11 @@ const TODO_MARKER = '_TODO: describe_';
 
 const CATEGORY_ORDER = ['Class', 'Action', 'Hook', 'Component', 'Type'];
 
+let LINKABLE_NAMES: Set<string> = new Set();
+
 export function render(extracted: Extracted[]): string {
+    LINKABLE_NAMES = new Set(extracted.map((e) => e.name));
+
     const parts: string[] = [];
 
     const byCategory = groupByCategory(extracted);
@@ -112,7 +116,9 @@ function renderFunction(entry: ExtractedFunction, level: HeadingLevel): string {
         lines.push(renderParamsTable(entry.params));
         lines.push('');
     }
-    const returnType = formatTypeCell(entry.returnTypeText);
+    const returnType = entry.returnTypeOverride
+        ? formatTypeOverride(entry.returnTypeOverride)
+        : formatTypeCell(entry.returnTypeText);
     if (entry.returnDescription) {
         const desc = resolveLinks(entry.returnDescription).replace(/\r?\n/g, ' ');
         lines.push(`Returns: ${returnType} — ${desc}`);
@@ -231,7 +237,7 @@ function renderRowsTable(firstHeader: string, rows: ParamRow[]): string {
         headers,
         rows.map((r) => [
             `\`${r.name}\`${r.required ? '\\*' : ''}`,
-            formatTypeCell(r.typeText),
+            r.typeOverride ? formatTypeOverride(r.typeOverride) : formatTypeCell(r.typeText),
             resolveLinks(r.description ?? TODO_MARKER),
         ]),
     );
@@ -253,6 +259,18 @@ function escapeForCell(text: string): string {
 
 function formatTypeCell(typeText: string): string {
     return '`' + escapeForCell(typeText) + '`';
+}
+
+/**
+ * Renders a type-override that the author requested via `{@link X}` at the
+ * start of a `@param` or `@returns` description. If the target is documented
+ * in this reference, emits a markdown link; otherwise plain inline-code.
+ */
+function formatTypeOverride(name: string): string {
+    if (LINKABLE_NAMES.has(name)) {
+        return `[\`${name}\`](#${slugify(name)})`;
+    }
+    return '`' + name + '`';
 }
 
 function slugify(name: string): string {

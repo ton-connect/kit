@@ -34,10 +34,10 @@ export type GetBalanceByAddressReturnType = TokenAmount;
  *
  * Use this when you need to look up a balance for any wallet, not just the
  * one currently selected in AppKit. For the selected wallet's balance use
- * `getBalance`.
+ * {@link getBalance}.
  *
- * @param appKit - AppKit runtime instance.
- * @param options - Address to query and optional network override.
+ * @param appKit - {@link AppKit} runtime instance.
+ * @param options - {@link GetBalanceByAddressOptions} carrying the target address and optional network.
  * @returns Balance in TON as a human-readable decimal string.
  *
  * @sample docs/examples/src/appkit/actions/balances#GET_BALANCE_BY_ADDRESS

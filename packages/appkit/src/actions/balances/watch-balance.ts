@@ -35,10 +35,10 @@ export type WatchBalanceReturnType = () => void;
  * The subscription transparently follows the selected wallet — if the user
  * connects, switches, or disconnects, the underlying watcher is rebound
  * without any extra wiring on the caller side. For a fixed address use
- * `watchBalanceByAddress`.
+ * {@link watchBalanceByAddress}.
  *
- * @param appKit - AppKit runtime instance.
- * @param options - Update callback and optional network override.
+ * @param appKit - {@link AppKit} runtime instance.
+ * @param options - {@link WatchBalanceOptions} carrying the update callback and optional network override.
  * @returns Unsubscribe function — call it to stop receiving updates.
  *
  * @sample docs/examples/src/appkit/actions/balances#WATCH_BALANCE

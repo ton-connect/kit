@@ -38,6 +38,8 @@ const CATEGORY_TO_KIND: Record<ValidCategory, SymbolKind> = {
 export interface ParamRow {
     name: string;
     typeText: string;
+    /** When set, the renderer uses this name (link if documented) instead of `typeText`. */
+    typeOverride: string | null;
     required: boolean;
     description: string | null;
 }
@@ -51,6 +53,7 @@ export interface ExtractedFunction {
     summary: string | null;
     params: ParamRow[];
     returnTypeText: string;
+    returnTypeOverride: string | null;
     returnDescription: string | null;
     examples: string[];
     samples: string[];
@@ -201,7 +204,7 @@ function extractFunctionLike(
     const jsdoc = pickJsDoc(decl.getJsDocs());
     const summary = readSummary(jsdoc);
     const paramTags = readParamTags(jsdoc);
-    const returnDescription = readReturnDescription(jsdoc);
+    const returnInfo = readReturnInfo(jsdoc);
     const examples = readExamples(jsdoc);
     const samples = readSamples(jsdoc);
     const expandNames = readExpandNames(jsdoc);
@@ -216,7 +219,8 @@ function extractFunctionLike(
         summary,
         params,
         returnTypeText,
-        returnDescription,
+        returnTypeOverride: returnInfo.typeOverride,
+        returnDescription: returnInfo.description,
         examples,
         samples,
     };
@@ -232,7 +236,7 @@ function extractVariableFunction(
     const jsdoc = pickJsDoc(stmt?.getJsDocs() ?? []);
     const summary = readSummary(jsdoc);
     const paramTags = readParamTags(jsdoc);
-    const returnDescription = readReturnDescription(jsdoc);
+    const returnInfo = readReturnInfo(jsdoc);
     const examples = readExamples(jsdoc);
     const samples = readSamples(jsdoc);
     const expandNames = readExpandNames(jsdoc);
@@ -245,7 +249,8 @@ function extractVariableFunction(
             summary,
             params: [],
             returnTypeText: 'unknown',
-            returnDescription,
+            returnTypeOverride: returnInfo.typeOverride,
+            returnDescription: returnInfo.description,
             examples,
             samples,
         };
@@ -261,7 +266,8 @@ function extractVariableFunction(
         summary,
         params,
         returnTypeText,
-        returnDescription,
+        returnTypeOverride: returnInfo.typeOverride,
+        returnDescription: returnInfo.description,
         examples,
         samples,
     };
@@ -380,7 +386,7 @@ function extractClass(
 function expandParameters(
     params: ParameterDeclaration[],
     contextNode: Node,
-    paramTags: Map<string, string>,
+    paramTags: Map<string, ParamTagInfo>,
     expandNames: Set<string>,
 ): ParamRow[] {
     const rows: ParamRow[] = [];
@@ -389,6 +395,7 @@ function expandParameters(
         const paramName = param.getName();
         const paramType = param.getType();
         const required = !param.hasQuestionToken() && !param.hasInitializer() && !param.isRestParameter();
+        const tagInfo = paramTags.get(paramName);
 
         const shouldFlatten = expandNames.has(paramName) && isFlattenableObjectType(paramType);
 
@@ -396,16 +403,19 @@ function expandParameters(
             rows.push({
                 name: paramName,
                 typeText: formatType(paramType, contextNode),
+                typeOverride: tagInfo?.typeOverride ?? null,
                 required,
-                description: paramTags.get(paramName) ?? null,
+                description: tagInfo?.description ?? null,
             });
             const declaredFields = readPropsFromType(paramType, contextNode);
             for (const field of declaredFields) {
                 const tagKey = `${paramName}.${field.name}`;
+                const fieldTagInfo = paramTags.get(tagKey);
                 rows.push({
                     ...field,
                     name: `${paramName}.${field.name}`,
-                    description: field.description ?? paramTags.get(tagKey) ?? null,
+                    typeOverride: fieldTagInfo?.typeOverride ?? field.typeOverride,
+                    description: field.description ?? fieldTagInfo?.description ?? null,
                 });
             }
             continue;
@@ -414,8 +424,9 @@ function expandParameters(
         rows.push({
             name: paramName,
             typeText: formatType(paramType, contextNode),
+            typeOverride: tagInfo?.typeOverride ?? null,
             required,
-            description: paramTags.get(paramName) ?? null,
+            description: tagInfo?.description ?? null,
         });
     }
 
@@ -447,6 +458,7 @@ function readPropsFromType(type: Type, contextNode: Node): ParamRow[] {
         rows.push({
             name: prop.getName(),
             typeText: formatType(propType, contextNode),
+            typeOverride: null,
             required: !optional,
             description,
         });
@@ -476,8 +488,13 @@ function readSummary(jsdoc: JSDoc | null): string | null {
     return desc || null;
 }
 
-function readParamTags(jsdoc: JSDoc | null): Map<string, string> {
-    const map = new Map<string, string>();
+interface ParamTagInfo {
+    description: string | null;
+    typeOverride: string | null;
+}
+
+function readParamTags(jsdoc: JSDoc | null): Map<string, ParamTagInfo> {
+    const map = new Map<string, ParamTagInfo>();
     if (!jsdoc) return map;
     for (const tag of jsdoc.getTags()) {
         if (tag.getTagName() !== 'param') continue;
@@ -485,10 +502,26 @@ function readParamTags(jsdoc: JSDoc | null): Map<string, string> {
         const nameNode = paramTag.getNameNode();
         if (!nameNode) continue;
         const name = nameNode.getText();
-        const comment = sanitizeJsDocText(stripTsDocDash(paramTag.getCommentText() ?? ''));
-        if (comment) map.set(name, comment);
+        const raw = sanitizeJsDocText(stripTsDocDash(paramTag.getCommentText() ?? ''));
+        map.set(name, splitLeadingLink(raw));
     }
     return map;
+}
+
+/**
+ * If the text starts with a `{@link X}` marker (planted by sanitizeJsDocText),
+ * extracts X as a type-override and returns the rest as the description.
+ */
+function splitLeadingLink(text: string): ParamTagInfo {
+    if (text.startsWith(LINK_MARKER_OPEN)) {
+        const end = text.indexOf(LINK_MARKER_CLOSE, LINK_MARKER_OPEN.length);
+        if (end !== -1) {
+            const target = text.slice(LINK_MARKER_OPEN.length, end).trim();
+            const remaining = text.slice(end + LINK_MARKER_CLOSE.length).trim();
+            return { typeOverride: target, description: remaining || null };
+        }
+    }
+    return { typeOverride: null, description: text || null };
 }
 
 /** TSDoc writes `@param name - description`; strip the leading dash. */
@@ -533,15 +566,16 @@ function readSamples(jsdoc: JSDoc | null): string[] {
     return out;
 }
 
-function readReturnDescription(jsdoc: JSDoc | null): string | null {
-    if (!jsdoc) return null;
+function readReturnInfo(jsdoc: JSDoc | null): ParamTagInfo {
+    const empty: ParamTagInfo = { description: null, typeOverride: null };
+    if (!jsdoc) return empty;
     for (const tag of jsdoc.getTags()) {
         const tagName = tag.getTagName();
         if (tagName !== 'returns' && tagName !== 'return') continue;
-        const comment = sanitizeJsDocText(stripTsDocDash(tag.getCommentText() ?? ''));
-        return comment || null;
+        const raw = sanitizeJsDocText(stripTsDocDash(tag.getCommentText() ?? ''));
+        return splitLeadingLink(raw);
     }
-    return null;
+    return empty;
 }
 
 function readPropertyJsDoc(node: Node): string | null {

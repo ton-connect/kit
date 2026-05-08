@@ -33,8 +33,8 @@ export type SignTextReturnType = SignDataResponse;
  *
  * Throws `Error('Wallet not connected')` if no wallet is currently selected.
  *
- * @param appKit - AppKit runtime instance.
- * @param parameters - Text to sign and optional network override.
+ * @param appKit - {@link AppKit} runtime instance.
+ * @param parameters - {@link SignTextParameters} carrying the text to sign and optional network override.
  * @returns Signature and signed payload, as returned by the wallet.
  *
  * @sample docs/examples/src/appkit/actions/signing#SIGN_TEXT

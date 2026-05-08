@@ -35,10 +35,10 @@ export type WatchBalanceByAddressReturnType = () => void;
  *
  * Useful when you need to monitor a wallet that is not currently selected
  * in AppKit (e.g. a watched address, a recipient before they connect).
- * For the selected wallet's balance use `watchBalance`.
+ * For the selected wallet's balance use {@link watchBalance}.
  *
- * @param appKit - AppKit runtime instance.
- * @param options - Address, update callback and optional network override.
+ * @param appKit - {@link AppKit} runtime instance.
+ * @param options - {@link WatchBalanceByAddressOptions} carrying the address, update callback and optional network override.
  * @returns Unsubscribe function — call it to stop receiving updates.
  *
  * @sample docs/examples/src/appkit/actions/balances#WATCH_BALANCE_BY_ADDRESS

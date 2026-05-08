@@ -27,7 +27,7 @@ export type TransferTonErrorType = Error;
  * sending, use `createTransferTonTransaction` and `sendTransaction`
  * separately.
  *
- * @param appKit - AppKit runtime instance.
+ * @param appKit - {@link AppKit} runtime instance.
  * @param parameters - Recipient, amount and optional payload/comment.
  * @returns Wallet response carrying the BoC of the sent transaction.
  *

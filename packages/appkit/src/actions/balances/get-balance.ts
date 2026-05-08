@@ -32,10 +32,10 @@ export type GetBalanceReturnType = TokenAmount | null;
  *
  * Returns `null` when no wallet is connected (rather than throwing), so the
  * UI layer can render an empty state without an error path. For an
- * arbitrary address use `getBalanceByAddress`.
+ * arbitrary address use {@link getBalanceByAddress}.
  *
- * @param appKit - AppKit runtime instance.
- * @param options - Optional network override.
+ * @param appKit - {@link AppKit} runtime instance.
+ * @param options - {@link GetBalanceOptions} with optional network override.
  * @returns Balance in TON as a human-readable decimal string, or `null` if no wallet is selected.
  *
  * @sample docs/examples/src/appkit/actions/balances#GET_BALANCE
