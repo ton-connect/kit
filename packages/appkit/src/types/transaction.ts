@@ -9,8 +9,25 @@
 import type { ExtraCurrencies, TokenAmount } from './primitives';
 import type { Network } from './network';
 
-export type { TransactionStatus, TransactionStatusResponse, SendTransactionResponse } from '@ton/walletkit';
+export type { TransactionStatus, TransactionStatusResponse } from '@ton/walletkit';
 
+/**
+ * Wallet response carrying the BoC (bag of cells) of the external message that was signed and broadcast — used to track or hash the resulting transaction.
+ *
+ * @extract
+ * @public
+ * @category Type
+ * @section Transactions
+ */
+export type { SendTransactionResponse } from '@ton/walletkit';
+
+/**
+ * Transaction payload passed to {@link WalletInterface}`.sendTransaction` — one or more messages, optional network override and `validUntil` deadline.
+ *
+ * @public
+ * @category Type
+ * @section Transactions
+ */
 export interface TransactionRequest {
     /**
      * List of messages to include in the transaction

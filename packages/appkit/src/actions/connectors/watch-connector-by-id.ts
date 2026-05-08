@@ -11,15 +11,42 @@ import { CONNECTOR_EVENTS } from '../../core/app-kit';
 import type { Connector } from '../../types/connector';
 import { getConnectorById } from './get-connector-by-id';
 
+/**
+ * Parameters accepted by {@link watchConnectorById}.
+ *
+ * @public
+ * @category Type
+ * @section Connectors and wallets
+ */
 export interface WatchConnectorByIdParameters {
+    /** Id of the connector to watch. */
     id: string;
+    /** Callback fired after each wallet-connection event with the current connector (or `undefined` when none is registered under this id). */
     onChange: (connector: Connector | undefined) => void;
 }
 
+/**
+ * Return type of {@link watchConnectorById} — call to stop receiving updates.
+ *
+ * @public
+ * @category Type
+ * @section Connectors and wallets
+ */
 export type WatchConnectorByIdReturnType = () => void;
 
 /**
- * Watch connector by id
+ * Subscribe to a connector by id; the callback fires after every wallet-connection event so the caller can re-read connector state (e.g., {@link Connector}`.getConnectedWallets()`).
+ *
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param parameters - {@link WatchConnectorByIdParameters} Connector id and update callback.
+ * @returns Unsubscribe function — call it to stop receiving updates.
+ *
+ * @sample docs/examples/src/appkit/actions/connectors#WATCH_CONNECTOR_BY_ID
+ * @expand parameters
+ *
+ * @public
+ * @category Action
+ * @section Connectors and wallets
  */
 export const watchConnectorById = (
     appKit: AppKit,

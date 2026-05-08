@@ -6,7 +6,17 @@
  *
  */
 
-export type { Base64String, Hex, ExtraCurrencies } from '@ton/walletkit';
+export type { Base64String, ExtraCurrencies } from '@ton/walletkit';
+
+/**
+ * `0x`-prefixed hexadecimal string used for public keys and other hashes.
+ *
+ * @extract
+ * @public
+ * @category Type
+ * @section Primitives
+ */
+export type { Hex } from '@ton/walletkit';
 
 /**
  * Decimal string carrying a token amount; preserves precision and avoids floating-point rounding (e.g., `"1.5"` TON, or raw nano units depending on the API).

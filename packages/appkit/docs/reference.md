@@ -18,7 +18,7 @@ Constructor: `new AppKit(config)`
 | --- | --- | --- |
 | `config`\* | [`AppKitConfig`](#appkitconfig) | Networks, connectors, providers and runtime flags. |
 | `config.networks` | [`NetworkAdapters`](#networkadapters) | Map of chain id to api-client config; if omitted, AppKit defaults to mainnet only. |
-| `config.connectors` | `ConnectorInput[]` | Wallet connectors registered at startup. |
+| `config.connectors` | [`ConnectorInput`](#connectorinput)`[]` | Wallet connectors registered at startup. |
 | `config.defaultNetwork` | [`Network`](#network) | Default network connectors (e.g. TonConnect) enforce on new connections; `undefined` to allow any. |
 | `config.providers` | `ProviderInput[]` | Defi/onramp providers registered at startup. |
 | `config.ssr` | `boolean` | Set to `true` to enable server-side rendering support. |
@@ -73,6 +73,19 @@ Constructor: `new DefiError(message, code, details)`
 | `message`\* | `string` | Human-readable description, forwarded to `Error`. |
 | `code`\* | `string` | Stable error code from the `DefiError.*` constants. |
 | `details` | `unknown` | Optional provider-specific context for diagnostics. |
+
+### Networks
+
+#### AppKitNetworkManager
+
+Network manager exposed as [`AppKit`](#appkit)`.networkManager` — extends walletkit's `KitNetworkManager` with a default-network setter and AppKit event emission.
+
+Constructor: `new AppKitNetworkManager(options, emitter)`
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `options`\* | `ConstructorParameters<typeof KitNetworkManager>[0]` | _TODO: describe_ |
+| `emitter`\* | [`AppKitEmitter`](#appkitemitter) | _TODO: describe_ |
 
 ### Staking
 
@@ -263,6 +276,177 @@ const unsubscribe = watchBalanceByAddress(appKit, {
 // Later: unsubscribe();
 ```
 
+### Connectors and wallets
+
+#### addConnector
+
+Register a wallet connector at runtime — equivalent to passing it via [`AppKitConfig`](#appkitconfig)`.connectors` at construction, but available after AppKit is up.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `connectorFn`\* | [`AddConnectorParameters`](#addconnectorparameters) | Connector instance or factory to register. |
+
+Returns: [`AddConnectorReturnType`](#addconnectorreturntype) — Function that unregisters the connector when called.
+
+**Example**
+
+```ts
+const stopWatching = addConnector(
+    appKit,
+    createTonConnectConnector({
+        tonConnectOptions: {
+            manifestUrl: 'https://tonconnect-sdk-demo-dapp.vercel.app/tonconnect-manifest.json',
+        },
+    }),
+);
+
+// Later: stopWatching();
+```
+
+#### connect
+
+Trigger the connection flow on a registered connector by id; throws when no connector with that id exists.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`ConnectParameters`](#connectparameters) | Connector to connect through. |
+| `parameters.connectorId`\* | `string` | Id of the registered connector to drive the connection through (e.g., `'tonconnect'`). |
+
+Returns: `Promise<`[`ConnectReturnType`](#connectreturntype)`>` — Resolves once the connector finishes its handshake — the wallet is then available via [`getSelectedWallet`](#getselectedwallet).
+
+**Example**
+
+```ts
+await connect(appKit, {
+    connectorId: 'tonconnect',
+});
+```
+
+#### createConnector
+
+Identity helper for typing a [`ConnectorFactory`](#connectorfactory) inline — returns the factory unchanged so authors get parameter inference without spelling the type out.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `factory`\* | [`ConnectorFactory`](#connectorfactory) | Factory to wrap. |
+
+Returns: [`ConnectorFactory`](#connectorfactory) — The same factory, typed as [`ConnectorFactory`](#connectorfactory).
+
+#### disconnect
+
+Disconnect the wallet currently connected through a registered connector; throws when no connector with that id exists.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`DisconnectParameters`](#disconnectparameters) | Connector to disconnect. |
+| `parameters.connectorId`\* | `string` | Id of the registered connector whose wallet should be disconnected. |
+
+Returns: `Promise<`[`DisconnectReturnType`](#disconnectreturntype)`>` — Resolves once the connector tears down its session.
+
+**Example**
+
+```ts
+await disconnect(appKit, {
+    connectorId: 'tonconnect',
+});
+```
+
+#### getConnectorById
+
+Look up a registered connector by its id.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`GetConnectorByIdOptions`](#getconnectorbyidoptions) | Id of the connector to find. |
+| `options.id`\* | `string` | Id of the connector to look up. |
+
+Returns: [`GetConnectorByIdReturnType`](#getconnectorbyidreturntype) — The matching [`Connector`](#connector), or `undefined` if none with that id is registered.
+
+**Example**
+
+```ts
+const connector = getConnectorById(appKit, {
+    id: 'tonconnect',
+});
+
+if (connector) {
+    console.log('Found connector:', connector.id);
+}
+```
+
+#### getConnectors
+
+List every connector registered on this AppKit instance — both those passed via [`AppKitConfig`](#appkitconfig)`.connectors` and those added later through [`addConnector`](#addconnector).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+
+Returns: [`GetConnectorsReturnType`](#getconnectorsreturntype) — Read-only array of registered [`Connector`](#connector)s.
+
+**Example**
+
+```ts
+const connectors = getConnectors(appKit);
+connectors.forEach((connector) => {
+    console.log('Connector:', connector.id);
+});
+```
+
+#### watchConnectorById
+
+Subscribe to a connector by id; the callback fires after every wallet-connection event so the caller can re-read connector state (e.g., [`Connector`](#connector)`.getConnectedWallets()`).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`WatchConnectorByIdParameters`](#watchconnectorbyidparameters) | Connector id and update callback. |
+| `parameters.id`\* | `string` | Id of the connector to watch. |
+| `parameters.onChange`\* | `(connector: `[`Connector`](#connector)` \| undefined) => void` | Callback fired after each wallet-connection event with the current connector (or `undefined` when none is registered under this id). |
+
+Returns: [`WatchConnectorByIdReturnType`](#watchconnectorbyidreturntype) — Unsubscribe function — call it to stop receiving updates.
+
+**Example**
+
+```ts
+const unsubscribe = watchConnectorById(appKit, {
+    id: 'tonconnect',
+    onChange: (connector) => {
+        console.log('Connector updated:', connector);
+    },
+});
+
+// Later: unsubscribe();
+```
+
+#### watchConnectors
+
+Subscribe to the list of registered connectors; the callback fires after every wallet-connection event so the caller can re-read state derived from connectors (e.g., connected wallets).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`WatchConnectorsParameters`](#watchconnectorsparameters) | Update callback. |
+| `parameters.onChange`\* | `(connectors: readonly `[`Connector`](#connector)`[]) => void` | Callback fired after each wallet-connection event with the current list of registered connectors. |
+
+Returns: [`WatchConnectorsReturnType`](#watchconnectorsreturntype) — Unsubscribe function — call it to stop receiving updates.
+
+**Example**
+
+```ts
+const unsubscribe = watchConnectors(appKit, {
+    onChange: (connectors) => {
+        console.log('Connectors updated:', connectors);
+    },
+});
+
+// Later: unsubscribe();
+```
+
 ### Signing
 
 #### signText
@@ -412,19 +596,173 @@ type WatchBalanceReturnType = () => void;
 
 ### Connectors and wallets
 
+#### AddConnectorParameters
+
+Connector instance or factory accepted by [`addConnector`](#addconnector) — same shape used in [`AppKitConfig`](#appkitconfig)`.connectors`.
+
+```ts
+type AddConnectorParameters = ConnectorInput;
+```
+
+#### AddConnectorReturnType
+
+Return type of [`addConnector`](#addconnector) — call to remove the connector from AppKit.
+
+```ts
+type AddConnectorReturnType = () => void;
+```
+
+#### ConnectParameters
+
+Parameters accepted by [`connect`](#connect).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `connectorId`\* | `string` | Id of the registered connector to drive the connection through (e.g., `'tonconnect'`). |
+
+#### ConnectReturnType
+
+Return type of [`connect`](#connect).
+
+```ts
+type ConnectReturnType = void;
+```
+
 #### Connector
 
-Wallet connector contract — the protocol-specific bridge (TonConnect, embedded wallet, …) AppKit drives once you register it via `AppKitConfig.connectors`.
+Wallet connector contract — the protocol-specific bridge (TonConnect, embedded wallet, …) AppKit drives once you register it via [`AppKitConfig`](#appkitconfig)`.connectors`.
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `id`\* | `string` | Stable connector identifier, unique within an AppKit instance. |
 | `type`\* | `string` | Protocol type (e.g. `'tonconnect'`). Multiple connectors can share the same type. |
-| `metadata`\* | `ConnectorMetadata` | Display metadata (name, icon) shown in connect UIs. |
+| `metadata`\* | [`ConnectorMetadata`](#connectormetadata) | Display metadata (name, icon) shown in connect UIs. |
 | `destroy`\* | `() => void` | Release any resources held by the connector. Call on app teardown. |
 | `connectWallet`\* | `(network?: `[`Network`](#network)`) => Promise<void>` | Initiate a wallet connection flow on the given network. |
 | `disconnectWallet`\* | `() => Promise<void>` | Disconnect the currently connected wallet, if any. |
-| `getConnectedWallets`\* | `() => WalletInterface[]` | Wallets currently connected through this connector. |
+| `getConnectedWallets`\* | `() => `[`WalletInterface`](#walletinterface)`[]` | Wallets currently connected through this connector. |
+
+#### ConnectorFactory
+
+Factory that builds a [`Connector`](#connector) from [`ConnectorFactoryContext`](#connectorfactorycontext); AppKit calls it at registration time.
+
+```ts
+type ConnectorFactory = (ctx: ConnectorFactoryContext) => Connector;
+```
+
+#### ConnectorFactoryContext
+
+Context that AppKit injects into a [`ConnectorFactory`](#connectorfactory) when building the connector at registration time.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `networkManager`\* | [`AppKitNetworkManager`](#appkitnetworkmanager) | Network manager the connector should use for client lookups and default-network reads. |
+| `eventEmitter`\* | [`AppKitEmitter`](#appkitemitter) | Event emitter the connector should publish wallet/connection events to. |
+| `ssr` | `boolean` | `true` when the connector is constructed during server-side rendering — connectors may skip browser-only setup. |
+
+#### ConnectorInput
+
+Either a ready-made [`Connector`](#connector) or a [`ConnectorFactory`](#connectorfactory) that produces one — the value accepted by [`addConnector`](#addconnector) and [`AppKitConfig`](#appkitconfig)`.connectors`.
+
+```ts
+type ConnectorInput = Connector | ConnectorFactory;
+```
+
+#### ConnectorMetadata
+
+Display metadata for a [`Connector`](#connector), surfaced in connect UIs to help users pick the right wallet.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `name`\* | `string` | Human-readable connector name (e.g., `'TonConnect'`). |
+| `iconUrl` | `string` | Optional URL of an icon shown next to the name. |
+
+#### DisconnectParameters
+
+Parameters accepted by [`disconnect`](#disconnect).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `connectorId`\* | `string` | Id of the registered connector whose wallet should be disconnected. |
+
+#### DisconnectReturnType
+
+Return type of [`disconnect`](#disconnect).
+
+```ts
+type DisconnectReturnType = void;
+```
+
+#### GetConnectorByIdOptions
+
+Options for [`getConnectorById`](#getconnectorbyid).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id`\* | `string` | Id of the connector to look up. |
+
+#### GetConnectorByIdReturnType
+
+Return type of [`getConnectorById`](#getconnectorbyid) — `undefined` when no connector with that id is registered.
+
+```ts
+type GetConnectorByIdReturnType = Connector | undefined;
+```
+
+#### GetConnectorsReturnType
+
+Return type of [`getConnectors`](#getconnectors) — read-only snapshot of registered connectors.
+
+```ts
+type GetConnectorsReturnType = readonly Connector[];
+```
+
+#### WalletInterface
+
+Wallet contract surfaced by every [`Connector`](#connector) — covers identity (address, public key, network) and signing operations; reads (balance, jettons, NFTs) go through AppKit actions instead.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `connectorId`\* | `string` | Id of the [`Connector`](#connector) that produced this wallet. |
+| `getAddress`\* | `() => `[`UserFriendlyAddress`](#userfriendlyaddress) | Wallet address as a user-friendly base64url string. |
+| `getPublicKey`\* | `() => `[`Hex`](#hex) | Wallet public key as a `0x`-prefixed hex string. |
+| `getNetwork`\* | `() => `[`Network`](#network) | Network the wallet is currently connected to. |
+| `getWalletId`\* | `() => string` | Stable identifier combining address and network — unique across AppKit's connected wallets. |
+| `sendTransaction`\* | `(request: `[`TransactionRequest`](#transactionrequest)`) => Promise<`[`SendTransactionResponse`](#sendtransactionresponse)`>` | Send a transaction — the wallet signs and broadcasts it. |
+| `signData`\* | `(payload: `[`SignDataRequest`](#signdatarequest)`) => Promise<`[`SignDataResponse`](#signdataresponse)`>` | Sign arbitrary data via the TonConnect signData flow. |
+
+#### WatchConnectorByIdParameters
+
+Parameters accepted by [`watchConnectorById`](#watchconnectorbyid).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id`\* | `string` | Id of the connector to watch. |
+| `onChange`\* | `(connector: `[`Connector`](#connector)` \| undefined) => void` | Callback fired after each wallet-connection event with the current connector (or `undefined` when none is registered under this id). |
+
+#### WatchConnectorByIdReturnType
+
+Return type of [`watchConnectorById`](#watchconnectorbyid) — call to stop receiving updates.
+
+```ts
+type WatchConnectorByIdReturnType = () => void;
+```
+
+#### WatchConnectorsParameters
+
+Parameters accepted by [`watchConnectors`](#watchconnectors).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `onChange`\* | `(connectors: readonly `[`Connector`](#connector)`[]) => void` | Callback fired after each wallet-connection event with the current list of registered connectors. |
+
+#### WatchConnectorsReturnType
+
+Return type of [`watchConnectors`](#watchconnectors) — call to stop receiving updates.
+
+```ts
+type WatchConnectorsReturnType = () => void;
+```
 
 ### Core
 
@@ -435,7 +773,7 @@ Constructor options for [`AppKit`](#appkit) — networks, connectors, providers 
 | Field | Type | Description |
 | --- | --- | --- |
 | `networks` | [`NetworkAdapters`](#networkadapters) | Map of chain id to api-client config; if omitted, AppKit defaults to mainnet only. |
-| `connectors` | `ConnectorInput[]` | Wallet connectors registered at startup. |
+| `connectors` | [`ConnectorInput`](#connectorinput)`[]` | Wallet connectors registered at startup. |
 | `defaultNetwork` | [`Network`](#network) | Default network connectors (e.g. TonConnect) enforce on new connections; `undefined` to allow any. |
 | `providers` | `ProviderInput[]` | Defi/onramp providers registered at startup. |
 | `ssr` | `boolean` | Set to `true` to enable server-side rendering support. |
@@ -520,7 +858,7 @@ Payload of `connector:connected` events — newly connected wallets and the orig
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `wallets`\* | `WalletInterface[]` | _TODO: describe_ |
+| `wallets`\* | [`WalletInterface`](#walletinterface)`[]` | _TODO: describe_ |
 | `connectorId`\* | `string` | _TODO: describe_ |
 
 #### WalletDisconnectedPayload
@@ -597,6 +935,16 @@ Network configuration for a specific chain
 
 ### Primitives
 
+#### Hex
+
+`0x`-prefixed hexadecimal string used for public keys and other hashes.
+
+```ts
+type Hex = `0x${string}` & {
+    readonly [hashBrand]: never;
+};
+```
+
 #### TokenAmount
 
 Decimal string carrying a token amount; preserves precision and avoids floating-point rounding (e.g., `"1.5"` TON, or raw nano units depending on the API).
@@ -614,6 +962,28 @@ type UserFriendlyAddress = string;
 ```
 
 ### Signing
+
+#### SignDataRequest
+
+Sign-data payload sent to [`WalletInterface`](#walletinterface)`.signData` — discriminated by `data.type` (`'text'`, `'binary'`, or `'cell'`).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `network` | [`Network`](#network) | Network to issue the sign request against; defaults to the wallet's current network. |
+| `from` | `string` | Sender address in raw format; usually omitted, the wallet fills it in. |
+| `data`\* | `SignData` | Payload the user is asked to sign. |
+
+#### SignDataResponse
+
+Wallet response to a [`SignDataRequest`](#signdatarequest) — carries the signature plus the canonicalized address, timestamp, and domain the wallet committed to.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `signature`\* | `string` | Base64-encoded signature. |
+| `address`\* | `string` | Wallet address that signed, in user-friendly format. |
+| `timestamp`\* | `number` | Unix timestamp the wallet stamped onto the signature. |
+| `domain`\* | `string` | dApp domain the wallet bound the signature to. |
+| `payload`\* | [`SignDataRequest`](#signdatarequest) | Original payload that was signed, echoed back for binding. |
 
 #### SignTextParameters
 
@@ -643,7 +1013,7 @@ Staking API interface exposed by StakingManager
 | Field | Type | Description |
 | --- | --- | --- |
 | `getQuote`\* | `(params: `[`StakingQuoteParams`](#stakingquoteparams)`, providerId?: string) => Promise<`[`StakingQuote`](#stakingquote)`>` | Get a quote for staking or unstaking |
-| `buildStakeTransaction`\* | `(params: `[`StakeParams`](#stakeparams)`, providerId?: string) => Promise<TransactionRequest>` | Build a transaction for staking |
+| `buildStakeTransaction`\* | `(params: `[`StakeParams`](#stakeparams)`, providerId?: string) => Promise<`[`TransactionRequest`](#transactionrequest)`>` | Build a transaction for staking |
 | `getStakedBalance`\* | `(userAddress: `[`UserFriendlyAddress`](#userfriendlyaddress)`, network?: `[`Network`](#network)`, providerId?: string) => Promise<`[`StakingBalance`](#stakingbalance)`>` | Get user's staked balance |
 | `getStakingProviderInfo`\* | `(network?: `[`Network`](#network)`, providerId?: string) => Promise<`[`StakingProviderInfo`](#stakingproviderinfo)`>` | Get staking provider information |
 | `getStakingProviderMetadata`\* | `(network?: `[`Network`](#network)`, providerId?: string) => `[`StakingProviderMetadata`](#stakingprovidermetadata) | Get static metadata for a staking provider |
@@ -756,7 +1126,7 @@ Swap API interface exposed by SwapManager
 | Field | Type | Description |
 | --- | --- | --- |
 | `getQuote`\* | `(params: `[`SwapQuoteParams`](#swapquoteparams)`, providerId?: string) => Promise<`[`SwapQuote`](#swapquote)`>` | Get a quote for swapping tokens |
-| `buildSwapTransaction`\* | `(params: `[`SwapParams`](#swapparams)`) => Promise<TransactionRequest>` | Build a transaction for a swap. Provider is taken from `params.quote.providerId`, or the manager default. |
+| `buildSwapTransaction`\* | `(params: `[`SwapParams`](#swapparams)`) => Promise<`[`TransactionRequest`](#transactionrequest)`>` | Build a transaction for a swap. Provider is taken from `params.quote.providerId`, or the manager default. |
 | `createFactoryContext`\* | `() => ProviderFactoryContext` | _TODO: describe_ |
 | `registerProvider`\* | `(provider: ProviderInput<SwapProviderInterface<unknown, unknown>>) => void` | Register a new provider. If a provider with the same id is already registered, it is replaced. |
 | `removeProvider`\* | `(provider: SwapProviderInterface<unknown, unknown>) => void` | Remove a previously registered provider. No-op if the provider was not registered. |
@@ -825,6 +1195,29 @@ Token type for swap
 | `symbol` | `string` | _TODO: describe_ |
 | `image` | `string` | _TODO: describe_ |
 | `chainId` | `string` | _TODO: describe_ |
+
+### Transactions
+
+#### SendTransactionResponse
+
+Wallet response carrying the BoC (bag of cells) of the external message that was signed and broadcast — used to track or hash the resulting transaction.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `boc`\* | `Base64String` | BOC of the sent transaction |
+| `normalizedBoc`\* | `Base64String` | Normalized BOC of the external-in message |
+| `normalizedHash`\* | [`Hex`](#hex) | Hash of the normalized external-in message |
+
+#### TransactionRequest
+
+Transaction payload passed to [`WalletInterface`](#walletinterface)`.sendTransaction` — one or more messages, optional network override and `validUntil` deadline.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `messages`\* | `TransactionRequestMessage[]` | List of messages to include in the transaction |
+| `network` | [`Network`](#network) | Network to execute the transaction on |
+| `validUntil` | `number` | Unix timestamp after which the transaction becomes invalid |
+| `fromAddress` | `string` | Sender wallet address in received format(raw, user friendly) |
 
 ## Constants
 

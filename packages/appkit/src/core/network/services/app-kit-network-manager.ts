@@ -12,6 +12,13 @@ import { NETWORKS_EVENTS } from '../../app-kit/constants/events';
 import type { AppKitEmitter } from '../../app-kit/types/events';
 import { KitNetworkManager } from '../walletkit';
 
+/**
+ * Network manager exposed as {@link AppKit}`.networkManager` — extends walletkit's `KitNetworkManager` with a default-network setter and AppKit event emission.
+ *
+ * @public
+ * @category Class
+ * @section Networks
+ */
 export class AppKitNetworkManager extends KitNetworkManager {
     private emitter: AppKitEmitter;
     private defaultNetwork: Network | undefined = undefined;

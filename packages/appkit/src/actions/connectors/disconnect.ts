@@ -8,14 +8,40 @@
 
 import type { AppKit } from '../../core/app-kit';
 
+/**
+ * Parameters accepted by {@link disconnect}.
+ *
+ * @public
+ * @category Type
+ * @section Connectors and wallets
+ */
 export type DisconnectParameters = {
+    /** Id of the registered connector whose wallet should be disconnected. */
     connectorId: string;
 };
 
+/**
+ * Return type of {@link disconnect}.
+ *
+ * @public
+ * @category Type
+ * @section Connectors and wallets
+ */
 export type DisconnectReturnType = void;
 
 /**
- * Disconnect wallet using specific connector
+ * Disconnect the wallet currently connected through a registered connector; throws when no connector with that id exists.
+ *
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param parameters - {@link DisconnectParameters} Connector to disconnect.
+ * @returns Resolves once the connector tears down its session.
+ *
+ * @sample docs/examples/src/appkit/actions/connectors#DISCONNECT
+ * @expand parameters
+ *
+ * @public
+ * @category Action
+ * @section Connectors and wallets
  */
 export const disconnect = async (appKit: AppKit, parameters: DisconnectParameters): Promise<DisconnectReturnType> => {
     const { connectorId } = parameters;

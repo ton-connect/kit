@@ -9,14 +9,40 @@
 import type { AppKit } from '../../core/app-kit';
 import { getDefaultNetwork } from '../network/get-default-network';
 
+/**
+ * Parameters accepted by {@link connect}.
+ *
+ * @public
+ * @category Type
+ * @section Connectors and wallets
+ */
 export type ConnectParameters = {
+    /** Id of the registered connector to drive the connection through (e.g., `'tonconnect'`). */
     connectorId: string;
 };
 
+/**
+ * Return type of {@link connect}.
+ *
+ * @public
+ * @category Type
+ * @section Connectors and wallets
+ */
 export type ConnectReturnType = void;
 
 /**
- * Connect wallet using specific connector
+ * Trigger the connection flow on a registered connector by id; throws when no connector with that id exists.
+ *
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param parameters - {@link ConnectParameters} Connector to connect through.
+ * @returns Resolves once the connector finishes its handshake — the wallet is then available via {@link getSelectedWallet}.
+ *
+ * @sample docs/examples/src/appkit/actions/connectors#CONNECT
+ * @expand parameters
+ *
+ * @public
+ * @category Action
+ * @section Connectors and wallets
  */
 export const connect = async (appKit: AppKit, parameters: ConnectParameters): Promise<ConnectReturnType> => {
     const { connectorId } = parameters;
