@@ -831,6 +831,193 @@ Subscribe to jetton-balance updates for an arbitrary owner address (use [`watchJ
 
 Returns: <a href="#watchjettonsbyaddressreturntype"><code>WatchJettonsByAddressReturnType</code></a> — Unsubscribe function — call it to stop receiving updates.
 
+### Networks
+
+#### getApiClient
+
+Read the [`ApiClient`](#apiclient) configured for a specific [`Network`](#network) — throws when the network has no client registered.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`GetApiClientOptions`](#getapiclientoptions) | Network to look up. |
+| `options.network`\* | <a href="#network"><code>Network</code></a> | _TODO: describe_ |
+
+Returns: <a href="#getapiclientreturntype"><code>GetApiClientReturnType</code></a> — The configured [`ApiClient`](#apiclient) for the requested network.
+
+**Example**
+
+```ts
+const apiClient = getApiClient(appKit, {
+    network: Network.mainnet(),
+});
+
+console.log('API Client:', apiClient);
+```
+
+#### getBlockNumber
+
+Read the latest masterchain seqno (block number) for a network — useful for pagination cursors and freshness checks; defaults to mainnet when no network is given.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options` | [`GetBlockNumberOptions`](#getblocknumberoptions) | Optional network override. |
+| `options.network` | <a href="#network"><code>Network</code></a> | Network to query. Defaults to mainnet when omitted. |
+
+Returns: <code>Promise&lt;</code><a href="#getblocknumberreturntype"><code>GetBlockNumberReturnType</code></a><code>&gt;</code> — Current masterchain seqno as a number.
+
+**Example**
+
+```ts
+const blockNumber = await getBlockNumber(appKit);
+
+console.log('Current block number:', blockNumber);
+```
+
+#### getDefaultNetwork
+
+Read AppKit's currently configured default network — the one connectors enforce on new wallet connections; `undefined` means any registered network is allowed.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+
+Returns: <a href="#getdefaultnetworkreturntype"><code>GetDefaultNetworkReturnType</code></a> — The default [`Network`](#network), or `undefined` if none is set.
+
+**Example**
+
+```ts
+const defaultNetwork = getDefaultNetwork(appKit);
+console.log('Default network:', defaultNetwork);
+```
+
+#### getNetwork
+
+Read the [`Network`](#network) the selected wallet is connected to, or `null` when no wallet is selected (use [`getDefaultNetwork`](#getdefaultnetwork) for AppKit's configured default).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+
+Returns: <a href="#getnetworkreturntype"><code>GetNetworkReturnType</code></a> — Network of the selected wallet, or `null` when none is selected.
+
+**Example**
+
+```ts
+const network = getNetwork(appKit);
+
+if (network) {
+    console.log('Current network:', network);
+}
+```
+
+#### getNetworks
+
+List every network configured on this AppKit instance via [`AppKitConfig`](#appkitconfig)`.networks`.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+
+Returns: <a href="#getnetworksreturntype"><code>GetNetworksReturnType</code></a> — Array of configured [`Network`](#network)s.
+
+**Example**
+
+```ts
+const networks = getNetworks(appKit);
+
+console.log('Configured networks:', networks);
+```
+
+#### hasStreamingProvider
+
+Check whether a streaming provider is registered for a network — required by [`watchBalance`](#watchbalance), [`watchJettons`](#watchjettons) and other live-update actions.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `network`\* | [`Network`](#network) | Network to check. |
+
+Returns: <a href="#hasstreamingproviderreturntype"><code>HasStreamingProviderReturnType</code></a> — `true` when a streaming provider is registered for that network.
+
+**Example**
+
+```ts
+const isSupported = hasStreamingProvider(appKit, Network.mainnet());
+console.log('Mainnet streaming support:', isSupported);
+```
+
+#### setDefaultNetwork
+
+Set or clear the default network — connectors enforce it on new wallet connections; emits `NETWORKS_EVENTS.DEFAULT_CHANGED` so [`watchDefaultNetwork`](#watchdefaultnetwork) subscribers fire. Pass `undefined` to remove the constraint and allow any registered network.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`SetDefaultNetworkParameters`](#setdefaultnetworkparameters) | Network to enforce, or `undefined` to clear. |
+| `parameters.network`\* | <a href="#network"><code>Network</code></a><code> \| undefined</code> | Network to enforce on new wallet connections; pass `undefined` to allow any registered network. |
+
+Returns: <a href="#setdefaultnetworkreturntype"><code>SetDefaultNetworkReturnType</code></a>.
+
+**Example**
+
+```ts
+// Enforce testnet for all new wallet connections
+setDefaultNetwork(appKit, { network: Network.testnet() });
+
+// Allow any network (clear default)
+setDefaultNetwork(appKit, { network: undefined });
+```
+
+#### watchDefaultNetwork
+
+Subscribe to default-network changes — fires when [`setDefaultNetwork`](#setdefaultnetwork) is called.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`WatchDefaultNetworkParameters`](#watchdefaultnetworkparameters) | Update callback. |
+| `parameters.onChange`\* | <code>(network: </code><a href="#network"><code>Network</code></a><code> \| undefined) =&gt; void</code> | Callback fired whenever [`setDefaultNetwork`](#setdefaultnetwork) updates the default — receives the new value (or `undefined` when cleared). |
+
+Returns: <a href="#watchdefaultnetworkreturntype"><code>WatchDefaultNetworkReturnType</code></a> — Unsubscribe function — call it to stop receiving updates.
+
+**Example**
+
+```ts
+const unsubscribe = watchDefaultNetwork(appKit, {
+    onChange: (network) => {
+        console.log('Default network changed:', network);
+    },
+});
+
+// Later: unsubscribe();
+```
+
+#### watchNetworks
+
+Subscribe to changes of the configured-networks list — fires when AppKit's network manager registers, replaces or drops a network's API client.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`WatchNetworksParameters`](#watchnetworksparameters) | Update callback. |
+| `parameters.onChange`\* | <code>(networks: </code><a href="#network"><code>Network</code></a><code>[]) =&gt; void</code> | Callback fired whenever the configured-networks list changes — receives the latest snapshot. |
+
+Returns: <a href="#watchnetworksreturntype"><code>WatchNetworksReturnType</code></a> — Unsubscribe function — call it to stop receiving updates.
+
+**Example**
+
+```ts
+const unsubscribe = watchNetworks(appKit, {
+    onChange: (networks) => {
+        console.log('Networks updated:', networks);
+    },
+});
+
+// Later: unsubscribe();
+```
+
 ### Signing
 
 #### signText
@@ -1763,6 +1950,31 @@ type WatchJettonsReturnType = () => void;
 
 ### Networks
 
+#### ApiClient
+
+Indexer/RPC client interface used by AppKit to read on-chain state — balance, jettons, NFTs, masterchain seqno, etc. Each [`Network`](#network) resolves to its own `ApiClient` via [`AppKitNetworkManager`](#appkitnetworkmanager); apps usually pull one through [`getApiClient`](#getapiclient) rather than constructing it directly.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `nftItemsByAddress`\* | `(request: NFTsRequest) => Promise<NFTsResponse>` | _TODO: describe_ |
+| `nftItemsByOwner`\* | `(request: UserNFTsRequest) => Promise<NFTsResponse>` | _TODO: describe_ |
+| `fetchEmulation`\* | <code>(messageBoc: </code><a href="#base64string"><code>Base64String</code></a><code>, ignoreSignature?: boolean) =&gt; Promise&lt;ToncenterEmulationResult&gt;</code> | _TODO: describe_ |
+| `sendBoc`\* | <code>(boc: </code><a href="#base64string"><code>Base64String</code></a><code>) =&gt; Promise&lt;string&gt;</code> | _TODO: describe_ |
+| `runGetMethod`\* | <code>(address: </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code>, method: string, stack?: RawStackItem[], seqno?: number) =&gt; Promise&lt;GetMethodResult&gt;</code> | _TODO: describe_ |
+| `getAccountState`\* | <code>(address: </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code>, seqno?: number) =&gt; Promise&lt;FullAccountState&gt;</code> | _TODO: describe_ |
+| `getBalance`\* | <code>(address: </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code>, seqno?: number) =&gt; Promise&lt;</code><a href="#tokenamount"><code>TokenAmount</code></a><code>&gt;</code> | _TODO: describe_ |
+| `getAccountTransactions`\* | `(request: TransactionsByAddressRequest) => Promise<TransactionsResponse>` | _TODO: describe_ |
+| `getTransactionsByHash`\* | `(request: GetTransactionByHashRequest) => Promise<TransactionsResponse>` | _TODO: describe_ |
+| `getPendingTransactions`\* | `(request: GetPendingTransactionsRequest) => Promise<TransactionsResponse>` | _TODO: describe_ |
+| `getTrace`\* | `(request: GetTraceRequest) => Promise<ToncenterTracesResponse>` | _TODO: describe_ |
+| `getPendingTrace`\* | `(request: GetPendingTraceRequest) => Promise<ToncenterTracesResponse>` | _TODO: describe_ |
+| `resolveDnsWallet`\* | `(domain: string) => Promise<string \| null>` | _TODO: describe_ |
+| `backResolveDnsWallet`\* | <code>(address: </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code>) =&gt; Promise&lt;string \| null&gt;</code> | _TODO: describe_ |
+| `jettonsByAddress`\* | `(request: GetJettonsByAddressRequest) => Promise<ToncenterResponseJettonMasters>` | _TODO: describe_ |
+| `jettonsByOwnerAddress`\* | <code>(request: GetJettonsByOwnerRequest) =&gt; Promise&lt;</code><a href="#jettonsresponse"><code>JettonsResponse</code></a><code>&gt;</code> | _TODO: describe_ |
+| `getEvents`\* | `(request: GetEventsRequest) => Promise<GetEventsResponse>` | _TODO: describe_ |
+| `getMasterchainInfo`\* | `() => Promise<MasterchainInfo>` | _TODO: describe_ |
+
 #### ApiClientConfig
 
 API client configuration options
@@ -1771,6 +1983,70 @@ API client configuration options
 | --- | --- | --- |
 | `url` | `string` | _TODO: describe_ |
 | `key` | `string` | _TODO: describe_ |
+
+#### GetApiClientOptions
+
+Options for [`getApiClient`](#getapiclient).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `network`\* | <a href="#network"><code>Network</code></a> | _TODO: describe_ |
+
+#### GetApiClientReturnType
+
+Return type of [`getApiClient`](#getapiclient).
+
+```ts
+type GetApiClientReturnType = ApiClient;
+```
+
+#### GetBlockNumberOptions
+
+Options for [`getBlockNumber`](#getblocknumber).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `network` | <a href="#network"><code>Network</code></a> | Network to query. Defaults to mainnet when omitted. |
+
+#### GetBlockNumberReturnType
+
+Return type of [`getBlockNumber`](#getblocknumber).
+
+```ts
+type GetBlockNumberReturnType = number;
+```
+
+#### GetDefaultNetworkReturnType
+
+Return type of [`getDefaultNetwork`](#getdefaultnetwork) — `undefined` when no default has been set (apps may operate on any registered network).
+
+```ts
+type GetDefaultNetworkReturnType = Network | undefined;
+```
+
+#### GetNetworkReturnType
+
+Return type of [`getNetwork`](#getnetwork) — `null` when no wallet is currently selected.
+
+```ts
+type GetNetworkReturnType = Network | null;
+```
+
+#### GetNetworksReturnType
+
+Return type of [`getNetworks`](#getnetworks).
+
+```ts
+type GetNetworksReturnType = Network[];
+```
+
+#### HasStreamingProviderReturnType
+
+Return type of [`hasStreamingProvider`](#hasstreamingprovider).
+
+```ts
+type HasStreamingProviderReturnType = boolean;
+```
 
 #### Network
 
@@ -1797,7 +2073,23 @@ Network configuration for a specific chain
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `apiClient` | <a href="#apiclientconfig"><code>ApiClientConfig</code></a><code> \| ApiClient</code> | API client configuration or instance |
+| `apiClient` | <a href="#apiclientconfig"><code>ApiClientConfig</code></a><code> \| </code><a href="#apiclient"><code>ApiClient</code></a> | API client configuration or instance |
+
+#### SetDefaultNetworkParameters
+
+Parameters accepted by [`setDefaultNetwork`](#setdefaultnetwork).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `network`\* | <a href="#network"><code>Network</code></a><code> \| undefined</code> | Network to enforce on new wallet connections; pass `undefined` to allow any registered network. |
+
+#### SetDefaultNetworkReturnType
+
+Return type of [`setDefaultNetwork`](#setdefaultnetwork).
+
+```ts
+type SetDefaultNetworkReturnType = void;
+```
 
 #### TonWalletKitOptions
 
@@ -1815,6 +2107,38 @@ Walletkit-side options shape consumed by [`KitNetworkManager`](#kitnetworkmanage
 | `eventProcessor` | `EventProcessorConfig` | Event processor settings |
 | `analytics` | `AnalyticsManagerOptions & {         enabled?: boolean;     }` | _TODO: describe_ |
 | `dev` | `{         disableNetworkSend?: boolean;         disableManifestDomainCheck?: boolean;     }` | _TODO: describe_ |
+
+#### WatchDefaultNetworkParameters
+
+Parameters accepted by [`watchDefaultNetwork`](#watchdefaultnetwork).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `onChange`\* | <code>(network: </code><a href="#network"><code>Network</code></a><code> \| undefined) =&gt; void</code> | Callback fired whenever [`setDefaultNetwork`](#setdefaultnetwork) updates the default — receives the new value (or `undefined` when cleared). |
+
+#### WatchDefaultNetworkReturnType
+
+Return type of [`watchDefaultNetwork`](#watchdefaultnetwork) — call to stop receiving updates.
+
+```ts
+type WatchDefaultNetworkReturnType = () => void;
+```
+
+#### WatchNetworksParameters
+
+Parameters accepted by [`watchNetworks`](#watchnetworks).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `onChange`\* | <code>(networks: </code><a href="#network"><code>Network</code></a><code>[]) =&gt; void</code> | Callback fired whenever the configured-networks list changes — receives the latest snapshot. |
+
+#### WatchNetworksReturnType
+
+Return type of [`watchNetworks`](#watchnetworks) — call to stop receiving updates.
+
+```ts
+type WatchNetworksReturnType = () => void;
+```
 
 ### Primitives
 
