@@ -8,14 +8,40 @@
 
 import type { AppKit } from '../../core/app-kit';
 
+/**
+ * Parameters accepted by {@link watchSwapProviders}.
+ *
+ * @public
+ * @category Type
+ * @section Swap
+ */
 export interface WatchSwapProvidersParameters {
+    /** Callback fired whenever a swap provider is registered or the default swap provider changes. */
     onChange: () => void;
 }
 
+/**
+ * Return type of {@link watchSwapProviders} — call to stop receiving updates.
+ *
+ * @public
+ * @category Type
+ * @section Swap
+ */
 export type WatchSwapProvidersReturnType = () => void;
 
 /**
- * Watch for new swap providers registration
+ * Subscribe to swap provider lifecycle — fires `onChange` whenever a new provider is registered or the default swap provider switches.
+ *
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param parameters - {@link WatchSwapProvidersParameters} Update callback.
+ * @returns Unsubscribe function — call it to stop receiving updates.
+ *
+ * @sample docs/examples/src/appkit/actions/swap#WATCH_SWAP_PROVIDERS
+ * @expand parameters
+ *
+ * @public
+ * @category Action
+ * @section Swap
  */
 export const watchSwapProviders = (
     appKit: AppKit,

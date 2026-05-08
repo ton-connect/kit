@@ -1271,6 +1271,165 @@ const result = await signText(appKit, {
 console.log('Signature:', result.signature);
 ```
 
+### Swap
+
+#### buildSwapTransaction
+
+Build a [`TransactionRequest`](#transactionrequest) that executes a swap previously quoted by [`getSwapQuote`](#getswapquote) — returns it without sending so the UI can inspect or batch before signing.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`BuildSwapTransactionOptions`](#buildswaptransactionoptions) | Quote and provider-specific options. |
+| `options.quote`\* | <a href="#swapquote"><code>SwapQuote</code></a> | The swap quote based on which the transaction is built |
+| `options.userAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Address of the user performing the swap |
+| `options.destinationAddress` | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Address to receive the swapped tokens (defaults to userAddress) |
+| `options.slippageBps` | `number` | Slippage tolerance in basis points (1 bp = 0.01%) |
+| `options.deadline` | `number` | Transaction deadline in unix timestamp |
+| `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+
+Returns: <a href="#buildswaptransactionreturntype"><code>BuildSwapTransactionReturnType</code></a> — Transaction request ready to pass to `sendTransaction`.
+
+**Example**
+
+```ts
+const transactionRequest = await buildSwapTransaction(appKit, {
+    quote,
+    userAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+    slippageBps: 100, // 1%
+});
+const transactionResponse = await sendTransaction(appKit, transactionRequest);
+console.log('Swap Transaction:', transactionResponse);
+```
+
+#### getSwapManager
+
+Read AppKit's [`SwapManager`](#swapmanager) — the runtime that owns registered swap providers and dispatches quote/build calls. Apps usually use the higher-level actions ([`getSwapQuote`](#getswapquote), [`buildSwapTransaction`](#buildswaptransaction)) instead of touching the manager directly.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+
+Returns: <a href="#getswapmanagerreturntype"><code>GetSwapManagerReturnType</code></a> — The [`SwapManager`](#swapmanager) bound to this AppKit instance.
+
+**Example**
+
+```ts
+const swapManager = getSwapManager(appKit);
+```
+
+#### getSwapProvider
+
+Get a registered swap provider by id, or the default swap provider when no id is given; throws when the id does not match any registered provider.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options` | [`GetSwapProviderOptions`](#getswapprovideroptions) | Optional provider id. |
+| `options.id` | `string` | Provider id to look up; when omitted, returns the registered default swap provider. |
+
+Returns: <a href="#getswapproviderreturntype"><code>GetSwapProviderReturnType</code></a> — The matching swap provider instance.
+
+**Example**
+
+```ts
+const swapProvider = getSwapProvider(appKit, { id: 'stonfi' });
+```
+
+#### getSwapProviders
+
+List every swap provider registered on this AppKit instance — both those passed via [`AppKitConfig`](#appkitconfig)`.providers` and those added later through [`registerProvider`](#registerprovider).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+
+Returns: <a href="#getswapprovidersreturntype"><code>GetSwapProvidersReturnType</code></a> — Array of registered swap providers.
+
+**Example**
+
+```ts
+const swapProviders = getSwapProviders(appKit);
+console.log(
+    'Registered providers:',
+    swapProviders.map((p) => p.providerId),
+);
+```
+
+#### getSwapQuote
+
+Quote a swap — given source/target tokens and an amount, returns the rate, expected output and provider metadata needed to call [`buildSwapTransaction`](#buildswaptransaction).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`GetSwapQuoteOptions`](#getswapquoteoptions) | Source and target tokens, amount, optional network and provider override. |
+| `options.amount`\* | `string` | Amount of tokens to swap (incoming or outgoing depending on isReverseSwap) |
+| `options.from`\* | <a href="#swaptoken"><code>SwapToken</code></a> | Token to swap from |
+| `options.to`\* | <a href="#swaptoken"><code>SwapToken</code></a> | Token to swap to |
+| `options.network`\* | <a href="#network"><code>Network</code></a> | Network on which the swap will be executed |
+| `options.slippageBps` | `number` | Slippage tolerance in basis points (1 bp = 0.01%) |
+| `options.maxOutgoingMessages` | `number` | Maximum number of outgoing messages |
+| `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `options.isReverseSwap` | `boolean` | If true, amount is the amount to receive (buy). If false, amount is the amount to spend (sell). |
+| `options.providerId` | `string` | Provider to quote against; defaults to the registered default swap provider. |
+
+Returns: <a href="#getswapquotereturntype"><code>GetSwapQuoteReturnType</code></a> — Quote with pricing details and the provider metadata required to build a transaction.
+
+**Example**
+
+```ts
+const quote = await getSwapQuote(appKit, {
+    from: {
+        address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
+        decimals: 6,
+    },
+    to: { address: 'ton', decimals: 9 },
+    amount: '1000000000', // nanotons as string
+    network: Network.mainnet(),
+});
+console.log('Swap Quote:', quote);
+```
+
+#### setDefaultSwapProvider
+
+Set the default swap provider — subsequent [`getSwapQuote`](#getswapquote) and [`buildSwapTransaction`](#buildswaptransaction) calls without an explicit `providerId` route through it. Emits `provider:default-changed`, picked up by [`watchSwapProviders`](#watchswapproviders).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`SetDefaultSwapProviderParameters`](#setdefaultswapproviderparameters) | Id of the provider to make default. |
+| `parameters.providerId`\* | `string` | Id of the provider to make default — must already be registered. |
+
+Returns: <a href="#setdefaultswapproviderreturntype"><code>SetDefaultSwapProviderReturnType</code></a>.
+
+**Example**
+
+```ts
+setDefaultSwapProvider(appKit, { providerId: 'stonfi' });
+```
+
+#### watchSwapProviders
+
+Subscribe to swap provider lifecycle — fires `onChange` whenever a new provider is registered or the default swap provider switches.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`WatchSwapProvidersParameters`](#watchswapprovidersparameters) | Update callback. |
+| `parameters.onChange`\* | `() => void` | Callback fired whenever a swap provider is registered or the default swap provider changes. |
+
+Returns: <a href="#watchswapprovidersreturntype"><code>WatchSwapProvidersReturnType</code></a> — Unsubscribe function — call it to stop receiving updates.
+
+**Example**
+
+```ts
+const unsubscribe = watchSwapProviders(appKit, {
+    onChange: () => console.log('Swap providers updated'),
+});
+unsubscribe();
+```
+
 ### Transactions
 
 #### transferTon
@@ -2923,6 +3082,89 @@ type UnstakeModes = (typeof UnstakeMode)[keyof typeof UnstakeMode];
 
 ### Swap
 
+#### BuildSwapTransactionOptions
+
+Options for [`buildSwapTransaction`](#buildswaptransaction) — same shape as [`SwapParams`](#swapparams).
+
+```ts
+type BuildSwapTransactionOptions = SwapParams<T>;
+```
+
+#### BuildSwapTransactionReturnType
+
+Return type of [`buildSwapTransaction`](#buildswaptransaction).
+
+```ts
+type BuildSwapTransactionReturnType = Promise<TransactionRequest>;
+```
+
+#### GetSwapManagerReturnType
+
+Return type of [`getSwapManager`](#getswapmanager).
+
+```ts
+type GetSwapManagerReturnType = SwapManager;
+```
+
+#### GetSwapProviderOptions
+
+Options for [`getSwapProvider`](#getswapprovider).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | `string` | Provider id to look up; when omitted, returns the registered default swap provider. |
+
+#### GetSwapProviderReturnType
+
+Return type of [`getSwapProvider`](#getswapprovider).
+
+```ts
+type GetSwapProviderReturnType = SwapProviderInterface;
+```
+
+#### GetSwapProvidersReturnType
+
+Return type of [`getSwapProviders`](#getswapproviders).
+
+```ts
+type GetSwapProvidersReturnType = SwapProviderInterface[];
+```
+
+#### GetSwapQuoteOptions
+
+Options for [`getSwapQuote`](#getswapquote) — extends [`SwapQuoteParams`](#swapquoteparams) with an optional provider override.
+
+```ts
+type GetSwapQuoteOptions = SwapQuoteParams<T> & {
+    /** Provider to quote against; defaults to the registered default swap provider. */
+    providerId?: string;
+};
+```
+
+#### GetSwapQuoteReturnType
+
+Return type of [`getSwapQuote`](#getswapquote).
+
+```ts
+type GetSwapQuoteReturnType = Promise<SwapQuote>;
+```
+
+#### SetDefaultSwapProviderParameters
+
+Parameters accepted by [`setDefaultSwapProvider`](#setdefaultswapprovider).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `providerId`\* | `string` | Id of the provider to make default — must already be registered. |
+
+#### SetDefaultSwapProviderReturnType
+
+Return type of [`setDefaultSwapProvider`](#setdefaultswapprovider).
+
+```ts
+type SetDefaultSwapProviderReturnType = void;
+```
+
 #### SwapAPI
 
 Swap API interface exposed by SwapManager
@@ -2999,6 +3241,22 @@ Token type for swap
 | `symbol` | `string` | _TODO: describe_ |
 | `image` | `string` | _TODO: describe_ |
 | `chainId` | `string` | _TODO: describe_ |
+
+#### WatchSwapProvidersParameters
+
+Parameters accepted by [`watchSwapProviders`](#watchswapproviders).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `onChange`\* | `() => void` | Callback fired whenever a swap provider is registered or the default swap provider changes. |
+
+#### WatchSwapProvidersReturnType
+
+Return type of [`watchSwapProviders`](#watchswapproviders) — call to stop receiving updates.
+
+```ts
+type WatchSwapProvidersReturnType = () => void;
+```
 
 ### Transactions
 
