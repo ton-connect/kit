@@ -266,14 +266,6 @@ export interface EmitBrowserBridgeRequestArgs {
     request: string;
 }
 
-export interface CreateTonCenterStreamingProviderArgs {
-    config: TonCenterStreamingProviderConfig;
-}
-
-export interface CreateTonApiStreamingProviderArgs {
-    config: TonApiStreamingProviderConfig;
-}
-
 export interface RegisterStreamingProviderArgs {
     providerId: string;
 }
@@ -477,9 +469,9 @@ export interface WalletKitBridgeApi {
     emitBrowserError(args: EmitBrowserErrorArgs): PromiseOrValue<{ success: boolean }>;
     emitBrowserBridgeRequest(args: EmitBrowserBridgeRequestArgs): PromiseOrValue<{ success: boolean }>;
     createTonCenterStreamingProvider(
-        args: CreateTonCenterStreamingProviderArgs,
+        config: TonCenterStreamingProviderConfig,
     ): PromiseOrValue<{ providerId: string }>;
-    createTonApiStreamingProvider(args: CreateTonApiStreamingProviderArgs): PromiseOrValue<{ providerId: string }>;
+    createTonApiStreamingProvider(config: TonApiStreamingProviderConfig): PromiseOrValue<{ providerId: string }>;
     registerStreamingProvider(args: RegisterStreamingProviderArgs): PromiseOrValue<void>;
     streamingHasProvider(args: StreamingHasProviderArgs): PromiseOrValue<{ hasProvider: boolean }>;
     streamingWatch(args: StreamingWatchArgs): PromiseOrValue<{ subscriptionId: string }>;

@@ -131,15 +131,15 @@ class ProxyStreamingProvider implements StreamingProvider {
     }
 }
 
-export async function createTonCenterStreamingProvider(args: { config: TonCenterStreamingProviderConfig }) {
+export async function createTonCenterStreamingProvider(config: TonCenterStreamingProviderConfig) {
     const instance = await getKit();
-    const provider = new TonCenterStreamingProvider(instance.createFactoryContext(), args.config);
+    const provider = new TonCenterStreamingProvider(instance.createFactoryContext(), config);
     return { providerId: retain('streamingProvider', provider) };
 }
 
-export async function createTonApiStreamingProvider(args: { config: TonApiStreamingProviderConfig }) {
+export async function createTonApiStreamingProvider(config: TonApiStreamingProviderConfig) {
     const instance = await getKit();
-    const provider = new TonApiStreamingProvider(instance.createFactoryContext(), args.config);
+    const provider = new TonApiStreamingProvider(instance.createFactoryContext(), config);
     return { providerId: retain('streamingProvider', provider) };
 }
 
