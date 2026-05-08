@@ -1271,6 +1271,192 @@ const result = await signText(appKit, {
 console.log('Signature:', result.signature);
 ```
 
+### Staking
+
+#### buildStakeTransaction
+
+Build a [`TransactionRequest`](#transactionrequest) that executes a stake or unstake previously quoted by [`getStakingQuote`](#getstakingquote) — returns it without sending so the UI can inspect or batch before signing.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`BuildStakeTransactionOptions`](#buildstaketransactionoptions) | Quote and optional provider override. |
+| `options.quote`\* | <a href="#stakingquote"><code>StakingQuote</code></a> | The staking quote based on which the transaction is built |
+| `options.userAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Address of the user performing the staking |
+| `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `options.providerId` | `string` | Provider to stake/unstake through; defaults to the registered default staking provider. |
+
+Returns: <a href="#buildstaketransactionreturntype"><code>BuildStakeTransactionReturnType</code></a> — Transaction request ready to pass to `sendTransaction`.
+
+**Example**
+
+```ts
+const txRequest = await buildStakeTransaction(appKit, {
+    quote,
+    userAddress,
+});
+console.log('Stake Transaction:', txRequest);
+```
+
+#### getStakedBalance
+
+Read a user's staked balance from a staking provider — total staked plus, depending on the provider, any instant-unstake balance available right now.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`GetStakedBalanceOptions`](#getstakedbalanceoptions) | Owner address and optional network/provider override. |
+| `options.userAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Owner whose staked balance should be read. |
+| `options.network` | <a href="#network"><code>Network</code></a> | Network to query. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+| `options.providerId` | `string` | Provider to query; defaults to the registered default staking provider. |
+
+Returns: <a href="#getstakedbalancereturntype"><code>GetStakedBalanceReturnType</code></a>.
+
+**Example**
+
+```ts
+const balance = await getStakedBalance(appKit, {
+    userAddress,
+});
+console.log('Staked Balance:', balance);
+```
+
+#### getStakingManager
+
+Read AppKit's [`StakingManager`](#stakingmanager) — the runtime that owns registered staking providers and dispatches quote/stake/balance calls. Apps usually use the higher-level actions ([`getStakingQuote`](#getstakingquote), [`buildStakeTransaction`](#buildstaketransaction), [`getStakedBalance`](#getstakedbalance)) instead of touching the manager directly.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+
+Returns: <a href="#getstakingmanagerreturntype"><code>GetStakingManagerReturnType</code></a> — The [`StakingManager`](#stakingmanager) bound to this AppKit instance.
+
+#### getStakingProvider
+
+Get a registered staking provider by id, or the default staking provider when no id is given; throws when the id does not match any registered provider.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options` | [`GetStakingProviderOptions`](#getstakingprovideroptions) | Optional provider id. |
+| `options.id` | `string` | Provider id to look up; when omitted, returns the registered default staking provider. |
+
+Returns: <a href="#getstakingproviderreturntype"><code>GetStakingProviderReturnType</code></a> — The matching staking provider instance.
+
+#### getStakingProviderInfo
+
+Read live staking-pool info for a provider — APR, total pool size, minimum stake, etc. Use [`getStakingProviderMetadata`](#getstakingprovidermetadata) for static metadata that doesn't change between calls.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options` | [`GetStakingProviderInfoOptions`](#getstakingproviderinfooptions) | Optional network and provider override. |
+| `options.network` | <a href="#network"><code>Network</code></a> | Network whose staking pool should be inspected. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+| `options.providerId` | `string` | Provider to query; defaults to the registered default staking provider. |
+
+Returns: <a href="#getstakingproviderinforeturntype"><code>GetStakingProviderInfoReturnType</code></a> — Live staking-provider info for the resolved network.
+
+**Example**
+
+```ts
+const providerInfo = await getStakingProviderInfo(appKit, {
+    providerId: 'tonstakers',
+});
+console.log('Provider Info:', providerInfo);
+```
+
+#### getStakingProviderMetadata
+
+Read static metadata for a staking provider — display name, logo, supported tokens. Use [`getStakingProviderInfo`](#getstakingproviderinfo) for live numbers (APR, pool size).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options` | [`GetStakingProviderMetadataOptions`](#getstakingprovidermetadataoptions) | Optional network and provider override. |
+| `options.network` | <a href="#network"><code>Network</code></a> | Network whose provider metadata should be read. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+| `options.providerId` | `string` | Provider to query; defaults to the registered default staking provider. |
+
+Returns: <a href="#getstakingprovidermetadatareturntype"><code>GetStakingProviderMetadataReturnType</code></a> — Static [`StakingProviderMetadata`](#stakingprovidermetadata) for the resolved provider.
+
+**Example**
+
+```ts
+const providerMetadata = getStakingProviderMetadata(appKit, {
+    providerId: 'tonstakers',
+});
+console.log('Provider Metadata:', providerMetadata);
+```
+
+#### getStakingProviders
+
+List every staking provider registered on this AppKit instance — both those passed via [`AppKitConfig`](#appkitconfig)`.providers` and those added later through [`registerProvider`](#registerprovider).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+
+Returns: <a href="#getstakingprovidersreturntype"><code>GetStakingProvidersReturnType</code></a> — Array of registered staking providers.
+
+**Example**
+
+```ts
+const providers = await getStakingProviders(appKit);
+console.log('Available Staking Providers:', providers);
+```
+
+#### getStakingQuote
+
+Quote a stake or unstake — given the amount, direction and target asset, returns the rate, expected output and provider metadata needed to call [`buildStakeTransaction`](#buildstaketransaction).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`GetStakingQuoteOptions`](#getstakingquoteoptions) | Quote parameters and optional provider override. |
+| `options.direction`\* | <a href="#stakingquotedirection"><code>StakingQuoteDirection</code></a> | Direction of the quote (stake or unstake) |
+| `options.amount`\* | `string` | Amount of tokens to stake or unstake |
+| `options.userAddress` | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Address of the user |
+| `options.network` | <a href="#network"><code>Network</code></a> | Network on which the staking will be executed |
+| `options.unstakeMode` | <a href="#unstakemodes"><code>UnstakeModes</code></a> | Requested mode of unstaking |
+| `options.isReversed` | `boolean` | If true, for unstake requests the amount is specified in the staking coin (e.g. TON) instead of the Liquid Staking Token (e.g. tsTON). |
+| `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `options.providerId` | `string` | Provider to quote against; defaults to the registered default staking provider. |
+
+Returns: <a href="#getstakingquotereturntype"><code>GetStakingQuoteReturnType</code></a> — Quote with pricing details and provider metadata.
+
+**Example**
+
+```ts
+const quote = await getStakingQuote(appKit, {
+    amount: '1000000000',
+    direction: 'stake',
+});
+console.log('Staking Quote:', quote);
+```
+
+#### setDefaultStakingProvider
+
+Set the default staking provider — subsequent [`getStakingQuote`](#getstakingquote) and [`buildStakeTransaction`](#buildstaketransaction) calls without an explicit `providerId` route through it. Emits `provider:default-changed`, picked up by [`watchStakingProviders`](#watchstakingproviders).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`SetDefaultStakingProviderParameters`](#setdefaultstakingproviderparameters) | Id of the provider to make default. |
+| `parameters.providerId`\* | `string` | Id of the provider to make default — must already be registered. |
+
+Returns: <a href="#setdefaultstakingproviderreturntype"><code>SetDefaultStakingProviderReturnType</code></a>.
+
+#### watchStakingProviders
+
+Subscribe to staking provider lifecycle — fires `onChange` whenever a new provider is registered or the default staking provider switches.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`WatchStakingProvidersParameters`](#watchstakingprovidersparameters) | Update callback. |
+| `parameters.onChange`\* | `() => void` | Callback fired whenever a staking provider is registered or the default staking provider changes. |
+
+Returns: <a href="#watchstakingprovidersreturntype"><code>WatchStakingProvidersReturnType</code></a> — Unsubscribe function — call it to stop receiving updates.
+
 ### Swap
 
 #### buildSwapTransaction
@@ -2959,6 +3145,144 @@ type SignTextReturnType = SignDataResponse;
 
 ### Staking
 
+#### BuildStakeTransactionOptions
+
+Options for [`buildStakeTransaction`](#buildstaketransaction) — extends [`StakeParams`](#stakeparams) with an optional provider override.
+
+```ts
+type BuildStakeTransactionOptions = StakeParams & {
+    /** Provider to stake/unstake through; defaults to the registered default staking provider. */
+    providerId?: string;
+};
+```
+
+#### BuildStakeTransactionReturnType
+
+Return type of [`buildStakeTransaction`](#buildstaketransaction).
+
+```ts
+type BuildStakeTransactionReturnType = Promise<TransactionRequest>;
+```
+
+#### GetStakedBalanceOptions
+
+Options for [`getStakedBalance`](#getstakedbalance).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `userAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Owner whose staked balance should be read. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to query. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+| `providerId` | `string` | Provider to query; defaults to the registered default staking provider. |
+
+#### GetStakedBalanceReturnType
+
+Return type of [`getStakedBalance`](#getstakedbalance).
+
+```ts
+type GetStakedBalanceReturnType = Promise<StakingBalance>;
+```
+
+#### GetStakingManagerReturnType
+
+Return type of [`getStakingManager`](#getstakingmanager).
+
+```ts
+type GetStakingManagerReturnType = StakingManager;
+```
+
+#### GetStakingProviderInfoOptions
+
+Options for [`getStakingProviderInfo`](#getstakingproviderinfo).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `network` | <a href="#network"><code>Network</code></a> | Network whose staking pool should be inspected. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+| `providerId` | `string` | Provider to query; defaults to the registered default staking provider. |
+
+#### GetStakingProviderInfoReturnType
+
+Return type of [`getStakingProviderInfo`](#getstakingproviderinfo).
+
+```ts
+type GetStakingProviderInfoReturnType = Promise<StakingProviderInfo>;
+```
+
+#### GetStakingProviderMetadataOptions
+
+Options for [`getStakingProviderMetadata`](#getstakingprovidermetadata).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `network` | <a href="#network"><code>Network</code></a> | Network whose provider metadata should be read. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+| `providerId` | `string` | Provider to query; defaults to the registered default staking provider. |
+
+#### GetStakingProviderMetadataReturnType
+
+Return type of [`getStakingProviderMetadata`](#getstakingprovidermetadata).
+
+```ts
+type GetStakingProviderMetadataReturnType = StakingProviderMetadata;
+```
+
+#### GetStakingProviderOptions
+
+Options for [`getStakingProvider`](#getstakingprovider).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | `string` | Provider id to look up; when omitted, returns the registered default staking provider. |
+
+#### GetStakingProviderReturnType
+
+Return type of [`getStakingProvider`](#getstakingprovider).
+
+```ts
+type GetStakingProviderReturnType = StakingProviderInterface;
+```
+
+#### GetStakingProvidersReturnType
+
+Return type of [`getStakingProviders`](#getstakingproviders).
+
+```ts
+type GetStakingProvidersReturnType = StakingProviderInterface[];
+```
+
+#### GetStakingQuoteOptions
+
+Options for [`getStakingQuote`](#getstakingquote) — extends [`StakingQuoteParams`](#stakingquoteparams) with an optional provider override.
+
+```ts
+type GetStakingQuoteOptions = StakingQuoteParams & {
+    /** Provider to quote against; defaults to the registered default staking provider. */
+    providerId?: string;
+};
+```
+
+#### GetStakingQuoteReturnType
+
+Return type of [`getStakingQuote`](#getstakingquote).
+
+```ts
+type GetStakingQuoteReturnType = Promise<StakingQuote>;
+```
+
+#### SetDefaultStakingProviderParameters
+
+Parameters accepted by [`setDefaultStakingProvider`](#setdefaultstakingprovider).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `providerId`\* | `string` | Id of the provider to make default — must already be registered. |
+
+#### SetDefaultStakingProviderReturnType
+
+Return type of [`setDefaultStakingProvider`](#setdefaultstakingprovider).
+
+```ts
+type SetDefaultStakingProviderReturnType = void;
+```
+
 #### StakeParams
 
 Parameters for staking TON
@@ -3078,6 +3402,22 @@ Mode of unstaking
 
 ```ts
 type UnstakeModes = (typeof UnstakeMode)[keyof typeof UnstakeMode];
+```
+
+#### WatchStakingProvidersParameters
+
+Parameters accepted by [`watchStakingProviders`](#watchstakingproviders).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `onChange`\* | `() => void` | Callback fired whenever a staking provider is registered or the default staking provider changes. |
+
+#### WatchStakingProvidersReturnType
+
+Return type of [`watchStakingProviders`](#watchstakingproviders) — call to stop receiving updates.
+
+```ts
+type WatchStakingProvidersReturnType = () => void;
 ```
 
 ### Swap

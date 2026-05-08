@@ -11,15 +11,42 @@ import type { StakingProviderMetadata } from '../../staking';
 import type { Network } from '../../types/network';
 import { resolveNetwork } from '../../utils';
 
+/**
+ * Options for {@link getStakingProviderMetadata}.
+ *
+ * @public
+ * @category Type
+ * @section Staking
+ */
 export type GetStakingProviderMetadataOptions = {
+    /** Network whose provider metadata should be read. Defaults to the connected wallet's network, or the configured default if no wallet is connected. */
     network?: Network;
+    /** Provider to query; defaults to the registered default staking provider. */
     providerId?: string;
 };
 
+/**
+ * Return type of {@link getStakingProviderMetadata}.
+ *
+ * @public
+ * @category Type
+ * @section Staking
+ */
 export type GetStakingProviderMetadataReturnType = StakingProviderMetadata;
 
 /**
- * Get staking provider static metadata
+ * Read static metadata for a staking provider — display name, logo, supported tokens. Use {@link getStakingProviderInfo} for live numbers (APR, pool size).
+ *
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param options - {@link GetStakingProviderMetadataOptions} Optional network and provider override.
+ * @returns Static {@link StakingProviderMetadata} for the resolved provider.
+ *
+ * @sample docs/examples/src/appkit/actions/staking#GET_STAKING_PROVIDER_METADATA
+ * @expand options
+ *
+ * @public
+ * @category Action
+ * @section Staking
  */
 export const getStakingProviderMetadata = (
     appKit: AppKit,

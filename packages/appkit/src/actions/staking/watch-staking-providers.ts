@@ -8,14 +8,39 @@
 
 import type { AppKit } from '../../core/app-kit';
 
+/**
+ * Parameters accepted by {@link watchStakingProviders}.
+ *
+ * @public
+ * @category Type
+ * @section Staking
+ */
 export interface WatchStakingProvidersParameters {
+    /** Callback fired whenever a staking provider is registered or the default staking provider changes. */
     onChange: () => void;
 }
 
+/**
+ * Return type of {@link watchStakingProviders} — call to stop receiving updates.
+ *
+ * @public
+ * @category Type
+ * @section Staking
+ */
 export type WatchStakingProvidersReturnType = () => void;
 
 /**
- * Watch for staking providers registration and default provider changes
+ * Subscribe to staking provider lifecycle — fires `onChange` whenever a new provider is registered or the default staking provider switches.
+ *
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param parameters - {@link WatchStakingProvidersParameters} Update callback.
+ * @returns Unsubscribe function — call it to stop receiving updates.
+ *
+ * @expand parameters
+ *
+ * @public
+ * @category Action
+ * @section Staking
  */
 export const watchStakingProviders = (
     appKit: AppKit,

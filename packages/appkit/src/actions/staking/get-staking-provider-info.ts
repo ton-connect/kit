@@ -11,15 +11,42 @@ import type { StakingProviderInfo } from '../../staking';
 import type { Network } from '../../types/network';
 import { resolveNetwork } from '../../utils';
 
+/**
+ * Options for {@link getStakingProviderInfo}.
+ *
+ * @public
+ * @category Type
+ * @section Staking
+ */
 export type GetStakingProviderInfoOptions = {
+    /** Network whose staking pool should be inspected. Defaults to the connected wallet's network, or the configured default if no wallet is connected. */
     network?: Network;
+    /** Provider to query; defaults to the registered default staking provider. */
     providerId?: string;
 };
 
+/**
+ * Return type of {@link getStakingProviderInfo}.
+ *
+ * @public
+ * @category Type
+ * @section Staking
+ */
 export type GetStakingProviderInfoReturnType = Promise<StakingProviderInfo>;
 
 /**
- * Get staking provider info
+ * Read live staking-pool info for a provider — APR, total pool size, minimum stake, etc. Use {@link getStakingProviderMetadata} for static metadata that doesn't change between calls.
+ *
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param options - {@link GetStakingProviderInfoOptions} Optional network and provider override.
+ * @returns Live staking-provider info for the resolved network.
+ *
+ * @sample docs/examples/src/appkit/actions/staking#GET_STAKING_PROVIDER_INFO
+ * @expand options
+ *
+ * @public
+ * @category Action
+ * @section Staking
  */
 export const getStakingProviderInfo = async (
     appKit: AppKit,
