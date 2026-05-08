@@ -10,7 +10,9 @@
  * Base interface shared by all provider types.
  */
 export interface BaseProvider {
+    /** Stable provider identifier, unique within the manager that registered it. */
     readonly providerId: string;
+    /** Provider kind discriminator (e.g., `'swap'`, `'staking'`, `'onramp'`, `'crypto-onramp'`); used to route registrations to the right manager. */
     readonly type: string;
 }
 

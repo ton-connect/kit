@@ -53,6 +53,7 @@ export interface CryptoOnrampProviderInterface<
     TQuoteOptions = unknown,
     TDepositOptions = unknown,
 > extends DefiProvider {
+    /** Provider kind discriminator pinned to `'crypto-onramp'` so {@link registerProvider} routes it to the crypto-onramp manager. */
     readonly type: 'crypto-onramp';
 
     /**

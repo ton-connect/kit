@@ -47,6 +47,7 @@ export class TonConnectWalletAdapter implements WalletInterface {
     public readonly tonConnectUI: TonConnectUI;
     public readonly connectorId: string;
 
+    /** @param config - {@link TonConnectWalletAdapterConfig} TonConnect wallet + UI instance and the id of the connector that produced them. */
     constructor(config: TonConnectWalletAdapterConfig) {
         this.tonConnectWallet = config.tonConnectWallet;
         this.tonConnectUI = config.tonConnectUI;

@@ -23,6 +23,7 @@ const log = globalLogger.createChild('SwapManager');
  * for swap operations. Providers can be switched dynamically.
  */
 export class SwapManager extends DefiManager<SwapProviderInterface> implements SwapAPI {
+    /** @param createFactoryContext - Lazy provider of the {@link ProviderFactoryContext} the manager passes into provider factories at registration time. */
     constructor(createFactoryContext: () => ProviderFactoryContext) {
         super(createFactoryContext);
     }

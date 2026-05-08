@@ -16,7 +16,7 @@ Constructor: `new ApiClientTonApi(config)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config` | `BaseApiClientConfig` | _TODO: describe_ |
+| `config` | `BaseApiClientConfig` | TonAPI client config — endpoint URL and API key; defaults to TonAPI mainnet/testnet URLs based on `config.network`. |
 
 #### ApiClientToncenter
 
@@ -26,7 +26,7 @@ Constructor: `new ApiClientToncenter(config)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config` | <a href="#apiclientconfig"><code>ApiClientConfig</code></a> | _TODO: describe_ |
+| `config` | <a href="#apiclientconfig"><code>ApiClientConfig</code></a> | Toncenter v3 client config — endpoint URL, API key and optional DNS resolver override; defaults to mainnet/testnet Toncenter URLs based on `config.network`. |
 
 ### Core
 
@@ -171,8 +171,8 @@ Constructor: `new AppKitNetworkManager(options, emitter)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `options`\* | <code>ConstructorParameters&lt;typeof </code><a href="#kitnetworkmanager"><code>KitNetworkManager</code></a><code>&gt;[0]</code> | _TODO: describe_ |
-| `emitter`\* | <a href="#appkitemitter"><code>AppKitEmitter</code></a> | _TODO: describe_ |
+| `options`\* | [`TonWalletKitOptions`](#tonwalletkitoptions) | Forwarded to the [`KitNetworkManager`](#kitnetworkmanager) base — chiefly the `networks` map keyed by chain id. |
+| `emitter`\* | [`AppKitEmitter`](#appkitemitter) | Emitter the manager publishes `networks:default-changed` / `networks:updated` events through. |
 
 #### KitNetworkManager
 
@@ -182,7 +182,7 @@ Constructor: `new KitNetworkManager(options)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `options`\* | <a href="#tonwalletkitoptions"><code>TonWalletKitOptions</code></a> | _TODO: describe_ |
+| `options`\* | [`TonWalletKitOptions`](#tonwalletkitoptions) | carrying the `networks` map keyed by chain id; at least one network must be configured. |
 
 ### Staking
 
@@ -206,7 +206,7 @@ Constructor: `new StakingManager(createFactoryContext)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `createFactoryContext`\* | `() => ProviderFactoryContext` | _TODO: describe_ |
+| `createFactoryContext`\* | `() => ProviderFactoryContext` | Lazy provider of the [`ProviderFactoryContext`](#providerfactorycontext) the manager passes into provider factories at registration time. |
 
 #### StakingProvider
 
@@ -216,7 +216,7 @@ Constructor: `new StakingProvider(providerId)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `providerId`\* | `string` | _TODO: describe_ |
+| `providerId`\* | `string` | Stable id the provider registers with — must be unique within [`StakingManager`](#stakingmanager). |
 
 #### TonStakersStakingProvider
 
@@ -296,7 +296,7 @@ Constructor: `new SwapManager(createFactoryContext)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `createFactoryContext`\* | `() => ProviderFactoryContext` | _TODO: describe_ |
+| `createFactoryContext`\* | `() => ProviderFactoryContext` | Lazy provider of the [`ProviderFactoryContext`](#providerfactorycontext) the manager passes into provider factories at registration time. |
 
 #### SwapProvider
 
@@ -328,7 +328,7 @@ Constructor: `new TonConnectWalletAdapter(config)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config`\* | <a href="#tonconnectwalletadapterconfig"><code>TonConnectWalletAdapterConfig</code></a> | _TODO: describe_ |
+| `config`\* | [`TonConnectWalletAdapterConfig`](#tonconnectwalletadapterconfig) | TonConnect wallet + UI instance and the id of the connector that produced them. |
 
 ## Action
 
@@ -2523,7 +2523,7 @@ Interface that all crypto onramp providers must implement
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `type`\* | `'crypto-onramp'` | _TODO: describe_ |
+| `type`\* | `'crypto-onramp'` | Provider kind discriminator pinned to `'crypto-onramp'` so [`registerProvider`](#registerprovider) routes it to the crypto-onramp manager. |
 | `providerId`\* | `string` | Unique identifier for the provider |
 | `getMetadata`\* | <code>() =&gt; </code><a href="#cryptoonrampprovidermetadata"><code>CryptoOnrampProviderMetadata</code></a> | Get static metadata for the provider (display name, logo, url). |
 | `getQuote`\* | <code>(params: </code><a href="#cryptoonrampquoteparams"><code>CryptoOnrampQuoteParams</code></a><code>&lt;TQuoteOptions&gt;) =&gt; Promise&lt;</code><a href="#cryptoonrampquote"><code>CryptoOnrampQuote</code></a><code>&gt;</code> | Get a quote for onramping from another crypto asset into a TON asset |
@@ -2736,7 +2736,7 @@ Shape every DeFi domain manager (swap, staking, onramp, crypto-onramp) satisfies
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `createFactoryContext`\* | `() => ProviderFactoryContext` | _TODO: describe_ |
+| `createFactoryContext`\* | `() => ProviderFactoryContext` | Build a fresh [`ProviderFactoryContext`](#providerfactorycontext) the manager hands to provider factories at registration time. |
 | `registerProvider`\* | <code>(provider: </code><a href="#providerinput"><code>ProviderInput</code></a><code>&lt;T&gt;) =&gt; void</code> | Register a new provider. If a provider with the same id is already registered, it is replaced. |
 | `removeProvider`\* | `(provider: T) => void` | Remove a previously registered provider. No-op if the provider was not registered. |
 | `setDefaultProvider`\* | `(providerId: string) => void` | Set the default provider |
@@ -2750,9 +2750,9 @@ Base interface implemented by every [`DefiProvider`](#defiprovider) (swap, staki
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `type`\* | <a href="#defiprovidertype"><code>DefiProviderType</code></a> | _TODO: describe_ |
+| `type`\* | <a href="#defiprovidertype"><code>DefiProviderType</code></a> | Provider kind discriminator narrowed to the DeFi-domain literals so the right manager picks it up at registration time. |
 | `getSupportedNetworks`\* | <code>() =&gt; </code><a href="#network"><code>Network</code></a><code>[]</code> | Networks this provider can operate on. Consumers should check before calling provider methods. Implementations may return a static list or compute it dynamically (e.g. from runtime config). |
-| `providerId`\* | `string` | _TODO: describe_ |
+| `providerId`\* | `string` | Stable provider identifier, unique within the manager that registered it. |
 
 #### DefiProviderType
 
@@ -3256,16 +3256,16 @@ Walletkit-side options shape consumed by [`KitNetworkManager`](#kitnetworkmanage
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `walletManifest` | `WalletInfo` | _TODO: describe_ |
-| `deviceInfo` | `DeviceInfo` | _TODO: describe_ |
+| `walletManifest` | `WalletInfo` | TonConnect wallet manifest published by the dApp; required for the wallet to recognize the integration. |
+| `deviceInfo` | `DeviceInfo` | Device fingerprint forwarded with TonConnect requests so wallets can recognize the host. |
 | `sessionManager` | `TONConnectSessionManager` | Custom session manager implementation. If not provided, TONConnectStoredSessionManager will be used. |
 | `networks` | <a href="#networkadapters"><code>NetworkAdapters</code></a> | Network configuration |
 | `bridge` | `BridgeConfig` | Bridge settings |
 | `storage` | `StorageConfig \| StorageAdapter` | Storage settings |
 | `validation` | `{         strictMode?: boolean;         allowUnknownWalletVersions?: boolean;     }` | Validation settings |
 | `eventProcessor` | `EventProcessorConfig` | Event processor settings |
-| `analytics` | `AnalyticsManagerOptions & {         enabled?: boolean;     }` | _TODO: describe_ |
-| `dev` | `{         disableNetworkSend?: boolean;         disableManifestDomainCheck?: boolean;     }` | _TODO: describe_ |
+| `analytics` | `AnalyticsManagerOptions & {         enabled?: boolean;     }` | Analytics manager options merged with an `enabled` toggle; off by default. |
+| `dev` | `{         disableNetworkSend?: boolean;         disableManifestDomainCheck?: boolean;     }` | Diagnostic toggles useful during local development; should not be set in production builds. |
 
 #### WatchDefaultNetworkParameters
 
@@ -3619,7 +3619,7 @@ Staking API interface exposed by StakingManager
 | `getStakedBalance`\* | <code>(userAddress: </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code>, network?: </code><a href="#network"><code>Network</code></a><code>, providerId?: string) =&gt; Promise&lt;</code><a href="#stakingbalance"><code>StakingBalance</code></a><code>&gt;</code> | Get user's staked balance |
 | `getStakingProviderInfo`\* | <code>(network?: </code><a href="#network"><code>Network</code></a><code>, providerId?: string) =&gt; Promise&lt;</code><a href="#stakingproviderinfo"><code>StakingProviderInfo</code></a><code>&gt;</code> | Get staking provider information |
 | `getStakingProviderMetadata`\* | <code>(network?: </code><a href="#network"><code>Network</code></a><code>, providerId?: string) =&gt; </code><a href="#stakingprovidermetadata"><code>StakingProviderMetadata</code></a> | Get static metadata for a staking provider |
-| `createFactoryContext`\* | `() => ProviderFactoryContext` | _TODO: describe_ |
+| `createFactoryContext`\* | `() => ProviderFactoryContext` | Build a fresh [`ProviderFactoryContext`](#providerfactorycontext) the manager hands to provider factories at registration time. |
 | `registerProvider`\* | <code>(provider: </code><a href="#providerinput"><code>ProviderInput</code></a><code>&lt;StakingProviderInterface&gt;) =&gt; void</code> | Register a new provider. If a provider with the same id is already registered, it is replaced. |
 | `removeProvider`\* | `(provider: StakingProviderInterface) => void` | Remove a previously registered provider. No-op if the provider was not registered. |
 | `setDefaultProvider`\* | `(providerId: string) => void` | Set the default provider |
@@ -3925,7 +3925,7 @@ API surface exposed by [`SwapManager`](#swapmanager) — quote, build-transactio
 | --- | --- | --- |
 | `getQuote`\* | <code>(params: </code><a href="#swapquoteparams"><code>SwapQuoteParams</code></a><code>, providerId?: string) =&gt; Promise&lt;</code><a href="#swapquote"><code>SwapQuote</code></a><code>&gt;</code> | Get a quote for swapping tokens |
 | `buildSwapTransaction`\* | <code>(params: </code><a href="#swapparams"><code>SwapParams</code></a><code>) =&gt; Promise&lt;</code><a href="#transactionrequest"><code>TransactionRequest</code></a><code>&gt;</code> | Build a transaction for a swap. Provider is taken from `params.quote.providerId`, or the manager default. |
-| `createFactoryContext`\* | `() => ProviderFactoryContext` | _TODO: describe_ |
+| `createFactoryContext`\* | `() => ProviderFactoryContext` | Build a fresh [`ProviderFactoryContext`](#providerfactorycontext) the manager hands to provider factories at registration time. |
 | `registerProvider`\* | <code>(provider: </code><a href="#providerinput"><code>ProviderInput</code></a><code>&lt;SwapProviderInterface&lt;unknown, unknown&gt;&gt;) =&gt; void</code> | Register a new provider. If a provider with the same id is already registered, it is replaced. |
 | `removeProvider`\* | `(provider: SwapProviderInterface<unknown, unknown>) => void` | Remove a previously registered provider. No-op if the provider was not registered. |
 | `setDefaultProvider`\* | `(providerId: string) => void` | Set the default provider |

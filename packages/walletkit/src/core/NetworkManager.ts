@@ -32,6 +32,7 @@ export interface NetworkManager {
 export class KitNetworkManager implements NetworkManager {
     private clients: Map<string, ApiClient> = new Map();
 
+    /** @param options - {@link TonWalletKitOptions} carrying the `networks` map keyed by chain id; at least one network must be configured. */
     constructor(options: TonWalletKitOptions) {
         this.initializeClients(options);
 

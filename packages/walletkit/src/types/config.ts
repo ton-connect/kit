@@ -46,7 +46,9 @@ export type NetworkAdapters = {
  * Main configuration options for TonWalletKit
  */
 export interface TonWalletKitOptions {
+    /** TonConnect wallet manifest published by the dApp; required for the wallet to recognize the integration. */
     walletManifest?: WalletInfo;
+    /** Device fingerprint forwarded with TonConnect requests so wallets can recognize the host. */
     deviceInfo?: DeviceInfo;
 
     /**
@@ -72,10 +74,12 @@ export interface TonWalletKitOptions {
     /** Event processor settings */
     eventProcessor?: EventProcessorConfig;
 
+    /** Analytics manager options merged with an `enabled` toggle; off by default. */
     analytics?: AnalyticsManagerOptions & {
         enabled?: boolean;
     };
 
+    /** Diagnostic toggles useful during local development; should not be set in production builds. */
     dev?: {
         disableNetworkSend?: boolean;
         disableManifestDomainCheck?: boolean;

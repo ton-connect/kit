@@ -26,6 +26,7 @@ export abstract class StakingProvider implements StakingProviderInterface {
     readonly type = 'staking';
     readonly providerId: string;
 
+    /** @param providerId - Stable id the provider registers with — must be unique within {@link StakingManager}. */
     constructor(providerId: string) {
         this.providerId = providerId;
     }
