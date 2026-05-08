@@ -267,7 +267,7 @@ Returns: <a href="#watchbalancebyaddressreturntype"><code>WatchBalanceByAddressR
 
 %%docs/examples/src/appkit/actions/balances#WATCH_BALANCE_BY_ADDRESS%%
 
-### Connectors and wallets
+### Connectors
 
 #### addConnector
 
@@ -614,7 +614,7 @@ Return type of [`watchBalance`](#watchbalance) — call to stop receiving update
 type WatchBalanceReturnType = () => void;
 ```
 
-### Connectors and wallets
+### Connectors
 
 #### AddConnectorParameters
 
@@ -736,20 +736,6 @@ Return type of [`getConnectors`](#getconnectors) — read-only snapshot of regis
 ```ts
 type GetConnectorsReturnType = readonly Connector[];
 ```
-
-#### WalletInterface
-
-Wallet contract surfaced by every [`Connector`](#connector) — covers identity (address, public key, network) and signing operations; reads (balance, jettons, NFTs) go through AppKit actions instead.
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `connectorId`\* | `string` | Id of the [`Connector`](#connector) that produced this wallet. |
-| `getAddress`\* | <code>() =&gt; </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Wallet address as a user-friendly base64url string. |
-| `getPublicKey`\* | <code>() =&gt; </code><a href="#hex"><code>Hex</code></a> | Wallet public key as a `0x`-prefixed hex string. |
-| `getNetwork`\* | <code>() =&gt; </code><a href="#network"><code>Network</code></a> | Network the wallet is currently connected to. |
-| `getWalletId`\* | `() => string` | Stable identifier combining address and network — unique across AppKit's connected wallets. |
-| `sendTransaction`\* | <code>(request: </code><a href="#transactionrequest"><code>TransactionRequest</code></a><code>) =&gt; Promise&lt;</code><a href="#sendtransactionresponse"><code>SendTransactionResponse</code></a><code>&gt;</code> | Send a transaction — the wallet signs and broadcasts it. |
-| `signData`\* | <code>(payload: </code><a href="#signdatarequest"><code>SignDataRequest</code></a><code>) =&gt; Promise&lt;</code><a href="#signdataresponse"><code>SignDataResponse</code></a><code>&gt;</code> | Sign arbitrary data via the TonConnect signData flow. |
 
 #### WatchConnectorByIdParameters
 
@@ -1456,9 +1442,25 @@ Transaction payload passed to [`WalletInterface`](#walletinterface)`.sendTransac
 | `validUntil` | `number` | Unix timestamp after which the transaction becomes invalid |
 | `fromAddress` | `string` | Sender wallet address in received format(raw, user friendly) |
 
+### Wallets
+
+#### WalletInterface
+
+Wallet contract surfaced by every [`Connector`](#connector) — covers identity (address, public key, network) and signing operations; reads (balance, jettons, NFTs) go through AppKit actions instead.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `connectorId`\* | `string` | Id of the [`Connector`](#connector) that produced this wallet. |
+| `getAddress`\* | <code>() =&gt; </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Wallet address as a user-friendly base64url string. |
+| `getPublicKey`\* | <code>() =&gt; </code><a href="#hex"><code>Hex</code></a> | Wallet public key as a `0x`-prefixed hex string. |
+| `getNetwork`\* | <code>() =&gt; </code><a href="#network"><code>Network</code></a> | Network the wallet is currently connected to. |
+| `getWalletId`\* | `() => string` | Stable identifier combining address and network — unique across AppKit's connected wallets. |
+| `sendTransaction`\* | <code>(request: </code><a href="#transactionrequest"><code>TransactionRequest</code></a><code>) =&gt; Promise&lt;</code><a href="#sendtransactionresponse"><code>SendTransactionResponse</code></a><code>&gt;</code> | Send a transaction — the wallet signs and broadcasts it. |
+| `signData`\* | <code>(payload: </code><a href="#signdatarequest"><code>SignDataRequest</code></a><code>) =&gt; Promise&lt;</code><a href="#signdataresponse"><code>SignDataResponse</code></a><code>&gt;</code> | Sign arbitrary data via the TonConnect signData flow. |
+
 ## Constants
 
-### Connector
+### Connectors
 
 #### CONNECTOR_EVENTS
 

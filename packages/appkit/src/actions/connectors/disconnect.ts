@@ -13,7 +13,7 @@ import type { AppKit } from '../../core/app-kit';
  *
  * @public
  * @category Type
- * @section Connectors and wallets
+ * @section Connectors
  */
 export type DisconnectParameters = {
     /** Id of the registered connector whose wallet should be disconnected. */
@@ -25,7 +25,7 @@ export type DisconnectParameters = {
  *
  * @public
  * @category Type
- * @section Connectors and wallets
+ * @section Connectors
  */
 export type DisconnectReturnType = void;
 
@@ -41,7 +41,7 @@ export type DisconnectReturnType = void;
  *
  * @public
  * @category Action
- * @section Connectors and wallets
+ * @section Connectors
  */
 export const disconnect = async (appKit: AppKit, parameters: DisconnectParameters): Promise<DisconnectReturnType> => {
     const { connectorId } = parameters;

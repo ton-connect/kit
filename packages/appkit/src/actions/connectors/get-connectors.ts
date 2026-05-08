@@ -14,7 +14,7 @@ import type { AppKit } from '../../core/app-kit';
  *
  * @public
  * @category Type
- * @section Connectors and wallets
+ * @section Connectors
  */
 export type GetConnectorsReturnType = readonly Connector[];
 
@@ -28,7 +28,7 @@ export type GetConnectorsReturnType = readonly Connector[];
  *
  * @public
  * @category Action
- * @section Connectors and wallets
+ * @section Connectors
  */
 export const getConnectors = (appKit: AppKit): GetConnectorsReturnType => {
     return appKit.connectors;

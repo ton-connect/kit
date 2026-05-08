@@ -14,7 +14,7 @@ import type { AppKit } from '../../core/app-kit';
  *
  * @public
  * @category Type
- * @section Connectors and wallets
+ * @section Connectors
  */
 export interface GetConnectorByIdOptions {
     /** Id of the connector to look up. */
@@ -26,7 +26,7 @@ export interface GetConnectorByIdOptions {
  *
  * @public
  * @category Type
- * @section Connectors and wallets
+ * @section Connectors
  */
 export type GetConnectorByIdReturnType = Connector | undefined;
 
@@ -42,7 +42,7 @@ export type GetConnectorByIdReturnType = Connector | undefined;
  *
  * @public
  * @category Action
- * @section Connectors and wallets
+ * @section Connectors
  */
 export const getConnectorById = (appKit: AppKit, options: GetConnectorByIdOptions): GetConnectorByIdReturnType => {
     return appKit.connectors.find((connector) => connector.id === options.id);

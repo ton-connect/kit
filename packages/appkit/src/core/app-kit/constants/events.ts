@@ -11,7 +11,7 @@
  *
  * @public
  * @category Constants
- * @section Connector
+ * @section Connectors
  */
 export const CONNECTOR_EVENTS = {
     CONNECTED: 'connector:connected',

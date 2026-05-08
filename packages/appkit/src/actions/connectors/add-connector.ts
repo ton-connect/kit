@@ -14,7 +14,7 @@ import type { ConnectorInput } from '../../types/connector';
  *
  * @public
  * @category Type
- * @section Connectors and wallets
+ * @section Connectors
  */
 export type AddConnectorParameters = ConnectorInput;
 
@@ -23,7 +23,7 @@ export type AddConnectorParameters = ConnectorInput;
  *
  * @public
  * @category Type
- * @section Connectors and wallets
+ * @section Connectors
  */
 export type AddConnectorReturnType = () => void;
 
@@ -38,7 +38,7 @@ export type AddConnectorReturnType = () => void;
  *
  * @public
  * @category Action
- * @section Connectors and wallets
+ * @section Connectors
  */
 export const addConnector = (appKit: AppKit, connectorFn: AddConnectorParameters): AddConnectorReturnType => {
     return appKit.addConnector(connectorFn);

@@ -16,7 +16,7 @@ import { getConnectorById } from './get-connector-by-id';
  *
  * @public
  * @category Type
- * @section Connectors and wallets
+ * @section Connectors
  */
 export interface WatchConnectorByIdParameters {
     /** Id of the connector to watch. */
@@ -30,7 +30,7 @@ export interface WatchConnectorByIdParameters {
  *
  * @public
  * @category Type
- * @section Connectors and wallets
+ * @section Connectors
  */
 export type WatchConnectorByIdReturnType = () => void;
 
@@ -46,7 +46,7 @@ export type WatchConnectorByIdReturnType = () => void;
  *
  * @public
  * @category Action
- * @section Connectors and wallets
+ * @section Connectors
  */
 export const watchConnectorById = (
     appKit: AppKit,

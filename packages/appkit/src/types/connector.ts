@@ -16,7 +16,7 @@ import type { Network } from './network';
  *
  * @public
  * @category Type
- * @section Connectors and wallets
+ * @section Connectors
  */
 export interface Connector {
     /** Stable connector identifier, unique within an AppKit instance. */
@@ -46,7 +46,7 @@ export interface Connector {
  *
  * @public
  * @category Type
- * @section Connectors and wallets
+ * @section Connectors
  */
 export interface ConnectorMetadata {
     /** Human-readable connector name (e.g., `'TonConnect'`). */
@@ -60,7 +60,7 @@ export interface ConnectorMetadata {
  *
  * @public
  * @category Type
- * @section Connectors and wallets
+ * @section Connectors
  */
 export interface ConnectorFactoryContext {
     /** Network manager the connector should use for client lookups and default-network reads. */
@@ -76,7 +76,7 @@ export interface ConnectorFactoryContext {
  *
  * @public
  * @category Type
- * @section Connectors and wallets
+ * @section Connectors
  */
 export type ConnectorFactory = (ctx: ConnectorFactoryContext) => Connector;
 
@@ -85,7 +85,7 @@ export type ConnectorFactory = (ctx: ConnectorFactoryContext) => Connector;
  *
  * @public
  * @category Type
- * @section Connectors and wallets
+ * @section Connectors
  */
 export type ConnectorInput = Connector | ConnectorFactory;
 
@@ -97,7 +97,7 @@ export type ConnectorInput = Connector | ConnectorFactory;
  *
  * @public
  * @category Action
- * @section Connectors and wallets
+ * @section Connectors
  */
 export const createConnector = (factory: ConnectorFactory): ConnectorFactory => {
     return factory;

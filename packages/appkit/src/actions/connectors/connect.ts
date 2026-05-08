@@ -14,7 +14,7 @@ import { getDefaultNetwork } from '../network/get-default-network';
  *
  * @public
  * @category Type
- * @section Connectors and wallets
+ * @section Connectors
  */
 export type ConnectParameters = {
     /** Id of the registered connector to drive the connection through (e.g., `'tonconnect'`). */
@@ -26,7 +26,7 @@ export type ConnectParameters = {
  *
  * @public
  * @category Type
- * @section Connectors and wallets
+ * @section Connectors
  */
 export type ConnectReturnType = void;
 
@@ -42,7 +42,7 @@ export type ConnectReturnType = void;
  *
  * @public
  * @category Action
- * @section Connectors and wallets
+ * @section Connectors
  */
 export const connect = async (appKit: AppKit, parameters: ConnectParameters): Promise<ConnectReturnType> => {
     const { connectorId } = parameters;

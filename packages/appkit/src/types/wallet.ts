@@ -16,7 +16,7 @@ import type { Network } from './network';
  *
  * @public
  * @category Type
- * @section Connectors and wallets
+ * @section Wallets
  */
 export interface WalletInterface {
     /** Id of the {@link Connector} that produced this wallet. */
