@@ -38,6 +38,7 @@ export type SignTextReturnType = SignDataResponse;
  * @returns Signature and signed payload, as returned by the wallet.
  *
  * @sample docs/examples/src/appkit/actions/signing#SIGN_TEXT
+ * @expand parameters
  *
  * @public
  * @category Action

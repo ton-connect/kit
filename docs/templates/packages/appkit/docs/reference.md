@@ -4,7 +4,9 @@ target: packages/appkit/docs/reference.md
 
 ## Class
 
-### AppKit
+### Core
+
+#### AppKit
 
 Runtime that wires together connectors, networks, providers and the event
 emitter for a TON dApp. Every action in `@ton/appkit` takes an `AppKit`
@@ -38,8 +40,8 @@ arbitrary address use `getBalanceByAddress`.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `appKit`\* | [`AppKit`](#appkit) | AppKit runtime instance. |
-| `options` | [`GetBalanceOptions`](#getbalanceoptions) | Optional network override. |
+| `appKit`\* | `AppKit` | AppKit runtime instance. |
+| `options` | `GetBalanceOptions` | Optional network override. |
 | `options.network` | `Network \| undefined` | Network to read the balance from. Defaults to the selected wallet's network. |
 
 Returns: `Promise<GetBalanceReturnType>` — Balance in TON as a human-readable decimal string, or `null` if no wallet is selected.
@@ -58,8 +60,8 @@ one currently selected in AppKit. For the selected wallet's balance use
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `appKit`\* | [`AppKit`](#appkit) | AppKit runtime instance. |
-| `options`\* | [`GetBalanceByAddressOptions`](#getbalancebyaddressoptions) | Address to query and optional network override. |
+| `appKit`\* | `AppKit` | AppKit runtime instance. |
+| `options`\* | `GetBalanceByAddressOptions` | Address to query and optional network override. |
 | `options.address`\* | `string \| Address` | Wallet address as a base64url string or an `Address` instance. |
 | `options.network` | `Network \| undefined` | Network to read the balance from. Defaults to the AppKit's selected network. |
 
@@ -80,8 +82,8 @@ without any extra wiring on the caller side. For a fixed address use
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `appKit`\* | [`AppKit`](#appkit) | AppKit runtime instance. |
-| `options`\* | [`WatchBalanceOptions`](#watchbalanceoptions) | Update callback and optional network override. |
+| `appKit`\* | `AppKit` | AppKit runtime instance. |
+| `options`\* | `WatchBalanceOptions` | Update callback and optional network override. |
 | `options.network` | `Network \| undefined` | Network to watch on. Defaults to the selected wallet's network. |
 | `options.onChange`\* | `(update: BalanceUpdate) => void` | Callback fired on every balance update from the streaming provider. |
 
@@ -101,8 +103,8 @@ For the selected wallet's balance use `watchBalance`.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `appKit`\* | [`AppKit`](#appkit) | AppKit runtime instance. |
-| `options`\* | [`WatchBalanceByAddressOptions`](#watchbalancebyaddressoptions) | Address, update callback and optional network override. |
+| `appKit`\* | `AppKit` | AppKit runtime instance. |
+| `options`\* | `WatchBalanceByAddressOptions` | Address, update callback and optional network override. |
 | `options.address`\* | `string \| Address` | Wallet address as a base64url string or an `Address` instance. |
 | `options.network` | `Network \| undefined` | Network to watch on. Defaults to the AppKit's selected network. |
 | `options.onChange`\* | `(update: BalanceUpdate) => void` | Callback fired on every balance update from the streaming provider. |
@@ -123,8 +125,8 @@ Throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `appKit`\* | [`AppKit`](#appkit) | AppKit runtime instance. |
-| `parameters`\* | [`SignTextParameters`](#signtextparameters) | Text to sign and optional network override. |
+| `appKit`\* | `AppKit` | AppKit runtime instance. |
+| `parameters`\* | `SignTextParameters` | Text to sign and optional network override. |
 | `parameters.text`\* | `string` | UTF-8 text the user is asked to sign. |
 | `parameters.network` | `Network \| undefined` | Network to issue the sign request against. Defaults to the AppKit's selected network. |
 
@@ -147,7 +149,7 @@ separately.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `appKit`\* | [`AppKit`](#appkit) | AppKit runtime instance. |
+| `appKit`\* | `AppKit` | AppKit runtime instance. |
 | `parameters`\* | `CreateTransferTonTransactionParameters` | Recipient, amount and optional payload/comment. |
 | `parameters.recipientAddress`\* | `string` | Recipient address |
 | `parameters.amount`\* | `string` | Amount in TONs |

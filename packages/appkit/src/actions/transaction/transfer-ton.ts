@@ -32,6 +32,7 @@ export type TransferTonErrorType = Error;
  * @returns Wallet response carrying the BoC of the sent transaction.
  *
  * @sample docs/examples/src/appkit/actions/transaction#TRANSFER_TON
+ * @expand parameters
  *
  * @public
  * @category Action

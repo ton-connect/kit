@@ -41,6 +41,7 @@ export type GetBalanceByAddressReturnType = TokenAmount;
  * @returns Balance in TON as a human-readable decimal string.
  *
  * @sample docs/examples/src/appkit/actions/balances#GET_BALANCE_BY_ADDRESS
+ * @expand options
  *
  * @public
  * @category Action

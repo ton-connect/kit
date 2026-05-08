@@ -15,7 +15,6 @@ import type {
     JSDocParameterTag,
     ObjectLiteralExpression,
     ParameterDeclaration,
-    Symbol as TsSymbol,
     Type,
     TypeAliasDeclaration,
     VariableDeclaration,
@@ -23,7 +22,18 @@ import type {
 
 import type { CollectedSymbol } from './collect';
 
-export type SymbolKind = 'function' | 'hook' | 'component' | 'componentNamespace' | 'type' | 'class' | 'unknown';
+export type SymbolKind = 'function' | 'component' | 'componentNamespace' | 'type' | 'class';
+
+export const VALID_CATEGORIES = ['Class', 'Action', 'Hook', 'Component', 'Type'] as const;
+export type ValidCategory = (typeof VALID_CATEGORIES)[number];
+
+const CATEGORY_TO_KIND: Record<ValidCategory, SymbolKind> = {
+    Class: 'class',
+    Action: 'function',
+    Hook: 'function',
+    Component: 'component',
+    Type: 'type',
+};
 
 export interface ParamRow {
     name: string;
@@ -33,7 +43,7 @@ export interface ParamRow {
 }
 
 export interface ExtractedFunction {
-    kind: 'function' | 'hook';
+    kind: 'function';
     name: string;
     sourcePath: string;
     section: string;
@@ -91,21 +101,12 @@ export interface ExtractedClass {
     samples: string[];
 }
 
-export interface ExtractedUnknown {
-    kind: 'unknown';
-    name: string;
-    sourcePath: string;
-    section: string;
-    category: string;
-}
-
 export type Extracted =
     | ExtractedFunction
     | ExtractedComponent
     | ExtractedNamespaceComponent
     | ExtractedType
-    | ExtractedClass
-    | ExtractedUnknown;
+    | ExtractedClass;
 
 const FORMAT_FLAGS =
     TypeFormatFlags.NoTruncation |
@@ -117,93 +118,85 @@ type ExtractedWithoutMeta =
     | Omit<ExtractedComponent, 'section' | 'category'>
     | Omit<ExtractedNamespaceComponent, 'section' | 'category'>
     | Omit<ExtractedType, 'section' | 'category'>
-    | Omit<ExtractedClass, 'section' | 'category'>
-    | Omit<ExtractedUnknown, 'section' | 'category'>;
+    | Omit<ExtractedClass, 'section' | 'category'>;
 
 export function extract(collected: CollectedSymbol): Extracted {
     const { name, declaration, sourcePath } = collected;
-    const isReactPackage =
-        sourcePath !== '' && declaration.getSourceFile().getFilePath().includes('/appkit-react/src/');
-
-    const inner = extractInner(name, declaration, sourcePath, isReactPackage);
-    const section = collected.section ?? '';
     const category = collected.category ?? '';
+
+    if (!isValidCategory(category)) {
+        throw new Error(`[${name}] Invalid @category "${category}". Allowed values: ${VALID_CATEGORIES.join(', ')}.`);
+    }
+
+    const inner = extractByCategory(category, name, declaration, sourcePath);
+    const section = collected.section ?? '';
     return { ...inner, section, category } as Extracted;
 }
 
-function extractInner(
+function isValidCategory(value: string): value is ValidCategory {
+    return (VALID_CATEGORIES as readonly string[]).includes(value);
+}
+
+function extractByCategory(
+    category: ValidCategory,
     name: string,
     declaration: Node,
     sourcePath: string,
-    isReactPackage: boolean,
 ): ExtractedWithoutMeta {
-    if (Node.isInterfaceDeclaration(declaration) || Node.isTypeAliasDeclaration(declaration)) {
-        return extractType(name, declaration, sourcePath);
-    }
+    const expectedKind = CATEGORY_TO_KIND[category];
 
-    if (Node.isClassDeclaration(declaration)) {
-        return extractClass(name, declaration, sourcePath);
-    }
+    switch (expectedKind) {
+        case 'type':
+            if (Node.isInterfaceDeclaration(declaration) || Node.isTypeAliasDeclaration(declaration)) {
+                return extractType(name, declaration, sourcePath);
+            }
+            throw mismatch(name, category, 'interface or type alias');
 
-    if (Node.isFunctionDeclaration(declaration)) {
-        return extractFromFunctionDeclaration(name, declaration, sourcePath, isReactPackage);
-    }
+        case 'class':
+            if (Node.isClassDeclaration(declaration)) {
+                return extractClass(name, declaration, sourcePath);
+            }
+            throw mismatch(name, category, 'class declaration');
 
-    if (Node.isVariableDeclaration(declaration)) {
-        return extractFromVariableDeclaration(name, declaration, sourcePath, isReactPackage);
-    }
+        case 'function':
+            if (Node.isFunctionDeclaration(declaration)) {
+                return extractFunctionLike(declaration, name, sourcePath);
+            }
+            if (Node.isVariableDeclaration(declaration)) {
+                const init = declaration.getInitializer();
+                if (init && (Node.isArrowFunction(init) || Node.isFunctionExpression(init))) {
+                    return extractVariableFunction(declaration, init, name, sourcePath);
+                }
+            }
+            throw mismatch(name, category, 'function declaration or arrow/function variable');
 
-    return { kind: 'unknown', name, sourcePath };
+        case 'component':
+            if (Node.isVariableDeclaration(declaration)) {
+                const init = declaration.getInitializer();
+                if (init && Node.isObjectLiteralExpression(init)) {
+                    return extractNamespaceComponent(name, declaration, init, sourcePath);
+                }
+                return extractVariableAsComponent(declaration, name, sourcePath);
+            }
+            if (Node.isFunctionDeclaration(declaration)) {
+                return extractFunctionAsComponent(declaration, name, sourcePath);
+            }
+            throw mismatch(name, category, 'function or variable declaration');
+
+        case 'componentNamespace':
+            // Reached via category=Component → handled inside the 'component' branch above.
+            throw new Error(`Unreachable: componentNamespace must be derived from Component category`);
+    }
 }
 
-function extractFromFunctionDeclaration(
-    name: string,
-    decl: FunctionDeclaration,
-    sourcePath: string,
-    isReactPackage: boolean,
-): ExtractedWithoutMeta {
-    if (isReactPackage && /^use[A-Z]/.test(name)) {
-        return extractFunctionLike(decl, name, sourcePath, 'hook');
-    }
-    if (isReactPackage && isReactComponent(decl)) {
-        return extractFunctionAsComponent(decl, name, sourcePath);
-    }
-    return extractFunctionLike(decl, name, sourcePath, 'function');
-}
-
-function extractFromVariableDeclaration(
-    name: string,
-    decl: VariableDeclaration,
-    sourcePath: string,
-    isReactPackage: boolean,
-): ExtractedWithoutMeta {
-    const init = decl.getInitializer();
-    if (!init) return { kind: 'unknown', name, sourcePath };
-
-    if (Node.isObjectLiteralExpression(init) && isReactPackage && /^[A-Z]/.test(name)) {
-        return extractNamespaceComponent(name, decl, init, sourcePath);
-    }
-
-    if (isReactPackage && /^use[A-Z]/.test(name) && (Node.isArrowFunction(init) || Node.isFunctionExpression(init))) {
-        return extractVariableFunction(decl, init, name, sourcePath, 'hook');
-    }
-
-    if (isReactPackage && /^[A-Z]/.test(name) && isVariableReactComponent(decl, init)) {
-        return extractVariableAsComponent(decl, name, sourcePath);
-    }
-
-    if (Node.isArrowFunction(init) || Node.isFunctionExpression(init)) {
-        return extractVariableFunction(decl, init, name, sourcePath, 'function');
-    }
-
-    return { kind: 'unknown', name, sourcePath };
+function mismatch(name: string, category: ValidCategory, expected: string): Error {
+    return new Error(`[${name}] @category ${category} requires the symbol to be a ${expected}.`);
 }
 
 function extractFunctionLike(
     decl: FunctionDeclaration,
     name: string,
     sourcePath: string,
-    kind: 'function' | 'hook',
 ): Omit<ExtractedFunction, 'section' | 'category'> {
     const jsdoc = pickJsDoc(decl.getJsDocs());
     const summary = readSummary(jsdoc);
@@ -211,11 +204,22 @@ function extractFunctionLike(
     const returnDescription = readReturnDescription(jsdoc);
     const examples = readExamples(jsdoc);
     const samples = readSamples(jsdoc);
+    const expandNames = readExpandNames(jsdoc);
 
-    const params = expandParameters(decl.getParameters(), decl, paramTags);
+    const params = expandParameters(decl.getParameters(), decl, paramTags, expandNames);
     const returnTypeText = formatType(decl.getReturnType(), decl);
 
-    return { kind, name, sourcePath, summary, params, returnTypeText, returnDescription, examples, samples };
+    return {
+        kind: 'function',
+        name,
+        sourcePath,
+        summary,
+        params,
+        returnTypeText,
+        returnDescription,
+        examples,
+        samples,
+    };
 }
 
 function extractVariableFunction(
@@ -223,7 +227,6 @@ function extractVariableFunction(
     init: Node,
     name: string,
     sourcePath: string,
-    kind: 'function' | 'hook',
 ): Omit<ExtractedFunction, 'section' | 'category'> {
     const stmt = decl.getVariableStatement();
     const jsdoc = pickJsDoc(stmt?.getJsDocs() ?? []);
@@ -232,10 +235,11 @@ function extractVariableFunction(
     const returnDescription = readReturnDescription(jsdoc);
     const examples = readExamples(jsdoc);
     const samples = readSamples(jsdoc);
+    const expandNames = readExpandNames(jsdoc);
 
     if (!Node.isArrowFunction(init) && !Node.isFunctionExpression(init)) {
         return {
-            kind,
+            kind: 'function',
             name,
             sourcePath,
             summary,
@@ -247,10 +251,20 @@ function extractVariableFunction(
         };
     }
 
-    const params = expandParameters(init.getParameters(), decl, paramTags);
+    const params = expandParameters(init.getParameters(), decl, paramTags, expandNames);
     const returnTypeText = formatType(init.getReturnType(), decl);
 
-    return { kind, name, sourcePath, summary, params, returnTypeText, returnDescription, examples, samples };
+    return {
+        kind: 'function',
+        name,
+        sourcePath,
+        summary,
+        params,
+        returnTypeText,
+        returnDescription,
+        examples,
+        samples,
+    };
 }
 
 function extractFunctionAsComponent(
@@ -358,7 +372,8 @@ function extractClass(
     }
     const ctorJsDoc = pickJsDoc(ctor.getJsDocs());
     const ctorParamTags = readParamTags(ctorJsDoc);
-    const constructorParams = expandParameters(ctor.getParameters(), decl, ctorParamTags);
+    const ctorExpandNames = readExpandNames(ctorJsDoc);
+    const constructorParams = expandParameters(ctor.getParameters(), decl, ctorParamTags, ctorExpandNames);
     return { kind: 'class', name, sourcePath, summary, constructorParams, examples, samples };
 }
 
@@ -366,6 +381,7 @@ function expandParameters(
     params: ParameterDeclaration[],
     contextNode: Node,
     paramTags: Map<string, string>,
+    expandNames: Set<string>,
 ): ParamRow[] {
     const rows: ParamRow[] = [];
 
@@ -374,8 +390,7 @@ function expandParameters(
         const paramType = param.getType();
         const required = !param.hasQuestionToken() && !param.hasInitializer() && !param.isRestParameter();
 
-        const shouldFlatten =
-            (paramName === 'options' || paramName === 'parameters') && isFlattenableObjectType(paramType);
+        const shouldFlatten = expandNames.has(paramName) && isFlattenableObjectType(paramType);
 
         if (shouldFlatten) {
             rows.push({
@@ -447,37 +462,8 @@ function isFlattenableObjectType(type: Type): boolean {
     return type.getProperties().length > 0;
 }
 
-function isReactComponent(decl: FunctionDeclaration): boolean {
-    const ret = decl.getReturnType();
-    return isReactReturnType(ret.getText(decl, FORMAT_FLAGS));
-}
-
-function isVariableReactComponent(decl: VariableDeclaration, init: Node): boolean {
-    if (Node.isArrowFunction(init) || Node.isFunctionExpression(init)) {
-        const ret = init.getReturnType();
-        if (isReactReturnType(ret.getText(decl, FORMAT_FLAGS))) return true;
-    }
-    const declTypeText = decl.getType().getText(decl, FORMAT_FLAGS);
-    if (declTypeText.includes('ForwardRefExoticComponent')) return true;
-    if (declTypeText.includes('FC<') || declTypeText.includes('FunctionComponent')) return true;
-
-    const callSig = decl.getType().getCallSignatures()[0];
-    if (callSig) {
-        return isReactReturnType(callSig.getReturnType().getText(decl, FORMAT_FLAGS));
-    }
-    return false;
-}
-
-function isReactReturnType(text: string): boolean {
-    return /\b(JSX\.Element|ReactElement|ReactNode|Element)\b/.test(text);
-}
-
-const MAX_TYPE_LENGTH = 240;
-
 function formatType(type: Type, contextNode: Node): string {
-    const raw = type.getText(contextNode, FORMAT_FLAGS).replace(/\s+/g, ' ');
-    if (raw.length <= MAX_TYPE_LENGTH) return raw;
-    return raw.slice(0, MAX_TYPE_LENGTH) + '… /* truncated */';
+    return type.getText(contextNode, FORMAT_FLAGS).replace(/\s+/g, ' ');
 }
 
 function pickJsDoc(jsDocs: JSDoc[]): JSDoc | null {
@@ -517,6 +503,17 @@ function readExamples(jsdoc: JSDoc | null): string[] {
         if (tag.getTagName() !== 'example') continue;
         const text = tag.getCommentText()?.trim();
         if (text) out.push(text);
+    }
+    return out;
+}
+
+function readExpandNames(jsdoc: JSDoc | null): Set<string> {
+    const out = new Set<string>();
+    if (!jsdoc) return out;
+    for (const tag of jsdoc.getTags()) {
+        if (tag.getTagName() !== 'expand') continue;
+        const text = tag.getCommentText()?.trim();
+        if (text) out.add(text);
     }
     return out;
 }

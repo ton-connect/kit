@@ -39,6 +39,7 @@ export type GetBalanceReturnType = TokenAmount | null;
  * @returns Balance in TON as a human-readable decimal string, or `null` if no wallet is selected.
  *
  * @sample docs/examples/src/appkit/actions/balances#GET_BALANCE
+ * @expand options
  *
  * @public
  * @category Action

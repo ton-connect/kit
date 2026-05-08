@@ -23,11 +23,7 @@ const TODO_MARKER = '_TODO: describe_';
 
 const CATEGORY_ORDER = ['Class', 'Action', 'Hook', 'Component', 'Type'];
 
-let LINKABLE_NAMES: Set<string> = new Set();
-
 export function render(extracted: Extracted[]): string {
-    LINKABLE_NAMES = new Set(extracted.map((e) => e.name));
-
     const parts: string[] = [];
 
     const byCategory = groupByCategory(extracted);
@@ -78,18 +74,12 @@ function appendCategoryBlock(parts: string[], category: string, entries: Extract
 
     const orderedSections = [...grouped.keys()].sort();
 
-    // Skip the section layer when there is only one — the heading would just duplicate context.
-    const skipSection = orderedSections.length <= 1;
-    const entryLevel: HeadingLevel = skipSection ? '###' : '####';
-
     for (const sectionTitle of orderedSections) {
         const sectionEntries = grouped.get(sectionTitle)!;
-        if (!skipSection) {
-            parts.push(`### ${sectionTitle}`);
-            parts.push('');
-        }
+        parts.push(`### ${sectionTitle}`);
+        parts.push('');
         for (const entry of sectionEntries) {
-            parts.push(renderEntry(entry, entryLevel));
+            parts.push(renderEntry(entry, '####'));
             parts.push('');
         }
     }
@@ -100,7 +90,6 @@ type HeadingLevel = '###' | '####';
 function renderEntry(entry: Extracted, level: HeadingLevel): string {
     switch (entry.kind) {
         case 'function':
-        case 'hook':
             return renderFunction(entry, level);
         case 'component':
             return renderComponent(entry, level);
@@ -110,8 +99,6 @@ function renderEntry(entry: Extracted, level: HeadingLevel): string {
             return renderType(entry, level);
         case 'class':
             return renderClass(entry, level);
-        case 'unknown':
-            return `${level} ${entry.name}\n\n${TODO_MARKER}`;
     }
 }
 
@@ -264,32 +251,8 @@ function escapeForCell(text: string): string {
     return text.replace(/\|/g, '\\|');
 }
 
-/**
- * Wraps a type string in inline-code, replacing identifiers that match
- * documented symbols with markdown links to their anchor in this same file.
- */
 function formatTypeCell(typeText: string): string {
-    const escaped = escapeForCell(typeText);
-    const re = /\b[A-Z][A-Za-z0-9_]*\b/g;
-    const parts: string[] = [];
-    let cursor = 0;
-    let match: RegExpExecArray | null;
-    while ((match = re.exec(escaped)) !== null) {
-        const name = match[0];
-        if (!LINKABLE_NAMES.has(name)) continue;
-        if (match.index > cursor) {
-            parts.push('`' + escaped.slice(cursor, match.index) + '`');
-        }
-        parts.push(`[\`${name}\`](#${slugify(name)})`);
-        cursor = match.index + name.length;
-    }
-    if (parts.length === 0) {
-        return '`' + escaped + '`';
-    }
-    if (cursor < escaped.length) {
-        parts.push('`' + escaped.slice(cursor) + '`');
-    }
-    return parts.join('');
+    return '`' + escapeForCell(typeText) + '`';
 }
 
 function slugify(name: string): string {
@@ -297,9 +260,10 @@ function slugify(name: string): string {
 }
 
 /**
- * Resolves `{@link Foo}` markers (planted by sanitizeJsDocText) into markdown
- * links — when `Foo` is documented in this same reference — or plain code
- * spans otherwise.
+ * Resolves `{@link Foo}` markers (planted by sanitizeJsDocText) into
+ * markdown links pointing to `#foo` in this same reference. The author is
+ * responsible for using `{@link …}` only with names that exist as headings
+ * — otherwise the link will be dead.
  */
 function resolveLinks(text: string): string {
     if (!text.includes(LINK_MARKER_OPEN)) return text;
@@ -318,11 +282,7 @@ function resolveLinks(text: string): string {
             break;
         }
         const name = text.slice(start + LINK_MARKER_OPEN.length, end).trim();
-        if (LINKABLE_NAMES.has(name)) {
-            out.push(`[\`${name}\`](#${slugify(name)})`);
-        } else {
-            out.push(`\`${name}\``);
-        }
+        out.push(`[\`${name}\`](#${slugify(name)})`);
         cursor = end + LINK_MARKER_CLOSE.length;
     }
     return out.join('');

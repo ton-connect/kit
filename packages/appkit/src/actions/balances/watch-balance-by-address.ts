@@ -42,6 +42,7 @@ export type WatchBalanceByAddressReturnType = () => void;
  * @returns Unsubscribe function — call it to stop receiving updates.
  *
  * @sample docs/examples/src/appkit/actions/balances#WATCH_BALANCE_BY_ADDRESS
+ * @expand options
  *
  * @public
  * @category Action
