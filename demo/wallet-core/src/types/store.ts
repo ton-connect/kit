@@ -27,6 +27,7 @@ import type {
     StakingBalance,
     StakingProviderInfo,
     StakeParams,
+    TransactionRequest,
     UnstakeModes,
 } from '@ton/walletkit';
 
@@ -235,6 +236,15 @@ export interface NftsSlice {
 }
 
 // Swap slice interface
+export type SwapConfirmationStatus = 'idle' | 'broadcasting' | 'confirming' | 'completed' | 'failed' | 'timeout';
+
+export interface SwapReceipt {
+    fromSymbol: string;
+    fromAmount: string;
+    toSymbol: string;
+    toAmount: string;
+}
+
 export interface SwapState {
     fromToken: SwapToken;
     toToken: SwapToken;
@@ -246,6 +256,15 @@ export interface SwapState {
     error: string | null;
     slippageBps: number;
     isReverseSwap: boolean;
+    preparedTransaction: TransactionRequest | null;
+    isPreparingTransaction: boolean;
+    lastSwapHash: string | null;
+    swapStartedAt: number | null;
+    lastSwapNotificationId: string | null;
+    lastSwapStatus: SwapConfirmationStatus;
+    lastSwapDurationMs: number | null;
+    lastSwapReceipt: SwapReceipt | null;
+    lastSwapErrorMessage: string | null;
 }
 
 // Staking slice interface
@@ -287,7 +306,9 @@ export interface SwapSlice {
     setSlippageBps: (slippage: number) => void;
     swapTokens: () => void;
     getSwapQuote: () => Promise<void>;
-    executeSwap: () => Promise<void>;
+    prepareSwapTransaction: () => Promise<void>;
+    executeSwap: () => Promise<string | null>;
+    watchSwapConfirmation: (normalizedHash: string) => Promise<void>;
     clearSwap: () => void;
     validateSwapInputs: () => string | null;
 }

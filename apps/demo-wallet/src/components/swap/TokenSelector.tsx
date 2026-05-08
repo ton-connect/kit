@@ -9,12 +9,11 @@
 import { useMemo } from 'react';
 import type { FC } from 'react';
 import { useJettons } from '@demo/wallet-core';
-import type { Jetton } from '@ton/walletkit';
 import type { SwapToken } from '@ton/walletkit';
 
 import { cn } from '@/lib/utils';
-import { USDT_ADDRESS } from '@/constants/swap';
-import { getJettonsImage, getJettonsSymbol } from '@/utils/jetton';
+import { getJettonsImage } from '@/utils/jetton';
+import { resolveTokenSymbol } from '@/utils/swapToken';
 import { CircleLogo } from '@/components/CircleLogo';
 
 interface TokenSelectorProps {
@@ -24,19 +23,6 @@ interface TokenSelectorProps {
     placeholder?: string;
     className?: string;
 }
-
-const getTokenSymbol = (token: SwapToken, jetton?: Jetton): string => {
-    if (token.symbol) return token.symbol;
-    if (token.address === 'ton') return 'TON';
-    if (token.address === USDT_ADDRESS) return 'USDT';
-
-    if (jetton) {
-        const symbol = getJettonsSymbol(jetton);
-        return symbol || 'Unknown';
-    }
-
-    return 'Unknown';
-};
 
 export const TokenSelector: FC<TokenSelectorProps> = ({
     selectedToken,
@@ -55,7 +41,7 @@ export const TokenSelector: FC<TokenSelectorProps> = ({
     // };
 
     const selectedTokenInfo = useMemo(() => {
-        const symbol = getTokenSymbol(selectedToken);
+        const symbol = resolveTokenSymbol(selectedToken, userJettons);
 
         if (selectedToken.address !== 'ton') {
             const jetton = userJettons.find((j) => j.address === selectedToken.address);

@@ -46,6 +46,9 @@ export type {
     JettonsSlice,
     NftsSlice,
     SwapSlice,
+    SwapState,
+    SwapConfirmationStatus,
+    SwapReceipt,
     StakingSlice,
 } from './types/store';
 
