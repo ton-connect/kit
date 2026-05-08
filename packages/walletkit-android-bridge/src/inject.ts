@@ -7,7 +7,12 @@
  */
 
 // Bridge injection for Android internal browser
-import { injectBridgeCode, TONCONNECT_BRIDGE_EVENT, TONCONNECT_BRIDGE_REQUEST } from '@ton/walletkit/bridge';
+import {
+    injectBridgeCode,
+    TONCONNECT_BRIDGE_EVENT,
+    TONCONNECT_BRIDGE_REQUEST,
+    TONCONNECT_BRIDGE_RESPONSE,
+} from '@ton/walletkit/bridge';
 import type { BridgeEvent, InjectedToExtensionBridgeRequestPayload, JSBridgeInjectOptions } from '@ton/walletkit';
 import type { Transport } from '@ton/walletkit';
 
@@ -21,11 +26,6 @@ declare global {
 }
 
 type TonConnectBridge = {
-    __notifyResponse?: (messageId: string) => void;
-    __notifyEvent?: () => void;
-    pullResponse?: (messageId: string) => string | null;
-    pullEvent?: (frameId: string) => string | null;
-    hasEvent?: (frameId: string) => boolean;
     postMessage?: (payload: string) => void;
 };
 
@@ -50,7 +50,10 @@ const isAndroidWebView = typeof tonWindow.AndroidTonConnect !== 'undefined';
 
 /**
  * Android WebView Transport Implementation
- * Uses BridgeInterface as message bus with postMessage for iframe communication
+ *
+ * Kotlin→JS: uses WebView.postWebMessage() — JS receives via window.addEventListener('message').
+ * JS→Kotlin: uses @JavascriptInterface postMessage().
+ * Iframe relay: main frame relays native messages down to child iframes via postMessage.
  */
 class AndroidWebViewTransport implements Transport {
     private pendingRequests = new Map<
@@ -64,125 +67,95 @@ class AndroidWebViewTransport implements Transport {
     private eventCallbacks: Array<(event: BridgeEvent) => void> = [];
 
     constructor() {
-        // Set up notification handlers and postMessage relay
-        this.setupNotificationHandlers();
-        this.setupPostMessageRelay();
+        this.setupMessageListener();
     }
 
-    private setupNotificationHandlers(): void {
-        const bridge = tonWindow.AndroidTonConnect;
-        if (!bridge) return;
-
-        // Main frame: Pull from BridgeInterface and broadcast to iframes
-        if (window === window.top) {
-            bridge.__notifyResponse = (messageId: string) => {
-                this.handleResponseNotification(messageId);
-            };
-
-            bridge.__notifyEvent = () => {
-                this.handleEventNotification();
-            };
-        }
-    }
-
-    private setupPostMessageRelay(): void {
+    private setupMessageListener(): void {
         window.addEventListener('message', (event) => {
             if (event.source === window) return;
 
-            if (event.data?.type === 'ANDROID_BRIDGE_RESPONSE') {
-                this.pullAndDeliverResponse(event.data.messageId);
-                document.querySelectorAll('iframe').forEach((iframe) => {
-                    try {
-                        iframe.contentWindow?.postMessage(event.data, '*');
-                    } catch (_e) {
-                        // Ignore cross-origin errors
-                    }
-                });
+            if (event.source === null) {
+                // Native message from Kotlin via postWebMessage
+                this.handleNativeMessage(event.data as string);
+            } else if (event.data?.type === 'ANDROID_BRIDGE_RESPONSE') {
+                // Relayed response from parent frame
+                this.parseAndDeliverResponse(event.data.data as string);
+                this.relayToSubframes(event.data);
             } else if (event.data?.type === 'ANDROID_BRIDGE_EVENT') {
-                this.pullAndDeliverEvent();
-                document.querySelectorAll('iframe').forEach((iframe) => {
+                // Relayed event from parent frame
+                this.deliverEventFromData(event.data.data as string);
+                this.relayToSubframes(event.data);
+            }
+        });
+    }
+
+    private handleNativeMessage(rawData: string): void {
+        try {
+            const msg = JSON.parse(rawData) as { type?: string };
+            if (msg.type === TONCONNECT_BRIDGE_RESPONSE) {
+                this.parseAndDeliverResponse(rawData);
+                this.relayToSubframes({ type: 'ANDROID_BRIDGE_RESPONSE', data: rawData });
+            } else if (msg.type === TONCONNECT_BRIDGE_EVENT) {
+                this.deliverEventFromData(rawData);
+                this.relayToSubframes({ type: 'ANDROID_BRIDGE_EVENT', data: rawData });
+            }
+        } catch (err) {
+            error('[AndroidTransport] Failed to handle native message:', err);
+        }
+    }
+
+    private parseAndDeliverResponse(rawData: string): void {
+        try {
+            const response = JSON.parse(rawData) as {
+                messageId?: string;
+                error?: { message?: string };
+                payload?: BridgeEvent;
+            };
+            const messageId = response.messageId;
+            if (!messageId) return;
+
+            const pending = this.pendingRequests.get(messageId);
+            if (!pending) return;
+
+            clearTimeout(pending.timeout);
+            this.pendingRequests.delete(messageId);
+
+            if (response.error) {
+                pending.reject(new Error(response.error.message || 'Failed'));
+            } else {
+                pending.resolve(response.payload as BridgeEvent);
+            }
+        } catch (err) {
+            error('[AndroidTransport] Failed to parse/deliver response:', err);
+        }
+    }
+
+    private deliverEventFromData(rawData: string): void {
+        try {
+            const data = JSON.parse(rawData) as { type?: string; event?: BridgeEvent };
+            if (data.type === TONCONNECT_BRIDGE_EVENT && data.event) {
+                const event = data.event;
+                this.eventCallbacks.forEach((callback) => {
                     try {
-                        iframe.contentWindow?.postMessage(event.data, '*');
-                    } catch (_e) {
-                        // Ignore cross-origin errors
+                        callback(event);
+                    } catch (err) {
+                        error('[AndroidTransport] Event callback error:', err);
                     }
                 });
             }
-        });
+        } catch (err) {
+            error('[AndroidTransport] Failed to parse/deliver event:', err);
+        }
     }
 
-    private handleResponseNotification(messageId: string): void {
-        this.pullAndDeliverResponse(messageId);
+    private relayToSubframes(data: unknown): void {
         document.querySelectorAll('iframe').forEach((iframe) => {
             try {
-                iframe.contentWindow?.postMessage({ type: 'ANDROID_BRIDGE_RESPONSE', messageId }, '*');
+                iframe.contentWindow?.postMessage(data, '*');
             } catch (_e) {
                 // Ignore cross-origin errors
             }
         });
-    }
-
-    private handleEventNotification(): void {
-        this.pullAndDeliverEvent();
-        document.querySelectorAll('iframe').forEach((iframe) => {
-            try {
-                iframe.contentWindow?.postMessage({ type: 'ANDROID_BRIDGE_EVENT' }, '*');
-            } catch (_e) {
-                // Ignore cross-origin errors
-            }
-        });
-    }
-
-    private pullAndDeliverResponse(messageId: string): void {
-        const pending = this.pendingRequests.get(messageId);
-        if (!pending) return;
-
-        try {
-            const bridge = tonWindow.AndroidTonConnect;
-            if (!bridge?.pullResponse) return;
-
-            const responseStr = bridge.pullResponse(messageId);
-            if (responseStr) {
-                const response = JSON.parse(responseStr);
-                clearTimeout(pending.timeout);
-                this.pendingRequests.delete(messageId);
-
-                if (response.error) {
-                    pending.reject(new Error(response.error.message || 'Failed'));
-                } else {
-                    pending.resolve(response.payload);
-                }
-            }
-        } catch (err) {
-            error('[AndroidTransport] Failed to pull/process response:', err);
-            pending.reject(err as Error);
-        }
-    }
-
-    private pullAndDeliverEvent(): void {
-        try {
-            const bridge = tonWindow.AndroidTonConnect;
-            if (!bridge?.pullEvent || !bridge?.hasEvent) return;
-
-            while (bridge.hasEvent(frameId)) {
-                const eventStr = bridge.pullEvent(frameId);
-                if (eventStr) {
-                    const data = JSON.parse(eventStr) as { type?: string; event?: BridgeEvent };
-                    if (data.type === TONCONNECT_BRIDGE_EVENT && data.event) {
-                        const event = data.event;
-                        this.eventCallbacks.forEach((callback) => {
-                            try {
-                                callback(event);
-                            } catch (err) {
-                                error('[AndroidTransport] Event callback error:', err);
-                            }
-                        });
-                    }
-                }
-            }
-        } catch (err) {
-            error('[AndroidTransport] Failed to pull/process event:', err);
-        }
     }
 
     async send(request: Omit<InjectedToExtensionBridgeRequestPayload, 'id'>): Promise<BridgeEvent> {
@@ -257,12 +230,6 @@ class AndroidWebViewTransport implements Transport {
         });
         this.pendingRequests.clear();
         this.eventCallbacks = [];
-
-        const bridge = tonWindow.AndroidTonConnect;
-        if (bridge) {
-            delete bridge.__notifyResponse;
-            delete bridge.__notifyEvent;
-        }
     }
 }
 

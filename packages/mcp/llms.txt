@@ -4,7 +4,7 @@
 
 ## Overview
 
-This MCP server provides tools for managing TON blockchain wallets. It supports wallet info, balance queries, transfers (TON, Jettons, NFTs), token swaps, transaction history, DNS resolution, local multi-wallet registry management, and agentic wallet onboarding.
+This MCP server provides tools for managing TON blockchain wallets. It supports wallet info, balance queries, transfers (TON, Jettons, NFTs), token swaps, transaction history, DNS resolution, TonProof authentication, local multi-wallet registry management, and agentic wallet onboarding.
 
 It has two runtime modes:
 - Registry mode: if `MNEMONIC` and `PRIVATE_KEY` are not set, wallets are loaded from the local TON config registry (`~/.config/ton/config.json` or `TON_CONFIG_PATH`)
@@ -67,7 +67,7 @@ Returns: array of tokens with address, symbol, name, balance, decimals
 ### get_jetton_info
 Get Jetton master metadata.
 Parameters:
-- address (required): Jetton master contract address
+- jettonAddress (required): Jetton master contract address
 Returns: Jetton metadata (address, name, symbol, decimals, description, image, uri)
 
 ### get_transactions
@@ -110,6 +110,13 @@ Parameters:
 - validUntil (optional): expiry timestamp
 - fromAddress (optional): sender address
 Returns: top-level normalizedHash plus details
+
+### emulate_transaction
+Dry-run a raw transaction without broadcasting it.
+Parameters:
+- messages (required): array of {address, amount (nanoTON), stateInit?, payload?}
+- validUntil (optional): expiry timestamp
+Returns: expected TON and Jetton balance changes, fees, and high-level actions
 
 ### get_swap_quote
 Get quote for token swap.
@@ -154,6 +161,14 @@ Parameters:
 Find the associated DNS domain for a wallet address when available.
 Parameters:
 - address (required): TON wallet address
+
+### generate_ton_proof
+Generate a signed TonConnect proof-of-ownership payload for the active wallet.
+Parameters:
+- domain (required): domain to generate the proof for, e.g. "getgems.io"
+- payload (required): challenge or payload string provided by the verifying service
+Returns: address, chain id, walletStateInit, publicKey, timestamp, domain, payload, and base64 signature ready to submit to the verifying service
+Requires signing access. Imported read-only agentic wallets need operator key rotation completed before this tool can generate a proof.
 
 ### agentic_validate_wallet
 Registry mode only. Validate an agentic wallet against network/collection and optional owner.
@@ -250,6 +265,12 @@ Parameters:
 4. send_raw_transaction with quote's transaction params
 5. Default: poll get_transaction_status until completed or failed. User can ask to skip.
 
+### Generating TonProof Authentication
+1. Use the exact domain and challenge payload supplied by the verifying service or user
+2. Do not modify, invent, or normalize the payload; it is part of what gets signed
+3. generate_ton_proof with domain and payload
+4. Return the proof JSON or submit it to the service if the user explicitly asked for that integration step
+
 ### Importing an Existing Agentic Wallet
 1. agentic_validate_wallet if the wallet only exists as an address
 2. agentic_import_wallet to import it into the local registry
@@ -283,4 +304,6 @@ Parameters:
 - Agentic onboarding callback state is persisted in the local config; in stdio mode use `AGENTIC_CALLBACK_BASE_URL` and/or `AGENTIC_CALLBACK_PORT` when you need a stable callback endpoint across restarts
 - Registry management responses are sanitized and do not expose mnemonic, private keys, operator private keys, or Toncenter API keys
 - Read tools can work with imported agentic wallets without `operator_private_key`; write tools cannot
+- generate_ton_proof is not a transaction, but it requires signing access and will not work with read-only imported agentic wallets
+- TonProof signs wallet ownership for a domain and payload; only generate it for domains/payloads the user or verifying service intentionally provided
 - **Default flow:** After any send, poll get_transaction_status until completed or failed. User can specify whether to check status.

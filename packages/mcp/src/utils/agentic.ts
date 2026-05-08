@@ -43,6 +43,7 @@ export interface AgenticImportCandidate {
     operatorPublicKey?: string;
     originOperatorPublicKey?: string;
     collectionAddress: string;
+    nftItemIndex: string;
     deployedByUser?: boolean;
     name?: string;
 }
@@ -379,6 +380,7 @@ export async function listAgenticWalletsByOwner(input: {
                     operatorPublicKey: formatPublicKeyHex(state.operatorPublicKey),
                     originOperatorPublicKey: formatPublicKeyHex(state.originOperatorPublicKey),
                     collectionAddress: state.collectionAddress.toString(),
+                    nftItemIndex: state.nftItemIndex.toString(),
                     deployedByUser: state.deployedByUser,
                     name: nft.info?.name ?? extractMetadataText(state.nftItemContent),
                 });
@@ -438,6 +440,7 @@ export async function validateAgenticWalletAddress(input: {
         operatorPublicKey: formatPublicKeyHex(state.operatorPublicKey),
         originOperatorPublicKey: formatPublicKeyHex(state.originOperatorPublicKey),
         collectionAddress: state.collectionAddress.toString(),
+        nftItemIndex: state.nftItemIndex.toString(),
         deployedByUser: state.deployedByUser,
         name: extractMetadataText(state.nftItemContent),
     };

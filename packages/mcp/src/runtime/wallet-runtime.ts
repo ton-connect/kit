@@ -21,6 +21,7 @@ import type { TonWalletKit as TonWalletKitType, Wallet, WalletAdapter, WalletSig
 import { AgenticWalletAdapter } from '../contracts/agentic_wallet/AgenticWalletAdapter.js';
 import type { IContactResolver } from '../types/contacts.js';
 import { McpWalletService } from '../services/McpWalletService.js';
+import { persistAgenticWalletNftIndex } from '../registry/config.js';
 import type {
     StandardWalletVersion,
     StoredAgenticWallet,
@@ -139,6 +140,21 @@ async function createServiceFromStoredStandard(
     }
 }
 
+function parseStoredWalletNftIndex(value: string | undefined): bigint | undefined {
+    if (value === undefined) {
+        return undefined;
+    }
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return undefined;
+    }
+    try {
+        return trimmed.startsWith('-') ? -BigInt(trimmed.slice(1)) : BigInt(trimmed);
+    } catch {
+        return undefined;
+    }
+}
+
 async function createServiceFromStoredAgentic(
     wallet: StoredAgenticWallet,
     contacts: IContactResolver | undefined,
@@ -154,10 +170,21 @@ async function createServiceFromStoredAgentic(
     const kit = createKit(wallet.network, toncenterApiKey);
     await kit.waitForReady();
     try {
+        const client = kit.getApiClient(getKitNetwork(wallet.network));
+        const collectionAddress = wallet.collection_address;
+        const walletNftIndex = parseStoredWalletNftIndex(wallet.wallet_nft_index);
         const adapter = await AgenticWalletAdapter.create(signer, {
-            client: kit.getApiClient(getKitNetwork(wallet.network)),
+            client,
             network: getKitNetwork(wallet.network),
             walletAddress: wallet.address,
+            walletNftIndex,
+            collectionAddress,
+            onWalletNftIndexResolved:
+                wallet.wallet_nft_index === undefined
+                    ? async (resolved) => {
+                          await persistAgenticWalletNftIndex(wallet.id, resolved.toString());
+                      }
+                    : undefined,
         });
         await addWallet(kit, adapter);
         const service = await McpWalletService.create({

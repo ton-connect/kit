@@ -294,6 +294,7 @@ export class WalletRegistryService {
             operatorPublicKey,
             source: matchedPendingDeployment?.source || 'Manual import',
             collectionAddress: validated.collectionAddress,
+            walletNftIndex: validated.nftItemIndex,
             originOperatorPublicKey: validated.originOperatorPublicKey,
             deployedByUser: validated.deployedByUser,
         });
@@ -509,6 +510,7 @@ export class WalletRegistryService {
             operatorPublicKey: pending.operator_public_key || input.validatedWallet.operatorPublicKey,
             source: input.source?.trim() || pending.source?.trim() || 'Deployed via @ton/mcp',
             collectionAddress: input.validatedWallet.collectionAddress || pending.collection_address,
+            walletNftIndex: input.validatedWallet.nftItemIndex,
             originOperatorPublicKey: input.validatedWallet.originOperatorPublicKey,
             deployedByUser: input.validatedWallet.deployedByUser,
         });
