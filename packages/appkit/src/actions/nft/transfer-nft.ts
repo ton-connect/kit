@@ -6,12 +6,11 @@
  *
  */
 
-import type { SendTransactionResponse } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
+import type { SendTransactionResponse } from '../../types/transaction';
+import { sendTransaction } from '../transaction/send-transaction';
 import { createTransferNftTransaction } from './create-transfer-nft-transaction';
 import type { CreateTransferNftTransactionParameters } from './create-transfer-nft-transaction';
-import { sendTransaction } from '../transaction/send-transaction';
 
 export type TransferNftParameters = CreateTransferNftTransactionParameters;
 

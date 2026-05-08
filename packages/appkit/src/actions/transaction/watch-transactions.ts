@@ -6,10 +6,10 @@
  *
  */
 
-import type { TransactionsUpdate, Network } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
 import { WALLETS_EVENTS } from '../../core/app-kit';
+import type { TransactionsUpdate } from '../../core/streaming';
+import type { Network } from '../../types/network';
 import { getSelectedWallet } from '../wallets/get-selected-wallet';
 import { watchTransactionsByAddress } from './watch-transactions-by-address';
 

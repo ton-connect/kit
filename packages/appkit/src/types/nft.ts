@@ -6,4 +6,4 @@
  *
  */
 
-export type { NFT } from '@ton/walletkit';
+export type { NFT, NFTsResponse } from '@ton/walletkit';

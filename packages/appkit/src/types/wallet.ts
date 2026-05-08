@@ -6,9 +6,8 @@
  *
  */
 
-import type { SendTransactionResponse, Hex, UserFriendlyAddress } from '@ton/walletkit';
-
-import type { TransactionRequest } from './transaction';
+import type { Hex, UserFriendlyAddress } from './primitives';
+import type { TransactionRequest, SendTransactionResponse } from './transaction';
 import type { SignDataRequest, SignDataResponse } from './signing';
 import type { Network } from './network';
 

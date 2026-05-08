@@ -6,16 +6,15 @@
  *
  */
 
+import type { AppKit } from '../../core/app-kit';
+import type { TransactionRequest } from '../../types/transaction';
 import {
     createJettonTransferPayload,
     createTransferTransaction,
     getJettonWalletAddressFromClient,
     DEFAULT_JETTON_GAS_FEE,
     parseUnits,
-} from '@ton/walletkit';
-
-import type { TransactionRequest } from '../../types/transaction';
-import type { AppKit } from '../../core/app-kit';
+} from '../../utils';
 import { getSelectedWallet } from '../wallets/get-selected-wallet';
 
 export interface CreateTransferJettonTransactionParameters {

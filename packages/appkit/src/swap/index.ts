@@ -37,3 +37,6 @@ export type { DefiManagerAPI, DefiProvider } from '@ton/walletkit';
  * @section Swap
  */
 export type { SwapToken, TokenAmount, SwapParams, SwapAPI, SwapQuote, SwapQuoteParams } from '@ton/walletkit';
+
+// Internal-only — `SwapProviderInterface` is the contract authors implement, not consumed from `@ton/appkit`.
+export type { SwapProviderInterface } from '@ton/walletkit';

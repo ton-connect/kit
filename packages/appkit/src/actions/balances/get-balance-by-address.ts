@@ -7,10 +7,11 @@
  */
 
 import { Address } from '@ton/core';
-import type { TokenAmount, Network } from '@ton/walletkit';
-import { formatUnits } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
+import type { TokenAmount } from '../../types/primitives';
+import type { Network } from '../../types/network';
+import { formatUnits } from '../../utils';
 import { resolveNetwork } from '../../utils/network/resolve-network';
 
 /**

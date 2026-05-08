@@ -7,12 +7,12 @@
  */
 
 import { Address } from '@ton/core';
-import type { NFTsResponse } from '@ton/walletkit';
-import { getNftsFromClient } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
-import { resolveNetwork } from '../../utils/network/resolve-network';
 import type { Network } from '../../types/network';
+import type { NFTsResponse } from '../../types/nft';
+import { getNftsFromClient } from '../../utils';
+import { resolveNetwork } from '../../utils/network/resolve-network';
 
 export interface GetNftsByAddressOptions {
     address: string | Address;

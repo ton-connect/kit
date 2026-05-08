@@ -6,10 +6,9 @@
  *
  */
 
-import { createCommentPayloadBase64, parseUnits } from '@ton/walletkit';
-
-import type { TransactionRequest, TransactionRequestMessage } from '../../types/transaction';
 import type { AppKit } from '../../core/app-kit';
+import type { TransactionRequest, TransactionRequestMessage } from '../../types/transaction';
+import { createCommentPayloadBase64, parseUnits } from '../../utils';
 import { getSelectedWallet } from '../wallets/get-selected-wallet';
 
 export interface CreateTransferTonTransactionParameters {

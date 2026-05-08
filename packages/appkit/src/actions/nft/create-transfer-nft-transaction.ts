@@ -6,10 +6,9 @@
  *
  */
 
-import { createNftTransferPayload, createTransferTransaction, DEFAULT_NFT_GAS_FEE } from '@ton/walletkit';
-
-import type { TransactionRequest } from '../../types/transaction';
 import type { AppKit } from '../../core/app-kit';
+import type { TransactionRequest } from '../../types/transaction';
+import { createNftTransferPayload, createTransferTransaction, DEFAULT_NFT_GAS_FEE } from '../../utils';
 import { getSelectedWallet } from '../wallets/get-selected-wallet';
 
 export interface CreateTransferNftTransactionParameters {

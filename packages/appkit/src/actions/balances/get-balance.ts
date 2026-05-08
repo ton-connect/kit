@@ -6,12 +6,11 @@
  *
  */
 
-import type { TokenAmount } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
+import type { TokenAmount } from '../../types/primitives';
+import type { Network } from '../../types/network';
 import { getSelectedWallet } from '../wallets/get-selected-wallet';
 import { getBalanceByAddress } from './get-balance-by-address';
-import type { Network } from '../../types/network';
 
 /**
  * Options for {@link getBalance}.

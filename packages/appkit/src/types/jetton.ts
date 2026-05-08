@@ -6,4 +6,4 @@
  *
  */
 
-export type { Jetton, JettonInfo } from '@ton/walletkit';
+export type { Jetton, JettonInfo, JettonsResponse } from '@ton/walletkit';

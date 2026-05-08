@@ -6,12 +6,11 @@
  *
  */
 
-import type { NFTsResponse } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
-import { getNftsByAddress } from './get-nfts-by-address';
-import { getSelectedWallet } from '../wallets/get-selected-wallet';
 import type { Network } from '../../types/network';
+import type { NFTsResponse } from '../../types/nft';
+import { getSelectedWallet } from '../wallets/get-selected-wallet';
+import { getNftsByAddress } from './get-nfts-by-address';
 
 export interface GetNftsOptions {
     network?: Network;

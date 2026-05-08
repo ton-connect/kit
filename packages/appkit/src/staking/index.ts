@@ -41,8 +41,10 @@ export type {
     StakingQuoteParams,
     StakingBalance,
     StakingProviderInfo,
-    StakingProviderInterface,
     StakingQuoteDirection,
     StakingProviderMetadata,
     StakingTokenInfo,
 } from '@ton/walletkit';
+
+// Internal-only — `StakingProviderInterface` is the contract authors implement, not consumed from `@ton/appkit`.
+export type { StakingProviderInterface } from '@ton/walletkit';

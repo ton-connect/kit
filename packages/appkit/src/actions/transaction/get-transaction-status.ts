@@ -6,11 +6,10 @@
  *
  */
 
-import type { TransactionStatusResponse } from '@ton/walletkit';
-import { getTransactionStatus as walletKitGetTransactionStatus } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
 import type { Network } from '../../types/network';
+import type { TransactionStatusResponse } from '../../types/transaction';
+import { getTransactionStatusFromClient as walletKitGetTransactionStatus } from '../../utils';
 import { resolveNetwork } from '../../utils/network/resolve-network';
 
 export type GetTransactionStatusParameters = {

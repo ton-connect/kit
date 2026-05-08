@@ -6,12 +6,11 @@
  *
  */
 
-import type { JettonsResponse } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
-import { getJettonsByAddress } from './get-jettons-by-address';
-import { getSelectedWallet } from '../wallets/get-selected-wallet';
+import type { JettonsResponse } from '../../types/jetton';
 import type { Network } from '../../types/network';
+import { getSelectedWallet } from '../wallets/get-selected-wallet';
+import { getJettonsByAddress } from './get-jettons-by-address';
 
 export interface GetJettonsOptions {
     network?: Network;

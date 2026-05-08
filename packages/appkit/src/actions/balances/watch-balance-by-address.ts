@@ -7,9 +7,10 @@
  */
 
 import { Address } from '@ton/core';
-import type { BalanceUpdate, Network } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
+import type { BalanceUpdate } from '../../core/streaming';
+import type { Network } from '../../types/network';
 import { resolveNetwork } from '../../utils/network/resolve-network';
 
 /**

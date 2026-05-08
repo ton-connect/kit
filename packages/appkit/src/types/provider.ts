@@ -6,9 +6,12 @@
  *
  */
 
-import type { SwapProviderInterface, StakingProviderInterface } from '@ton/walletkit';
+import type { SwapProviderInterface } from '../swap';
+import type { StakingProviderInterface } from '../staking';
 
 /**
  * Provider configuration
  */
 export type Provider = SwapProviderInterface | StakingProviderInterface;
+
+export type { ProviderInput } from '@ton/walletkit';

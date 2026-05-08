@@ -6,11 +6,10 @@
  *
  */
 
-import type { ExtraCurrencies, TokenAmount } from '@ton/walletkit';
-
+import type { ExtraCurrencies, TokenAmount } from './primitives';
 import type { Network } from './network';
 
-export type { TransactionStatus } from '@ton/walletkit';
+export type { TransactionStatus, TransactionStatusResponse, SendTransactionResponse } from '@ton/walletkit';
 
 export interface TransactionRequest {
     /**

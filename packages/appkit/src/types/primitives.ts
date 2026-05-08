@@ -6,4 +6,4 @@
  *
  */
 
-export type { Base64String } from '@ton/walletkit';
+export type { Base64String, TokenAmount, Hex, UserFriendlyAddress, ExtraCurrencies } from '@ton/walletkit';

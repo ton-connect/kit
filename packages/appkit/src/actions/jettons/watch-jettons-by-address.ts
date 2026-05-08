@@ -7,9 +7,10 @@
  */
 
 import { Address } from '@ton/core';
-import type { JettonUpdate, Network } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
+import type { JettonUpdate } from '../../core/streaming';
+import type { Network } from '../../types/network';
 import { resolveNetwork } from '../../utils/network/resolve-network';
 
 export interface WatchJettonsByAddressOptions {

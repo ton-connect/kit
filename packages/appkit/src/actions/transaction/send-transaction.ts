@@ -6,10 +6,8 @@
  *
  */
 
-import type { SendTransactionResponse } from '@ton/walletkit';
-
-import type { TransactionRequest } from '../../types/transaction';
 import type { AppKit } from '../../core/app-kit';
+import type { TransactionRequest, SendTransactionResponse } from '../../types/transaction';
 import { getSelectedWallet } from '../wallets/get-selected-wallet';
 
 export type SendTransactionParameters = TransactionRequest;

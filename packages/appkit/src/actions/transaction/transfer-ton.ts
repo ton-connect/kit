@@ -6,9 +6,8 @@
  *
  */
 
-import type { SendTransactionResponse } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
+import type { SendTransactionResponse } from '../../types/transaction';
 import { createTransferTonTransaction } from './create-transfer-ton-transaction';
 import type { CreateTransferTonTransactionParameters } from './create-transfer-ton-transaction';
 import { sendTransaction } from './send-transaction';

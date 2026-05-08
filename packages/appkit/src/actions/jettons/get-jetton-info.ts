@@ -6,11 +6,10 @@
  *
  */
 
-import type { JettonInfo } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
-import { resolveNetwork } from '../../utils/network/resolve-network';
+import type { JettonInfo } from '../../types/jetton';
 import type { Network } from '../../types/network';
+import { resolveNetwork } from '../../utils/network/resolve-network';
 
 export interface GetJettonInfoOptions {
     address: string;
