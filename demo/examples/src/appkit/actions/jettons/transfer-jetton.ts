@@ -15,7 +15,6 @@ export const transferJettonExample = async (appKit: AppKit) => {
         jettonAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
         recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
         amount: '100',
-        jettonDecimals: 6,
     });
     console.log('Transfer Result:', result);
     // SAMPLE_END: TRANSFER_JETTON
