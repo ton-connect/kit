@@ -409,9 +409,9 @@ Create a crypto-onramp deposit from a quote previously obtained via [`getCryptoO
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options`\* | [`CreateCryptoOnrampDepositOptions`](#createcryptoonrampdepositoptions) | Quote, refund address, and optional provider override. |
-| `options.quote`\* | <a href="#cryptoonrampquote"><code>CryptoOnrampQuote</code></a><code>&lt;TQuoteMetadata&gt;</code> | Quote to execute the deposit against (contains recipientAddress and provider metadata) |
+| `options.quote`\* | <a href="#cryptoonrampquote"><code>CryptoOnrampQuote</code></a><code>&lt;TQuoteMetadata = unknown&gt;</code> | Quote to execute the deposit against (contains recipientAddress and provider metadata) |
 | `options.refundAddress`\* | `string` | Address to refund the crypto to in case of failure |
-| `options.providerOptions` | `TProviderOptions` | Provider-specific options |
+| `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
 | `options.providerId` | `string` | Provider to create the deposit through; defaults to `quote.providerId`, then to the default provider. |
 
 Returns: <a href="#createcryptoonrampdepositreturntype"><code>CreateCryptoOnrampDepositReturnType</code></a> — Deposit details the UI should show to the user (address, amount, expiry).
@@ -461,7 +461,7 @@ Quote a crypto-to-TON onramp — given a source asset/chain and target TON asset
 | `options.recipientAddress`\* | `string` | TON address that will receive the target crypto |
 | `options.refundAddress` | `string` | Refund address for the source crypto |
 | `options.isSourceAmount` | `boolean` | If true, `amount` is the source amount to spend. If false, `amount` is the target amount to receive. Defaults to true when omitted. |
-| `options.providerOptions` | `TProviderOptions` | Provider-specific options |
+| `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
 | `options.providerId` | `string` | Provider to quote against; defaults to the registered default provider. |
 
 Returns: <a href="#getcryptoonrampquotereturntype"><code>GetCryptoOnrampQuoteReturnType</code></a> — Quote with pricing details and the provider metadata required to create a deposit.
@@ -1016,7 +1016,7 @@ _TODO: describe_
 | Field | Type | Description |
 | --- | --- | --- |
 | `type`\* | `string` | _TODO: describe_ |
-| `payload`\* | `T` | _TODO: describe_ |
+| `payload`\* | `T = any` | _TODO: describe_ |
 | `source` | `string` | _TODO: describe_ |
 | `timestamp`\* | `number` | _TODO: describe_ |
 
@@ -1094,9 +1094,9 @@ The recipient is taken from `quote.recipientAddress` set at quote time.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `quote`\* | <a href="#cryptoonrampquote"><code>CryptoOnrampQuote</code></a><code>&lt;TQuoteMetadata&gt;</code> | Quote to execute the deposit against (contains recipientAddress and provider metadata) |
+| `quote`\* | <a href="#cryptoonrampquote"><code>CryptoOnrampQuote</code></a><code>&lt;TQuoteMetadata = unknown&gt;</code> | Quote to execute the deposit against (contains recipientAddress and provider metadata) |
 | `refundAddress`\* | `string` | Address to refund the crypto to in case of failure |
-| `providerOptions` | `TProviderOptions` | Provider-specific options |
+| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
 
 #### CryptoOnrampProviderInterface
 
@@ -1148,7 +1148,7 @@ Crypto onramp quote response with pricing information
 | `rate`\* | `string` | Exchange rate (amount of target per 1 unit of source) |
 | `recipientAddress`\* | `string` | TON address that will receive the target crypto |
 | `providerId`\* | `string` | Identifier of the crypto onramp provider |
-| `metadata` | `TMetadata` | Provider-specific metadata for the quote (e.g. raw response needed to execute) |
+| `metadata` | `TMetadata = unknown` | Provider-specific metadata for the quote (e.g. raw response needed to execute) |
 
 #### CryptoOnrampQuoteParams
 
@@ -1165,7 +1165,7 @@ The target network is always TON, so only the source side is parameterised.
 | `recipientAddress`\* | `string` | TON address that will receive the target crypto |
 | `refundAddress` | `string` | Refund address for the source crypto |
 | `isSourceAmount` | `boolean` | If true, `amount` is the source amount to spend. If false, `amount` is the target amount to receive. Defaults to true when omitted. |
-| `providerOptions` | `TProviderOptions` | Provider-specific options |
+| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
 
 #### CryptoOnrampStatus
 
@@ -1748,7 +1748,7 @@ Parameters for staking TON
 | --- | --- | --- |
 | `quote`\* | <a href="#stakingquote"><code>StakingQuote</code></a> | The staking quote based on which the transaction is built |
 | `userAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Address of the user performing the staking |
-| `providerOptions` | `TProviderOptions` | Provider-specific options |
+| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
 
 #### StakingAPI
 
@@ -1841,7 +1841,7 @@ Parameters for getting a staking quote
 | `network` | <a href="#network"><code>Network</code></a> | Network on which the staking will be executed |
 | `unstakeMode` | <a href="#unstakemodes"><code>UnstakeModes</code></a> | Requested mode of unstaking |
 | `isReversed` | `boolean` | If true, for unstake requests the amount is specified in the staking coin (e.g. TON) instead of the Liquid Staking Token (e.g. tsTON). |
-| `providerOptions` | `TProviderOptions` | Provider-specific options |
+| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
 
 #### StakingTokenInfo
 
@@ -1890,7 +1890,7 @@ Parameters for building swap transaction
 | `destinationAddress` | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Address to receive the swapped tokens (defaults to userAddress) |
 | `slippageBps` | `number` | Slippage tolerance in basis points (1 bp = 0.01%) |
 | `deadline` | `number` | Transaction deadline in unix timestamp |
-| `providerOptions` | `TProviderOptions` | Provider-specific options |
+| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
 
 #### SwapQuote
 
@@ -1924,7 +1924,7 @@ Base parameters for requesting a swap quote
 | `network`\* | <a href="#network"><code>Network</code></a> | Network on which the swap will be executed |
 | `slippageBps` | `number` | Slippage tolerance in basis points (1 bp = 0.01%) |
 | `maxOutgoingMessages` | `number` | Maximum number of outgoing messages |
-| `providerOptions` | `TProviderOptions` | Provider-specific options |
+| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
 | `isReverseSwap` | `boolean` | If true, amount is the amount to receive (buy). If false, amount is the amount to spend (sell). |
 
 #### SwapToken

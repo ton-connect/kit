@@ -220,7 +220,11 @@ function extractFunctionLike(
     const expandNames = readExpandNames(jsdoc);
 
     const params = expandParameters(decl.getParameters(), decl, paramTags, expandNames);
-    const returnTypeText = decl.getReturnTypeNode()?.getText() ?? formatType(decl.getReturnType(), decl);
+    const fnTypeParams = collectTypeParamDefaults(decl);
+    const rawReturnNode = decl.getReturnTypeNode()?.getText();
+    const returnTypeText = rawReturnNode
+        ? substituteTypeParams(rawReturnNode, fnTypeParams)
+        : formatType(decl.getReturnType(), decl);
 
     return {
         kind: 'function',
@@ -267,10 +271,12 @@ function extractVariableFunction(
     }
 
     const params = expandParameters(init.getParameters(), decl, paramTags, expandNames);
-    const returnTypeText =
-        (Node.isArrowFunction(init) || Node.isFunctionExpression(init)
-            ? init.getReturnTypeNode()?.getText()
-            : undefined) ?? formatType(init.getReturnType(), decl);
+    const fnTypeParams = collectTypeParamDefaults(init);
+    const rawReturnNode =
+        Node.isArrowFunction(init) || Node.isFunctionExpression(init) ? init.getReturnTypeNode()?.getText() : undefined;
+    const returnTypeText = rawReturnNode
+        ? substituteTypeParams(rawReturnNode, fnTypeParams)
+        : formatType(init.getReturnType(), decl);
 
     return {
         kind: 'function',
@@ -532,12 +538,17 @@ function expandParameters(
 ): ParamRow[] {
     const rows: ParamRow[] = [];
 
+    const fnTypeParams = collectTypeParamDefaults(contextNode);
+
     for (const param of params) {
         const paramName = param.getName();
         const paramType = param.getType();
         const required = !param.hasQuestionToken() && !param.hasInitializer() && !param.isRestParameter();
         const tagInfo = paramTags.get(paramName);
-        const paramSyntactic = param.getTypeNode()?.getText() ?? formatType(paramType, contextNode);
+        const rawSyntactic = param.getTypeNode()?.getText();
+        const paramSyntactic = rawSyntactic
+            ? substituteTypeParams(rawSyntactic, fnTypeParams)
+            : formatType(paramType, contextNode);
 
         const shouldFlatten = expandNames.has(paramName) && isFlattenableObjectType(paramType);
 
@@ -597,10 +608,13 @@ function readPropsFromType(type: Type, contextNode: Node): ParamRow[] {
         const propType = prop.getTypeAtLocation(contextNode);
         const optional = (prop.getFlags() & 16777216) !== 0; // ts.SymbolFlags.Optional
         const description = readPropertyJsDoc(valueDecl);
-        const syntacticType =
-            (Node.isPropertySignature(valueDecl) || Node.isPropertyDeclaration(valueDecl)
+        const rawSyntactic =
+            Node.isPropertySignature(valueDecl) || Node.isPropertyDeclaration(valueDecl)
                 ? valueDecl.getTypeNode()?.getText()
-                : undefined) ?? formatType(propType, contextNode);
+                : undefined;
+        const syntacticType = rawSyntactic
+            ? substituteTypeParams(rawSyntactic, collectTypeParamDefaults(valueDecl))
+            : formatType(propType, contextNode);
         rows.push({
             name: prop.getName(),
             typeText: syntacticType,
@@ -610,6 +624,51 @@ function readPropsFromType(type: Type, contextNode: Node): ParamRow[] {
         });
     }
     return rows;
+}
+
+/**
+ * Walks up to the nearest declaration with type parameters (interface, type
+ * alias, class, function) and returns a map from each parameter's name to its
+ * `Name = Default` annotation — falling back to `Name = any` when no default
+ * was declared.
+ *
+ * Used to expand generics in property and parameter type texts so readers see
+ * both the original placeholder and what it falls back to. `metadata: TMetadata`
+ * becomes `metadata: TMetadata = unknown`, and `Promise<TMetadata>` becomes
+ * `Promise<TMetadata = unknown>` — preserving the slot name the user can
+ * substitute by passing an explicit type argument.
+ */
+function collectTypeParamDefaults(start: Node): Map<string, string> {
+    const map = new Map<string, string>();
+    let cursor: Node | undefined = start;
+    while (cursor) {
+        if (
+            Node.isInterfaceDeclaration(cursor) ||
+            Node.isTypeAliasDeclaration(cursor) ||
+            Node.isClassDeclaration(cursor) ||
+            Node.isFunctionDeclaration(cursor) ||
+            Node.isMethodSignature(cursor) ||
+            Node.isMethodDeclaration(cursor) ||
+            Node.isFunctionExpression(cursor) ||
+            Node.isArrowFunction(cursor)
+        ) {
+            for (const tp of cursor.getTypeParameters()) {
+                const name = tp.getName();
+                if (map.has(name)) continue;
+                const def = tp.getDefault()?.getText() ?? 'any';
+                map.set(name, `${name} = ${def}`);
+            }
+        }
+        cursor = cursor.getParent();
+    }
+    return map;
+}
+
+function substituteTypeParams(typeText: string, params: Map<string, string>): string {
+    if (params.size === 0) return typeText;
+    const names = [...params.keys()].sort((a, b) => b.length - a.length);
+    const pattern = new RegExp(`\\b(${names.map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`, 'g');
+    return typeText.replace(pattern, (m) => params.get(m) ?? m);
 }
 
 function isFlattenableObjectType(type: Type): boolean {
