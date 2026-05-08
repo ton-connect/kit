@@ -36,18 +36,55 @@ Constructor: `new EventEmitter()`
 
 #### DefiError
 
-Copyright (c) TonTech.
-
-This source code is licensed under the MIT license found in the
-LICENSE file in the root directory of this source tree.
+Base error thrown by DeFi managers (swap, staking, onramp) when a provider call fails; subclassed by [`SwapError`](#swaperror) / [`StakingError`](#stakingerror) and discriminated at runtime via the `code` field.
 
 Constructor: `new DefiError(message, code, details)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
+| `message`\* | `string` | Human-readable description, forwarded to `Error`. |
+| `code`\* | `string` | Stable error code from the `DefiError.*` constants. |
+| `details` | `unknown` | Optional provider-specific context for diagnostics. |
+
+### Staking
+
+#### StakingError
+
+_TODO: describe_
+
+Constructor: `new StakingError(message, code, details)`
+
+| Parameter | Type | Description |
+| --- | --- | --- |
 | `message`\* | `string` | _TODO: describe_ |
-| `code`\* | `string` | _TODO: describe_ |
+| `code`\* | `StakingErrorCode` | _TODO: describe_ |
 | `details` | `unknown` | _TODO: describe_ |
+
+#### StakingManager
+
+StakingManager - manages staking providers and delegates staking operations
+
+Allows registration of multiple staking providers and provides a unified API
+for staking operations. Providers can be switched dynamically.
+
+Constructor: `new StakingManager(createFactoryContext)`
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `createFactoryContext`\* | `() => ProviderFactoryContext` | _TODO: describe_ |
+
+#### StakingProvider
+
+Abstract base class for staking providers
+
+Provides common utilities and enforces implementation of core staking methods.
+Users can extend this class to create custom staking providers.
+
+Constructor: `new StakingProvider(providerId)`
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `providerId`\* | `string` | _TODO: describe_ |
 
 ### Swap
 
@@ -448,6 +485,144 @@ Parameters accepted by `signText`.
 | `text`\* | `string` | UTF-8 text the user is asked to sign. |
 | `network` | `Network \| undefined` | Network to issue the sign request against. Defaults to the AppKit's selected network. |
 
+### Staking
+
+#### StakeParams
+
+Parameters for staking TON
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `quote`\* | `StakingQuote` | The staking quote based on which the transaction is built |
+| `userAddress`\* | `string` | Address of the user performing the staking |
+| `providerOptions` | `TProviderOptions \| undefined` | Provider-specific options |
+
+#### StakingAPI
+
+Staking API interface exposed by StakingManager
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `getQuote`\* | `(params: StakingQuoteParams, providerId?: string) => Promise<StakingQuote>` | Get a quote for staking or unstaking |
+| `buildStakeTransaction`\* | `(params: StakeParams, providerId?: string) => Promise<TransactionRequest>` | Build a transaction for staking |
+| `getStakedBalance`\* | `(userAddress: UserFriendlyAddress, network?: Network, providerId?: string) => Promise<StakingBalance>` | Get user's staked balance |
+| `getStakingProviderInfo`\* | `(network?: Network, providerId?: string) => Promise<StakingProviderInfo>` | Get staking provider information |
+| `getStakingProviderMetadata`\* | `(network?: Network, providerId?: string) => StakingProviderMetadata` | Get static metadata for a staking provider |
+| `createFactoryContext`\* | `() => ProviderFactoryContext` | _TODO: describe_ |
+| `registerProvider`\* | `(provider: ProviderInput<StakingProviderInterface>) => void` | Register a new provider. If a provider with the same id is already registered, it is replaced. |
+| `removeProvider`\* | `(provider: StakingProviderInterface) => void` | Remove a previously registered provider. No-op if the provider was not registered. |
+| `setDefaultProvider`\* | `(providerId: string) => void` | Set the default provider |
+| `getProvider`\* | `(providerId?: string) => StakingProviderInterface` | Get a registered provider |
+| `getProviders`\* | `() => Array<StakingProviderInterface>` | Get all registered providers. The returned array keeps a stable reference until the provider list changes. |
+| `hasProvider`\* | `(providerId: string) => boolean` | Check if a provider is registered |
+
+#### StakingBalance
+
+Staking balance information for a user
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `rawStakedBalance`\* | `string` | Amount currently staked |
+| `stakedBalance`\* | `string` | Amount currently staked |
+| `rawInstantUnstakeAvailable`\* | `string` | Amount available for instant unstake |
+| `instantUnstakeAvailable`\* | `string` | Amount available for instant unstake |
+| `providerId`\* | `string` | Identifier of the staking provider |
+
+#### StakingProviderInfo
+
+Dynamic staking information for a provider
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `apy`\* | `number` | Annual Percentage Yield in basis points (100 = 1%) |
+| `rawInstantUnstakeAvailable` | `string \| undefined` | Amount available for instant unstake |
+| `instantUnstakeAvailable` | `string \| undefined` | Amount available for instant unstake |
+| `exchangeRate` | `string \| undefined` | Exchange rate between stakeToken and receiveToken (e.g. 1 TON = 0.95 tsTON). Undefined when there is no receiveToken (direct/custodial staking). |
+
+#### StakingProviderInterface
+
+Interface that all staking providers must implement
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `type`\* | `"staking"` | _TODO: describe_ |
+| `providerId`\* | `string` | Unique identifier for the provider |
+| `getQuote`\* | `(params: StakingQuoteParams) => Promise<StakingQuote>` | Get a quote for staking or unstaking |
+| `buildStakeTransaction`\* | `(params: StakeParams) => Promise<TransactionRequest>` | Build a transaction for staking |
+| `getStakedBalance`\* | `(userAddress: UserFriendlyAddress, network?: Network) => Promise<StakingBalance>` | Get user's staked balance |
+| `getStakingProviderInfo`\* | `(network?: Network) => Promise<StakingProviderInfo>` | Get staking provider information |
+| `getStakingProviderMetadata`\* | `(network?: Network) => StakingProviderMetadata` | Get static metadata for this staking provider |
+| `getSupportedNetworks`\* | `() => Network[]` | Networks this provider can operate on. Consumers should check before calling provider methods. Implementations may return a static list or compute it dynamically (e.g. from runtime config). |
+
+#### StakingProviderMetadata
+
+Static metadata for a staking provider
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `name`\* | `string` | Human-readable provider name (e.g. "Tonstakers") |
+| `supportedUnstakeModes`\* | `Array<UnstakeModes>` | Supported unstake modes for this provider |
+| `supportsReversedQuote`\* | `boolean` | Whether provider supports reversed quote format (e.g., passing TON instead of tsTON for unstake) |
+| `stakeToken`\* | `StakingTokenInfo` | Token that the user sends when staking (e.g. TON) |
+| `receiveToken` | `StakingTokenInfo \| undefined` | Token that the user receives when staking (e.g. tsTON for liquid staking). Absent for direct/custodial staking. |
+| `contractAddress` | `string \| undefined` | Provider contract address (optional — custodial providers may not have one) |
+
+#### StakingQuote
+
+Staking quote response with pricing information
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `direction`\* | `StakingQuoteDirection` | Direction of the quote (stake or unstake) |
+| `rawAmountIn`\* | `string` | Amount of tokens being provided |
+| `rawAmountOut`\* | `string` | Estimated amount of tokens to be received |
+| `amountIn`\* | `string` | Formatted amount of tokens being provided |
+| `amountOut`\* | `string` | Formatted estimated amount of tokens to be received |
+| `network`\* | `Network` | Network on which the staking will be executed |
+| `providerId`\* | `string` | Identifier of the staking provider |
+| `unstakeMode` | `UnstakeModes \| undefined` | Mode of unstaking (if applicable) |
+| `metadata` | `unknown` | Provider-specific metadata for the quote |
+
+#### StakingQuoteDirection
+
+Direction of the staking quote
+
+```ts
+type StakingQuoteDirection = 'stake' | 'unstake';
+```
+
+#### StakingQuoteParams
+
+Parameters for getting a staking quote
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `direction`\* | `StakingQuoteDirection` | Direction of the quote (stake or unstake) |
+| `amount`\* | `string` | Amount of tokens to stake or unstake |
+| `userAddress` | `string \| undefined` | Address of the user |
+| `network` | `Network \| undefined` | Network on which the staking will be executed |
+| `unstakeMode` | `UnstakeModes \| undefined` | Requested mode of unstaking |
+| `isReversed` | `boolean \| undefined` | If true, for unstake requests the amount is specified in the staking coin (e.g. TON) instead of the Liquid Staking Token (e.g. tsTON). |
+| `providerOptions` | `TProviderOptions \| undefined` | Provider-specific options |
+
+#### StakingTokenInfo
+
+_TODO: describe_
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `ticker`\* | `string` | _TODO: describe_ |
+| `decimals`\* | `number` | _TODO: describe_ |
+| `address`\* | `string` | 'ton' for native TON, otherwise contract address in friendly format |
+
+#### UnstakeModes
+
+Mode of unstaking
+
+```ts
+type UnstakeModes = (typeof UnstakeMode)[keyof typeof UnstakeMode];
+```
+
 ### Swap
 
 #### SwapAPI
@@ -562,6 +737,16 @@ const NETWORKS_EVENTS = {
     UPDATED: 'networks:updated',
     DEFAULT_CHANGED: 'networks:default-changed',
 } as const;
+```
+
+### Staking
+
+#### UnstakeMode
+
+_TODO: describe_
+
+```ts
+const UnstakeMode = { readonly INSTANT: "INSTANT"; readonly WHEN_AVAILABLE: "WHEN_AVAILABLE"; readonly ROUND_END: "ROUND_END"; };
 ```
 
 ### Wallets

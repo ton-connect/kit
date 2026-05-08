@@ -175,6 +175,30 @@ export type Network = WalletkitNetwork;
 export const Network = WalletkitNetworkValue;
 ```
 
+The cleanest form is a JSDoc-tagged ExportDeclaration — one block tags every symbol inside the same `export { … }`:
+
+```ts
+/**
+ * @extract
+ * @public
+ * @category Class
+ * @section Swap
+ */
+export { SwapError, SwapProvider, SwapManager } from '@ton/walletkit';
+
+/**
+ * @extract
+ * @public
+ * @category Type
+ * @section Swap
+ */
+export type { SwapToken, TokenAmount, SwapParams } from '@ton/walletkit';
+```
+
+Group symbols by `(category, section)` — one ExportDeclaration per group keeps the JSDoc shared.
+
+**Rebuild walletkit after editing its JSDoc.** ts-morph resolves cross-package symbols through `dist/.../*.d.ts`, not the source `*.ts`, so JSDoc edits in `packages/walletkit/src/...` only land in the reference after `pnpm --filter @ton/walletkit build`. For appkit-only edits (no walletkit changes), `pnpm docs:update` alone is enough.
+
 **Important**: `@extract` does NOT make a wildcard `export * from '@ton/appkit'` (used in appkit-react) leak appkit symbols into appkit-react. Wildcard re-exports cannot carry JSDoc, so they cannot carry `@extract`, so the boundary filter still drops them. The opt-in is local and explicit.
 
 ---

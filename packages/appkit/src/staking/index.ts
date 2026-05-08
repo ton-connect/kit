@@ -6,9 +6,33 @@
  *
  */
 
-export { StakingProvider, UnstakeMode, StakingError, StakingErrorCode, StakingManager } from '@ton/walletkit';
 // `DefiError` is shared by swap and staking; it is exported via `./swap` to keep a single declaration.
 
+/**
+ * @extract
+ * @public
+ * @category Class
+ * @section Staking
+ */
+export { StakingProvider, StakingError, StakingManager } from '@ton/walletkit';
+
+// `StakingErrorCode` is a TS enum; not currently surfaced in the reference (the generator does not yet handle enum declarations).
+export { StakingErrorCode } from '@ton/walletkit';
+
+/**
+ * @extract
+ * @public
+ * @category Constants
+ * @section Staking
+ */
+export { UnstakeMode } from '@ton/walletkit';
+
+/**
+ * @extract
+ * @public
+ * @category Type
+ * @section Staking
+ */
 export type {
     UnstakeModes,
     StakeParams,
