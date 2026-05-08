@@ -6,4 +6,32 @@
  *
  */
 
-export * from '@ton/walletkit/staking/tonstakers';
+/**
+ * {@link StakingProvider} implementation backed by Tonstakers. Use {@link createTonstakersProvider} to register it on AppKit; quote and stake calls go through {@link getStakingQuote} / {@link buildStakeTransaction} like any other staking provider.
+ *
+ * @extract
+ * @public
+ * @category Class
+ * @section Staking
+ */
+export { TonStakersStakingProvider } from '@ton/walletkit/staking/tonstakers';
+
+/**
+ * Build a Tonstakers-backed {@link StakingProvider} for AppKit; pass the result to {@link AppKitConfig}`.providers` or {@link registerProvider}.
+ *
+ * @extract
+ * @public
+ * @category Action
+ * @section Staking
+ */
+export { createTonstakersProvider } from '@ton/walletkit/staking/tonstakers';
+
+/**
+ * Configuration accepted by {@link createTonstakersProvider}.
+ *
+ * @extract
+ * @public
+ * @category Type
+ * @section Staking
+ */
+export type { TonStakersProviderConfig } from '@ton/walletkit/staking/tonstakers';

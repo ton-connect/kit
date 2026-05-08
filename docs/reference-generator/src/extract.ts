@@ -180,10 +180,7 @@ function extractByCategory(
                 return extractFunctionLike(declaration, name, sourcePath);
             }
             if (Node.isVariableDeclaration(declaration)) {
-                const init = declaration.getInitializer();
-                if (init && (Node.isArrowFunction(init) || Node.isFunctionExpression(init))) {
-                    return extractVariableFunction(declaration, init, name, sourcePath);
-                }
+                return extractVariableFunction(declaration, name, sourcePath);
             }
             throw mismatch(name, category, 'function declaration or arrow/function variable');
 
@@ -242,7 +239,6 @@ function extractFunctionLike(
 
 function extractVariableFunction(
     decl: VariableDeclaration,
-    init: Node,
     name: string,
     sourcePath: string,
 ): Omit<ExtractedFunction, 'section' | 'category'> {
@@ -255,14 +251,26 @@ function extractVariableFunction(
     const samples = readSamples(jsdoc);
     const expandNames = readExpandNames(jsdoc);
 
-    if (!Node.isArrowFunction(init) && !Node.isFunctionExpression(init)) {
+    const init = decl.getInitializer();
+
+    // Inline arrow / function-expression: read parameters and return type
+    // straight from the AST so authors get @sample-based examples and `@expand`
+    // flattening.
+    if (init && (Node.isArrowFunction(init) || Node.isFunctionExpression(init))) {
+        const params = expandParameters(init.getParameters(), decl, paramTags, expandNames);
+        const fnTypeParams = collectTypeParamDefaults(init);
+        const rawReturnNode = init.getReturnTypeNode()?.getText();
+        const returnTypeText = rawReturnNode
+            ? substituteTypeParams(rawReturnNode, fnTypeParams)
+            : formatType(init.getReturnType(), decl);
+
         return {
             kind: 'function',
             name,
             sourcePath,
             summary,
-            params: [],
-            returnTypeText: 'unknown',
+            params,
+            returnTypeText,
             returnTypeOverride: returnInfo.typeOverride,
             returnDescription: returnInfo.description,
             examples,
@@ -270,21 +278,55 @@ function extractVariableFunction(
         };
     }
 
-    const params = expandParameters(init.getParameters(), decl, paramTags, expandNames);
-    const fnTypeParams = collectTypeParamDefaults(init);
-    const rawReturnNode =
-        Node.isArrowFunction(init) || Node.isFunctionExpression(init) ? init.getReturnTypeNode()?.getText() : undefined;
-    const returnTypeText = rawReturnNode
-        ? substituteTypeParams(rawReturnNode, fnTypeParams)
-        : formatType(init.getReturnType(), decl);
+    // No inline initializer (e.g., `declare const fn: (...) => ...` re-exported
+    // from walletkit through `@extract`). Fall back to the variable's call
+    // signature — we lose parameter-name accuracy in some edge cases but it's
+    // the only signal available.
+    const callSig = decl.getType().getCallSignatures()[0];
+    if (callSig) {
+        const sigParams = callSig.getParameters();
+        const params: ParamRow[] = sigParams.map((p) => {
+            const valueDecl = p.getValueDeclaration();
+            const paramName = p.getName();
+            const tagInfo = paramTags.get(paramName);
+            const required =
+                valueDecl && Node.isParameterDeclaration(valueDecl)
+                    ? !valueDecl.hasQuestionToken() && !valueDecl.hasInitializer() && !valueDecl.isRestParameter()
+                    : true;
+            const typeText =
+                valueDecl && Node.isParameterDeclaration(valueDecl)
+                    ? (valueDecl.getTypeNode()?.getText() ?? formatType(p.getTypeAtLocation(decl), decl))
+                    : formatType(p.getTypeAtLocation(decl), decl);
+            return {
+                name: paramName,
+                typeText,
+                typeOverride: tagInfo?.typeOverride ?? null,
+                required,
+                description: tagInfo?.description ?? null,
+            };
+        });
+        const returnTypeText = formatType(callSig.getReturnType(), decl);
+        return {
+            kind: 'function',
+            name,
+            sourcePath,
+            summary,
+            params,
+            returnTypeText,
+            returnTypeOverride: returnInfo.typeOverride,
+            returnDescription: returnInfo.description,
+            examples,
+            samples,
+        };
+    }
 
     return {
         kind: 'function',
         name,
         sourcePath,
         summary,
-        params,
-        returnTypeText,
+        params: [],
+        returnTypeText: 'unknown',
         returnTypeOverride: returnInfo.typeOverride,
         returnDescription: returnInfo.description,
         examples,
@@ -693,7 +735,12 @@ function pickJsDoc(jsDocs: JSDoc[]): JSDoc | null {
 function readSummary(jsdoc: JSDoc | null): string | null {
     if (!jsdoc) return null;
     const desc = sanitizeJsDocText(jsdoc.getDescription());
-    return desc || null;
+    if (!desc) return null;
+    // ts-morph occasionally attaches the file-level license header to the first
+    // declaration in a file when nothing else sits between them. Skip those —
+    // there is never a real description that begins with "Copyright (c)".
+    if (/^\s*Copyright\s*\(c\)/i.test(desc)) return null;
+    return desc;
 }
 
 interface ParamTagInfo {

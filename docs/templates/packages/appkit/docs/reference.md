@@ -100,6 +100,26 @@ class MyCryptoOnrampProvider extends CryptoOnrampProvider {
 }
 ```
 
+#### LayerswapCryptoOnrampProvider
+
+[`CryptoOnrampProvider`](#cryptoonrampprovider) implementation backed by Layerswap. Use [`createLayerswapProvider`](#createlayerswapprovider) to register it on AppKit; quote, deposit and status calls go through [`getCryptoOnrampQuote`](#getcryptoonrampquote) / [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit) / [`getCryptoOnrampStatus`](#getcryptoonrampstatus) like any other crypto-onramp provider.
+
+Constructor: `new LayerswapCryptoOnrampProvider(config)`
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `config` | <a href="#layerswapproviderconfig"><code>LayerswapProviderConfig</code></a> | _TODO: describe_ |
+
+#### SwapsXyzCryptoOnrampProvider
+
+[`CryptoOnrampProvider`](#cryptoonrampprovider) implementation backed by swaps.xyz. Use [`createSwapsXyzProvider`](#createswapsxyzprovider) to register it on AppKit; quote, deposit and status calls go through [`getCryptoOnrampQuote`](#getcryptoonrampquote) / [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit) / [`getCryptoOnrampStatus`](#getcryptoonrampstatus) like any other crypto-onramp provider.
+
+Constructor: `new SwapsXyzCryptoOnrampProvider(config)`
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `config`\* | <a href="#swapsxyzproviderconfig"><code>SwapsXyzProviderConfig</code></a> | _TODO: describe_ |
+
 ### DeFi
 
 #### DefiError
@@ -177,7 +197,63 @@ Constructor: `new StakingProvider(providerId)`
 | --- | --- | --- |
 | `providerId`\* | `string` | _TODO: describe_ |
 
+#### TonStakersStakingProvider
+
+[`StakingProvider`](#stakingprovider) implementation backed by Tonstakers. Use [`createTonstakersProvider`](#createtonstakersprovider) to register it on AppKit; quote and stake calls go through [`getStakingQuote`](#getstakingquote) / [`buildStakeTransaction`](#buildstaketransaction) like any other staking provider.
+
+Constructor: `new TonStakersStakingProvider()`
+
 ### Swap
+
+#### DeDustSwapProvider
+
+[`SwapProvider`](#swapprovider) implementation backed by DeDust. Use [`createDeDustProvider`](#creatededustprovider) to register it on AppKit; quote and swap calls go through [`getSwapQuote`](#getswapquote) / [`buildSwapTransaction`](#buildswaptransaction) like any other swap provider.
+
+Constructor: `new DeDustSwapProvider(config)`
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `config` | <a href="#dedustswapproviderconfig"><code>DeDustSwapProviderConfig</code></a> | _TODO: describe_ |
+
+**Example**
+
+```typescript
+import { createDeDustProvider } from '@ton/walletkit/swap/dedust';
+
+kit.swap.registerProvider(
+    createDeDustProvider({
+        defaultSlippageBps: 100, // 1%
+        referralAddress: 'EQ...',
+        referralFeeBps: 50, // 0.5%
+    }),
+);
+```
+
+#### OmnistonSwapProvider
+
+[`SwapProvider`](#swapprovider) implementation backed by Omniston. Use [`createOmnistonProvider`](#createomnistonprovider) to register it on AppKit; quote and swap calls go through [`getSwapQuote`](#getswapquote) / [`buildSwapTransaction`](#buildswaptransaction) like any other swap provider.
+
+Constructor: `new OmnistonSwapProvider(config)`
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `config` | <a href="#omnistonswapproviderconfig"><code>OmnistonSwapProviderConfig</code></a> | _TODO: describe_ |
+
+**Example**
+
+```typescript
+// Import from a separate entry point to avoid bundling the Omniston SDK
+import { createOmnistonProvider } from '@ton/walletkit/swap/omniston';
+
+kit.swap.registerProvider(
+    createOmnistonProvider({
+        apiUrl: 'wss://omni-ws.ston.fi',
+        defaultSlippageBps: 100, // 1%
+        referrerAddress: 'EQ...',
+        referrerFeeBps: 10, // 0.1%
+    }),
+);
+```
 
 #### SwapError
 
@@ -481,6 +557,26 @@ Create a crypto-onramp deposit from a quote previously obtained via [`getCryptoO
 | `options.providerId` | `string` | Provider to create the deposit through; defaults to `quote.providerId`, then to the default provider. |
 
 Returns: <a href="#createcryptoonrampdepositreturntype"><code>CreateCryptoOnrampDepositReturnType</code></a> — Deposit details the UI should show to the user (address, amount, expiry).
+
+#### createLayerswapProvider
+
+Build a Layerswap-backed [`CryptoOnrampProvider`](#cryptoonrampprovider) for AppKit; pass the result to [`AppKitConfig`](#appkitconfig)`.providers` or [`registerProvider`](#registerprovider).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `config` | <a href="#layerswapproviderconfig"><code>LayerswapProviderConfig</code></a> | _TODO: describe_ |
+
+Returns: <code>ProviderFactory&lt;</code><a href="#layerswapcryptoonrampprovider"><code>LayerswapCryptoOnrampProvider</code></a><code>&gt;</code>.
+
+#### createSwapsXyzProvider
+
+Build a swaps.xyz-backed [`CryptoOnrampProvider`](#cryptoonrampprovider) for AppKit; pass the result to [`AppKitConfig`](#appkitconfig)`.providers` or [`registerProvider`](#registerprovider).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `config`\* | <a href="#swapsxyzproviderconfig"><code>SwapsXyzProviderConfig</code></a> | _TODO: describe_ |
+
+Returns: <code>ProviderFactory&lt;</code><a href="#swapsxyzcryptoonrampprovider"><code>SwapsXyzCryptoOnrampProvider</code></a><code>&gt;</code>.
 
 #### getCryptoOnrampProvider
 
@@ -1026,6 +1122,16 @@ Returns: <a href="#buildstaketransactionreturntype"><code>BuildStakeTransactionR
 
 %%docs/examples/src/appkit/actions/staking#BUILD_STAKE_TRANSACTION%%
 
+#### createTonstakersProvider
+
+Build a Tonstakers-backed [`StakingProvider`](#stakingprovider) for AppKit; pass the result to [`AppKitConfig`](#appkitconfig)`.providers` or [`registerProvider`](#registerprovider).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `config` | <a href="#tonstakersproviderconfig"><code>TonStakersProviderConfig</code></a> | _TODO: describe_ |
+
+Returns: <code>(ctx: ProviderFactoryContext) =&gt; </code><a href="#tonstakersstakingprovider"><code>TonStakersStakingProvider</code></a>.
+
 #### getStakedBalance
 
 Read a user's staked balance from a staking provider — total staked plus, depending on the provider, any instant-unstake balance available right now.
@@ -1184,6 +1290,26 @@ Returns: <a href="#buildswaptransactionreturntype"><code>BuildSwapTransactionRet
 
 %%docs/examples/src/appkit/actions/swap#BUILD_SWAP_TRANSACTION%%
 
+#### createDeDustProvider
+
+Build a DeDust-backed [`SwapProvider`](#swapprovider) for AppKit; pass the result to [`AppKitConfig`](#appkitconfig)`.providers` or [`registerProvider`](#registerprovider).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `config` | <a href="#dedustswapproviderconfig"><code>DeDustSwapProviderConfig</code></a> | _TODO: describe_ |
+
+Returns: <code>(ctx: ProviderFactoryContext) =&gt; </code><a href="#dedustswapprovider"><code>DeDustSwapProvider</code></a>.
+
+#### createOmnistonProvider
+
+Build an Omniston-backed [`SwapProvider`](#swapprovider) for AppKit; pass the result to [`AppKitConfig`](#appkitconfig)`.providers` or [`registerProvider`](#registerprovider).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `config` | <a href="#omnistonswapproviderconfig"><code>OmnistonSwapProviderConfig</code></a> | _TODO: describe_ |
+
+Returns: <code>(ctx: ProviderFactoryContext) =&gt; </code><a href="#omnistonswapprovider"><code>OmnistonSwapProvider</code></a>.
+
 #### getSwapManager
 
 Read AppKit's [`SwapManager`](#swapmanager) — the runtime that owns registered swap providers and dispatches quote/build calls. Apps usually use the higher-level actions ([`getSwapQuote`](#getswapquote), [`buildSwapTransaction`](#buildswaptransaction)) instead of touching the manager directly.
@@ -1251,6 +1377,16 @@ Returns: <a href="#getswapquotereturntype"><code>GetSwapQuoteReturnType</code></
 **Example**
 
 %%docs/examples/src/appkit/actions/swap#GET_SWAP_QUOTE%%
+
+#### isDeDustQuoteMetadata
+
+Type guard that checks whether a [`SwapQuote`](#swapquote)`.metadata` came from [`DeDustSwapProvider`](#dedustswapprovider).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `metadata`\* | `unknown` | _TODO: describe_ |
+
+Returns: `boolean`.
 
 #### setDefaultSwapProvider
 
@@ -1871,10 +2007,7 @@ type EventListener = (event: KitEvent<T>) => void | Promise<void>;
 
 #### EventPayload
 
-Copyright (c) TonTech.
-
-This source code is licensed under the MIT license found in the
-LICENSE file in the root directory of this source tree.
+_TODO: describe_
 
 ```ts
 type EventPayload = object;
@@ -2116,6 +2249,53 @@ Return type of [`getCryptoOnrampStatus`](#getcryptoonrampstatus).
 ```ts
 type GetCryptoOnrampStatusReturnType = Promise<CryptoOnrampStatus>;
 ```
+
+#### LayerswapProviderConfig
+
+Configuration accepted by [`createLayerswapProvider`](#createlayerswapprovider).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `apiKey` | `string` | Optional API key. Forwarded as `X-LS-APIKEY` when provided. |
+| `apiUrl` | `string` | Override the base API URL. Defaults to https://api.layerswap.io/api/v2 |
+
+#### LayerswapQuoteMetadata
+
+Provider-specific metadata returned on a [`CryptoOnrampQuote`](#cryptoonrampquote)`.metadata` from Layerswap — carries the swap id and deposit action that [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit) reads to build the deposit.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `swapId`\* | `string` | _TODO: describe_ |
+| `depositAddress`\* | `string` | _TODO: describe_ |
+| `sourceAmountBaseUnits`\* | `string` | _TODO: describe_ |
+| `targetAmountBaseUnits`\* | `string` | _TODO: describe_ |
+
+#### SwapsXyzProviderConfig
+
+Configuration accepted by [`createSwapsXyzProvider`](#createswapsxyzprovider).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `apiKey`\* | `string` | API key issued by swaps.xyz (passed as `x-api-key`) |
+| `apiUrl` | `string` | Override the base API URL. Defaults to https://api-v2.swaps.xyz/api |
+| `defaultSender` | `string` | EVM address used as `sender` on getAction requests. Required by the API even for deposit flows where the actual payer is unknown. Defaults to a null address when omitted. |
+
+#### SwapsXyzQuoteMetadata
+
+Provider-specific metadata returned on a [`CryptoOnrampQuote`](#cryptoonrampquote)`.metadata` from swaps.xyz — carries the resolved action and bridge route that [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit) needs.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `sender`\* | `string` | _TODO: describe_ |
+| `response`\* | `SwapsXyzGetActionResponse` | _TODO: describe_ |
+
+#### SwapsXyzQuoteOptions
+
+swaps.xyz-specific options forwarded through `providerOptions` on [`CryptoOnrampQuoteParams`](#cryptoonrampquoteparams).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `slippageBps` | `number` | Slippage tolerance in basis points (0-10000). Defaults to 100 (1%). |
 
 #### WatchCryptoOnrampProvidersParameters
 
@@ -3116,6 +3296,12 @@ _TODO: describe_
 | `decimals`\* | `number` | _TODO: describe_ |
 | `address`\* | `string` | 'ton' for native TON, otherwise contract address in friendly format |
 
+#### TonStakersProviderConfig
+
+Configuration accepted by [`createTonstakersProvider`](#createtonstakersprovider).
+
+_Empty type._
+
 #### UnstakeModes
 
 Mode of unstaking
@@ -3157,6 +3343,56 @@ Return type of [`buildSwapTransaction`](#buildswaptransaction).
 ```ts
 type BuildSwapTransactionReturnType = Promise<TransactionRequest>;
 ```
+
+#### DeDustProviderOptions
+
+DeDust-specific options forwarded through `providerOptions` on [`SwapQuoteParams`](#swapquoteparams) / [`SwapParams`](#swapparams).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `protocols` | `string[]` | Protocols to use for routing Available: 'dedust', 'dedust_v3', 'dedust_v3_memepad', 'stonfi_v1', 'stonfi_v2', 'tonco', 'memeslab', 'tonfun' |
+| `excludeProtocols` | `string[]` | Protocols to exclude from routing |
+| `onlyVerifiedPools` | `boolean` | Only use verified pools |
+| `maxSplits` | `number` | Maximum number of route splits |
+| `maxLength` | `number` | Maximum route length (hops) |
+| `excludeVolatilePools` | `boolean` | Exclude volatile pools |
+| `referralAddress` | `string` | The address of the referrer |
+| `referralFeeBps` | `number` | Referral fee in basis points (max 100 = 1%) |
+
+#### DeDustQuoteMetadata
+
+Provider-specific metadata returned on a [`SwapQuote`](#swapquote)`.metadata` from DeDust — carries the resolved route, fees and `swapData` payload that [`buildSwapTransaction`](#buildswaptransaction) needs.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `quoteResponse`\* | `DeDustQuoteResponse` | Raw quote response from API |
+| `slippageBps`\* | `number` | Slippage used for the quote in basis points |
+
+#### DeDustReferralOptions
+
+Optional referral metadata attached to DeDust swaps so the provider can attribute them.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `referralAddress` | `string` | The address of the referrer |
+| `referralFeeBps` | `number` | Referral fee in basis points (max 100 = 1%) |
+
+#### DeDustSwapProviderConfig
+
+Configuration accepted by [`createDeDustProvider`](#creatededustprovider).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `providerId` | `string` | Custom provider ID (defaults to 'dedust') |
+| `defaultSlippageBps` | `number` | Default slippage tolerance in basis points (1 bp = 0.01%) |
+| `apiUrl` | `string` | API base URL |
+| `onlyVerifiedPools` | `boolean` | Only use verified pools |
+| `maxSplits` | `number` | Maximum number of route splits |
+| `maxLength` | `number` | Maximum route length (hops) |
+| `minPoolUsdTvl` | `string` | Minimum pool TVL in USD |
+| `metadata` | `SwapProviderMetadataOverride` | Custom metadata for the provider |
+| `referralAddress` | `string` | The address of the referrer |
+| `referralFeeBps` | `number` | Referral fee in basis points (max 100 = 1%) |
 
 #### GetSwapManagerReturnType
 
@@ -3208,6 +3444,47 @@ Return type of [`getSwapQuote`](#getswapquote).
 ```ts
 type GetSwapQuoteReturnType = Promise<SwapQuote>;
 ```
+
+#### OmnistonProviderOptions
+
+Omniston-specific options forwarded through `providerOptions` on [`SwapQuoteParams`](#swapquoteparams) / [`SwapParams`](#swapparams).
+
+```ts
+type OmnistonProviderOptions = OmnistonSwapOptions & OmnistonReferrerOptions;
+```
+
+#### OmnistonQuoteMetadata
+
+Provider-specific metadata returned on a [`SwapQuote`](#swapquote)`.metadata` from Omniston — carries the resolved route and signed quote payload that [`buildSwapTransaction`](#buildswaptransaction) needs.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `omnistonQuote`\* | `Quote` | The actual omniston quote object |
+
+#### OmnistonReferrerOptions
+
+Optional referrer metadata attached to Omniston swaps so the provider can attribute them.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `referrerAddress` | `string` | The address of the referrer |
+| `referrerFeeBps` | `number` | Referrer fee in basis points (1 bp = 0.01%) |
+| `flexibleReferrerFee` | `boolean` | Whether a flexible referrer fee is allowed |
+
+#### OmnistonSwapProviderConfig
+
+Configuration accepted by [`createOmnistonProvider`](#createomnistonprovider).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `apiUrl` | `string` | Optional URL for the Omniston API |
+| `defaultSlippageBps` | `number` | Default slippage tolerance in basis points (1 bp = 0.01%) |
+| `quoteTimeoutMs` | `number` | Timeout for quote requests in milliseconds |
+| `providerId` | `string` | Identifier for the provider |
+| `metadata` | `SwapProviderMetadataOverride` | Custom metadata for the provider |
+| `referrerAddress` | `string` | The address of the referrer |
+| `referrerFeeBps` | `number` | Referrer fee in basis points (1 bp = 0.01%) |
+| `flexibleReferrerFee` | `boolean` | Whether a flexible referrer fee is allowed |
 
 #### SetDefaultSwapProviderParameters
 
