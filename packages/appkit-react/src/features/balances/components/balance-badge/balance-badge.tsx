@@ -38,10 +38,22 @@ const BalanceSymbol: FC<ComponentProps<'span'> & { symbol: string }> = ({ classN
     );
 };
 
+/**
+ * Compound component for rendering a token balance pill (icon + amount + symbol). Sub-components forward extra props to the underlying DOM element so callers can layer custom classes, click handlers, etc.
+ *
+ * @public
+ * @category Component
+ * @section Balances
+ */
 export const BalanceBadge = {
+    /** Pill wrapper — renders a horizontal {@link Block} that hosts the icon and balance block. */
     Container: BalanceBadgeContainer,
+    /** Token icon — re-exported {@link Logo} that draws the asset's image with a network badge. */
     Icon: Logo,
+    /** Vertical block holding the balance amount and ticker symbol side by side. */
     BalanceBlock: BalanceBlock,
+    /** Ticker symbol cell rendered next to the amount (e.g., `TON`, `USDT`). */
     Symbol: BalanceSymbol,
+    /** Formatted balance number; takes a raw `balance` and `decimals` and renders the human-readable amount. */
     Balance: Balance,
 };

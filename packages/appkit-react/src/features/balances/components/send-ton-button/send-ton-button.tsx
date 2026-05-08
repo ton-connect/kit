@@ -14,12 +14,29 @@ import { useI18n, useAppKit } from '../../../settings';
 import type { SendProps } from '../../../transaction';
 import { Send } from '../../../transaction';
 
+/**
+ * Props accepted by {@link SendTonButton} — extends the base {@link Send} button props (button text, sizing, callbacks) with the TON-transfer details.
+ *
+ * @public
+ * @category Type
+ * @section Balances
+ */
 export interface SendTonButtonProps extends Omit<SendProps, 'request'> {
+    /** Recipient address. */
     recipientAddress: string;
+    /** Amount in TONs as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. */
     amount: string;
+    /** Optional human-readable comment attached to the transfer. */
     comment?: string;
 }
 
+/**
+ * Pre-wired button that builds a TON transfer with {@link createTransferTonTransaction} and dispatches it through the standard {@link Send} flow on click — disabled until both `recipientAddress` and `amount` are set.
+ *
+ * @public
+ * @category Component
+ * @section Balances
+ */
 export const SendTonButton: FC<SendTonButtonProps> = ({ recipientAddress, amount, comment, ...props }) => {
     const appKit = useAppKit();
     const { t } = useI18n();

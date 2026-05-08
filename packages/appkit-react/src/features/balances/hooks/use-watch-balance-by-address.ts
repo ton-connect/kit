@@ -14,11 +14,25 @@ import { handleBalanceUpdate } from '@ton/appkit/queries';
 
 import { useAppKit } from '../../settings';
 
+/**
+ * Parameters accepted by {@link useWatchBalanceByAddress} — same fields as {@link WatchBalanceByAddressOptions}, all optional so callers can render the hook before the address is known.
+ *
+ * @public
+ * @category Type
+ * @section Balances
+ */
 export type UseWatchBalanceByAddressParameters = Partial<WatchBalanceByAddressOptions>;
 
 /**
- * Hook to watch balance of a specific address in real-time.
- * Automatically updates the TanStack Query cache for `useBalanceByAddress`.
+ * Subscribe to balance updates for an arbitrary address; updates flow into the TanStack Query cache so {@link useBalanceByAddress} re-renders automatically. Logs a warning and exits when no streaming provider is configured for the resolved network.
+ *
+ * @param parameters - {@link UseWatchBalanceByAddressParameters} Address, update callback and optional network override.
+ *
+ * @sample docs/examples/src/appkit/hooks/balances#USE_WATCH_BALANCE_BY_ADDRESS
+ *
+ * @public
+ * @category Hook
+ * @section Balances
  */
 export const useWatchBalanceByAddress = (parameters: UseWatchBalanceByAddressParameters): void => {
     const { address, network, onChange } = parameters;

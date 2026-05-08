@@ -12,12 +12,35 @@ import { useAddress } from '../../wallets/hooks/use-address';
 import { useBalanceByAddress } from './use-balance-by-address';
 import type { UseBalanceByAddressParameters, UseBalanceByAddressReturnType } from './use-balance-by-address';
 
+/**
+ * Parameters accepted by {@link useBalance} — same shape as {@link UseBalanceByAddressParameters} minus `address`, which the hook resolves from the selected wallet.
+ *
+ * @public
+ * @category Type
+ * @section Balances
+ */
 export type UseBalanceParameters<selectData = GetBalanceByAddressData> = UseBalanceByAddressParameters<selectData>;
 
+/**
+ * Return type of {@link useBalance} — TanStack Query result carrying `data`, `isLoading`, `error` and the standard companions.
+ *
+ * @public
+ * @category Type
+ * @section Balances
+ */
 export type UseBalanceReturnType<selectData = GetBalanceByAddressData> = UseBalanceByAddressReturnType<selectData>;
 
 /**
- * Hook to get balance of the selected wallet
+ * React hook reading the Toncoin balance of the currently selected wallet through TanStack Query — auto-resolves the wallet address (use {@link useBalanceByAddress} for an arbitrary address).
+ *
+ * @param parameters - {@link UseBalanceParameters} TanStack Query overrides (`select`, `enabled`, `staleTime`, …) and an optional network override.
+ * @returns TanStack Query result for the balance read.
+ *
+ * @sample docs/examples/src/appkit/hooks/balances#USE_BALANCE
+ *
+ * @public
+ * @category Hook
+ * @section Balances
  */
 export const useBalance = <selectData = GetBalanceByAddressData>(
     parameters: UseBalanceParameters<selectData> = {},
