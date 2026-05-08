@@ -27,6 +27,13 @@ export interface WatchBalanceOptions {
     onChange: (update: BalanceUpdate) => void;
 }
 
+/**
+ * Return type of {@link watchBalance} — call to stop receiving updates.
+ *
+ * @public
+ * @category Type
+ * @section Balances
+ */
 export type WatchBalanceReturnType = () => void;
 
 /**

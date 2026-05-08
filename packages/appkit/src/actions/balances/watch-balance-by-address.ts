@@ -10,6 +10,7 @@ import { Address } from '@ton/core';
 
 import type { AppKit } from '../../core/app-kit';
 import type { BalanceUpdate } from '../../core/streaming';
+import type { UserFriendlyAddress } from '../../types/primitives';
 import type { Network } from '../../types/network';
 import { resolveNetwork } from '../../utils/network/resolve-network';
 
@@ -21,14 +22,21 @@ import { resolveNetwork } from '../../utils/network/resolve-network';
  * @section Balances
  */
 export interface WatchBalanceByAddressOptions {
-    /** Wallet address as a base64url string or an `Address` instance. */
-    address: string | Address;
-    /** Network to watch on. Defaults to the AppKit's selected network. */
+    /** Wallet address — pass a {@link UserFriendlyAddress} string or an `Address` instance from `@ton/core`. */
+    address: UserFriendlyAddress | Address;
+    /** Network to watch on. Defaults to the connected wallet's network, or the configured default if no wallet is connected. */
     network?: Network;
     /** Callback fired on every balance update from the streaming provider. */
     onChange: (update: BalanceUpdate) => void;
 }
 
+/**
+ * Return type of {@link watchBalanceByAddress} — call to stop receiving updates.
+ *
+ * @public
+ * @category Type
+ * @section Balances
+ */
 export type WatchBalanceByAddressReturnType = () => void;
 
 /**

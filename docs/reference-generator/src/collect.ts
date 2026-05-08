@@ -58,7 +58,6 @@ export function collectPublicApi(options: CollectOptions): CollectedSymbol[] {
         for (const exportSymbol of sourceFile.getExportSymbols()) {
             const real = unwrapAlias(exportSymbol);
             if (seenRealSymbols.has(real)) continue;
-            seenRealSymbols.add(real);
 
             const realDecl = real.getDeclarations()[0];
             if (!realDecl) continue;
@@ -69,21 +68,27 @@ export function collectPublicApi(options: CollectOptions): CollectedSymbol[] {
             // Where to read JSDoc tags from. Normally that's the declaration
             // itself; for cross-package re-exports we read from the alias
             // declaration in our package (the `export { … } from 'pkg'` line)
-            // and require an explicit `@extract` opt-in there.
+            // and require an explicit `@extract` opt-in there. When a symbol
+            // is re-exported from multiple places, prefer the alias that
+            // carries `@extract` + `@public` so the chosen metadata is the
+            // documented one, regardless of traversal order.
             let metadataDecl: Node = realDecl;
             let extracted = false;
 
             if (!realInPkg) {
-                const aliasDecl = exportSymbol
+                const aliasDecls = exportSymbol
                     .getDeclarations()
-                    .find((d) => d.getSourceFile().getFilePath().startsWith(srcPrefix));
-                if (!aliasDecl) continue;
-                if (!hasExtractTag(aliasDecl)) continue;
-                metadataDecl = aliasDecl;
+                    .filter((d) => d.getSourceFile().getFilePath().startsWith(srcPrefix));
+                if (aliasDecls.length === 0) continue;
+                const annotated = aliasDecls.find((d) => hasExtractTag(d) && hasPublicTag(d));
+                if (!annotated) continue;
+                metadataDecl = annotated;
                 extracted = true;
+            } else if (!hasPublicTag(metadataDecl)) {
+                continue;
             }
 
-            if (!hasPublicTag(metadataDecl)) continue;
+            seenRealSymbols.add(real);
 
             const sourcePath = realInPkg
                 ? realDeclPath.slice(srcPrefix.length)
@@ -105,7 +110,7 @@ export function collectPublicApi(options: CollectOptions): CollectedSymbol[] {
     return collected;
 }
 
-function getJsDocs(decl: Node) {
+export function getJsDocs(decl: Node): JSDoc[] {
     if (Node.isVariableDeclaration(decl)) {
         return decl.getVariableStatement()?.getJsDocs() ?? [];
     }

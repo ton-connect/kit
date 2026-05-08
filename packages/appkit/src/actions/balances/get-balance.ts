@@ -24,6 +24,13 @@ export interface GetBalanceOptions {
     network?: Network;
 }
 
+/**
+ * Return type of {@link getBalance}.
+ *
+ * @public
+ * @category Type
+ * @section Balances
+ */
 export type GetBalanceReturnType = TokenAmount | null;
 
 /**

@@ -9,7 +9,7 @@
 import { Address } from '@ton/core';
 
 import type { AppKit } from '../../core/app-kit';
-import type { TokenAmount } from '../../types/primitives';
+import type { TokenAmount, UserFriendlyAddress } from '../../types/primitives';
 import type { Network } from '../../types/network';
 import { formatUnits } from '../../utils';
 import { resolveNetwork } from '../../utils/network/resolve-network';
@@ -22,12 +22,19 @@ import { resolveNetwork } from '../../utils/network/resolve-network';
  * @section Balances
  */
 export interface GetBalanceByAddressOptions {
-    /** Wallet address as a base64url string or an `Address` instance. */
-    address: string | Address;
-    /** Network to read the balance from. Defaults to the AppKit's selected network. */
+    /** Wallet address — pass a {@link UserFriendlyAddress} string or an `Address` instance from `@ton/core`. */
+    address: UserFriendlyAddress | Address;
+    /** Network to read the balance from. Defaults to the connected wallet's network, or the configured default if no wallet is connected. */
     network?: Network;
 }
 
+/**
+ * Return type of {@link getBalanceByAddress}.
+ *
+ * @public
+ * @category Type
+ * @section Balances
+ */
 export type GetBalanceByAddressReturnType = TokenAmount;
 
 /**

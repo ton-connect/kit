@@ -20,6 +20,7 @@ import type {
     VariableDeclaration,
 } from 'ts-morph';
 
+import { getJsDocs } from './collect';
 import type { CollectedSymbol } from './collect';
 
 export type SymbolKind = 'function' | 'component' | 'componentNamespace' | 'type' | 'class';
@@ -118,7 +119,7 @@ type ExtractedWithoutMeta =
     | Omit<ExtractedClass, 'section' | 'category'>;
 
 export function extract(collected: CollectedSymbol): Extracted {
-    const { name, declaration, sourcePath } = collected;
+    const { name, declaration, metadataDeclaration, sourcePath } = collected;
     const category = collected.category ?? '';
 
     if (!isValidCategory(category)) {
@@ -127,6 +128,15 @@ export function extract(collected: CollectedSymbol): Extracted {
 
     const inner = extractByCategory(category, name, declaration, sourcePath);
     const section = collected.section ?? '';
+
+    // For @extract re-exports, prefer the JSDoc summary from the local export comment
+    // over (often missing) JSDoc on the imported declaration in the other package.
+    const metadataSummary =
+        metadataDeclaration !== declaration ? readSummary(pickJsDoc(getJsDocs(metadataDeclaration))) : null;
+    if (metadataSummary && 'summary' in inner) {
+        return { ...inner, section, category, summary: metadataSummary } as Extracted;
+    }
+
     return { ...inner, section, category } as Extracted;
 }
 
@@ -209,7 +219,7 @@ function extractFunctionLike(
     const expandNames = readExpandNames(jsdoc);
 
     const params = expandParameters(decl.getParameters(), decl, paramTags, expandNames);
-    const returnTypeText = formatType(decl.getReturnType(), decl);
+    const returnTypeText = decl.getReturnTypeNode()?.getText() ?? formatType(decl.getReturnType(), decl);
 
     return {
         kind: 'function',
@@ -256,7 +266,10 @@ function extractVariableFunction(
     }
 
     const params = expandParameters(init.getParameters(), decl, paramTags, expandNames);
-    const returnTypeText = formatType(init.getReturnType(), decl);
+    const returnTypeText =
+        (Node.isArrowFunction(init) || Node.isFunctionExpression(init)
+            ? init.getReturnTypeNode()?.getText()
+            : undefined) ?? formatType(init.getReturnType(), decl);
 
     return {
         kind: 'function',
@@ -506,13 +519,14 @@ function expandParameters(
         const paramType = param.getType();
         const required = !param.hasQuestionToken() && !param.hasInitializer() && !param.isRestParameter();
         const tagInfo = paramTags.get(paramName);
+        const paramSyntactic = param.getTypeNode()?.getText() ?? formatType(paramType, contextNode);
 
         const shouldFlatten = expandNames.has(paramName) && isFlattenableObjectType(paramType);
 
         if (shouldFlatten) {
             rows.push({
                 name: paramName,
-                typeText: formatType(paramType, contextNode),
+                typeText: paramSyntactic,
                 typeOverride: tagInfo?.typeOverride ?? null,
                 required,
                 description: tagInfo?.description ?? null,
@@ -533,7 +547,7 @@ function expandParameters(
 
         rows.push({
             name: paramName,
-            typeText: formatType(paramType, contextNode),
+            typeText: paramSyntactic,
             typeOverride: tagInfo?.typeOverride ?? null,
             required,
             description: tagInfo?.description ?? null,
@@ -565,9 +579,13 @@ function readPropsFromType(type: Type, contextNode: Node): ParamRow[] {
         const propType = prop.getTypeAtLocation(contextNode);
         const optional = (prop.getFlags() & 16777216) !== 0; // ts.SymbolFlags.Optional
         const description = readPropertyJsDoc(valueDecl);
+        const syntacticType =
+            (Node.isPropertySignature(valueDecl) || Node.isPropertyDeclaration(valueDecl)
+                ? valueDecl.getTypeNode()?.getText()
+                : undefined) ?? formatType(propType, contextNode);
         rows.push({
             name: prop.getName(),
-            typeText: formatType(propType, contextNode),
+            typeText: syntacticType,
             typeOverride: null,
             required: !optional,
             description,

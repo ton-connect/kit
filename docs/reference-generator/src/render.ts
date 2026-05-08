@@ -261,7 +261,30 @@ function escapeForCell(text: string): string {
 }
 
 function formatTypeCell(typeText: string): string {
-    return '`' + escapeForCell(typeText) + '`';
+    if (LINKABLE_NAMES.size === 0) return '`' + escapeForCell(typeText) + '`';
+
+    const names = [...LINKABLE_NAMES].sort((a, b) => b.length - a.length);
+    const pattern = new RegExp(`\\b(${names.map(escapeRegex).join('|')})\\b`, 'g');
+
+    const segments: string[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+    while ((match = pattern.exec(typeText)) !== null) {
+        if (match.index > lastIndex) {
+            segments.push('`' + escapeForCell(typeText.slice(lastIndex, match.index)) + '`');
+        }
+        segments.push(`[\`${match[1]}\`](#${slugify(match[1])})`);
+        lastIndex = pattern.lastIndex;
+    }
+    if (segments.length === 0) return '`' + escapeForCell(typeText) + '`';
+    if (lastIndex < typeText.length) {
+        segments.push('`' + escapeForCell(typeText.slice(lastIndex)) + '`');
+    }
+    return segments.join('');
+}
+
+function escapeRegex(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 /**

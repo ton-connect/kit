@@ -17,11 +17,11 @@ Constructor: `new AppKit(config)`
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `config`\* | [`AppKitConfig`](#appkitconfig) | Networks, connectors, providers and runtime flags. |
-| `config.networks` | `NetworkAdapters \| undefined` | Map of chain id to api-client config; if omitted, AppKit defaults to mainnet only. |
-| `config.connectors` | `Array<ConnectorInput> \| undefined` | Wallet connectors registered at startup. |
-| `config.defaultNetwork` | `Network \| undefined` | Default network connectors (e.g. TonConnect) enforce on new connections; `undefined` to allow any. |
-| `config.providers` | `Array<ProviderInput> \| undefined` | Defi/onramp providers registered at startup. |
-| `config.ssr` | `boolean \| undefined` | Set to `true` to enable server-side rendering support. |
+| `config.networks` | [`NetworkAdapters`](#networkadapters) | Map of chain id to api-client config; if omitted, AppKit defaults to mainnet only. |
+| `config.connectors` | `ConnectorInput[]` | Wallet connectors registered at startup. |
+| `config.defaultNetwork` | [`Network`](#network) | Default network connectors (e.g. TonConnect) enforce on new connections; `undefined` to allow any. |
+| `config.providers` | `ProviderInput[]` | Defi/onramp providers registered at startup. |
+| `config.ssr` | `boolean` | Set to `true` to enable server-side rendering support. |
 
 **Example**
 
@@ -176,9 +176,9 @@ Read the Toncoin balance of the currently selected wallet, returning `null` when
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options` | [`GetBalanceOptions`](#getbalanceoptions) | Optional network override. |
-| `options.network` | `Network \| undefined` | Network to read the balance from. Defaults to the selected wallet's network. |
+| `options.network` | [`Network`](#network) | Network to read the balance from. Defaults to the selected wallet's network. |
 
-Returns: `Promise<GetBalanceReturnType>` — Balance in TON as a human-readable decimal string, or `null` when no wallet is selected.
+Returns: `Promise<`[`GetBalanceReturnType`](#getbalancereturntype)`>` — Balance in TON as a human-readable decimal string, or `null` when no wallet is selected.
 
 **Example**
 
@@ -197,10 +197,10 @@ Read the Toncoin balance of an arbitrary address — useful for wallets that are
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options`\* | [`GetBalanceByAddressOptions`](#getbalancebyaddressoptions) | Target address and optional network. |
-| `options.address`\* | `string \| Address` | Wallet address as a base64url string or an `Address` instance. |
-| `options.network` | `Network \| undefined` | Network to read the balance from. Defaults to the AppKit's selected network. |
+| `options.address`\* | [`UserFriendlyAddress`](#userfriendlyaddress)` \| Address` | Wallet address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
+| `options.network` | [`Network`](#network) | Network to read the balance from. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
 
-Returns: `Promise<string>` — Balance in TON as a human-readable decimal string.
+Returns: `Promise<`[`GetBalanceByAddressReturnType`](#getbalancebyaddressreturntype)`>` — Balance in TON as a human-readable decimal string.
 
 **Example**
 
@@ -219,10 +219,10 @@ Subscribe to Toncoin balance updates for the currently selected wallet, automati
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options`\* | [`WatchBalanceOptions`](#watchbalanceoptions) | Update callback and optional network override. |
-| `options.network` | `Network \| undefined` | Network to watch on. Defaults to the selected wallet's network. |
-| `options.onChange`\* | `(update: BalanceUpdate) => void` | Callback fired on every balance update from the streaming provider. |
+| `options.network` | [`Network`](#network) | Network to watch on. Defaults to the selected wallet's network. |
+| `options.onChange`\* | `(update: `[`BalanceUpdate`](#balanceupdate)`) => void` | Callback fired on every balance update from the streaming provider. |
 
-Returns: `WatchBalanceReturnType` — Unsubscribe function — call it to stop receiving updates.
+Returns: [`WatchBalanceReturnType`](#watchbalancereturntype) — Unsubscribe function — call it to stop receiving updates.
 
 **Example**
 
@@ -244,11 +244,11 @@ Subscribe to Toncoin balance updates for an arbitrary address, useful for monito
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options`\* | [`WatchBalanceByAddressOptions`](#watchbalancebyaddressoptions) | Target address, update callback and optional network override. |
-| `options.address`\* | `string \| Address` | Wallet address as a base64url string or an `Address` instance. |
-| `options.network` | `Network \| undefined` | Network to watch on. Defaults to the AppKit's selected network. |
-| `options.onChange`\* | `(update: BalanceUpdate) => void` | Callback fired on every balance update from the streaming provider. |
+| `options.address`\* | [`UserFriendlyAddress`](#userfriendlyaddress)` \| Address` | Wallet address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
+| `options.network` | [`Network`](#network) | Network to watch on. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+| `options.onChange`\* | `(update: `[`BalanceUpdate`](#balanceupdate)`) => void` | Callback fired on every balance update from the streaming provider. |
 
-Returns: `WatchBalanceByAddressReturnType` — Unsubscribe function — call it to stop receiving updates.
+Returns: [`WatchBalanceByAddressReturnType`](#watchbalancebyaddressreturntype) — Unsubscribe function — call it to stop receiving updates.
 
 **Example**
 
@@ -274,9 +274,9 @@ Ask the connected wallet to sign a plain text message; throws `Error('Wallet not
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `parameters`\* | [`SignTextParameters`](#signtextparameters) | Text to sign and optional network override. |
 | `parameters.text`\* | `string` | UTF-8 text the user is asked to sign. |
-| `parameters.network` | `Network \| undefined` | Network to issue the sign request against. Defaults to the AppKit's selected network. |
+| `parameters.network` | [`Network`](#network) | Network to issue the sign request against. Defaults to the AppKit's selected network. |
 
-Returns: `Promise<SignDataResponse>` — Signature and signed payload, as returned by the wallet.
+Returns: `Promise<SignTextReturnType>` — Signature and signed payload, as returned by the wallet.
 
 **Example**
 
@@ -297,14 +297,14 @@ Build and send a TON transfer from the selected wallet in one step (use `createT
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
-| `parameters`\* | `CreateTransferTonTransactionParameters` | Recipient, amount and optional payload/comment. |
+| `parameters`\* | `TransferTonParameters` | Recipient, amount and optional payload/comment. |
 | `parameters.recipientAddress`\* | `string` | Recipient address |
 | `parameters.amount`\* | `string` | Amount in TONs |
-| `parameters.comment` | `string \| undefined` | Human-readable text comment (will be converted to payload) |
-| `parameters.payload` | `string \| undefined` | Message payload data encoded in Base64 (overrides comment if provided) |
-| `parameters.stateInit` | `string \| undefined` | Initial state for deploying a new contract, encoded in Base64 |
+| `parameters.comment` | `string` | Human-readable text comment (will be converted to payload) |
+| `parameters.payload` | `string` | Message payload data encoded in Base64 (overrides comment if provided) |
+| `parameters.stateInit` | `string` | Initial state for deploying a new contract, encoded in Base64 |
 
-Returns: `Promise<SendTransactionResponse>` — Wallet response carrying the BoC of the sent transaction.
+Returns: `Promise<TransferTonReturnType>` — Wallet response carrying the BoC of the sent transaction.
 
 **Example**
 
@@ -322,14 +322,34 @@ console.log('Transfer Result:', result);
 
 ### Balances
 
+#### BalanceUpdate
+
+Update payload delivered to [`watchBalance`](#watchbalance) / [`watchBalanceByAddress`](#watchbalancebyaddress) subscribers when the watched address's TON balance changes.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `type`\* | `'balance'` | The update type field |
+| `address`\* | [`UserFriendlyAddress`](#userfriendlyaddress) | The account address |
+| `rawBalance`\* | [`TokenAmount`](#tokenamount) | The account balance in nano units |
+| `balance`\* | `string` | The formatted balance |
+| `status`\* | [`StreamingUpdateStatus`](#streamingupdatestatus) | The finality of the update |
+
 #### GetBalanceByAddressOptions
 
 Options for [`getBalanceByAddress`](#getbalancebyaddress).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `address`\* | `string \| Address` | Wallet address as a base64url string or an `Address` instance. |
-| `network` | `Network \| undefined` | Network to read the balance from. Defaults to the AppKit's selected network. |
+| `address`\* | [`UserFriendlyAddress`](#userfriendlyaddress)` \| Address` | Wallet address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
+| `network` | [`Network`](#network) | Network to read the balance from. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+
+#### GetBalanceByAddressReturnType
+
+Return type of [`getBalanceByAddress`](#getbalancebyaddress).
+
+```ts
+type GetBalanceByAddressReturnType = TokenAmount;
+```
 
 #### GetBalanceOptions
 
@@ -337,7 +357,23 @@ Options for [`getBalance`](#getbalance).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `network` | `Network \| undefined` | Network to read the balance from. Defaults to the selected wallet's network. |
+| `network` | [`Network`](#network) | Network to read the balance from. Defaults to the selected wallet's network. |
+
+#### GetBalanceReturnType
+
+Return type of [`getBalance`](#getbalance).
+
+```ts
+type GetBalanceReturnType = TokenAmount | null;
+```
+
+#### StreamingUpdateStatus
+
+Finality stage carried by every streaming update — `'pending'` (in mempool), `'confirmed'` (included in a block), `'finalized'` (irreversible), or `'invalidated'` (rolled back).
+
+```ts
+type StreamingUpdateStatus = 'pending' | 'confirmed' | 'finalized' | 'invalidated';
+```
 
 #### WatchBalanceByAddressOptions
 
@@ -345,9 +381,17 @@ Options for [`watchBalanceByAddress`](#watchbalancebyaddress).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `address`\* | `string \| Address` | Wallet address as a base64url string or an `Address` instance. |
-| `network` | `Network \| undefined` | Network to watch on. Defaults to the AppKit's selected network. |
-| `onChange`\* | `(update: BalanceUpdate) => void` | Callback fired on every balance update from the streaming provider. |
+| `address`\* | [`UserFriendlyAddress`](#userfriendlyaddress)` \| Address` | Wallet address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
+| `network` | [`Network`](#network) | Network to watch on. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+| `onChange`\* | `(update: `[`BalanceUpdate`](#balanceupdate)`) => void` | Callback fired on every balance update from the streaming provider. |
+
+#### WatchBalanceByAddressReturnType
+
+Return type of [`watchBalanceByAddress`](#watchbalancebyaddress) — call to stop receiving updates.
+
+```ts
+type WatchBalanceByAddressReturnType = () => void;
+```
 
 #### WatchBalanceOptions
 
@@ -355,8 +399,16 @@ Options for [`watchBalance`](#watchbalance).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `network` | `Network \| undefined` | Network to watch on. Defaults to the selected wallet's network. |
-| `onChange`\* | `(update: BalanceUpdate) => void` | Callback fired on every balance update from the streaming provider. |
+| `network` | [`Network`](#network) | Network to watch on. Defaults to the selected wallet's network. |
+| `onChange`\* | `(update: `[`BalanceUpdate`](#balanceupdate)`) => void` | Callback fired on every balance update from the streaming provider. |
+
+#### WatchBalanceReturnType
+
+Return type of [`watchBalance`](#watchbalance) — call to stop receiving updates.
+
+```ts
+type WatchBalanceReturnType = () => void;
+```
 
 ### Connectors and wallets
 
@@ -370,7 +422,7 @@ Wallet connector contract — the protocol-specific bridge (TonConnect, embedded
 | `type`\* | `string` | Protocol type (e.g. `'tonconnect'`). Multiple connectors can share the same type. |
 | `metadata`\* | `ConnectorMetadata` | Display metadata (name, icon) shown in connect UIs. |
 | `destroy`\* | `() => void` | Release any resources held by the connector. Call on app teardown. |
-| `connectWallet`\* | `(network?: Network) => Promise<void>` | Initiate a wallet connection flow on the given network. |
+| `connectWallet`\* | `(network?: `[`Network`](#network)`) => Promise<void>` | Initiate a wallet connection flow on the given network. |
 | `disconnectWallet`\* | `() => Promise<void>` | Disconnect the currently connected wallet, if any. |
 | `getConnectedWallets`\* | `() => WalletInterface[]` | Wallets currently connected through this connector. |
 
@@ -382,11 +434,11 @@ Constructor options for [`AppKit`](#appkit) — networks, connectors, providers 
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `networks` | `NetworkAdapters \| undefined` | Map of chain id to api-client config; if omitted, AppKit defaults to mainnet only. |
-| `connectors` | `Array<ConnectorInput> \| undefined` | Wallet connectors registered at startup. |
-| `defaultNetwork` | `Network \| undefined` | Default network connectors (e.g. TonConnect) enforce on new connections; `undefined` to allow any. |
-| `providers` | `Array<ProviderInput> \| undefined` | Defi/onramp providers registered at startup. |
-| `ssr` | `boolean \| undefined` | Set to `true` to enable server-side rendering support. |
+| `networks` | [`NetworkAdapters`](#networkadapters) | Map of chain id to api-client config; if omitted, AppKit defaults to mainnet only. |
+| `connectors` | `ConnectorInput[]` | Wallet connectors registered at startup. |
+| `defaultNetwork` | [`Network`](#network) | Default network connectors (e.g. TonConnect) enforce on new connections; `undefined` to allow any. |
+| `providers` | `ProviderInput[]` | Defi/onramp providers registered at startup. |
+| `ssr` | `boolean` | Set to `true` to enable server-side rendering support. |
 
 #### AppKitEmitter
 
@@ -422,7 +474,7 @@ Payload of `networks:default-changed` events — the new default network, or `un
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `network`\* | `Network \| undefined` | _TODO: describe_ |
+| `network`\* | [`Network`](#network)` \| undefined` | _TODO: describe_ |
 
 #### EventListener
 
@@ -451,7 +503,7 @@ _TODO: describe_
 | --- | --- | --- |
 | `type`\* | `string` | _TODO: describe_ |
 | `payload`\* | `T` | _TODO: describe_ |
-| `source` | `string \| undefined` | _TODO: describe_ |
+| `source` | `string` | _TODO: describe_ |
 | `timestamp`\* | `number` | _TODO: describe_ |
 
 #### SharedKitEvents
@@ -468,7 +520,7 @@ Payload of `connector:connected` events — newly connected wallets and the orig
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `wallets`\* | `Array<WalletInterface>` | _TODO: describe_ |
+| `wallets`\* | `WalletInterface[]` | _TODO: describe_ |
 | `connectorId`\* | `string` | _TODO: describe_ |
 
 #### WalletDisconnectedPayload
@@ -502,7 +554,7 @@ Base interface for all DeFi providers
 | Field | Type | Description |
 | --- | --- | --- |
 | `type`\* | `DefiProviderType` | _TODO: describe_ |
-| `getSupportedNetworks`\* | `() => Network[]` | Networks this provider can operate on. Consumers should check before calling provider methods. Implementations may return a static list or compute it dynamically (e.g. from runtime config). |
+| `getSupportedNetworks`\* | `() => `[`Network`](#network)`[]` | Networks this provider can operate on. Consumers should check before calling provider methods. Implementations may return a static list or compute it dynamically (e.g. from runtime config). |
 | `providerId`\* | `string` | _TODO: describe_ |
 
 ### Networks
@@ -513,8 +565,8 @@ API client configuration options
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `url` | `string \| undefined` | _TODO: describe_ |
-| `key` | `string \| undefined` | _TODO: describe_ |
+| `url` | `string` | _TODO: describe_ |
+| `key` | `string` | _TODO: describe_ |
 
 #### Network
 
@@ -541,7 +593,25 @@ Network configuration for a specific chain
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `apiClient` | `ApiClientConfig \| ApiClient \| undefined` | API client configuration or instance |
+| `apiClient` | [`ApiClientConfig`](#apiclientconfig)` \| ApiClient` | API client configuration or instance |
+
+### Primitives
+
+#### TokenAmount
+
+Decimal string carrying a token amount; preserves precision and avoids floating-point rounding (e.g., `"1.5"` TON, or raw nano units depending on the API).
+
+```ts
+type TokenAmount = string;
+```
+
+#### UserFriendlyAddress
+
+User-friendly TON wallet address as a base64url string (e.g., `"EQDtFp...4q2"`).
+
+```ts
+type UserFriendlyAddress = string;
+```
 
 ### Signing
 
@@ -552,7 +622,7 @@ Parameters accepted by `signText`.
 | Field | Type | Description |
 | --- | --- | --- |
 | `text`\* | `string` | UTF-8 text the user is asked to sign. |
-| `network` | `Network \| undefined` | Network to issue the sign request against. Defaults to the AppKit's selected network. |
+| `network` | [`Network`](#network) | Network to issue the sign request against. Defaults to the AppKit's selected network. |
 
 ### Staking
 
@@ -562,9 +632,9 @@ Parameters for staking TON
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `quote`\* | `StakingQuote` | The staking quote based on which the transaction is built |
-| `userAddress`\* | `string` | Address of the user performing the staking |
-| `providerOptions` | `TProviderOptions \| undefined` | Provider-specific options |
+| `quote`\* | [`StakingQuote`](#stakingquote) | The staking quote based on which the transaction is built |
+| `userAddress`\* | [`UserFriendlyAddress`](#userfriendlyaddress) | Address of the user performing the staking |
+| `providerOptions` | `TProviderOptions` | Provider-specific options |
 
 #### StakingAPI
 
@@ -572,11 +642,11 @@ Staking API interface exposed by StakingManager
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `getQuote`\* | `(params: StakingQuoteParams, providerId?: string) => Promise<StakingQuote>` | Get a quote for staking or unstaking |
-| `buildStakeTransaction`\* | `(params: StakeParams, providerId?: string) => Promise<TransactionRequest>` | Build a transaction for staking |
-| `getStakedBalance`\* | `(userAddress: UserFriendlyAddress, network?: Network, providerId?: string) => Promise<StakingBalance>` | Get user's staked balance |
-| `getStakingProviderInfo`\* | `(network?: Network, providerId?: string) => Promise<StakingProviderInfo>` | Get staking provider information |
-| `getStakingProviderMetadata`\* | `(network?: Network, providerId?: string) => StakingProviderMetadata` | Get static metadata for a staking provider |
+| `getQuote`\* | `(params: `[`StakingQuoteParams`](#stakingquoteparams)`, providerId?: string) => Promise<`[`StakingQuote`](#stakingquote)`>` | Get a quote for staking or unstaking |
+| `buildStakeTransaction`\* | `(params: `[`StakeParams`](#stakeparams)`, providerId?: string) => Promise<TransactionRequest>` | Build a transaction for staking |
+| `getStakedBalance`\* | `(userAddress: `[`UserFriendlyAddress`](#userfriendlyaddress)`, network?: `[`Network`](#network)`, providerId?: string) => Promise<`[`StakingBalance`](#stakingbalance)`>` | Get user's staked balance |
+| `getStakingProviderInfo`\* | `(network?: `[`Network`](#network)`, providerId?: string) => Promise<`[`StakingProviderInfo`](#stakingproviderinfo)`>` | Get staking provider information |
+| `getStakingProviderMetadata`\* | `(network?: `[`Network`](#network)`, providerId?: string) => `[`StakingProviderMetadata`](#stakingprovidermetadata) | Get static metadata for a staking provider |
 | `createFactoryContext`\* | `() => ProviderFactoryContext` | _TODO: describe_ |
 | `registerProvider`\* | `(provider: ProviderInput<StakingProviderInterface>) => void` | Register a new provider. If a provider with the same id is already registered, it is replaced. |
 | `removeProvider`\* | `(provider: StakingProviderInterface) => void` | Remove a previously registered provider. No-op if the provider was not registered. |
@@ -591,9 +661,9 @@ Staking balance information for a user
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `rawStakedBalance`\* | `string` | Amount currently staked |
+| `rawStakedBalance`\* | [`TokenAmount`](#tokenamount) | Amount currently staked |
 | `stakedBalance`\* | `string` | Amount currently staked |
-| `rawInstantUnstakeAvailable`\* | `string` | Amount available for instant unstake |
+| `rawInstantUnstakeAvailable`\* | [`TokenAmount`](#tokenamount) | Amount available for instant unstake |
 | `instantUnstakeAvailable`\* | `string` | Amount available for instant unstake |
 | `providerId`\* | `string` | Identifier of the staking provider |
 
@@ -604,24 +674,9 @@ Dynamic staking information for a provider
 | Field | Type | Description |
 | --- | --- | --- |
 | `apy`\* | `number` | Annual Percentage Yield in basis points (100 = 1%) |
-| `rawInstantUnstakeAvailable` | `string \| undefined` | Amount available for instant unstake |
-| `instantUnstakeAvailable` | `string \| undefined` | Amount available for instant unstake |
-| `exchangeRate` | `string \| undefined` | Exchange rate between stakeToken and receiveToken (e.g. 1 TON = 0.95 tsTON). Undefined when there is no receiveToken (direct/custodial staking). |
-
-#### StakingProviderInterface
-
-Interface that all staking providers must implement
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `type`\* | `"staking"` | _TODO: describe_ |
-| `providerId`\* | `string` | Unique identifier for the provider |
-| `getQuote`\* | `(params: StakingQuoteParams) => Promise<StakingQuote>` | Get a quote for staking or unstaking |
-| `buildStakeTransaction`\* | `(params: StakeParams) => Promise<TransactionRequest>` | Build a transaction for staking |
-| `getStakedBalance`\* | `(userAddress: UserFriendlyAddress, network?: Network) => Promise<StakingBalance>` | Get user's staked balance |
-| `getStakingProviderInfo`\* | `(network?: Network) => Promise<StakingProviderInfo>` | Get staking provider information |
-| `getStakingProviderMetadata`\* | `(network?: Network) => StakingProviderMetadata` | Get static metadata for this staking provider |
-| `getSupportedNetworks`\* | `() => Network[]` | Networks this provider can operate on. Consumers should check before calling provider methods. Implementations may return a static list or compute it dynamically (e.g. from runtime config). |
+| `rawInstantUnstakeAvailable` | [`TokenAmount`](#tokenamount) | Amount available for instant unstake |
+| `instantUnstakeAvailable` | `string` | Amount available for instant unstake |
+| `exchangeRate` | `string` | Exchange rate between stakeToken and receiveToken (e.g. 1 TON = 0.95 tsTON). Undefined when there is no receiveToken (direct/custodial staking). |
 
 #### StakingProviderMetadata
 
@@ -630,11 +685,11 @@ Static metadata for a staking provider
 | Field | Type | Description |
 | --- | --- | --- |
 | `name`\* | `string` | Human-readable provider name (e.g. "Tonstakers") |
-| `supportedUnstakeModes`\* | `Array<UnstakeModes>` | Supported unstake modes for this provider |
+| `supportedUnstakeModes`\* | [`UnstakeModes`](#unstakemodes)`[]` | Supported unstake modes for this provider |
 | `supportsReversedQuote`\* | `boolean` | Whether provider supports reversed quote format (e.g., passing TON instead of tsTON for unstake) |
-| `stakeToken`\* | `StakingTokenInfo` | Token that the user sends when staking (e.g. TON) |
-| `receiveToken` | `StakingTokenInfo \| undefined` | Token that the user receives when staking (e.g. tsTON for liquid staking). Absent for direct/custodial staking. |
-| `contractAddress` | `string \| undefined` | Provider contract address (optional — custodial providers may not have one) |
+| `stakeToken`\* | [`StakingTokenInfo`](#stakingtokeninfo) | Token that the user sends when staking (e.g. TON) |
+| `receiveToken` | [`StakingTokenInfo`](#stakingtokeninfo) | Token that the user receives when staking (e.g. tsTON for liquid staking). Absent for direct/custodial staking. |
+| `contractAddress` | [`UserFriendlyAddress`](#userfriendlyaddress) | Provider contract address (optional — custodial providers may not have one) |
 
 #### StakingQuote
 
@@ -642,14 +697,14 @@ Staking quote response with pricing information
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `direction`\* | `StakingQuoteDirection` | Direction of the quote (stake or unstake) |
-| `rawAmountIn`\* | `string` | Amount of tokens being provided |
-| `rawAmountOut`\* | `string` | Estimated amount of tokens to be received |
+| `direction`\* | [`StakingQuoteDirection`](#stakingquotedirection) | Direction of the quote (stake or unstake) |
+| `rawAmountIn`\* | [`TokenAmount`](#tokenamount) | Amount of tokens being provided |
+| `rawAmountOut`\* | [`TokenAmount`](#tokenamount) | Estimated amount of tokens to be received |
 | `amountIn`\* | `string` | Formatted amount of tokens being provided |
 | `amountOut`\* | `string` | Formatted estimated amount of tokens to be received |
-| `network`\* | `Network` | Network on which the staking will be executed |
+| `network`\* | [`Network`](#network) | Network on which the staking will be executed |
 | `providerId`\* | `string` | Identifier of the staking provider |
-| `unstakeMode` | `UnstakeModes \| undefined` | Mode of unstaking (if applicable) |
+| `unstakeMode` | [`UnstakeModes`](#unstakemodes) | Mode of unstaking (if applicable) |
 | `metadata` | `unknown` | Provider-specific metadata for the quote |
 
 #### StakingQuoteDirection
@@ -666,13 +721,13 @@ Parameters for getting a staking quote
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `direction`\* | `StakingQuoteDirection` | Direction of the quote (stake or unstake) |
+| `direction`\* | [`StakingQuoteDirection`](#stakingquotedirection) | Direction of the quote (stake or unstake) |
 | `amount`\* | `string` | Amount of tokens to stake or unstake |
-| `userAddress` | `string \| undefined` | Address of the user |
-| `network` | `Network \| undefined` | Network on which the staking will be executed |
-| `unstakeMode` | `UnstakeModes \| undefined` | Requested mode of unstaking |
-| `isReversed` | `boolean \| undefined` | If true, for unstake requests the amount is specified in the staking coin (e.g. TON) instead of the Liquid Staking Token (e.g. tsTON). |
-| `providerOptions` | `TProviderOptions \| undefined` | Provider-specific options |
+| `userAddress` | [`UserFriendlyAddress`](#userfriendlyaddress) | Address of the user |
+| `network` | [`Network`](#network) | Network on which the staking will be executed |
+| `unstakeMode` | [`UnstakeModes`](#unstakemodes) | Requested mode of unstaking |
+| `isReversed` | `boolean` | If true, for unstake requests the amount is specified in the staking coin (e.g. TON) instead of the Liquid Staking Token (e.g. tsTON). |
+| `providerOptions` | `TProviderOptions` | Provider-specific options |
 
 #### StakingTokenInfo
 
@@ -700,8 +755,8 @@ Swap API interface exposed by SwapManager
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `getQuote`\* | `(params: SwapQuoteParams, providerId?: string) => Promise<SwapQuote>` | Get a quote for swapping tokens |
-| `buildSwapTransaction`\* | `(params: SwapParams) => Promise<TransactionRequest>` | Build a transaction for a swap. Provider is taken from `params.quote.providerId`, or the manager default. |
+| `getQuote`\* | `(params: `[`SwapQuoteParams`](#swapquoteparams)`, providerId?: string) => Promise<`[`SwapQuote`](#swapquote)`>` | Get a quote for swapping tokens |
+| `buildSwapTransaction`\* | `(params: `[`SwapParams`](#swapparams)`) => Promise<TransactionRequest>` | Build a transaction for a swap. Provider is taken from `params.quote.providerId`, or the manager default. |
 | `createFactoryContext`\* | `() => ProviderFactoryContext` | _TODO: describe_ |
 | `registerProvider`\* | `(provider: ProviderInput<SwapProviderInterface<unknown, unknown>>) => void` | Register a new provider. If a provider with the same id is already registered, it is replaced. |
 | `removeProvider`\* | `(provider: SwapProviderInterface<unknown, unknown>) => void` | Remove a previously registered provider. No-op if the provider was not registered. |
@@ -716,12 +771,12 @@ Parameters for building swap transaction
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `quote`\* | `SwapQuote` | The swap quote based on which the transaction is built |
-| `userAddress`\* | `string` | Address of the user performing the swap |
-| `destinationAddress` | `string \| undefined` | Address to receive the swapped tokens (defaults to userAddress) |
-| `slippageBps` | `number \| undefined` | Slippage tolerance in basis points (1 bp = 0.01%) |
-| `deadline` | `number \| undefined` | Transaction deadline in unix timestamp |
-| `providerOptions` | `TProviderOptions \| undefined` | Provider-specific options |
+| `quote`\* | [`SwapQuote`](#swapquote) | The swap quote based on which the transaction is built |
+| `userAddress`\* | [`UserFriendlyAddress`](#userfriendlyaddress) | Address of the user performing the swap |
+| `destinationAddress` | [`UserFriendlyAddress`](#userfriendlyaddress) | Address to receive the swapped tokens (defaults to userAddress) |
+| `slippageBps` | `number` | Slippage tolerance in basis points (1 bp = 0.01%) |
+| `deadline` | `number` | Transaction deadline in unix timestamp |
+| `providerOptions` | `TProviderOptions` | Provider-specific options |
 
 #### SwapQuote
 
@@ -729,18 +784,18 @@ Swap quote response with pricing information
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `fromToken`\* | `SwapToken` | Token being sold |
-| `toToken`\* | `SwapToken` | Token being bought |
-| `rawFromAmount`\* | `string` | Amount of tokens to sell |
-| `rawToAmount`\* | `string` | Amount of tokens to buy |
+| `fromToken`\* | [`SwapToken`](#swaptoken) | Token being sold |
+| `toToken`\* | [`SwapToken`](#swaptoken) | Token being bought |
+| `rawFromAmount`\* | [`TokenAmount`](#tokenamount) | Amount of tokens to sell |
+| `rawToAmount`\* | [`TokenAmount`](#tokenamount) | Amount of tokens to buy |
 | `fromAmount`\* | `string` | Amount of tokens to sell |
 | `toAmount`\* | `string` | Amount of tokens to buy |
-| `rawMinReceived`\* | `string` | Minimum amount of tokens to receive (after slippage) |
+| `rawMinReceived`\* | [`TokenAmount`](#tokenamount) | Minimum amount of tokens to receive (after slippage) |
 | `minReceived`\* | `string` | Minimum amount of tokens to receive (after slippage) |
-| `network`\* | `Network` | Network on which the swap will be executed |
-| `priceImpact` | `number \| undefined` | Price impact of the swap in basis points (100 = 1%) |
+| `network`\* | [`Network`](#network) | Network on which the swap will be executed |
+| `priceImpact` | `number` | Price impact of the swap in basis points (100 = 1%) |
 | `providerId`\* | `string` | Identifier of the swap provider |
-| `expiresAt` | `number \| undefined` | Unix timestamp in seconds when the quote expires |
+| `expiresAt` | `number` | Unix timestamp in seconds when the quote expires |
 | `metadata` | `unknown` | Provider-specific metadata for the quote |
 
 #### SwapQuoteParams
@@ -750,13 +805,13 @@ Base parameters for requesting a swap quote
 | Field | Type | Description |
 | --- | --- | --- |
 | `amount`\* | `string` | Amount of tokens to swap (incoming or outgoing depending on isReverseSwap) |
-| `from`\* | `SwapToken` | Token to swap from |
-| `to`\* | `SwapToken` | Token to swap to |
-| `network`\* | `Network` | Network on which the swap will be executed |
-| `slippageBps` | `number \| undefined` | Slippage tolerance in basis points (1 bp = 0.01%) |
-| `maxOutgoingMessages` | `number \| undefined` | Maximum number of outgoing messages |
-| `providerOptions` | `TProviderOptions \| undefined` | Provider-specific options |
-| `isReverseSwap` | `boolean \| undefined` | If true, amount is the amount to receive (buy). If false, amount is the amount to spend (sell). |
+| `from`\* | [`SwapToken`](#swaptoken) | Token to swap from |
+| `to`\* | [`SwapToken`](#swaptoken) | Token to swap to |
+| `network`\* | [`Network`](#network) | Network on which the swap will be executed |
+| `slippageBps` | `number` | Slippage tolerance in basis points (1 bp = 0.01%) |
+| `maxOutgoingMessages` | `number` | Maximum number of outgoing messages |
+| `providerOptions` | `TProviderOptions` | Provider-specific options |
+| `isReverseSwap` | `boolean` | If true, amount is the amount to receive (buy). If false, amount is the amount to spend (sell). |
 
 #### SwapToken
 
@@ -766,19 +821,10 @@ Token type for swap
 | --- | --- | --- |
 | `address`\* | `string` | _TODO: describe_ |
 | `decimals`\* | `number` | _TODO: describe_ |
-| `name` | `string \| undefined` | _TODO: describe_ |
-| `symbol` | `string \| undefined` | _TODO: describe_ |
-| `image` | `string \| undefined` | _TODO: describe_ |
-| `chainId` | `string \| undefined` | _TODO: describe_ |
-
-#### TokenAmount
-
-Token amount represented as a string to preserve precision.
-For TON, this is typically in nanotons (1 TON = 10^9 nanotons).
-
-```ts
-type TokenAmount = string;
-```
+| `name` | `string` | _TODO: describe_ |
+| `symbol` | `string` | _TODO: describe_ |
+| `image` | `string` | _TODO: describe_ |
+| `chainId` | `string` | _TODO: describe_ |
 
 ## Constants
 
