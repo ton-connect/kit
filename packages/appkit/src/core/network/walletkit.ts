@@ -25,8 +25,26 @@ export { KitNetworkManager } from '@ton/walletkit';
  * @extract
  * @public
  * @category Type
- * @section Networks
+ * @section Client
  */
 export { ApiClient } from '@ton/walletkit';
 
-export { ApiClientToncenter, ApiClientTonApi } from '@ton/walletkit';
+/**
+ * {@link ApiClient} implementation backed by the Toncenter v3 indexer.
+ *
+ * @extract
+ * @public
+ * @category Class
+ * @section Client
+ */
+export { ApiClientToncenter } from '@ton/walletkit';
+
+/**
+ * {@link ApiClient} implementation backed by the TonAPI indexer.
+ *
+ * @extract
+ * @public
+ * @category Class
+ * @section Client
+ */
+export { ApiClientTonApi } from '@ton/walletkit';

@@ -15,7 +15,7 @@ import type { ApiClient } from '../../core/network';
  *
  * @public
  * @category Type
- * @section Networks
+ * @section Client
  */
 export type GetApiClientReturnType = ApiClient;
 
@@ -24,7 +24,7 @@ export type GetApiClientReturnType = ApiClient;
  *
  * @public
  * @category Type
- * @section Networks
+ * @section Client
  */
 export type GetApiClientOptions = { network: Network };
 
@@ -40,7 +40,7 @@ export type GetApiClientOptions = { network: Network };
  *
  * @public
  * @category Action
- * @section Networks
+ * @section Client
  */
 export const getApiClient = (appKit: AppKit, options: GetApiClientOptions): GetApiClientReturnType => {
     return appKit.networkManager.getClient(options.network);

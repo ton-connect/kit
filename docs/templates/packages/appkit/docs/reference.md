@@ -4,6 +4,28 @@ target: packages/appkit/docs/reference.md
 
 ## Class
 
+### Client
+
+#### ApiClientTonApi
+
+[`ApiClient`](#apiclient) implementation backed by the TonAPI indexer.
+
+Constructor: `new ApiClientTonApi(config)`
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `config` | `BaseApiClientConfig` | _TODO: describe_ |
+
+#### ApiClientToncenter
+
+[`ApiClient`](#apiclient) implementation backed by the Toncenter v3 indexer.
+
+Constructor: `new ApiClientToncenter(config)`
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `config` | <a href="#apiclientconfig"><code>ApiClientConfig</code></a> | _TODO: describe_ |
+
 ### Core
 
 #### AppKit
@@ -276,6 +298,24 @@ Returns: <a href="#watchbalancebyaddressreturntype"><code>WatchBalanceByAddressR
 **Example**
 
 %%docs/examples/src/appkit/actions/balances#WATCH_BALANCE_BY_ADDRESS%%
+
+### Client
+
+#### getApiClient
+
+Read the [`ApiClient`](#apiclient) configured for a specific [`Network`](#network) — throws when the network has no client registered.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`GetApiClientOptions`](#getapiclientoptions) | Network to look up. |
+| `options.network`\* | <a href="#network"><code>Network</code></a> | _TODO: describe_ |
+
+Returns: <a href="#getapiclientreturntype"><code>GetApiClientReturnType</code></a> — The configured [`ApiClient`](#apiclient) for the requested network.
+
+**Example**
+
+%%docs/examples/src/appkit/actions/network#GET_API_CLIENT%%
 
 ### Connectors
 
@@ -651,23 +691,101 @@ Subscribe to jetton-balance updates for an arbitrary owner address (use [`watchJ
 
 Returns: <a href="#watchjettonsbyaddressreturntype"><code>WatchJettonsByAddressReturnType</code></a> — Unsubscribe function — call it to stop receiving updates.
 
-### Networks
+### NFTs
 
-#### getApiClient
+#### createTransferNftTransaction
 
-Read the [`ApiClient`](#apiclient) configured for a specific [`Network`](#network) — throws when the network has no client registered.
+Build an NFT transfer [`TransactionRequest`](#transactionrequest) for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing; throws `Error('Wallet not connected')` when no wallet is selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
-| `options`\* | [`GetApiClientOptions`](#getapiclientoptions) | Network to look up. |
-| `options.network`\* | <a href="#network"><code>Network</code></a> | _TODO: describe_ |
+| `parameters`\* | [`CreateTransferNftTransactionParameters`](#createtransfernfttransactionparameters) | NFT, recipient, optional gas amount and comment. |
+| `parameters.nftAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | NFT contract address to transfer. |
+| `parameters.recipientAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | New owner address. |
+| `parameters.amount` | `string` | Amount of TON to attach to the transfer for gas; defaults to AppKit's NFT gas-fee constant when omitted. |
+| `parameters.comment` | `string` | Optional human-readable comment attached to the transfer. |
 
-Returns: <a href="#getapiclientreturntype"><code>GetApiClientReturnType</code></a> — The configured [`ApiClient`](#apiclient) for the requested network.
+Returns: <code>Promise&lt;</code><a href="#createtransfernfttransactionreturntype"><code>CreateTransferNftTransactionReturnType</code></a><code>&gt;</code> — Transaction request ready to pass to `sendTransaction`.
 
 **Example**
 
-%%docs/examples/src/appkit/actions/network#GET_API_CLIENT%%
+%%docs/examples/src/appkit/actions/nft#CREATE_TRANSFER_NFT_TRANSACTION%%
+
+#### getNft
+
+Fetch metadata and ownership for a single NFT by its contract address; returns `null` when the indexer has no record.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`GetNftOptions`](#getnftoptions) | NFT address and optional network override. |
+| `options.address`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code> \| Address</code> | NFT contract address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
+| `options.network` | <a href="#network"><code>Network</code></a> | Network to query. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+
+Returns: <code>Promise&lt;</code><a href="#getnftreturntype"><code>GetNftReturnType</code></a><code>&gt;</code> — NFT data, or `null` if the indexer has no record.
+
+**Example**
+
+%%docs/examples/src/appkit/actions/nft#GET_NFT%%
+
+#### getNfts
+
+List NFTs held by the currently selected wallet, returning `null` when no wallet is connected (use [`getNftsByAddress`](#getnftsbyaddress) for an arbitrary address).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options` | [`GetNftsOptions`](#getnftsoptions) | Optional network override and pagination. |
+| `options.network` | <a href="#network"><code>Network</code></a> | Network to read NFTs from. Defaults to the selected wallet's network. |
+| `options.limit` | `number` | Maximum number of NFTs to return. |
+| `options.offset` | `number` | Number of NFTs to skip before returning results — used for pagination. |
+
+Returns: <code>Promise&lt;</code><a href="#getnftsreturntype"><code>GetNftsReturnType</code></a><code>&gt;</code> — NFTs response for the selected wallet, or `null` when none is selected.
+
+**Example**
+
+%%docs/examples/src/appkit/actions/nft#GET_NFTS%%
+
+#### getNftsByAddress
+
+List NFTs held by an arbitrary address — useful for inspecting wallets that aren't selected in AppKit (use [`getNfts`](#getnfts) for the selected wallet).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `options`\* | [`GetNftsByAddressOptions`](#getnftsbyaddressoptions) | Owner address, optional network override and pagination. |
+| `options.address`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code> \| Address</code> | Owner address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
+| `options.network` | <a href="#network"><code>Network</code></a> | Network to read NFTs from. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+| `options.limit` | `number` | Maximum number of NFTs to return. |
+| `options.offset` | `number` | Number of NFTs to skip before returning results — used for pagination. |
+
+Returns: <code>Promise&lt;</code><a href="#getnftsbyaddressreturntype"><code>GetNftsByAddressReturnType</code></a><code>&gt;</code> — NFTs response with the owner's items.
+
+**Example**
+
+%%docs/examples/src/appkit/actions/nft#GET_NFTS_BY_ADDRESS%%
+
+#### transferNft
+
+Build and send an NFT transfer from the selected wallet in one step (use [`createTransferNftTransaction`](#createtransfernfttransaction) + `sendTransaction` if you need to inspect the transaction first); throws `Error('Wallet not connected')` when no wallet is selected.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`TransferNftParameters`](#transfernftparameters) | NFT, recipient, optional gas amount and comment. |
+| `parameters.nftAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | NFT contract address to transfer. |
+| `parameters.recipientAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | New owner address. |
+| `parameters.amount` | `string` | Amount of TON to attach to the transfer for gas; defaults to AppKit's NFT gas-fee constant when omitted. |
+| `parameters.comment` | `string` | Optional human-readable comment attached to the transfer. |
+
+Returns: <code>Promise&lt;</code><a href="#transfernftreturntype"><code>TransferNftReturnType</code></a><code>&gt;</code> — Wallet response carrying the BoC of the sent transaction.
+
+**Example**
+
+%%docs/examples/src/appkit/actions/nft#TRANSFER_NFT%%
+
+### Networks
 
 #### getBlockNumber
 
@@ -922,6 +1040,90 @@ Return type of [`watchBalance`](#watchbalance) — call to stop receiving update
 ```ts
 type WatchBalanceReturnType = () => void;
 ```
+
+### Client
+
+#### AddressBook
+
+Map of raw addresses to their resolved metadata, returned alongside indexed lists (e.g. [`JettonsResponse`](#jettonsresponse), [`NFTsResponse`](#nftsresponse)) so consumers can render labels without extra lookups.
+
+```ts
+type AddressBook = {
+    [key: UserFriendlyAddress]: AddressBookEntry;
+};
+```
+
+#### AddressBookEntry
+
+Single entry inside an [`AddressBook`](#addressbook) — pairs the user-friendly address with optional domain name and the list of contract interfaces it implements.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `address` | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | The human-readable representation of the blockchain address |
+| `domain` | `string` | The domain name associated with the address if available |
+| `interfaces`\* | `string[]` | List of supported interfaces by the address |
+
+#### ApiClient
+
+Indexer/RPC client interface used by AppKit to read on-chain state — balance, jettons, NFTs, masterchain seqno, etc. Each [`Network`](#network) resolves to its own `ApiClient` via [`AppKitNetworkManager`](#appkitnetworkmanager); apps usually pull one through [`getApiClient`](#getapiclient) rather than constructing it directly.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `nftItemsByAddress`\* | <code>(request: NFTsRequest) =&gt; Promise&lt;</code><a href="#nftsresponse"><code>NFTsResponse</code></a><code>&gt;</code> | _TODO: describe_ |
+| `nftItemsByOwner`\* | <code>(request: UserNFTsRequest) =&gt; Promise&lt;</code><a href="#nftsresponse"><code>NFTsResponse</code></a><code>&gt;</code> | _TODO: describe_ |
+| `fetchEmulation`\* | <code>(messageBoc: </code><a href="#base64string"><code>Base64String</code></a><code>, ignoreSignature?: boolean) =&gt; Promise&lt;ToncenterEmulationResult&gt;</code> | _TODO: describe_ |
+| `sendBoc`\* | <code>(boc: </code><a href="#base64string"><code>Base64String</code></a><code>) =&gt; Promise&lt;string&gt;</code> | _TODO: describe_ |
+| `runGetMethod`\* | <code>(address: </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code>, method: string, stack?: RawStackItem[], seqno?: number) =&gt; Promise&lt;GetMethodResult&gt;</code> | _TODO: describe_ |
+| `getAccountState`\* | <code>(address: </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code>, seqno?: number) =&gt; Promise&lt;FullAccountState&gt;</code> | _TODO: describe_ |
+| `getBalance`\* | <code>(address: </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code>, seqno?: number) =&gt; Promise&lt;</code><a href="#tokenamount"><code>TokenAmount</code></a><code>&gt;</code> | _TODO: describe_ |
+| `getAccountTransactions`\* | `(request: TransactionsByAddressRequest) => Promise<TransactionsResponse>` | _TODO: describe_ |
+| `getTransactionsByHash`\* | `(request: GetTransactionByHashRequest) => Promise<TransactionsResponse>` | _TODO: describe_ |
+| `getPendingTransactions`\* | `(request: GetPendingTransactionsRequest) => Promise<TransactionsResponse>` | _TODO: describe_ |
+| `getTrace`\* | `(request: GetTraceRequest) => Promise<ToncenterTracesResponse>` | _TODO: describe_ |
+| `getPendingTrace`\* | `(request: GetPendingTraceRequest) => Promise<ToncenterTracesResponse>` | _TODO: describe_ |
+| `resolveDnsWallet`\* | `(domain: string) => Promise<string \| null>` | _TODO: describe_ |
+| `backResolveDnsWallet`\* | <code>(address: </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code>) =&gt; Promise&lt;string \| null&gt;</code> | _TODO: describe_ |
+| `jettonsByAddress`\* | `(request: GetJettonsByAddressRequest) => Promise<ToncenterResponseJettonMasters>` | _TODO: describe_ |
+| `jettonsByOwnerAddress`\* | <code>(request: GetJettonsByOwnerRequest) =&gt; Promise&lt;</code><a href="#jettonsresponse"><code>JettonsResponse</code></a><code>&gt;</code> | _TODO: describe_ |
+| `getEvents`\* | `(request: GetEventsRequest) => Promise<GetEventsResponse>` | _TODO: describe_ |
+| `getMasterchainInfo`\* | `() => Promise<MasterchainInfo>` | _TODO: describe_ |
+
+#### ApiClientConfig
+
+Configuration accepted by [`NetworkConfig`](#networkconfig)`.apiClient` — picks an [`ApiClient`](#apiclient) implementation (Toncenter / TonAPI) and supplies its endpoint URL plus optional API key.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `url` | `string` | _TODO: describe_ |
+| `key` | `string` | _TODO: describe_ |
+
+#### GetApiClientOptions
+
+Options for [`getApiClient`](#getapiclient).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `network`\* | <a href="#network"><code>Network</code></a> | _TODO: describe_ |
+
+#### GetApiClientReturnType
+
+Return type of [`getApiClient`](#getapiclient).
+
+```ts
+type GetApiClientReturnType = ApiClient;
+```
+
+#### TokenInfo
+
+Display metadata for a token (TON, jetton, or NFT) — name, symbol, image and animation as reported by the indexer; surfaced as [`Jetton`](#jetton)`.info` and [`NFT`](#nft)`.info`.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `name` | `string` | Display name of the token |
+| `description` | `string` | Human-readable description of the token |
+| `image` | `TokenImage` | Token image in various sizes |
+| `animation` | `TokenAnimation` | Animated media associated with the token |
+| `symbol` | `string` | Ticker symbol of the token (e.g., "TON", "USDT") |
 
 ### Connectors
 
@@ -1445,26 +1647,6 @@ type ProviderInput = T | ProviderFactory<T>;
 
 ### Jettons
 
-#### AddressBook
-
-Map of raw addresses to their resolved metadata, returned alongside indexed lists (e.g. [`JettonsResponse`](#jettonsresponse)) so consumers can render labels without extra lookups.
-
-```ts
-type AddressBook = {
-    [key: UserFriendlyAddress]: AddressBookEntry;
-};
-```
-
-#### AddressBookEntry
-
-Single entry inside an [`AddressBook`](#addressbook) — pairs the user-friendly address with optional domain name and the list of contract interfaces it implements.
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `address` | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | The human-readable representation of the blockchain address |
-| `domain` | `string` | The domain name associated with the address if available |
-| `interfaces`\* | `string[]` | List of supported interfaces by the address |
-
 #### CreateTransferJettonTransactionParameters
 
 Parameters accepted by [`createTransferJettonTransaction`](#createtransferjettontransaction) and [`transferJetton`](#transferjetton).
@@ -1643,18 +1825,6 @@ Response payload of [`getJettons`](#getjettons) / [`getJettonsByAddress`](#getje
 | `addressBook`\* | <a href="#addressbook"><code>AddressBook</code></a> | Address book mapping |
 | `jettons`\* | <a href="#jetton"><code>Jetton</code></a><code>[]</code> | List of Jettons |
 
-#### TokenInfo
-
-Display metadata for a token (TON, jetton, or NFT) — name, symbol, image and animation as reported by the indexer; surfaced as [`Jetton`](#jetton)`.info`.
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `name` | `string` | Display name of the token |
-| `description` | `string` | Human-readable description of the token |
-| `image` | `TokenImage` | Token image in various sizes |
-| `animation` | `TokenAnimation` | Animated media associated with the token |
-| `symbol` | `string` | Ticker symbol of the token (e.g., "TON", "USDT") |
-
 #### TransferJettonParameters
 
 Parameters accepted by [`transferJetton`](#transferjetton) — same shape as [`CreateTransferJettonTransactionParameters`](#createtransferjettontransactionparameters).
@@ -1706,57 +1876,155 @@ Return type of [`watchJettons`](#watchjettons) — call to stop receiving update
 type WatchJettonsReturnType = () => void;
 ```
 
-### Networks
+### NFTs
 
-#### ApiClient
+#### CreateTransferNftTransactionParameters
 
-Indexer/RPC client interface used by AppKit to read on-chain state — balance, jettons, NFTs, masterchain seqno, etc. Each [`Network`](#network) resolves to its own `ApiClient` via [`AppKitNetworkManager`](#appkitnetworkmanager); apps usually pull one through [`getApiClient`](#getapiclient) rather than constructing it directly.
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `nftItemsByAddress`\* | `(request: NFTsRequest) => Promise<NFTsResponse>` | _TODO: describe_ |
-| `nftItemsByOwner`\* | `(request: UserNFTsRequest) => Promise<NFTsResponse>` | _TODO: describe_ |
-| `fetchEmulation`\* | <code>(messageBoc: </code><a href="#base64string"><code>Base64String</code></a><code>, ignoreSignature?: boolean) =&gt; Promise&lt;ToncenterEmulationResult&gt;</code> | _TODO: describe_ |
-| `sendBoc`\* | <code>(boc: </code><a href="#base64string"><code>Base64String</code></a><code>) =&gt; Promise&lt;string&gt;</code> | _TODO: describe_ |
-| `runGetMethod`\* | <code>(address: </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code>, method: string, stack?: RawStackItem[], seqno?: number) =&gt; Promise&lt;GetMethodResult&gt;</code> | _TODO: describe_ |
-| `getAccountState`\* | <code>(address: </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code>, seqno?: number) =&gt; Promise&lt;FullAccountState&gt;</code> | _TODO: describe_ |
-| `getBalance`\* | <code>(address: </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code>, seqno?: number) =&gt; Promise&lt;</code><a href="#tokenamount"><code>TokenAmount</code></a><code>&gt;</code> | _TODO: describe_ |
-| `getAccountTransactions`\* | `(request: TransactionsByAddressRequest) => Promise<TransactionsResponse>` | _TODO: describe_ |
-| `getTransactionsByHash`\* | `(request: GetTransactionByHashRequest) => Promise<TransactionsResponse>` | _TODO: describe_ |
-| `getPendingTransactions`\* | `(request: GetPendingTransactionsRequest) => Promise<TransactionsResponse>` | _TODO: describe_ |
-| `getTrace`\* | `(request: GetTraceRequest) => Promise<ToncenterTracesResponse>` | _TODO: describe_ |
-| `getPendingTrace`\* | `(request: GetPendingTraceRequest) => Promise<ToncenterTracesResponse>` | _TODO: describe_ |
-| `resolveDnsWallet`\* | `(domain: string) => Promise<string \| null>` | _TODO: describe_ |
-| `backResolveDnsWallet`\* | <code>(address: </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code>) =&gt; Promise&lt;string \| null&gt;</code> | _TODO: describe_ |
-| `jettonsByAddress`\* | `(request: GetJettonsByAddressRequest) => Promise<ToncenterResponseJettonMasters>` | _TODO: describe_ |
-| `jettonsByOwnerAddress`\* | <code>(request: GetJettonsByOwnerRequest) =&gt; Promise&lt;</code><a href="#jettonsresponse"><code>JettonsResponse</code></a><code>&gt;</code> | _TODO: describe_ |
-| `getEvents`\* | `(request: GetEventsRequest) => Promise<GetEventsResponse>` | _TODO: describe_ |
-| `getMasterchainInfo`\* | `() => Promise<MasterchainInfo>` | _TODO: describe_ |
-
-#### ApiClientConfig
-
-API client configuration options
+Parameters accepted by [`createTransferNftTransaction`](#createtransfernfttransaction) and [`transferNft`](#transfernft).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `url` | `string` | _TODO: describe_ |
-| `key` | `string` | _TODO: describe_ |
+| `nftAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | NFT contract address to transfer. |
+| `recipientAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | New owner address. |
+| `amount` | `string` | Amount of TON to attach to the transfer for gas; defaults to AppKit's NFT gas-fee constant when omitted. |
+| `comment` | `string` | Optional human-readable comment attached to the transfer. |
 
-#### GetApiClientOptions
+#### CreateTransferNftTransactionReturnType
 
-Options for [`getApiClient`](#getapiclient).
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `network`\* | <a href="#network"><code>Network</code></a> | _TODO: describe_ |
-
-#### GetApiClientReturnType
-
-Return type of [`getApiClient`](#getapiclient).
+Return type of [`createTransferNftTransaction`](#createtransfernfttransaction).
 
 ```ts
-type GetApiClientReturnType = ApiClient;
+type CreateTransferNftTransactionReturnType = TransactionRequest;
 ```
+
+#### GetNftOptions
+
+Options for [`getNft`](#getnft).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `address`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code> \| Address</code> | NFT contract address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to query. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+
+#### GetNftReturnType
+
+Return type of [`getNft`](#getnft) — `null` when the indexer has no record for that address.
+
+```ts
+type GetNftReturnType = NFT | null;
+```
+
+#### GetNftsByAddressOptions
+
+Options for [`getNftsByAddress`](#getnftsbyaddress).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `address`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code> \| Address</code> | Owner address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to read NFTs from. Defaults to the connected wallet's network, or the configured default if no wallet is connected. |
+| `limit` | `number` | Maximum number of NFTs to return. |
+| `offset` | `number` | Number of NFTs to skip before returning results — used for pagination. |
+
+#### GetNftsByAddressReturnType
+
+Return type of [`getNftsByAddress`](#getnftsbyaddress).
+
+```ts
+type GetNftsByAddressReturnType = NFTsResponse;
+```
+
+#### GetNftsOptions
+
+Options for [`getNfts`](#getnfts).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `network` | <a href="#network"><code>Network</code></a> | Network to read NFTs from. Defaults to the selected wallet's network. |
+| `limit` | `number` | Maximum number of NFTs to return. |
+| `offset` | `number` | Number of NFTs to skip before returning results — used for pagination. |
+
+#### GetNftsReturnType
+
+Return type of [`getNfts`](#getnfts) — `null` when no wallet is currently selected.
+
+```ts
+type GetNftsReturnType = NFTsResponse | null;
+```
+
+#### NFT
+
+Non-fungible TEP-62 token held in the user's TON wallet — carries the contract address, optional collection link, owner, sale state, and on-chain metadata.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `address`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Contract address of the NFT item |
+| `index` | `string` | Index of the item within its collection |
+| `info` | <a href="#tokeninfo"><code>TokenInfo</code></a> | Display information about the NFT (name, description, images) |
+| `attributes` | <a href="#nftattribute"><code>NFTAttribute</code></a><code>[]</code> | Custom attributes/traits of the NFT (e.g., rarity, properties) |
+| `collection` | <a href="#nftcollection"><code>NFTCollection</code></a> | Information about the collection this item belongs to |
+| `auctionContractAddress` | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Address of the auction contract, if the NFT is being auctioned |
+| `codeHash` | <a href="#hex"><code>Hex</code></a> | Hash of the NFT smart contract code |
+| `dataHash` | <a href="#hex"><code>Hex</code></a> | Hash of the NFT's on-chain data |
+| `isInited` | `boolean` | Whether the NFT contract has been initialized |
+| `isSoulbound` | `boolean` | Whether the NFT is soulbound (non-transferable) |
+| `isOnSale` | `boolean` | Whether the NFT is currently listed for sale |
+| `ownerAddress` | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Current owner address of the NFT |
+| `realOwnerAddress` | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Real owner address when NFT is on sale (sale contract becomes temporary owner) |
+| `saleContractAddress` | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Address of the sale contract, if the NFT is listed for sale |
+| `extra` | `{         [key: string]: unknown;     }` | Off-chain metadata of the NFT (key-value pairs) |
+
+#### NFTAttribute
+
+Single trait of an [`NFT`](#nft) — `traitType` names the category (e.g., `"Background"`), `value` carries the trait's value (e.g., `"Blue"`).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `traitType` | `string` | Category or type of the trait (e.g., "Background", "Eyes") |
+| `displayType` | `string` | How the attribute should be displayed (e.g., "string", "number", "date") |
+| `value` | `string` | Value of the attribute (e.g., "Blue", "Rare") |
+
+#### NFTCollection
+
+NFT collection (TEP-62) — surfaced as [`NFT`](#nft)`.collection` and carries the collection's name, image, owner and minting cursor.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `address`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | The blockchain address of the NFT collection contract |
+| `name` | `string` | The name of the NFT collection |
+| `image` | `TokenImage` | The image representing the NFT collection |
+| `description` | `string` | A brief description of the NFT collection |
+| `nextItemIndex` | `string` | The index value for the next item to be minted in the collection |
+| `codeHash` | <a href="#hex"><code>Hex</code></a> | The hash of the collection's smart contract code |
+| `dataHash` | <a href="#hex"><code>Hex</code></a> | The hash of the collection's data in the blockchain |
+| `ownerAddress` | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | The blockchain address of the collection owner |
+| `extra` | `{         [key: string]: unknown;     }` | Additional arbitrary data related to the NFT collection |
+
+#### NFTsResponse
+
+Response payload of [`getNfts`](#getnfts) / [`getNftsByAddress`](#getnftsbyaddress) — the list of [`NFT`](#nft)s plus an address book that resolves raw addresses inside it.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `addressBook` | <a href="#addressbook"><code>AddressBook</code></a> | Address book entries related to the NFTs |
+| `nfts`\* | <a href="#nft"><code>NFT</code></a><code>[]</code> | List of NFTs |
+
+#### TransferNftParameters
+
+Parameters accepted by [`transferNft`](#transfernft) — same shape as [`CreateTransferNftTransactionParameters`](#createtransfernfttransactionparameters).
+
+```ts
+type TransferNftParameters = CreateTransferNftTransactionParameters;
+```
+
+#### TransferNftReturnType
+
+Return type of [`transferNft`](#transfernft).
+
+```ts
+type TransferNftReturnType = SendTransactionResponse;
+```
+
+### Networks
 
 #### GetBlockNumberOptions
 

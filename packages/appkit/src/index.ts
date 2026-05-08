@@ -51,6 +51,7 @@ export * from './types/transaction';
 export * from './types/primitives';
 export * from './types/signing';
 export * from './types/provider';
+export * from './types/client';
 
 // Utils
 export * from './utils';

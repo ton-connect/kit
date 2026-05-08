@@ -12,7 +12,17 @@
  * @category Type
  * @section Networks
  */
-export { Network, NetworkAdapters, NetworkConfig, ApiClientConfig } from '@ton/walletkit';
+export { Network, NetworkAdapters, NetworkConfig } from '@ton/walletkit';
+
+/**
+ * Configuration accepted by {@link NetworkConfig}`.apiClient` — picks an {@link ApiClient} implementation (Toncenter / TonAPI) and supplies its endpoint URL plus optional API key.
+ *
+ * @extract
+ * @public
+ * @category Type
+ * @section Client
+ */
+export { ApiClientConfig } from '@ton/walletkit';
 
 /**
  * Walletkit-side options shape consumed by {@link KitNetworkManager}'s constructor — chiefly the `networks` map keyed by chain id. {@link AppKit} constructs the manager for you, so apps rarely instantiate this directly.
