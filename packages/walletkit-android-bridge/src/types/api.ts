@@ -187,6 +187,18 @@ export interface RejectSignDataRequestArgs {
     reason?: string;
 }
 
+export interface ApproveSignMessageRequestArgs {
+    event: TonConnectRequestEvent;
+    response?: {
+        internalBoc: string;
+    };
+}
+
+export interface RejectSignMessageRequestArgs {
+    event: TonConnectRequestEvent;
+    reason?: string;
+}
+
 export interface DisconnectSessionArgs {
     sessionId?: string;
 }
@@ -453,6 +465,8 @@ export interface WalletKitBridgeApi {
     rejectTransactionRequest(args: RejectTransactionRequestArgs): PromiseOrValue<{ success: boolean }>;
     approveSignDataRequest(args: ApproveSignDataRequestArgs): PromiseOrValue<{ signature: string; timestamp: number }>;
     rejectSignDataRequest(args: RejectSignDataRequestArgs): PromiseOrValue<{ success: boolean }>;
+    approveSignMessageRequest(args: ApproveSignMessageRequestArgs): PromiseOrValue<{ internalBoc: string }>;
+    rejectSignMessageRequest(args: RejectSignMessageRequestArgs): PromiseOrValue<{ success: boolean }>;
     listSessions(): PromiseOrValue<{ items: TONConnectSession[] }>;
     disconnectSession(args?: DisconnectSessionArgs): PromiseOrValue<{ ok: boolean }>;
     getNfts(args: GetNftsArgs): PromiseOrValue<NFTsResponse>;
