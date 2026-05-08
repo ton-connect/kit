@@ -12,22 +12,36 @@ import type { Jetton, Network } from '../api/models';
 
 // === Core Jetton Information ===
 export interface JettonInfo {
+    /** Jetton master contract address. */
     address: string;
+    /** Display name of the jetton (e.g., `"Tether USD"`). */
     name: string;
+    /** Ticker symbol (e.g., `"USDT"`). */
     symbol: string;
+    /** Free-form description set by the issuer. */
     description: string;
+    /** Number of decimal places used to format raw amounts (e.g., `6` for USDT). */
     decimals?: number;
+    /** Total supply in raw smallest units. */
     totalSupply?: string;
+    /** URL of the jetton's image. */
     image?: string;
+    /** Inline image data (Base64) when no `image` URL is published. */
     image_data?: string;
+    /** Off-chain metadata URI (TEP-64). */
     uri?: string;
+    /** Verification status reported by the indexer. */
     verification?: JettonVerification;
+    /** Additional indexer-supplied metadata that doesn't fit the canonical fields. */
     metadata?: Record<string, unknown>;
 }
 
 export interface JettonVerification {
+    /** `true` when the indexer has verified this jetton against an allow-list. */
     verified: boolean;
+    /** Origin of the verification claim. */
     source?: 'toncenter' | 'community' | 'manual';
+    /** Free-form warnings the UI should surface (e.g., scam indicators). */
     warnings?: string[];
 }
 

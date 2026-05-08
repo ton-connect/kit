@@ -15,9 +15,13 @@ const log = globalLogger.createChild('EventEmitter');
 export type EventPayload = object;
 
 export interface KitEvent<T> {
+    /** Event name (e.g., `'connector:connected'`). */
     type: string;
+    /** Event-specific payload — typed via the emitter's event-name → payload map. */
     payload: T;
+    /** Identifier of the component that emitted the event (connector id, manager name, etc.); useful for filtering listeners. */
     source?: string;
+    /** Wall-clock timestamp in milliseconds when the event was emitted. */
     timestamp: number;
 }
 

@@ -49,8 +49,7 @@ Constructor: `new AppKit(config)`
 
 #### EventEmitter
 
-Global event emitter for the TonWalletKit
-Allows components to send and receive events throughout the kit.
+Strongly-typed event emitter built on a string event name → payload type map; backs [`AppKit`](#appkit)`.emitter` and any custom emitters apps create. `appKit.emitter.on(name, handler)` returns an unsubscribe function.
 
 Constructor: `new EventEmitter()`
 
@@ -64,9 +63,9 @@ Constructor: `new CryptoOnrampError(message, code, details)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `message`\* | `string` | _TODO: describe_ |
-| `code`\* | `string` | _TODO: describe_ |
-| `details` | `unknown` | _TODO: describe_ |
+| `message`\* | `string` | Human-readable description, forwarded to `Error`. |
+| `code`\* | `string` | Stable error code from the static `CryptoOnrampError.*` / `DefiError.*` constants. |
+| `details` | `unknown` | Optional provider-specific context for diagnostics. |
 
 #### CryptoOnrampManager
 
@@ -108,7 +107,7 @@ Constructor: `new LayerswapCryptoOnrampProvider(config)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config` | <a href="#layerswapproviderconfig"><code>LayerswapProviderConfig</code></a> | _TODO: describe_ |
+| `config` | <a href="#layerswapproviderconfig"><code>LayerswapProviderConfig</code></a> | Optional [`LayerswapProviderConfig`](#layerswapproviderconfig); defaults are filled in for any field left undefined. |
 
 #### SwapsXyzCryptoOnrampProvider
 
@@ -118,13 +117,13 @@ Constructor: `new SwapsXyzCryptoOnrampProvider(config)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config`\* | <a href="#swapsxyzproviderconfig"><code>SwapsXyzProviderConfig</code></a> | _TODO: describe_ |
+| `config`\* | [`SwapsXyzProviderConfig`](#swapsxyzproviderconfig) | carrying the required `apiKey` plus optional URL/sender overrides. |
 
 ### DeFi
 
 #### DefiError
 
-Base error thrown by DeFi managers (swap, staking, onramp) when a provider call fails; subclassed by [`SwapError`](#swaperror) / [`StakingError`](#stakingerror) and discriminated at runtime via the `code` field.
+Base error thrown across all DeFi domains (swap, staking, onramp, crypto-onramp). Subclassed by [`SwapError`](#swaperror), [`StakingError`](#stakingerror), `OnrampError`, [`CryptoOnrampError`](#cryptoonramperror) — catch the base when you don't care which domain produced the failure.
 
 Constructor: `new DefiError(message, code, details)`
 
@@ -161,22 +160,19 @@ Constructor: `new KitNetworkManager(options)`
 
 #### StakingError
 
-_TODO: describe_
+Error thrown by [`StakingManager`](#stakingmanager) and staking providers — extends [`DefiError`](#defierror) with a `'staking'` discriminator and a [`StakingErrorCode`](#stakingerrorcode) on `code`.
 
 Constructor: `new StakingError(message, code, details)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `message`\* | `string` | _TODO: describe_ |
-| `code`\* | <a href="#stakingerrorcode"><code>StakingErrorCode</code></a> | _TODO: describe_ |
-| `details` | `unknown` | _TODO: describe_ |
+| `message`\* | `string` | Human-readable description, forwarded to `Error`. |
+| `code`\* | <a href="#stakingerrorcode"><code>StakingErrorCode</code></a> | Stable [`StakingErrorCode`](#stakingerrorcode) for branching logic. |
+| `details` | `unknown` | Optional provider-specific context for diagnostics. |
 
 #### StakingManager
 
-StakingManager - manages staking providers and delegates staking operations
-
-Allows registration of multiple staking providers and provides a unified API
-for staking operations. Providers can be switched dynamically.
+Runtime that owns registered [`StakingProvider`](#stakingprovider)s and dispatches quote/stake/balance calls. Exposed as [`AppKit`](#appkit)`.stakingManager`; usually accessed through the higher-level actions ([`getStakingQuote`](#getstakingquote), [`buildStakeTransaction`](#buildstaketransaction), [`getStakedBalance`](#getstakedbalance)).
 
 Constructor: `new StakingManager(createFactoryContext)`
 
@@ -186,10 +182,7 @@ Constructor: `new StakingManager(createFactoryContext)`
 
 #### StakingProvider
 
-Abstract base class for staking providers
-
-Provides common utilities and enforces implementation of core staking methods.
-Users can extend this class to create custom staking providers.
+Abstract base class implemented by staking providers (Tonstakers, custom integrations, …); apps don't use it directly — they consume providers through [`StakingManager`](#stakingmanager) and the `getStaking*` / `buildStakeTransaction` actions.
 
 Constructor: `new StakingProvider(providerId)`
 
@@ -213,7 +206,7 @@ Constructor: `new DeDustSwapProvider(config)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config` | <a href="#dedustswapproviderconfig"><code>DeDustSwapProviderConfig</code></a> | _TODO: describe_ |
+| `config` | <a href="#dedustswapproviderconfig"><code>DeDustSwapProviderConfig</code></a> | Optional [`DeDustSwapProviderConfig`](#dedustswapproviderconfig); defaults are filled in for any field left undefined. |
 
 **Example**
 
@@ -237,7 +230,7 @@ Constructor: `new OmnistonSwapProvider(config)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config` | <a href="#omnistonswapproviderconfig"><code>OmnistonSwapProviderConfig</code></a> | _TODO: describe_ |
+| `config` | <a href="#omnistonswapproviderconfig"><code>OmnistonSwapProviderConfig</code></a> | Optional [`OmnistonSwapProviderConfig`](#omnistonswapproviderconfig); defaults are filled in for any field left undefined. |
 
 **Example**
 
@@ -257,22 +250,19 @@ kit.swap.registerProvider(
 
 #### SwapError
 
-_TODO: describe_
+Error thrown by [`SwapManager`](#swapmanager) and swap providers — extends [`DefiError`](#defierror) with a `'swap'` discriminator.
 
 Constructor: `new SwapError(message, code, details)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `message`\* | `string` | _TODO: describe_ |
-| `code`\* | `string` | _TODO: describe_ |
-| `details` | `unknown` | _TODO: describe_ |
+| `message`\* | `string` | Human-readable description, forwarded to `Error`. |
+| `code`\* | `string` | Stable error code from the static `SwapError.*` / `DefiError.*` constants. |
+| `details` | `unknown` | Optional provider-specific context for diagnostics. |
 
 #### SwapManager
 
-SwapManager - manages swap providers and delegates swap operations
-
-Allows registration of multiple swap providers and provides a unified API
-for swap operations. Providers can be switched dynamically.
+Runtime that owns registered [`SwapProvider`](#swapprovider)s and dispatches quote/swap calls. Exposed as [`AppKit`](#appkit)`.swapManager`; usually accessed through the higher-level actions ([`getSwapQuote`](#getswapquote), [`buildSwapTransaction`](#buildswaptransaction)).
 
 Constructor: `new SwapManager(createFactoryContext)`
 
@@ -282,10 +272,7 @@ Constructor: `new SwapManager(createFactoryContext)`
 
 #### SwapProvider
 
-Abstract base class for swap providers
-
-Provides a common interface for implementing swap functionality
-across different DEXs and protocols.
+Abstract base class implemented by swap providers (DeDust, Omniston, custom integrations); apps don't use it directly — they consume providers through [`SwapManager`](#swapmanager) and the `getSwap*` / `buildSwapTransaction` actions.
 
 Constructor: `new SwapProvider()`
 
@@ -397,7 +384,7 @@ Read the [`ApiClient`](#apiclient) configured for a specific [`Network`](#networ
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options`\* | [`GetApiClientOptions`](#getapiclientoptions) | Network to look up. |
-| `options.network`\* | <a href="#network"><code>Network</code></a> | _TODO: describe_ |
+| `options.network`\* | <a href="#network"><code>Network</code></a> | Network whose configured [`ApiClient`](#apiclient) should be returned. |
 
 Returns: <a href="#getapiclientreturntype"><code>GetApiClientReturnType</code></a> — The configured [`ApiClient`](#apiclient) for the requested network.
 
@@ -564,7 +551,7 @@ Build a Layerswap-backed [`CryptoOnrampProvider`](#cryptoonrampprovider) for App
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config` | <a href="#layerswapproviderconfig"><code>LayerswapProviderConfig</code></a> | _TODO: describe_ |
+| `config` | <a href="#layerswapproviderconfig"><code>LayerswapProviderConfig</code></a> | Optional [`LayerswapProviderConfig`](#layerswapproviderconfig); defaults are filled in for any field left undefined. |
 
 Returns: <code>ProviderFactory&lt;</code><a href="#layerswapcryptoonrampprovider"><code>LayerswapCryptoOnrampProvider</code></a><code>&gt;</code>.
 
@@ -574,7 +561,7 @@ Build a swaps.xyz-backed [`CryptoOnrampProvider`](#cryptoonrampprovider) for App
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config`\* | <a href="#swapsxyzproviderconfig"><code>SwapsXyzProviderConfig</code></a> | _TODO: describe_ |
+| `config`\* | [`SwapsXyzProviderConfig`](#swapsxyzproviderconfig) | carrying the required `apiKey` plus optional URL/sender overrides. |
 
 Returns: <code>ProviderFactory&lt;</code><a href="#swapsxyzcryptoonrampprovider"><code>SwapsXyzCryptoOnrampProvider</code></a><code>&gt;</code>.
 
@@ -1128,7 +1115,7 @@ Build a Tonstakers-backed [`StakingProvider`](#stakingprovider) for AppKit; pass
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config` | <a href="#tonstakersproviderconfig"><code>TonStakersProviderConfig</code></a> | _TODO: describe_ |
+| `config` | <a href="#tonstakersproviderconfig"><code>TonStakersProviderConfig</code></a> | Optional [`TonStakersProviderConfig`](#tonstakersproviderconfig); defaults are filled in for any field left undefined. |
 
 Returns: <code>(ctx: ProviderFactoryContext) =&gt; </code><a href="#tonstakersstakingprovider"><code>TonStakersStakingProvider</code></a>.
 
@@ -1296,7 +1283,7 @@ Build a DeDust-backed [`SwapProvider`](#swapprovider) for AppKit; pass the resul
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config` | <a href="#dedustswapproviderconfig"><code>DeDustSwapProviderConfig</code></a> | _TODO: describe_ |
+| `config` | <a href="#dedustswapproviderconfig"><code>DeDustSwapProviderConfig</code></a> | Optional [`DeDustSwapProviderConfig`](#dedustswapproviderconfig); defaults are filled in for any field left undefined. |
 
 Returns: <code>(ctx: ProviderFactoryContext) =&gt; </code><a href="#dedustswapprovider"><code>DeDustSwapProvider</code></a>.
 
@@ -1306,7 +1293,7 @@ Build an Omniston-backed [`SwapProvider`](#swapprovider) for AppKit; pass the re
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config` | <a href="#omnistonswapproviderconfig"><code>OmnistonSwapProviderConfig</code></a> | _TODO: describe_ |
+| `config` | <a href="#omnistonswapproviderconfig"><code>OmnistonSwapProviderConfig</code></a> | Optional [`OmnistonSwapProviderConfig`](#omnistonswapproviderconfig); defaults are filled in for any field left undefined. |
 
 Returns: <code>(ctx: ProviderFactoryContext) =&gt; </code><a href="#omnistonswapprovider"><code>OmnistonSwapProvider</code></a>.
 
@@ -1377,16 +1364,6 @@ Returns: <a href="#getswapquotereturntype"><code>GetSwapQuoteReturnType</code></
 **Example**
 
 %%docs/examples/src/appkit/actions/swap#GET_SWAP_QUOTE%%
-
-#### isDeDustQuoteMetadata
-
-Type guard that checks whether a [`SwapQuote`](#swapquote)`.metadata` came from [`DeDustSwapProvider`](#dedustswapprovider).
-
-| Parameter | Type | Description |
-| --- | --- | --- |
-| `metadata`\* | `unknown` | _TODO: describe_ |
-
-Returns: `boolean`.
 
 #### setDefaultSwapProvider
 
@@ -1713,24 +1690,24 @@ Indexer/RPC client interface used by AppKit to read on-chain state — balance, 
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `nftItemsByAddress`\* | <code>(request: NFTsRequest) =&gt; Promise&lt;</code><a href="#nftsresponse"><code>NFTsResponse</code></a><code>&gt;</code> | _TODO: describe_ |
-| `nftItemsByOwner`\* | <code>(request: UserNFTsRequest) =&gt; Promise&lt;</code><a href="#nftsresponse"><code>NFTsResponse</code></a><code>&gt;</code> | _TODO: describe_ |
-| `fetchEmulation`\* | <code>(messageBoc: </code><a href="#base64string"><code>Base64String</code></a><code>, ignoreSignature?: boolean) =&gt; Promise&lt;ToncenterEmulationResult&gt;</code> | _TODO: describe_ |
-| `sendBoc`\* | <code>(boc: </code><a href="#base64string"><code>Base64String</code></a><code>) =&gt; Promise&lt;string&gt;</code> | _TODO: describe_ |
-| `runGetMethod`\* | <code>(address: </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code>, method: string, stack?: RawStackItem[], seqno?: number) =&gt; Promise&lt;GetMethodResult&gt;</code> | _TODO: describe_ |
-| `getAccountState`\* | <code>(address: </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code>, seqno?: number) =&gt; Promise&lt;FullAccountState&gt;</code> | _TODO: describe_ |
-| `getBalance`\* | <code>(address: </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code>, seqno?: number) =&gt; Promise&lt;</code><a href="#tokenamount"><code>TokenAmount</code></a><code>&gt;</code> | _TODO: describe_ |
-| `getAccountTransactions`\* | `(request: TransactionsByAddressRequest) => Promise<TransactionsResponse>` | _TODO: describe_ |
-| `getTransactionsByHash`\* | `(request: GetTransactionByHashRequest) => Promise<TransactionsResponse>` | _TODO: describe_ |
-| `getPendingTransactions`\* | `(request: GetPendingTransactionsRequest) => Promise<TransactionsResponse>` | _TODO: describe_ |
-| `getTrace`\* | `(request: GetTraceRequest) => Promise<ToncenterTracesResponse>` | _TODO: describe_ |
-| `getPendingTrace`\* | `(request: GetPendingTraceRequest) => Promise<ToncenterTracesResponse>` | _TODO: describe_ |
-| `resolveDnsWallet`\* | `(domain: string) => Promise<string \| null>` | _TODO: describe_ |
-| `backResolveDnsWallet`\* | <code>(address: </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code>) =&gt; Promise&lt;string \| null&gt;</code> | _TODO: describe_ |
-| `jettonsByAddress`\* | `(request: GetJettonsByAddressRequest) => Promise<ToncenterResponseJettonMasters>` | _TODO: describe_ |
-| `jettonsByOwnerAddress`\* | <code>(request: GetJettonsByOwnerRequest) =&gt; Promise&lt;</code><a href="#jettonsresponse"><code>JettonsResponse</code></a><code>&gt;</code> | _TODO: describe_ |
-| `getEvents`\* | `(request: GetEventsRequest) => Promise<GetEventsResponse>` | _TODO: describe_ |
-| `getMasterchainInfo`\* | `() => Promise<MasterchainInfo>` | _TODO: describe_ |
+| `nftItemsByAddress`\* | <code>(request: NFTsRequest) =&gt; Promise&lt;</code><a href="#nftsresponse"><code>NFTsResponse</code></a><code>&gt;</code> | Look up specific NFT items by address. |
+| `nftItemsByOwner`\* | <code>(request: UserNFTsRequest) =&gt; Promise&lt;</code><a href="#nftsresponse"><code>NFTsResponse</code></a><code>&gt;</code> | List NFT items held by an owner; supports pagination. |
+| `fetchEmulation`\* | <code>(messageBoc: </code><a href="#base64string"><code>Base64String</code></a><code>, ignoreSignature?: boolean) =&gt; Promise&lt;ToncenterEmulationResult&gt;</code> | Run an emulation pass on a Base64-encoded BoC; returns the predicted account-state changes and emitted events without sending the message. |
+| `sendBoc`\* | <code>(boc: </code><a href="#base64string"><code>Base64String</code></a><code>) =&gt; Promise&lt;string&gt;</code> | Broadcast a signed BoC to the network and return the message hash. |
+| `runGetMethod`\* | <code>(address: </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code>, method: string, stack?: RawStackItem[], seqno?: number) =&gt; Promise&lt;GetMethodResult&gt;</code> | Run an on-chain `get` method against a contract and read its TVM stack output. |
+| `getAccountState`\* | <code>(address: </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code>, seqno?: number) =&gt; Promise&lt;FullAccountState&gt;</code> | Read the full on-chain account state (code, data, status, balance) for an address. |
+| `getBalance`\* | <code>(address: </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code>, seqno?: number) =&gt; Promise&lt;</code><a href="#tokenamount"><code>TokenAmount</code></a><code>&gt;</code> | Read the TON balance of an address in raw nanotons. |
+| `getAccountTransactions`\* | `(request: TransactionsByAddressRequest) => Promise<TransactionsResponse>` | List transactions for an address; ordered newest-first, paginated via `LimitRequest`. |
+| `getTransactionsByHash`\* | `(request: GetTransactionByHashRequest) => Promise<TransactionsResponse>` | Fetch a transaction by its message or body hash. |
+| `getPendingTransactions`\* | `(request: GetPendingTransactionsRequest) => Promise<TransactionsResponse>` | List pending (unconfirmed) transactions by accounts or trace ids; useful for "in-flight" UIs. |
+| `getTrace`\* | `(request: GetTraceRequest) => Promise<ToncenterTracesResponse>` | Fetch a confirmed trace (the tree of internal messages spawned by an external one). |
+| `getPendingTrace`\* | `(request: GetPendingTraceRequest) => Promise<ToncenterTracesResponse>` | Fetch a pending trace by external-message hash, while it's still in flight. |
+| `resolveDnsWallet`\* | `(domain: string) => Promise<string \| null>` | Resolve a TON DNS domain to the wallet address it points at; `null` when unset. |
+| `backResolveDnsWallet`\* | <code>(address: </code><a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a><code>) =&gt; Promise&lt;string \| null&gt;</code> | Reverse-resolve a wallet address to a TON DNS domain that points at it; `null` when none. |
+| `jettonsByAddress`\* | `(request: GetJettonsByAddressRequest) => Promise<ToncenterResponseJettonMasters>` | Look up jetton masters by address — returns indexer metadata for the requested jettons. |
+| `jettonsByOwnerAddress`\* | <code>(request: GetJettonsByOwnerRequest) =&gt; Promise&lt;</code><a href="#jettonsresponse"><code>JettonsResponse</code></a><code>&gt;</code> | List jetton holdings owned by an address — returns balances + jetton-master metadata. |
+| `getEvents`\* | `(request: GetEventsRequest) => Promise<GetEventsResponse>` | List parsed account events (jetton transfers, NFT moves, swaps, …) for an address. |
+| `getMasterchainInfo`\* | `() => Promise<MasterchainInfo>` | Read the latest masterchain info — last seqno, shards, time. |
 
 #### ApiClientConfig
 
@@ -1738,8 +1715,8 @@ Configuration accepted by [`NetworkConfig`](#networkconfig)`.apiClient` — pick
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `url` | `string` | _TODO: describe_ |
-| `key` | `string` | _TODO: describe_ |
+| `url` | `string` | Base URL of the indexer endpoint. Defaults to `'https://toncenter.com'` for mainnet, `'https://testnet.toncenter.com'` for testnet. |
+| `key` | `string` | API key forwarded to the indexer for higher rate limits. |
 
 #### GetApiClientOptions
 
@@ -1747,7 +1724,7 @@ Options for [`getApiClient`](#getapiclient).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `network`\* | <a href="#network"><code>Network</code></a> | _TODO: describe_ |
+| `network`\* | <a href="#network"><code>Network</code></a> | Network whose configured [`ApiClient`](#apiclient) should be returned. |
 
 #### GetApiClientReturnType
 
@@ -1995,11 +1972,11 @@ Payload of `networks:default-changed` events — the new default network, or `un
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `network`\* | <a href="#network"><code>Network</code></a><code> \| undefined</code> | _TODO: describe_ |
+| `network`\* | <a href="#network"><code>Network</code></a><code> \| undefined</code> | New default network, or `undefined` when the constraint was cleared. |
 
 #### EventListener
 
-_TODO: describe_
+Listener callback signature accepted by [`EventEmitter`](#eventemitter)`.on` — receives a [`KitEvent`](#kitevent) for the given event type and may return a Promise the emitter awaits.
 
 ```ts
 type EventListener = (event: KitEvent<T>) => void | Promise<void>;
@@ -2007,7 +1984,7 @@ type EventListener = (event: KitEvent<T>) => void | Promise<void>;
 
 #### EventPayload
 
-_TODO: describe_
+Generic event-payload constraint — an `object` that the typed event-name → payload map maps to.
 
 ```ts
 type EventPayload = object;
@@ -2015,18 +1992,18 @@ type EventPayload = object;
 
 #### KitEvent
 
-_TODO: describe_
+Envelope every [`EventEmitter`](#eventemitter) listener receives — `type` is the event name, `payload` is the event-specific data, `source` identifies who emitted it, and `timestamp` is the wall-clock millisecond mark.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `type`\* | `string` | _TODO: describe_ |
-| `payload`\* | `T = any` | _TODO: describe_ |
-| `source` | `string` | _TODO: describe_ |
-| `timestamp`\* | `number` | _TODO: describe_ |
+| `type`\* | `string` | Event name (e.g., `'connector:connected'`). |
+| `payload`\* | `T = any` | Event-specific payload — typed via the emitter's event-name → payload map. |
+| `source` | `string` | Identifier of the component that emitted the event (connector id, manager name, etc.); useful for filtering listeners. |
+| `timestamp`\* | `number` | Wall-clock timestamp in milliseconds when the event was emitted. |
 
 #### SharedKitEvents
 
-Events shared between all walletkit and appkit.
+Event-name → payload map shared between AppKit and walletkit; AppKit extends it with its own connector, wallet and network events to type [`AppKitEmitter`](#appkitemitter).
 
 ```ts
 type SharedKitEvents = StreamingEvents & BaseProviderEvents;
@@ -2038,8 +2015,8 @@ Payload of `connector:connected` events — newly connected wallets and the orig
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `wallets`\* | <a href="#walletinterface"><code>WalletInterface</code></a><code>[]</code> | _TODO: describe_ |
-| `connectorId`\* | `string` | _TODO: describe_ |
+| `wallets`\* | <a href="#walletinterface"><code>WalletInterface</code></a><code>[]</code> | Wallets newly available through the connector after the connect handshake. |
+| `connectorId`\* | `string` | Id of the [`Connector`](#connector) that produced the connection. |
 
 #### WalletDisconnectedPayload
 
@@ -2047,7 +2024,7 @@ Payload of `connector:disconnected` events — id of the connector whose wallet 
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `connectorId`\* | `string` | _TODO: describe_ |
+| `connectorId`\* | `string` | Id of the [`Connector`](#connector) whose wallet was just disconnected. |
 
 ### Crypto Onramp
 
@@ -2265,10 +2242,10 @@ Provider-specific metadata returned on a [`CryptoOnrampQuote`](#cryptoonrampquot
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `swapId`\* | `string` | _TODO: describe_ |
-| `depositAddress`\* | `string` | _TODO: describe_ |
-| `sourceAmountBaseUnits`\* | `string` | _TODO: describe_ |
-| `targetAmountBaseUnits`\* | `string` | _TODO: describe_ |
+| `swapId`\* | `string` | Layerswap swap id created at quote time and reused by `createDeposit` / `getStatus`. |
+| `depositAddress`\* | `string` | Pre-computed deposit address on the source chain that the user must send funds to. |
+| `sourceAmountBaseUnits`\* | `string` | Source-chain amount the user must send, in raw base units (e.g., wei). |
+| `targetAmountBaseUnits`\* | `string` | Target-chain amount the user receives, in raw base units (e.g., nanotons). |
 
 #### SwapsXyzProviderConfig
 
@@ -2286,8 +2263,8 @@ Provider-specific metadata returned on a [`CryptoOnrampQuote`](#cryptoonrampquot
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `sender`\* | `string` | _TODO: describe_ |
-| `response`\* | `SwapsXyzGetActionResponse` | _TODO: describe_ |
+| `sender`\* | `string` | EVM sender address swaps.xyz was quoted for; required when later calling `createDeposit`. |
+| `response`\* | `SwapsXyzGetActionResponse` | Raw `getAction` response cached at quote time so `createDeposit` doesn't need an extra round-trip. |
 
 #### SwapsXyzQuoteOptions
 
@@ -2317,7 +2294,7 @@ type WatchCryptoOnrampProvidersReturnType = () => void;
 
 #### DefiManagerAPI
 
-Swap API interface exposed by SwapManager
+Shape every DeFi domain manager (swap, staking, onramp, crypto-onramp) satisfies — provider registration, default-provider selection and lookups; mostly relevant when authoring a new domain manager.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -2331,7 +2308,7 @@ Swap API interface exposed by SwapManager
 
 #### DefiProvider
 
-Base interface for all DeFi providers
+Base interface implemented by every [`DefiProvider`](#defiprovider) (swap, staking, onramp, crypto-onramp) — exposes `providerId`, `type` and `getSupportedNetworks`. Domain-specific provider interfaces extend this with quote/build/status methods.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -2497,17 +2474,17 @@ Token metadata for a jetton master — name, symbol, decimals, image, and verifi
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `address`\* | `string` | _TODO: describe_ |
-| `name`\* | `string` | _TODO: describe_ |
-| `symbol`\* | `string` | _TODO: describe_ |
-| `description`\* | `string` | _TODO: describe_ |
-| `decimals` | `number` | _TODO: describe_ |
-| `totalSupply` | `string` | _TODO: describe_ |
-| `image` | `string` | _TODO: describe_ |
-| `image_data` | `string` | _TODO: describe_ |
-| `uri` | `string` | _TODO: describe_ |
-| `verification` | <a href="#jettonverification"><code>JettonVerification</code></a> | _TODO: describe_ |
-| `metadata` | `Record<string, unknown>` | _TODO: describe_ |
+| `address`\* | `string` | Jetton master contract address. |
+| `name`\* | `string` | Display name of the jetton (e.g., `"Tether USD"`). |
+| `symbol`\* | `string` | Ticker symbol (e.g., `"USDT"`). |
+| `description`\* | `string` | Free-form description set by the issuer. |
+| `decimals` | `number` | Number of decimal places used to format raw amounts (e.g., `6` for USDT). |
+| `totalSupply` | `string` | Total supply in raw smallest units. |
+| `image` | `string` | URL of the jetton's image. |
+| `image_data` | `string` | Inline image data (Base64) when no `image` URL is published. |
+| `uri` | `string` | Off-chain metadata URI (TEP-64). |
+| `verification` | <a href="#jettonverification"><code>JettonVerification</code></a> | Verification status reported by the indexer. |
+| `metadata` | `Record<string, unknown>` | Additional indexer-supplied metadata that doesn't fit the canonical fields. |
 
 #### JettonUpdate
 
@@ -2530,9 +2507,9 @@ Verification metadata reported by the indexer for a [`JettonInfo`](#jettoninfo) 
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `verified`\* | `boolean` | _TODO: describe_ |
-| `source` | `'toncenter' \| 'community' \| 'manual'` | _TODO: describe_ |
-| `warnings` | `string[]` | _TODO: describe_ |
+| `verified`\* | `boolean` | `true` when the indexer has verified this jetton against an allow-list. |
+| `source` | `'toncenter' \| 'community' \| 'manual'` | Origin of the verification claim. |
+| `warnings` | `string[]` | Free-form warnings the UI should surface (e.g., scam indicators). |
 
 #### JettonsResponse
 
@@ -3288,13 +3265,13 @@ Parameters for getting a staking quote
 
 #### StakingTokenInfo
 
-_TODO: describe_
+Display metadata for a token a staking provider supports — name, symbol, image and optional address; carried on [`StakingProviderInfo`](#stakingproviderinfo)`.tokens` so the UI can render the pool's input/output assets.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `ticker`\* | `string` | _TODO: describe_ |
-| `decimals`\* | `number` | _TODO: describe_ |
-| `address`\* | `string` | 'ton' for native TON, otherwise contract address in friendly format |
+| `ticker`\* | `string` | Ticker symbol (e.g., `"TON"`, `"tsTON"`). |
+| `decimals`\* | `number` | Number of decimal places used to format raw amounts. |
+| `address`\* | `string` | `'ton'` for native TON, otherwise the token contract address in user-friendly format. |
 
 #### TonStakersProviderConfig
 
@@ -3504,7 +3481,7 @@ type SetDefaultSwapProviderReturnType = void;
 
 #### SwapAPI
 
-Swap API interface exposed by SwapManager
+API surface exposed by [`SwapManager`](#swapmanager) — quote, build-transaction and supported-token reads. Mostly relevant when authoring a swap manager replacement.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -3520,7 +3497,7 @@ Swap API interface exposed by SwapManager
 
 #### SwapParams
 
-Parameters for building swap transaction
+Parameters consumed by [`buildSwapTransaction`](#buildswaptransaction) — the previously obtained [`SwapQuote`](#swapquote) plus optional provider-specific options (`TProviderOptions`).
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -3533,7 +3510,7 @@ Parameters for building swap transaction
 
 #### SwapQuote
 
-Swap quote response with pricing information
+Quote returned by [`getSwapQuote`](#getswapquote) — source/target tokens, expected amounts, rate, slippage, fees and the provider-specific `metadata` that [`buildSwapTransaction`](#buildswaptransaction) needs to construct the transaction.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -3553,7 +3530,7 @@ Swap quote response with pricing information
 
 #### SwapQuoteParams
 
-Base parameters for requesting a swap quote
+Parameters consumed by [`getSwapQuote`](#getswapquote) — source/target token addresses, an amount in either source or target units (`isSourceAmount` flag), optional slippage and provider-specific options.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -3568,16 +3545,16 @@ Base parameters for requesting a swap quote
 
 #### SwapToken
 
-Token type for swap
+Token entry returned by [`SwapProvider`](#swapprovider)`.getSupportedTokens` — address, decimals, image, symbol; consumed by swap-input UIs to render the source/target token list.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `address`\* | `string` | _TODO: describe_ |
-| `decimals`\* | `number` | _TODO: describe_ |
-| `name` | `string` | _TODO: describe_ |
-| `symbol` | `string` | _TODO: describe_ |
-| `image` | `string` | _TODO: describe_ |
-| `chainId` | `string` | _TODO: describe_ |
+| `address`\* | `string` | Token contract address — `'0x0...0'` for the native chain currency. |
+| `decimals`\* | `number` | Number of decimal places used to format raw amounts. |
+| `name` | `string` | Display name (e.g., `"Tether USD"`). |
+| `symbol` | `string` | Ticker symbol (e.g., `"USDT"`). |
+| `image` | `string` | URL of the token's image. |
+| `chainId` | `string` | Chain id in CAIP-2 format when the token lives outside TON. |
 
 #### WatchSwapProvidersParameters
 
@@ -3922,12 +3899,12 @@ Discriminator carried on every [`StakingError`](#stakingerror)`.code` — `'INVA
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `InvalidParams`\* | `"INVALID_PARAMS"` | _TODO: describe_ |
-| `UnsupportedOperation`\* | `"UNSUPPORTED_OPERATION"` | _TODO: describe_ |
+| `InvalidParams`\* | `"INVALID_PARAMS"` | Caller passed parameters that fail provider-level validation. |
+| `UnsupportedOperation`\* | `"UNSUPPORTED_OPERATION"` | Provider doesn't support the requested operation (e.g., reversed quote on a unidirectional pool). |
 
 #### UnstakeMode
 
-_TODO: describe_
+Allowed unstake-timing flavours referenced by [`UnstakeModes`](#unstakemodes) and [`StakingProviderInfo`](#stakingproviderinfo) — `'INSTANT'` (immediate withdrawal at a discount), `'WHEN_AVAILABLE'` (paid out as the pool unlocks), `'ROUND_END'` (paid out at the end of the staking round).
 
 ```ts
 const UnstakeMode = { readonly INSTANT: "INSTANT"; readonly WHEN_AVAILABLE: "WHEN_AVAILABLE"; readonly ROUND_END: "ROUND_END"; };

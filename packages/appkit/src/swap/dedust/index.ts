@@ -66,17 +66,8 @@ export type { DeDustReferralOptions } from '@ton/walletkit/swap/dedust';
  */
 export type { DeDustQuoteMetadata } from '@ton/walletkit/swap/dedust';
 
-/**
- * Type guard that checks whether a {@link SwapQuote}`.metadata` came from {@link DeDustSwapProvider}.
- *
- * @extract
- * @public
- * @category Action
- * @section Swap
- */
+// Internal — type guard for DeDust quote metadata + walletkit response shapes; re-exported for compatibility but not surfaced in the documented reference.
 export { isDeDustQuoteMetadata } from '@ton/walletkit/swap/dedust';
-
-// Internal walletkit response shapes — re-exported for compatibility but not surfaced in the documented reference.
 export type {
     DeDustQuoteResponse,
     DeDustRouteStep,

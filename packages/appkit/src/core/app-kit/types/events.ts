@@ -20,7 +20,9 @@ import type { WalletInterface } from '../../../types/wallet';
  * @section Core
  */
 export interface WalletConnectedPayload {
+    /** Wallets newly available through the connector after the connect handshake. */
     wallets: WalletInterface[];
+    /** Id of the {@link Connector} that produced the connection. */
     connectorId: string;
 }
 
@@ -32,6 +34,7 @@ export interface WalletConnectedPayload {
  * @section Core
  */
 export interface WalletDisconnectedPayload {
+    /** Id of the {@link Connector} whose wallet was just disconnected. */
     connectorId: string;
 }
 
@@ -43,6 +46,7 @@ export interface WalletDisconnectedPayload {
  * @section Core
  */
 export interface DefaultNetworkChangedPayload {
+    /** New default network, or `undefined` when the constraint was cleared. */
     network: Network | undefined;
 }
 

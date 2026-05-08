@@ -20,8 +20,10 @@ import type { TONConnectSessionManager } from '../api/interfaces';
  * API client configuration options
  */
 export interface ApiClientConfig {
-    url?: string; // default 'https://toncenter.com' for mainnet, 'https://testnet.toncenter.com' for testnet
-    key?: string; // key for better RPS limits
+    /** Base URL of the indexer endpoint. Defaults to `'https://toncenter.com'` for mainnet, `'https://testnet.toncenter.com'` for testnet. */
+    url?: string;
+    /** API key forwarded to the indexer for higher rate limits. */
+    key?: string;
 }
 
 /**

@@ -26,7 +26,10 @@ export type GetApiClientReturnType = ApiClient;
  * @category Type
  * @section Client
  */
-export type GetApiClientOptions = { network: Network };
+export type GetApiClientOptions = {
+    /** Network whose configured {@link ApiClient} should be returned. */
+    network: Network;
+};
 
 /**
  * Read the {@link ApiClient} configured for a specific {@link Network} — throws when the network has no client registered.

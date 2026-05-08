@@ -59,7 +59,9 @@ export interface SwapsXyzQuoteOptions {
  * CryptoOnrampDeposit without an extra network round-trip.
  */
 export interface SwapsXyzQuoteMetadata {
+    /** EVM sender address swaps.xyz was quoted for; required when later calling `createDeposit`. */
     sender: string;
+    /** Raw `getAction` response cached at quote time so `createDeposit` doesn't need an extra round-trip. */
     response: SwapsXyzGetActionResponse;
 }
 
@@ -85,6 +87,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
     private readonly apiUrl: string;
     private readonly defaultSender: string;
 
+    /** @param config - {@link SwapsXyzProviderConfig} carrying the required `apiKey` plus optional URL/sender overrides. */
     constructor(config: SwapsXyzProviderConfig) {
         super();
         this.apiKey = config.apiKey;
@@ -286,6 +289,8 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
 /**
  * Returns a `ProviderFactory` for `SwapsXyzCryptoOnrampProvider`.
  * Pass to `providers: [createSwapsXyzProvider(config)]`.
+ *
+ * @param config - {@link SwapsXyzProviderConfig} carrying the required `apiKey` plus optional URL/sender overrides.
  */
 export const createSwapsXyzProvider = (config: SwapsXyzProviderConfig) =>
     createProvider(() => new SwapsXyzCryptoOnrampProvider(config));

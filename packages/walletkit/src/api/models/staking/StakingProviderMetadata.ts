@@ -10,10 +10,14 @@ import type { UserFriendlyAddress } from '../core/Primitives';
 import type { UnstakeModes } from './UnstakeMode';
 
 export interface StakingTokenInfo {
+    /** Ticker symbol (e.g., `"TON"`, `"tsTON"`). */
     ticker: string;
-    /** @format int */
+    /**
+     * Number of decimal places used to format raw amounts.
+     * @format int
+     */
     decimals: number;
-    /** 'ton' for native TON, otherwise contract address in friendly format */
+    /** `'ton'` for native TON, otherwise the token contract address in user-friendly format. */
     address: string;
 }
 

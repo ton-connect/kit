@@ -16,6 +16,11 @@ export class CryptoOnrampError extends DefiError {
     static readonly INVALID_REFUND_ADDRESS = 'INVALID_REFUND_ADDRESS';
     static readonly REVERSED_AMOUNT_NOT_SUPPORTED = 'REVERSED_AMOUNT_NOT_SUPPORTED';
 
+    /**
+     * @param message - Human-readable description, forwarded to `Error`.
+     * @param code - Stable error code from the static `CryptoOnrampError.*` / `DefiError.*` constants.
+     * @param details - Optional provider-specific context for diagnostics.
+     */
     constructor(message: string, code: string, details?: unknown) {
         super(message, code, details);
         this.name = 'CryptoOnrampError';
