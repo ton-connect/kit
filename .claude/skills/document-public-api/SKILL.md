@@ -16,7 +16,7 @@ This skill describes exactly which JSDoc tags the generator understands, in what
 Every `@public` symbol **must** also declare:
 
 - `@public` — opt-in marker. Without it the symbol is invisible to the generator.
-- `@category <Class | Action | Hook | Component | Type>` — top-level group (`## Class`, `## Action`, …). The generator validates the value; anything else is an error.
+- `@category <Class | Action | Hook | Component | Type | Constants>` — top-level group (`## Class`, `## Action`, …). The generator validates the value; anything else is an error.
 - `@section <Domain>` — second-level group (`### Balances`, `### Connectors and wallets`, …). Free-form string; symbols sharing the same value end up under one heading.
 
 If any of the three is missing, `pnpm docs:reference` aborts with a list of offending symbols.
@@ -28,9 +28,10 @@ If any of the three is missing, `pnpm docs:reference` aborts with a list of offe
 | `Class` | `export class X { }` |
 | `Action` / `Hook` | `export function name(...)` or `export const name = (...) => ...` |
 | `Component` | Function returning JSX **or** a `const X = { Sub: …, Sub2: … }` object of FCs (rendered as a compound component) |
-| `Type` | `export interface X { }`, `export type X = ...`, or `export const X = { ... } as const` |
+| `Type` | `export interface X { }` or `export type X = ...` |
+| `Constants` | `export const X = { ... } as const` (or any `export const X = literal`) |
 
-Putting `@category Class` on an interface raises `[X] @category Class requires the symbol to be a class declaration.` at generate time.
+Putting `@category Class` on an interface raises `[X] @category Class requires the symbol to be a class declaration.` at generate time. `Type` and `Constants` are deliberately split so a `const X = {}` cannot accidentally land under "Type" — pick `Constants` for runtime values, `Type` for compile-time-only declarations.
 
 ---
 
@@ -142,7 +143,7 @@ If validation fails, the script prints every problem in one go — fix them all 
 ## Quick checklist
 
 - [ ] `@public` present
-- [ ] `@category` set to one of `Class`, `Action`, `Hook`, `Component`, `Type`
+- [ ] `@category` set to one of `Class`, `Action`, `Hook`, `Component`, `Type`, `Constants`
 - [ ] `@section` set to a domain string (matches existing entries where appropriate)
 - [ ] Summary is one sentence with a trailing period
 - [ ] Each `@param` description is one self-contained sentence

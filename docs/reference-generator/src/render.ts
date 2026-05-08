@@ -21,7 +21,7 @@ export type PackageKey = 'appkit' | 'appkit-react';
 
 const TODO_MARKER = '_TODO: describe_';
 
-const CATEGORY_ORDER = ['Class', 'Action', 'Hook', 'Component', 'Type'];
+const CATEGORY_ORDER = ['Class', 'Action', 'Hook', 'Component', 'Type', 'Constants'];
 
 let LINKABLE_NAMES: Set<string> = new Set();
 

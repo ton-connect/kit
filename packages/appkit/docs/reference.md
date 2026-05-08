@@ -305,17 +305,6 @@ type AppKitEvents = {
 } & SharedKitEvents;
 ```
 
-#### CONNECTOR_EVENTS
-
-Event names AppKit emits on wallet connection and disconnection; payloads are [`WalletConnectedPayload`](#walletconnectedpayload) and [`WalletDisconnectedPayload`](#walletdisconnectedpayload).
-
-```ts
-const CONNECTOR_EVENTS = {
-    CONNECTED: 'connector:connected',
-    DISCONNECTED: 'connector:disconnected',
-} as const;
-```
-
 #### DefaultNetworkChangedPayload
 
 Payload of `networks:default-changed` events — the new default network, or `undefined` when cleared.
@@ -323,28 +312,6 @@ Payload of `networks:default-changed` events — the new default network, or `un
 | Field | Type | Description |
 | --- | --- | --- |
 | `network`\* | `Network \| undefined` | _TODO: describe_ |
-
-#### NETWORKS_EVENTS
-
-Event names AppKit emits on network changes; `DEFAULT_CHANGED` carries a [`DefaultNetworkChangedPayload`](#defaultnetworkchangedpayload).
-
-```ts
-const NETWORKS_EVENTS = {
-    UPDATED: 'networks:updated',
-    DEFAULT_CHANGED: 'networks:default-changed',
-} as const;
-```
-
-#### WALLETS_EVENTS
-
-Event names AppKit emits when the available wallet list (`UPDATED`) or the active wallet (`SELECTION_CHANGED`) changes.
-
-```ts
-const WALLETS_EVENTS = {
-    UPDATED: 'wallets:updated',
-    SELECTION_CHANGED: 'wallets:selection-changed',
-} as const;
-```
 
 #### WalletConnectedPayload
 
@@ -373,3 +340,44 @@ Parameters accepted by `signText`.
 | --- | --- | --- |
 | `text`\* | `string` | UTF-8 text the user is asked to sign. |
 | `network` | `Network \| undefined` | Network to issue the sign request against. Defaults to the AppKit's selected network. |
+
+## Constants
+
+### Connector
+
+#### CONNECTOR_EVENTS
+
+Event names AppKit emits on wallet connection and disconnection; payloads are [`WalletConnectedPayload`](#walletconnectedpayload) and [`WalletDisconnectedPayload`](#walletdisconnectedpayload).
+
+```ts
+const CONNECTOR_EVENTS = {
+    CONNECTED: 'connector:connected',
+    DISCONNECTED: 'connector:disconnected',
+} as const;
+```
+
+### Networks
+
+#### NETWORKS_EVENTS
+
+Event names AppKit emits on network changes; `DEFAULT_CHANGED` carries a [`DefaultNetworkChangedPayload`](#defaultnetworkchangedpayload).
+
+```ts
+const NETWORKS_EVENTS = {
+    UPDATED: 'networks:updated',
+    DEFAULT_CHANGED: 'networks:default-changed',
+} as const;
+```
+
+### Wallets
+
+#### WALLETS_EVENTS
+
+Event names AppKit emits when the available wallet list (`UPDATED`) or the active wallet (`SELECTION_CHANGED`) changes.
+
+```ts
+const WALLETS_EVENTS = {
+    UPDATED: 'wallets:updated',
+    SELECTION_CHANGED: 'wallets:selection-changed',
+} as const;
+```

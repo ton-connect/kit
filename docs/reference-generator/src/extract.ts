@@ -24,16 +24,8 @@ import type { CollectedSymbol } from './collect';
 
 export type SymbolKind = 'function' | 'component' | 'componentNamespace' | 'type' | 'class';
 
-export const VALID_CATEGORIES = ['Class', 'Action', 'Hook', 'Component', 'Type'] as const;
+export const VALID_CATEGORIES = ['Class', 'Action', 'Hook', 'Component', 'Type', 'Constants'] as const;
 export type ValidCategory = (typeof VALID_CATEGORIES)[number];
-
-const CATEGORY_TO_KIND: Record<ValidCategory, SymbolKind> = {
-    Class: 'class',
-    Action: 'function',
-    Hook: 'function',
-    Component: 'component',
-    Type: 'type',
-};
 
 export interface ParamRow {
     name: string;
@@ -148,26 +140,27 @@ function extractByCategory(
     declaration: Node,
     sourcePath: string,
 ): ExtractedWithoutMeta {
-    const expectedKind = CATEGORY_TO_KIND[category];
-
-    switch (expectedKind) {
-        case 'type':
-            if (
-                Node.isInterfaceDeclaration(declaration) ||
-                Node.isTypeAliasDeclaration(declaration) ||
-                Node.isVariableDeclaration(declaration)
-            ) {
+    switch (category) {
+        case 'Type':
+            if (Node.isInterfaceDeclaration(declaration) || Node.isTypeAliasDeclaration(declaration)) {
                 return extractType(name, declaration, sourcePath);
             }
-            throw mismatch(name, category, 'interface, type alias, or const declaration');
+            throw mismatch(name, category, 'interface or type alias');
 
-        case 'class':
+        case 'Constants':
+            if (Node.isVariableDeclaration(declaration)) {
+                return extractType(name, declaration, sourcePath);
+            }
+            throw mismatch(name, category, 'const declaration');
+
+        case 'Class':
             if (Node.isClassDeclaration(declaration)) {
                 return extractClass(name, declaration, sourcePath);
             }
             throw mismatch(name, category, 'class declaration');
 
-        case 'function':
+        case 'Action':
+        case 'Hook':
             if (Node.isFunctionDeclaration(declaration)) {
                 return extractFunctionLike(declaration, name, sourcePath);
             }
@@ -179,7 +172,7 @@ function extractByCategory(
             }
             throw mismatch(name, category, 'function declaration or arrow/function variable');
 
-        case 'component':
+        case 'Component':
             if (Node.isVariableDeclaration(declaration)) {
                 const init = declaration.getInitializer();
                 if (init && Node.isObjectLiteralExpression(init)) {
@@ -191,10 +184,6 @@ function extractByCategory(
                 return extractFunctionAsComponent(declaration, name, sourcePath);
             }
             throw mismatch(name, category, 'function or variable declaration');
-
-        case 'componentNamespace':
-            // Reached via category=Component → handled inside the 'component' branch above.
-            throw new Error(`Unreachable: componentNamespace must be derived from Component category`);
     }
 }
 

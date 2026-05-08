@@ -10,8 +10,8 @@
  * Event names AppKit emits on wallet connection and disconnection; payloads are {@link WalletConnectedPayload} and {@link WalletDisconnectedPayload}.
  *
  * @public
- * @category Type
- * @section Core
+ * @category Constants
+ * @section Connector
  */
 export const CONNECTOR_EVENTS = {
     CONNECTED: 'connector:connected',
@@ -22,8 +22,8 @@ export const CONNECTOR_EVENTS = {
  * Event names AppKit emits when the available wallet list (`UPDATED`) or the active wallet (`SELECTION_CHANGED`) changes.
  *
  * @public
- * @category Type
- * @section Core
+ * @category Constants
+ * @section Wallets
  */
 export const WALLETS_EVENTS = {
     UPDATED: 'wallets:updated',
@@ -34,8 +34,8 @@ export const WALLETS_EVENTS = {
  * Event names AppKit emits on network changes; `DEFAULT_CHANGED` carries a {@link DefaultNetworkChangedPayload}.
  *
  * @public
- * @category Type
- * @section Core
+ * @category Constants
+ * @section Networks
  */
 export const NETWORKS_EVENTS = {
     UPDATED: 'networks:updated',
