@@ -94,11 +94,11 @@ export class SwiftAPIClientAdapter implements ApiClient {
         throw new Error('getPendingTrace is not implemented yet');
     }
 
-    async resolveDnsWallet(_domain: string): Promise<string | null> {
+    async resolveDnsWallet(_domain: string): Promise<string | undefined> {
         throw new Error('resolveDnsWallet is not implemented yet');
     }
 
-    async backResolveDnsWallet(_address: UserFriendlyAddress): Promise<string | null> {
+    async backResolveDnsWallet(_address: UserFriendlyAddress): Promise<string | undefined> {
         throw new Error('backResolveDnsWallet is not implemented yet');
     }
 
