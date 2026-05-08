@@ -261,6 +261,44 @@ Payload of `connector:disconnected` events — id of the connector whose wallet 
 | --- | --- | --- |
 | `connectorId`\* | `string` | _TODO: describe_ |
 
+### Networks
+
+#### ApiClientConfig
+
+API client configuration options
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `url` | `string \| undefined` | _TODO: describe_ |
+| `key` | `string \| undefined` | _TODO: describe_ |
+
+#### Network
+
+TON blockchain network identifier.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `chainId`\* | `string` | Chain ID of the network (e.g., "-239" for mainnet, "-3" for testnet) |
+
+#### NetworkAdapters
+
+Multi-network configuration keyed by chain ID
+Example: \{ [Networl.mainnet().chainId]: \{ apiClient: \{...\} \}, [Networl.testnet().chainId]: \{ apiClient: \{...\} \} \}
+
+```ts
+type NetworkAdapters = {
+    [key: string]: NetworkConfig | undefined;
+};
+```
+
+#### NetworkConfig
+
+Network configuration for a specific chain
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `apiClient` | `ApiClientConfig \| ApiClient \| undefined` | API client configuration or instance |
+
 ### Signing
 
 #### SignTextParameters

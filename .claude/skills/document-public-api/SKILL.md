@@ -42,6 +42,7 @@ Putting `@category Class` on an interface raises `[X] @category Class requires t
 - `@example` — inline TS/TSX code block printed under the entry.
 - `@sample <dir/path>#<SAMPLE_NAME>` — placeholder that `pnpm docs:template` replaces with the body of a `// SAMPLE_START: NAME … // SAMPLE_END: NAME` block under `docs/examples/`. Multiple `@sample` tags are allowed.
 - `@expand <paramName>` — for actions that take an options-bag (`getBalanceByAddress(appKit, options)`), expands the named parameter's fields into extra rows like `options.address`, `options.network`. Without `@expand`, the parameter is shown as one row.
+- `@extract` — for type aliases that re-export a type from another package (typically walletkit). The renderer follows the alias to the original `interface` / `type` and uses **its** structure (field table or code block). `@public`/`@category`/`@section` still live on the alias; the source's JSDoc supplies field-level descriptions. See "Re-exporting from walletkit" below.
 - `@title <Override>` — override the top-level heading for this single symbol. Rarely needed; usually omit.
 
 `@param` and `@returns` accept the same `{@link X}`-as-type-override syntax described below.
@@ -132,6 +133,52 @@ export interface AppKitConfig {
 
 ---
 
+## Re-exporting from walletkit (`@extract`)
+
+Some types live in `@ton/walletkit` but are part of the `@ton/appkit` public API (e.g. `Network`, `NetworkAdapters`, `NetworkConfig`, `ApiClientConfig`). A bare `export { Network } from '@ton/walletkit'` will **not** appear in the appkit reference — `collect.ts` filters out symbols whose declaration lives outside the package. Use a local type alias plus `@extract` to surface them:
+
+```ts
+// packages/appkit/src/types/network.ts
+import type { NetworkAdapters as WalletkitNetworkAdapters } from '@ton/walletkit';
+
+/**
+ * @extract
+ * @public
+ * @category Type
+ * @section Networks
+ */
+export type NetworkAdapters = WalletkitNetworkAdapters;
+```
+
+What happens at generate time:
+
+1. The alias declaration sits in `appkit/src/`, so the package-boundary filter passes it.
+2. `@extract` tells `extractType` to follow the alias to the underlying walletkit `interface`/`type` and reuse its shape — fields show up in the reference table, JSDoc on each field is pulled from walletkit.
+3. `@public`/`@category`/`@section` are read from the alias (you control where it appears in the appkit reference, not walletkit).
+4. If the alias has its own summary on the JSDoc block, that takes precedence over walletkit's.
+
+For declaration-merged symbols (a value + same-named interface, like `Network`), keep the value side as a separate `export const`:
+
+```ts
+import type { Network as WalletkitNetwork } from '@ton/walletkit';
+import { Network as WalletkitNetworkValue } from '@ton/walletkit';
+
+/**
+ * @extract
+ * @public
+ * @category Type
+ * @section Networks
+ */
+export type Network = WalletkitNetwork;
+
+// Value side — `Network.mainnet()` etc.
+export const Network = WalletkitNetworkValue;
+```
+
+**Important**: `@extract` does NOT make a wildcard `export * from '@ton/appkit'` (used in appkit-react) leak appkit symbols into appkit-react. Wildcard re-exports cannot carry JSDoc, so they cannot carry `@extract`, so the boundary filter still drops them. The opt-in is local and explicit.
+
+---
+
 ## After editing JSDoc
 
 Run `pnpm docs:update` (alias for `pnpm docs:reference && pnpm docs:template`). The first step regenerates `docs/templates/packages/<pkg>/docs/reference.md`; the second resolves `@sample` placeholders into real code blocks and writes the final `packages/<pkg>/docs/reference.md`.
@@ -149,5 +196,6 @@ If validation fails, the script prints every problem in one go — fix them all 
 - [ ] Each `@param` description is one self-contained sentence
 - [ ] `{@link X}` only used for symbols that are themselves `@public`
 - [ ] `@expand` used for any options-bag parameter you want flattened
+- [ ] `@extract` used for type aliases that re-export a walletkit type
 - [ ] `@sample` points to a real `// SAMPLE_START: NAME` block in `docs/examples/`
 - [ ] `pnpm docs:update` runs cleanly

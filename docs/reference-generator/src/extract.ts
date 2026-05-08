@@ -352,6 +352,13 @@ function extractType(
     const jsdoc = pickJsDoc(decl.getJsDocs());
     const summary = readSummary(jsdoc);
 
+    if (Node.isTypeAliasDeclaration(decl) && hasExtractTag(decl)) {
+        const expanded = expandThroughExtract(name, decl, sourcePath);
+        if (expanded) {
+            return { ...expanded, summary: summary ?? expanded.summary };
+        }
+    }
+
     if (Node.isInterfaceDeclaration(decl)) {
         const fields = readPropsFromType(decl.getType(), decl);
         return { kind: 'type', name, sourcePath, summary, fields, typeText: null, isConstant: false };
@@ -360,11 +367,55 @@ function extractType(
     const typeNode = decl.getTypeNode();
     if (typeNode && Node.isTypeLiteral(typeNode)) {
         const fields = readPropsFromType(decl.getType(), decl);
-        return { kind: 'type', name, sourcePath, summary, fields, typeText: null, isConstant: false };
+        if (fields.length > 0) {
+            return { kind: 'type', name, sourcePath, summary, fields, typeText: null, isConstant: false };
+        }
+        // Type literal without named props (e.g. only an index signature) — fall back to the source text.
+        return {
+            kind: 'type',
+            name,
+            sourcePath,
+            summary,
+            fields: null,
+            typeText: typeNode.getText(),
+            isConstant: false,
+        };
     }
 
     const typeText = typeNode ? typeNode.getText() : decl.getType().getText(decl, FORMAT_FLAGS);
     return { kind: 'type', name, sourcePath, summary, fields: null, typeText, isConstant: false };
+}
+
+function hasExtractTag(decl: Node): boolean {
+    if (!Node.isJSDocable(decl)) return false;
+    for (const doc of decl.getJsDocs()) {
+        for (const tag of doc.getTags()) {
+            if (tag.getTagName() === 'extract') return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Resolves a `@extract`-tagged type alias to its underlying interface or type
+ * declaration (typically in another package) and reuses its shape. Returns
+ * null if the alias does not point at something extractable.
+ */
+function expandThroughExtract(
+    name: string,
+    decl: TypeAliasDeclaration,
+    sourcePath: string,
+): Omit<ExtractedType, 'section' | 'category'> | null {
+    const aliasedType = decl.getType();
+    const target = aliasedType.getAliasSymbol() ?? aliasedType.getSymbol();
+    const targetDecl = target?.getDeclarations()[0];
+    if (targetDecl && (Node.isInterfaceDeclaration(targetDecl) || Node.isTypeAliasDeclaration(targetDecl))) {
+        return extractType(name, targetDecl, sourcePath);
+    }
+    // No named target — fall back to the structural form so the reader at
+    // least sees the real shape instead of `type X = Y` alias-to-alias.
+    const typeText = aliasedType.getText(decl, FORMAT_FLAGS);
+    return { kind: 'type', name, sourcePath, summary: null, fields: null, typeText, isConstant: false };
 }
 
 function extractClass(
