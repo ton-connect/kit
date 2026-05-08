@@ -7,9 +7,17 @@
  */
 
 /**
- * Events Feature
- * Provides Emitter implementation
+ * @extract
+ * @public
+ * @category Class
+ * @section Core
  */
 export { EventEmitter } from '@ton/walletkit';
 
+/**
+ * @extract
+ * @public
+ * @category Type
+ * @section Core
+ */
 export type { EventPayload, KitEvent, EventListener, SharedKitEvents } from '@ton/walletkit';

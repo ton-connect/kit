@@ -6,14 +6,8 @@
  *
  */
 
-export {
-    DefiError,
-    StakingProvider,
-    UnstakeMode,
-    StakingError,
-    StakingErrorCode,
-    StakingManager,
-} from '@ton/walletkit';
+export { StakingProvider, UnstakeMode, StakingError, StakingErrorCode, StakingManager } from '@ton/walletkit';
+// `DefiError` is shared by swap and staking; it is exported via `./swap` to keep a single declaration.
 
 export type {
     UnstakeModes,

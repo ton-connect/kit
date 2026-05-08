@@ -10,11 +10,19 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { Node, Project } from 'ts-morph';
-import type { SourceFile, Symbol as TsSymbol } from 'ts-morph';
+import type { JSDoc, SourceFile, Symbol as TsSymbol } from 'ts-morph';
 
 export interface CollectedSymbol {
     name: string;
+    /** Original declaration — used by extract.ts for shape (fields, members, signature). */
     declaration: Node;
+    /** Declaration in the local package whose JSDoc tags drive this symbol's metadata.
+     * Equals `declaration` for symbols defined in this package, or the local
+     * alias-export when the symbol is re-exported from another workspace
+     * package via `@extract`. */
+    metadataDeclaration: Node;
+    /** True when the symbol arrived via `@extract` re-export from another package. */
+    extracted: boolean;
     sourceFile: SourceFile;
     /** Path relative to the package's src/ directory. e.g. "actions/balances/get-balance-by-address.ts" */
     sourcePath: string;
@@ -45,32 +53,51 @@ export function collectPublicApi(options: CollectOptions): CollectedSymbol[] {
             continue;
         }
 
+        const srcPrefix = `${packagePath}/src/`;
+
         for (const exportSymbol of sourceFile.getExportSymbols()) {
             const real = unwrapAlias(exportSymbol);
             if (seenRealSymbols.has(real)) continue;
             seenRealSymbols.add(real);
 
-            const decl = real.getDeclarations()[0];
-            if (!decl) continue;
+            const realDecl = real.getDeclarations()[0];
+            if (!realDecl) continue;
 
-            const declSourceFile = decl.getSourceFile();
-            const declPath = declSourceFile.getFilePath();
+            const realDeclPath = realDecl.getSourceFile().getFilePath();
+            const realInPkg = realDeclPath.startsWith(srcPrefix);
 
-            // Drop re-exports from outside this package (e.g. @ton/appkit re-exporting walletkit,
-            // or @ton/appkit-react re-exporting @ton/appkit).
-            const srcPrefix = `${packagePath}/src/`;
-            if (!declPath.startsWith(srcPrefix)) continue;
+            // Where to read JSDoc tags from. Normally that's the declaration
+            // itself; for cross-package re-exports we read from the alias
+            // declaration in our package (the `export { … } from 'pkg'` line)
+            // and require an explicit `@extract` opt-in there.
+            let metadataDecl: Node = realDecl;
+            let extracted = false;
 
-            // Opt-in: only symbols whose declaration is annotated with `@public` JSDoc.
-            if (!hasPublicTag(decl)) continue;
+            if (!realInPkg) {
+                const aliasDecl = exportSymbol
+                    .getDeclarations()
+                    .find((d) => d.getSourceFile().getFilePath().startsWith(srcPrefix));
+                if (!aliasDecl) continue;
+                if (!hasExtractTag(aliasDecl)) continue;
+                metadataDecl = aliasDecl;
+                extracted = true;
+            }
+
+            if (!hasPublicTag(metadataDecl)) continue;
+
+            const sourcePath = realInPkg
+                ? realDeclPath.slice(srcPrefix.length)
+                : metadataDecl.getSourceFile().getFilePath().slice(srcPrefix.length);
 
             collected.push({
                 name: exportSymbol.getName(),
-                declaration: decl,
-                sourceFile: declSourceFile,
-                sourcePath: declPath.slice(srcPrefix.length),
-                section: readTagValue(decl, 'section'),
-                category: readTagValue(decl, 'category'),
+                declaration: realDecl,
+                metadataDeclaration: metadataDecl,
+                extracted,
+                sourceFile: realDecl.getSourceFile(),
+                sourcePath,
+                section: readTagValue(metadataDecl, 'section'),
+                category: readTagValue(metadataDecl, 'category'),
             });
         }
     }
@@ -82,6 +109,14 @@ function getJsDocs(decl: Node) {
     if (Node.isVariableDeclaration(decl)) {
         return decl.getVariableStatement()?.getJsDocs() ?? [];
     }
+    if (Node.isExportSpecifier(decl)) {
+        // JSDoc lives on the parent ExportDeclaration (`/** … */ export { Foo } from '…'`).
+        // ExportDeclaration is not JSDocable in ts-morph's mixin, so pull the JSDoc nodes from its children.
+        return decl
+            .getExportDeclaration()
+            .getChildren()
+            .filter((c): c is JSDoc => Node.isJSDoc(c));
+    }
     return Node.isJSDocable(decl) ? decl.getJsDocs() : [];
 }
 
@@ -89,6 +124,15 @@ function hasPublicTag(decl: Node): boolean {
     for (const doc of getJsDocs(decl)) {
         for (const tag of doc.getTags()) {
             if (tag.getTagName() === 'public') return true;
+        }
+    }
+    return false;
+}
+
+function hasExtractTag(decl: Node): boolean {
+    for (const doc of getJsDocs(decl)) {
+        for (const tag of doc.getTags()) {
+            if (tag.getTagName() === 'extract') return true;
         }
     }
     return false;

@@ -6,15 +6,34 @@
  *
  */
 
-export { DefiError, SwapError, SwapProvider, SwapManager } from '@ton/walletkit';
+/**
+ * @extract
+ * @public
+ * @category Class
+ * @section DeFi
+ */
+export { DefiError } from '@ton/walletkit';
 
-export type {
-    SwapToken,
-    TokenAmount,
-    SwapParams,
-    SwapAPI,
-    SwapQuote,
-    SwapQuoteParams,
-    DefiManagerAPI,
-    DefiProvider,
-} from '@ton/walletkit';
+/**
+ * @extract
+ * @public
+ * @category Class
+ * @section Swap
+ */
+export { SwapError, SwapProvider, SwapManager } from '@ton/walletkit';
+
+/**
+ * @extract
+ * @public
+ * @category Type
+ * @section DeFi
+ */
+export type { DefiManagerAPI, DefiProvider } from '@ton/walletkit';
+
+/**
+ * @extract
+ * @public
+ * @category Type
+ * @section Swap
+ */
+export type { SwapToken, TokenAmount, SwapParams, SwapAPI, SwapQuote, SwapQuoteParams } from '@ton/walletkit';

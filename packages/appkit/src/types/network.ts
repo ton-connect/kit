@@ -6,45 +6,10 @@
  *
  */
 
-import type {
-    Network as WalletkitNetwork,
-    NetworkAdapters as WalletkitNetworkAdapters,
-    NetworkConfig as WalletkitNetworkConfig,
-    ApiClientConfig as WalletkitApiClientConfig,
-} from '@ton/walletkit';
-import { Network as WalletkitNetworkValue } from '@ton/walletkit';
-
 /**
  * @extract
  * @public
  * @category Type
  * @section Networks
  */
-export type Network = WalletkitNetwork;
-
-// Value side of `Network` (the `Network.mainnet()` / `Network.testnet()` factory). Lives next to the type via declaration merging.
-export const Network = WalletkitNetworkValue;
-
-/**
- * @extract
- * @public
- * @category Type
- * @section Networks
- */
-export type NetworkAdapters = WalletkitNetworkAdapters;
-
-/**
- * @extract
- * @public
- * @category Type
- * @section Networks
- */
-export type NetworkConfig = WalletkitNetworkConfig;
-
-/**
- * @extract
- * @public
- * @category Type
- * @section Networks
- */
-export type ApiClientConfig = WalletkitApiClientConfig;
+export { Network, NetworkAdapters, NetworkConfig, ApiClientConfig } from '@ton/walletkit';

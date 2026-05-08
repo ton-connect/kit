@@ -157,7 +157,11 @@ function extractByCategory(
             if (Node.isClassDeclaration(declaration)) {
                 return extractClass(name, declaration, sourcePath);
             }
-            throw mismatch(name, category, 'class declaration');
+            if (Node.isTypeAliasDeclaration(declaration) && hasExtractTag(declaration)) {
+                const expanded = expandClassThroughExtract(name, declaration, sourcePath);
+                if (expanded) return expanded;
+            }
+            throw mismatch(name, category, 'class declaration or @extract type alias targeting a class');
 
         case 'Action':
         case 'Hook':
@@ -401,21 +405,72 @@ function hasExtractTag(decl: Node): boolean {
  * declaration (typically in another package) and reuses its shape. Returns
  * null if the alias does not point at something extractable.
  */
+function expandClassThroughExtract(
+    name: string,
+    decl: TypeAliasDeclaration,
+    sourcePath: string,
+): Omit<ExtractedClass, 'section' | 'category'> | null {
+    const targetDecl = resolveExtractTarget(decl);
+    if (!targetDecl || !Node.isClassDeclaration(targetDecl)) return null;
+    const aliasJsDoc = pickJsDoc(decl.getJsDocs());
+    const aliasSummary = readSummary(aliasJsDoc);
+    const inner = extractClass(name, targetDecl, sourcePath);
+    return { ...inner, summary: aliasSummary ?? inner.summary };
+}
+
 function expandThroughExtract(
     name: string,
     decl: TypeAliasDeclaration,
     sourcePath: string,
 ): Omit<ExtractedType, 'section' | 'category'> | null {
-    const aliasedType = decl.getType();
-    const target = aliasedType.getAliasSymbol() ?? aliasedType.getSymbol();
-    const targetDecl = target?.getDeclarations()[0];
+    const targetDecl = resolveExtractTarget(decl);
     if (targetDecl && (Node.isInterfaceDeclaration(targetDecl) || Node.isTypeAliasDeclaration(targetDecl))) {
         return extractType(name, targetDecl, sourcePath);
     }
-    // No named target — fall back to the structural form so the reader at
-    // least sees the real shape instead of `type X = Y` alias-to-alias.
-    const typeText = aliasedType.getText(decl, FORMAT_FLAGS);
+    // No named target outside this declaration — fall back to the structural form.
+    const typeText = decl.getType().getText(decl, FORMAT_FLAGS);
     return { kind: 'type', name, sourcePath, summary: null, fields: null, typeText, isConstant: false };
+}
+
+/**
+ * Resolves a `@extract`-tagged type alias to the underlying declaration.
+ * Returns null if the resolution would loop back to the alias itself
+ * (which can happen when ts-morph's symbol resolver returns the alias node
+ * for re-exported types — guarding here prevents infinite recursion).
+ */
+function resolveExtractTarget(decl: TypeAliasDeclaration): Node | null {
+    // Prefer the type-node's identifier when the alias is `type X = Y` or
+    // `type X = Y<…>` — `getDefinitionNodes()` follows TypeScript's resolver
+    // through `import type` aliases all the way to the original class /
+    // interface / type declaration, even across packages.
+    const typeNode = decl.getTypeNode();
+    if (typeNode && Node.isTypeReference(typeNode)) {
+        const typeName = typeNode.getTypeName();
+        if (Node.isIdentifier(typeName)) {
+            for (const definition of typeName.getDefinitionNodes()) {
+                if (definition === decl) continue;
+                if (
+                    Node.isClassDeclaration(definition) ||
+                    Node.isInterfaceDeclaration(definition) ||
+                    Node.isTypeAliasDeclaration(definition)
+                ) {
+                    return definition;
+                }
+            }
+        }
+    }
+    // Fallback: use the resolved type's symbol chain (works for inline types).
+    const aliasedType = decl.getType();
+    let symbol = aliasedType.getAliasSymbol() ?? aliasedType.getSymbol();
+    if (!symbol) return null;
+    let next = symbol.getAliasedSymbol();
+    while (next) {
+        symbol = next;
+        next = symbol.getAliasedSymbol();
+    }
+    const targetDecl = symbol.getDeclarations()[0];
+    if (!targetDecl || targetDecl === decl) return null;
+    return targetDecl;
 }
 
 function extractClass(
