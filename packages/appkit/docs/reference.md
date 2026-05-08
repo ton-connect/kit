@@ -1228,6 +1228,119 @@ const result = await transferTon(appKit, {
 console.log('Transfer Result:', result);
 ```
 
+### Wallets
+
+#### getConnectedWallets
+
+List every wallet currently connected through any registered [`Connector`](#connector).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+
+Returns: <a href="#getconnectedwalletsreturntype"><code>GetConnectedWalletsReturnType</code></a> — Read-only array of [`WalletInterface`](#walletinterface)s.
+
+**Example**
+
+```ts
+const wallets = getConnectedWallets(appKit);
+
+console.log('Connected wallets:', wallets);
+```
+
+#### getSelectedWallet
+
+Read the wallet AppKit treats as "active" — most actions ([`getBalance`](#getbalance), [`signText`](#signtext), [`transferTon`](#transferton)) target this wallet implicitly. Returns `null` when no wallet is connected or selected.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+
+Returns: <a href="#getselectedwalletreturntype"><code>GetSelectedWalletReturnType</code></a> — Selected [`WalletInterface`](#walletinterface), or `null` when none is selected.
+
+**Example**
+
+```ts
+const wallet = getSelectedWallet(appKit);
+
+if (wallet) {
+    console.log('Selected wallet:', wallet.getWalletId());
+    console.log('Address:', wallet.getAddress());
+}
+```
+
+#### setSelectedWalletId
+
+Switch which connected wallet AppKit treats as selected — emits `WALLETS_EVENTS.SELECTION_CHANGED` so [`watchSelectedWallet`](#watchselectedwallet) subscribers fire. Pass `null` to clear the selection.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`SetSelectedWalletIdParameters`](#setselectedwalletidparameters) | Wallet id to select, or `null` to clear. |
+| `parameters.walletId`\* | `string \| null` | Wallet id (as returned by [`WalletInterface`](#walletinterface)`.getWalletId()`) to select; pass `null` to clear the selection. |
+
+Returns: <a href="#setselectedwalletidreturntype"><code>SetSelectedWalletIdReturnType</code></a>.
+
+**Example**
+
+```ts
+setSelectedWalletId(appKit, {
+    walletId: 'my-wallet-id',
+});
+```
+
+#### watchConnectedWallets
+
+Subscribe to the list of connected wallets — fires whenever a wallet connects or disconnects through any registered [`Connector`](#connector).
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`WatchConnectedWalletsParameters`](#watchconnectedwalletsparameters) | Update callback. |
+| `parameters.onChange`\* | <code>(wallets: </code><a href="#walletinterface"><code>WalletInterface</code></a><code>[]) =&gt; void</code> | Callback fired whenever the list of connected wallets changes — receives the latest snapshot. |
+
+Returns: <a href="#watchconnectedwalletsreturntype"><code>WatchConnectedWalletsReturnType</code></a> — Unsubscribe function — call it to stop receiving updates.
+
+**Example**
+
+```ts
+const unsubscribe = watchConnectedWallets(appKit, {
+    onChange: (wallets) => {
+        console.log('Connected wallets updated:', wallets.length);
+    },
+});
+
+// Later: unsubscribe();
+```
+
+#### watchSelectedWallet
+
+Subscribe to selected-wallet changes — fires when [`setSelectedWalletId`](#setselectedwalletid) is called or when AppKit's wallet manager swaps the selection in response to connection events.
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
+| `parameters`\* | [`WatchSelectedWalletParameters`](#watchselectedwalletparameters) | Update callback. |
+| `parameters.onChange`\* | <code>(wallet: </code><a href="#walletinterface"><code>WalletInterface</code></a><code> \| null) =&gt; void</code> | Callback fired whenever the selected wallet changes — receives the new wallet, or `null` when the selection was cleared. |
+
+Returns: <a href="#watchselectedwalletreturntype"><code>WatchSelectedWalletReturnType</code></a> — Unsubscribe function — call it to stop receiving updates.
+
+**Example**
+
+```ts
+const unsubscribe = watchSelectedWallet(appKit, {
+    onChange: (wallet) => {
+        if (wallet) {
+            console.log('Selected wallet changed:', wallet.getWalletId());
+        } else {
+            console.log('Wallet deselected');
+        }
+    },
+});
+
+// Later: unsubscribe();
+```
+
 ## Type
 
 ### Balances
@@ -2800,6 +2913,38 @@ Individual message inside a [`TransactionRequest`](#transactionrequest) — reci
 
 ### Wallets
 
+#### GetConnectedWalletsReturnType
+
+Return type of [`getConnectedWallets`](#getconnectedwallets) — read-only snapshot of the active wallet list.
+
+```ts
+type GetConnectedWalletsReturnType = readonly WalletInterface[];
+```
+
+#### GetSelectedWalletReturnType
+
+Return type of [`getSelectedWallet`](#getselectedwallet) — `null` when no wallet is currently selected.
+
+```ts
+type GetSelectedWalletReturnType = WalletInterface | null;
+```
+
+#### SetSelectedWalletIdParameters
+
+Parameters accepted by [`setSelectedWalletId`](#setselectedwalletid).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `walletId`\* | `string \| null` | Wallet id (as returned by [`WalletInterface`](#walletinterface)`.getWalletId()`) to select; pass `null` to clear the selection. |
+
+#### SetSelectedWalletIdReturnType
+
+Return type of [`setSelectedWalletId`](#setselectedwalletid).
+
+```ts
+type SetSelectedWalletIdReturnType = void;
+```
+
 #### WalletInterface
 
 Wallet contract surfaced by every [`Connector`](#connector) — covers identity (address, public key, network) and signing operations; reads (balance, jettons, NFTs) go through AppKit actions instead.
@@ -2813,6 +2958,38 @@ Wallet contract surfaced by every [`Connector`](#connector) — covers identity 
 | `getWalletId`\* | `() => string` | Stable identifier combining address and network — unique across AppKit's connected wallets. |
 | `sendTransaction`\* | <code>(request: </code><a href="#transactionrequest"><code>TransactionRequest</code></a><code>) =&gt; Promise&lt;</code><a href="#sendtransactionresponse"><code>SendTransactionResponse</code></a><code>&gt;</code> | Send a transaction — the wallet signs and broadcasts it. |
 | `signData`\* | <code>(payload: </code><a href="#signdatarequest"><code>SignDataRequest</code></a><code>) =&gt; Promise&lt;</code><a href="#signdataresponse"><code>SignDataResponse</code></a><code>&gt;</code> | Sign arbitrary data via the TonConnect signData flow. |
+
+#### WatchConnectedWalletsParameters
+
+Parameters accepted by [`watchConnectedWallets`](#watchconnectedwallets).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `onChange`\* | <code>(wallets: </code><a href="#walletinterface"><code>WalletInterface</code></a><code>[]) =&gt; void</code> | Callback fired whenever the list of connected wallets changes — receives the latest snapshot. |
+
+#### WatchConnectedWalletsReturnType
+
+Return type of [`watchConnectedWallets`](#watchconnectedwallets) — call to stop receiving updates.
+
+```ts
+type WatchConnectedWalletsReturnType = () => void;
+```
+
+#### WatchSelectedWalletParameters
+
+Parameters accepted by [`watchSelectedWallet`](#watchselectedwallet).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `onChange`\* | <code>(wallet: </code><a href="#walletinterface"><code>WalletInterface</code></a><code> \| null) =&gt; void</code> | Callback fired whenever the selected wallet changes — receives the new wallet, or `null` when the selection was cleared. |
+
+#### WatchSelectedWalletReturnType
+
+Return type of [`watchSelectedWallet`](#watchselectedwallet) — call to stop receiving updates.
+
+```ts
+type WatchSelectedWalletReturnType = () => void;
+```
 
 ## Constants
 
