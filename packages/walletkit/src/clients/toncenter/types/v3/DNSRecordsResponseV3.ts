@@ -8,10 +8,10 @@
 
 import type { DNSRecordV3 } from './DNSRecordV3';
 import { toDnsRecord } from './DNSRecordV3';
-import type { AddressBookRowV3 } from './AddressBookRowV3';
-import type { DnsRecords } from '../DnsRecords';
-import type { AddressBookRow } from '../AddressBookRow';
-import { asAddressFriendly } from '../../../utils/address';
+import type { AddressBookRowV3 } from '../../../../types/toncenter/v3/AddressBookRowV3';
+import type { DnsRecords } from '../dns';
+import type { AddressBookRow } from '../nfts';
+import { asAddressFriendly } from '../../../../utils/address';
 
 export interface DNSRecordsResponseV3 {
     address_book: { [key: string]: AddressBookRowV3 };

@@ -6,7 +6,7 @@
  *
  */
 
-import type { ApiClient } from '../../types/toncenter/ApiClient';
+import type { ApiClient } from '../../api/interfaces';
 import type { Hex, Network, SignatureDomain } from '../../api/models';
 import type { WalletSigner } from '../../api/interfaces';
 

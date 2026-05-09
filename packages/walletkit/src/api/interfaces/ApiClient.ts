@@ -8,9 +8,9 @@
 
 import type { Address } from '@ton/core';
 
-import type { ToncenterResponseJettonMasters, ToncenterTracesResponse } from './emulation';
-import type { FullAccountState } from './api';
-import type { Event } from './AccountEvent';
+import type { ToncenterResponseJettonMasters, ToncenterTracesResponse } from '../../types/toncenter/emulation';
+import type { FullAccountState } from '../../types/toncenter/api';
+import type { Event } from '../../types/toncenter/AccountEvent';
 import type {
     Base64String,
     UserNFTsRequest,
@@ -23,8 +23,8 @@ import type {
     RawStackItem,
     GetMethodResult,
     MasterchainInfo,
-} from '../../api/models';
-import type { ToncenterEmulationResult } from '../../utils/toncenterEmulation';
+} from '../models';
+import type { EmulationResult } from '../models';
 
 export interface LimitRequest {
     limit?: number;
@@ -97,7 +97,7 @@ export interface GetEventsResponse {
 export interface ApiClient {
     nftItemsByAddress(request: NFTsRequest): Promise<NFTsResponse>;
     nftItemsByOwner(request: UserNFTsRequest): Promise<NFTsResponse>;
-    fetchEmulation(messageBoc: Base64String, ignoreSignature?: boolean): Promise<ToncenterEmulationResult>;
+    fetchEmulation(messageBoc: Base64String, ignoreSignature?: boolean): Promise<EmulationResult>;
     sendBoc(boc: Base64String): Promise<string>;
     runGetMethod(
         address: UserFriendlyAddress,
@@ -116,8 +116,8 @@ export interface ApiClient {
     getTrace(request: GetTraceRequest): Promise<ToncenterTracesResponse>;
     getPendingTrace(request: GetPendingTraceRequest): Promise<ToncenterTracesResponse>;
 
-    resolveDnsWallet(domain: string): Promise<string | null>;
-    backResolveDnsWallet(address: UserFriendlyAddress): Promise<string | null>;
+    resolveDnsWallet(domain: string): Promise<string | undefined>;
+    backResolveDnsWallet(address: UserFriendlyAddress): Promise<string | undefined>;
 
     jettonsByAddress(request: GetJettonsByAddressRequest): Promise<ToncenterResponseJettonMasters>;
     jettonsByOwnerAddress(request: GetJettonsByOwnerRequest): Promise<JettonsResponse>;
