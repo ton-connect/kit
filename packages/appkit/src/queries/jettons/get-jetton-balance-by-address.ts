@@ -8,14 +8,13 @@
 
 import type { QueryClient } from '@tanstack/query-core';
 import type { TokenAmount } from '@ton/walletkit';
-import { Address } from '@ton/core';
 
 import type { AppKit } from '../../core/app-kit';
 import { getJettonBalance } from '../../actions/jettons/get-jetton-balance';
 import type { GetJettonBalanceOptions as GetJettonBalanceParameters } from '../../actions/jettons/get-jetton-balance';
 import type { QueryOptions, QueryParameter } from '../../types/query';
 import type { Compute, ExactPartial } from '../../types/utils';
-import { filterQueryOptions, resolveNetwork, sleep } from '../../utils';
+import { filterQueryOptions, resolveNetwork, sleep, tryToBounceableAddress } from '../../utils';
 import type { JettonUpdate } from '../../core/streaming';
 import type { Network } from '../../types/network';
 
@@ -62,21 +61,15 @@ export const getJettonBalanceByAddressQueryKey = (
 ): GetJettonBalanceByAddressQueryKey => {
     const filteredOptions = filterQueryOptions(options);
     if (filteredOptions.jettonAddress) {
-        filteredOptions.jettonAddress = normalizeAddress(filteredOptions.jettonAddress);
+        filteredOptions.jettonAddress =
+            tryToBounceableAddress(filteredOptions.jettonAddress) ?? filteredOptions.jettonAddress;
     }
     if (filteredOptions.ownerAddress) {
-        filteredOptions.ownerAddress = normalizeAddress(filteredOptions.ownerAddress);
+        filteredOptions.ownerAddress =
+            tryToBounceableAddress(filteredOptions.ownerAddress) ?? filteredOptions.ownerAddress;
     }
     return ['jetton-balance', filteredOptions] as const;
 };
-
-function normalizeAddress(address: string): string {
-    try {
-        return Address.parse(address).toString({ bounceable: true, urlSafe: true });
-    } catch {
-        return address;
-    }
-}
 
 export type GetJettonBalanceByAddressQueryKey = readonly [
     'jetton-balance',
