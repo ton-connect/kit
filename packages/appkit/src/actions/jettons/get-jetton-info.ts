@@ -9,8 +9,9 @@
 import type { JettonInfo } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
-import { resolveNetwork } from '../../utils/network/resolve-network';
+import { toBounceableAddress, resolveNetwork, isJettonInfo } from '../../utils';
 import type { Network } from '../../types/network';
+import { getCacheKey } from '../../core/cache';
 
 export interface GetJettonInfoOptions {
     address: string;
@@ -19,16 +20,23 @@ export interface GetJettonInfoOptions {
 
 export type GetJettonInfoReturnType = JettonInfo | null;
 
+const getJettonInfoCacheKey = getCacheKey('jetton-info');
+
 export const getJettonInfo = async (
     appKit: AppKit,
     options: GetJettonInfoOptions,
 ): Promise<GetJettonInfoReturnType> => {
-    const { address, network } = options;
+    const address = toBounceableAddress(options.address);
+    const network = resolveNetwork(appKit, options.network);
+    const cacheKey = getJettonInfoCacheKey(address, network.chainId);
 
-    const client = appKit.networkManager.getClient(resolveNetwork(appKit, network));
+    const cached = await appKit.cache.get(cacheKey);
+    if (cached && isJettonInfo(cached)) return cached;
+
+    const client = appKit.networkManager.getClient(network);
 
     const response = await client.jettonsByAddress({
-        address: address,
+        address,
         offset: 0,
         limit: 1,
     });
@@ -61,13 +69,17 @@ export const getJettonInfo = async (
         }
     }
 
-    return {
+    const result: GetJettonInfoReturnType = {
+        address,
         decimals,
-        address: jetton.jetton,
         name: tokenInfo?.name ?? '',
         symbol: tokenInfo?.symbol ?? '',
         description: tokenInfo?.description ?? '',
         image: tokenInfo?.image,
         uri: tokenInfo?.extra?.uri,
     };
+
+    await appKit.cache.set(cacheKey, result);
+
+    return result;
 };

@@ -17,12 +17,14 @@ import {
 import type { TransactionRequest } from '../../types/transaction';
 import type { AppKit } from '../../core/app-kit';
 import { getSelectedWallet } from '../wallets/get-selected-wallet';
+import { getJettonInfo } from './get-jetton-info';
+import { isNumber } from '../../utils';
 
 export interface CreateTransferJettonTransactionParameters {
     jettonAddress: string;
     recipientAddress: string;
     amount: string;
-    jettonDecimals: number;
+    jettonDecimals?: number;
     comment?: string;
 }
 
@@ -44,16 +46,30 @@ export const createTransferJettonTransaction = async (
     }
 
     // Get client from network manager
-    const client = appKit.networkManager.getClient(wallet.getNetwork());
+    const network = wallet.getNetwork();
+    const client = appKit.networkManager.getClient(network);
 
     // Get jetton wallet address
-    const jettonWalletAddress = await getJettonWalletAddressFromClient(client, jettonAddress, wallet.getAddress());
+    const ownerAddress = wallet.getAddress();
+    const jettonWalletAddress = await getJettonWalletAddressFromClient(client, jettonAddress, ownerAddress);
+
+    let decimals = jettonDecimals;
+
+    if (!isNumber(decimals)) {
+        const jettonInfo = await getJettonInfo(appKit, { address: jettonAddress, network });
+
+        if (!isNumber(jettonInfo?.decimals)) {
+            throw new Error(`Jetton decimals not found for address ${jettonAddress}`);
+        }
+
+        decimals = jettonInfo.decimals;
+    }
 
     // Create jetton transfer payload
     const jettonPayload = createJettonTransferPayload({
-        amount: parseUnits(amount, jettonDecimals),
+        amount: parseUnits(amount, decimals),
         destination: recipientAddress,
-        responseDestination: wallet.getAddress(),
+        responseDestination: ownerAddress,
         comment,
     });
 
@@ -62,6 +78,6 @@ export const createTransferJettonTransaction = async (
         targetAddress: jettonWalletAddress,
         amount: DEFAULT_JETTON_GAS_FEE,
         payload: jettonPayload,
-        fromAddress: wallet.getAddress(),
+        fromAddress: ownerAddress,
     });
 };

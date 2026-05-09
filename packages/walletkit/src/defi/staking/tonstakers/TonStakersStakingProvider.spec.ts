@@ -16,8 +16,8 @@ import { PoolContract } from './PoolContract';
 import { CONTRACT, DEFAULT_METADATA } from './constants';
 import { Network, UnstakeMode } from '../../../api/models';
 import type { Base64String, UserFriendlyAddress } from '../../../api/models';
-import type { ApiClient } from '../../../types/toncenter/ApiClient';
 import type { ProviderFactoryContext } from '../../../types/factory';
+import type { ApiClient } from '../../../api/interfaces';
 
 const mockApiClient = {
     runGetMethod: vi.fn(),

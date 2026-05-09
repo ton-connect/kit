@@ -58,6 +58,27 @@ describe('Jetton Actions Examples (Integration)', () => {
             runGetMethod: vi.fn(),
         };
 
+        // Default jettonsByAddress mock for actions that auto-resolve decimals
+        mockClient.jettonsByAddress.mockImplementation((params: { address: string }) =>
+            Promise.resolve({
+                jetton_masters: [{ address: params.address, jetton: params.address }],
+                metadata: {
+                    [params.address]: {
+                        token_info: [
+                            {
+                                valid: true,
+                                type: 'jetton_masters',
+                                name: 'Test Jetton',
+                                symbol: 'TEST',
+                                description: 'Test Jetton',
+                                extra: { decimals: 6 },
+                            },
+                        ],
+                    },
+                },
+            }),
+        );
+
         // Default runGetMethod mock to prevent errors in shared actions
         mockClient.runGetMethod.mockImplementation((_addr: string, method: string) => {
             if (method === 'get_wallet_address') {

@@ -24,6 +24,7 @@ export type { SendMode } from './core/SendMode';
 export { SendModeFlag, SendModeBase } from './core/SendMode';
 export type { SignData, SignDataText, SignDataBinary, SignDataCell } from './core/SignData';
 export type { TokenAmount } from './core/TokenAmount';
+export type { TokenAddress } from './core/TokenAddress';
 export type { TokenAnimation } from './core/TokenAnimation';
 export type { TokenImage } from './core/TokenImage';
 export type { TokenInfo } from './core/TokenInfo';
@@ -53,6 +54,31 @@ export type {
 } from './bridge/SendTransactionRequestEvent';
 export type { RequestErrorEvent } from './bridge/RequestErrorEvent';
 export type { TONConnectSession } from './sessions/TONConnectSession';
+
+// Emulation models
+export type { EmulationAction } from './emulation/EmulationAction';
+export type { EmulationAddressBookEntry } from './emulation/EmulationAddressBookEntry';
+export type { EmulationMessage, EmulationMessageContent } from './emulation/EmulationMessage';
+export type { EmulationResponse } from './emulation/EmulationResponse';
+export type {
+    EmulationResult,
+    EmulationResultSuccess,
+    EmulationResultError,
+    EmulationError,
+} from './emulation/EmulationResult';
+export type { EmulationTraceNode } from './emulation/EmulationTraceNode';
+export type {
+    EmulationTransaction,
+    EmulationAccountState,
+    EmulationAccountStatus,
+    EmulationBlockRef,
+    EmulationTransactionDescription,
+    EmulationStoragePhase,
+    EmulationCreditPhase,
+    EmulationComputePhase,
+    EmulationActionPhase,
+    EmulationActionMessageSize,
+} from './emulation/EmulationTransaction';
 
 // Jetton models
 export type { Jetton } from './jettons/Jetton';

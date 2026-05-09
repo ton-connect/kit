@@ -49,7 +49,7 @@ import {
     createEmptyConfig,
     createPendingAgenticDeployment,
     createStandardWalletRecord,
-    loadConfig,
+    loadConfigWithMigration,
     saveConfig,
 } from '../registry/config.js';
 import { WalletRegistryService } from '../services/WalletRegistryService.js';
@@ -83,6 +83,7 @@ describe('WalletRegistryService', () => {
             operatorPublicKey: '0xabc',
             originOperatorPublicKey: '0xabc',
             collectionAddress: DEFAULT_AGENTIC_COLLECTION_ADDRESS,
+            nftItemIndex: '1',
             deployedByUser: true,
             name: 'Agent',
         });
@@ -265,6 +266,7 @@ describe('WalletRegistryService', () => {
             operatorPublicKey: '0xbeef',
             originOperatorPublicKey: '0x1234',
             collectionAddress: ownerAddress,
+            nftItemIndex: '42',
             deployedByUser: true,
             name: 'On-chain agent',
         });
@@ -286,7 +288,7 @@ describe('WalletRegistryService', () => {
             source: 'Started from MCP',
         });
 
-        const stored = loadConfig();
+        const stored = await loadConfigWithMigration();
         expect(stored?.active_wallet_id).toBe(result.wallet.id);
         expect(stored?.pending_agentic_deployments).toBeUndefined();
     });
@@ -315,6 +317,7 @@ describe('WalletRegistryService', () => {
                 operatorPublicKey: '0xbeef',
                 originOperatorPublicKey: '0xfeed',
                 collectionAddress: ownerAddress,
+                nftItemIndex: '17',
                 deployedByUser: true,
                 name: 'Validated agent',
             },
@@ -330,7 +333,7 @@ describe('WalletRegistryService', () => {
             deployed_by_user: true,
         });
 
-        const stored = loadConfig();
+        const stored = await loadConfigWithMigration();
         expect(stored?.active_wallet_id).toBe(wallet.id);
         expect(stored?.wallets).toEqual([expect.objectContaining({ id: wallet.id })]);
         expect(stored?.pending_agentic_deployments).toBeUndefined();
@@ -364,7 +367,7 @@ describe('WalletRegistryService', () => {
             operator_public_key: '0xgenerated-public',
         });
 
-        const stored = loadConfig();
+        const stored = await loadConfigWithMigration();
         expect(stored?.wallets[0]).toMatchObject({
             id: wallet.id,
             operator_private_key: '0xold-private',
@@ -408,6 +411,7 @@ describe('WalletRegistryService', () => {
             operatorPublicKey: '0xgenerated-public',
             originOperatorPublicKey: '0x1234',
             collectionAddress: ownerAddress,
+            nftItemIndex: '42',
             deployedByUser: true,
             name: 'On-chain agent',
         });
@@ -420,7 +424,8 @@ describe('WalletRegistryService', () => {
             operator_public_key: '0xgenerated-public',
         });
         expect(completed.dashboardUrl).toBe(`https://dashboard.test/agent/${wallet.address}`);
-        expect(loadConfig()?.pending_agentic_key_rotations).toBeUndefined();
+        const config = await loadConfigWithMigration();
+        expect(config?.pending_agentic_key_rotations).toBeUndefined();
     });
 
     it('rejects agentic key rotation completion when the on-chain operator public key does not match', async () => {
@@ -452,13 +457,15 @@ describe('WalletRegistryService', () => {
             operatorPublicKey: '0xunexpected',
             originOperatorPublicKey: '0x1234',
             collectionAddress: ownerAddress,
+            nftItemIndex: '42',
             deployedByUser: true,
         });
 
         await expect(registry.completeAgenticKeyRotation(started.pendingRotation.id)).rejects.toThrow(
             /does not match pending rotation/i,
         );
-        expect(loadConfig()?.pending_agentic_key_rotations).toHaveLength(1);
+        const config = await loadConfigWithMigration();
+        expect(config?.pending_agentic_key_rotations).toHaveLength(1);
     });
 
     it('rejects pending root-agent completion when operator public key does not match the pending setup', async () => {
@@ -485,6 +492,7 @@ describe('WalletRegistryService', () => {
                     ownerAddress,
                     operatorPublicKey: '0xdead',
                     collectionAddress: ownerAddress,
+                    nftItemIndex: '1',
                     deployedByUser: true,
                 },
             }),
@@ -515,6 +523,7 @@ describe('WalletRegistryService', () => {
                     operatorPublicKey: '0xdead',
                     originOperatorPublicKey: '0xfeed',
                     collectionAddress: ownerAddress,
+                    nftItemIndex: '1',
                     deployedByUser: true,
                 },
             }),
@@ -569,7 +578,8 @@ describe('WalletRegistryService', () => {
 
         expect(result.removedWalletId).toBe(first.id);
         expect(result.activeWalletId).toBe(second.id);
-        expect(loadConfig()?.wallets).toEqual([
+        const config = await loadConfigWithMigration();
+        expect(config?.wallets).toEqual([
             expect.objectContaining({ id: first.id, removed: true }),
             expect.objectContaining({ id: second.id }),
         ]);

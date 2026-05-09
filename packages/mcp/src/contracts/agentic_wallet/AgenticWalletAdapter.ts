@@ -6,7 +6,6 @@
  *
  */
 
-import type { StateInit } from '@ton/core';
 import {
     Address,
     beginCell,
@@ -58,6 +57,7 @@ export interface AgenticWalletAdapterConfig {
     walletAddress?: Address;
     walletNftIndex?: bigint;
     collectionAddress?: Address;
+    onWalletNftIndexResolved?: (walletNftIndex: bigint) => void | Promise<void>;
 }
 
 function parseHexOrDecBigInt(input: string): bigint {
@@ -105,7 +105,7 @@ export class AgenticWalletAdapter implements WalletAdapter {
     public readonly version = 'agentic';
     public readonly address: Address;
 
-    private readonly walletInit?: { code: Cell; data: Cell };
+    private walletInit?: { code: Cell; data: Cell };
     private walletNftIndexCache?: bigint;
 
     static async create(
@@ -117,6 +117,7 @@ export class AgenticWalletAdapter implements WalletAdapter {
             walletAddress?: string | Address;
             walletNftIndex?: bigint;
             collectionAddress?: string | Address;
+            onWalletNftIndexResolved?: (walletNftIndex: bigint) => void | Promise<void>;
         },
     ): Promise<AgenticWalletAdapter> {
         return new AgenticWalletAdapter({
@@ -132,6 +133,7 @@ export class AgenticWalletAdapter implements WalletAdapter {
                 typeof options.collectionAddress === 'string'
                     ? parseAddress(options.collectionAddress)
                     : options.collectionAddress,
+            onWalletNftIndexResolved: options.onWalletNftIndexResolved,
         });
     }
 
@@ -198,16 +200,30 @@ export class AgenticWalletAdapter implements WalletAdapter {
     }
 
     async getStateInit(): Promise<Base64String> {
-        if (!this.walletInit) {
+        const walletInit = await this.ensureWalletInit();
+        if (!walletInit) {
             throw new Error(
                 'Agentic wallet init is not configured. Provide AGENTIC_WALLET_NFT_INDEX and AGENTIC_COLLECTION_ADDRESS to enable state init.',
             );
         }
 
-        const stateInit = beginCell()
-            .store(storeStateInit(this.walletInit as unknown as StateInit))
-            .endCell();
+        const stateInit = beginCell().store(storeStateInit(walletInit)).endCell();
         return stateInit.toBoc().toString('base64') as Base64String;
+    }
+
+    private async ensureWalletInit(): Promise<{ code: Cell; data: Cell } | undefined> {
+        if (this.walletInit) {
+            return this.walletInit;
+        }
+        if (!this.config.collectionAddress) {
+            return undefined;
+        }
+        const walletNftIndex = await this.getWalletNftIndex();
+        this.walletInit = {
+            code: AgenticWalletCodeCell,
+            data: buildAgenticInitData(walletNftIndex, this.config.collectionAddress),
+        };
+        return this.walletInit;
     }
 
     async getSignedSendTransaction(
@@ -289,10 +305,11 @@ export class AgenticWalletAdapter implements WalletAdapter {
         const walletNftIndex = await this.getWalletNftIndex();
         const outActions = this.extractOutActions(actions);
         const transfer = await this.createSignedBody(seqno, walletNftIndex, outActions, createBodyOptions);
+        const walletInit = await this.ensureWalletInit();
 
         const ext = external({
             to: this.address,
-            init: this.walletInit,
+            init: walletInit,
             body: transfer,
         });
 
@@ -320,6 +337,13 @@ export class AgenticWalletAdapter implements WalletAdapter {
 
         const nftIndex = parseTopStackInt(data.stack);
         this.walletNftIndexCache = nftIndex;
+        if (this.config.onWalletNftIndexResolved) {
+            try {
+                await this.config.onWalletNftIndexResolved(nftIndex);
+            } catch {
+                // Callback is best-effort; ignore failures so signing isn't blocked.
+            }
+        }
         return nftIndex;
     }
 

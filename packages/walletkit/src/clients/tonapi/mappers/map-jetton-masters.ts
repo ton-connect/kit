@@ -8,7 +8,7 @@
 
 import { Address } from '@ton/core';
 
-import type { ToncenterResponseJettonMasters } from '../../../types/toncenter/emulation';
+import type { ToncenterResponseJettonMasters } from '../../toncenter/types/jettons';
 import type { TonApiJettonInfo } from '../types/jettons';
 import { asAddressFriendly } from '../../../utils/address';
 import type { AddressBookRowV3 } from '../../../types/toncenter/v3/AddressBookRowV3';

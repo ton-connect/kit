@@ -6,7 +6,18 @@
  *
  */
 
-import type { Jetton } from '@ton/walletkit';
+import type { Jetton, JettonInfo } from '../../types/jetton';
+
+export const isJettonInfo = (value: unknown): value is JettonInfo => {
+    if (typeof value !== 'object' || value === null) return false;
+    const v = value as Record<string, unknown>;
+    return (
+        typeof v.address === 'string' &&
+        typeof v.name === 'string' &&
+        typeof v.symbol === 'string' &&
+        typeof v.description === 'string'
+    );
+};
 
 export const getJettonsSymbol = (jetton: Jetton): string | undefined => {
     if (!jetton?.info?.symbol) {

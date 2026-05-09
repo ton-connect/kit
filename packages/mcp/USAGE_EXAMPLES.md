@@ -164,6 +164,24 @@ npx @ton/mcp@alpha get_known_jettons
 
 > `USDT` was found in the list of known jettons with master contract address `EQ...`. That address can be used with `send_jetton` or `get_swap_quote`.
 
+## TON Proof Authentication
+
+### Generate a TonProof for a service challenge
+
+**User request**
+
+`Generate a TonProof for getgems.io using payload getgems-llm`
+
+**Approximate command list**
+
+```bash
+npx @ton/mcp@alpha generate_ton_proof --domain getgems.io --payload getgems-llm
+```
+
+**Approximate agent response**
+
+> A signed TonProof was generated for `getgems.io`. The proof includes the wallet address, chain id, wallet state init, public key, timestamp, domain, payload, and signature needed by the verifying service.
+
 ## Transfers and Swaps
 
 ### Send TON to a TON DNS name

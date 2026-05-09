@@ -21,7 +21,7 @@ export * from './signData/hash';
 export * from './signData/sign';
 export * from './time';
 export * from './tonProof';
-export * from './toncenterEmulation';
+export * from './transactionPreview';
 export * from './tvmStack';
 export * from './url';
 export * from './uuid.mjs';

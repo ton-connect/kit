@@ -81,6 +81,7 @@ export function sanitizeStoredWallet(wallet: StoredWallet | null): PublicStoredW
     if (wallet.origin_operator_public_key != null)
         result.origin_operator_public_key = wallet.origin_operator_public_key;
     if (wallet.deployed_by_user != null) result.deployed_by_user = wallet.deployed_by_user;
+    if (wallet.wallet_nft_index != null) result.wallet_nft_index = wallet.wallet_nft_index;
     if (wallet.removed != null) result.removed = wallet.removed;
     if (wallet.removed_at != null) result.removed_at = wallet.removed_at;
     return result;

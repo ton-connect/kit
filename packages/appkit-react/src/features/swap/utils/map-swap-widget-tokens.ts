@@ -18,16 +18,16 @@ export const mapSwapWidgetTokens = (tokens: AppkitUIToken[]): AppkitUIToken[] =>
             return acc;
         }
 
-        const friendlyAddress = toNonBounceableAddress(token.address);
+        try {
+            const friendlyAddress = toNonBounceableAddress(token.address);
 
-        if (!friendlyAddress) return acc;
-
-        const mappedToken = {
-            ...token,
-            address: friendlyAddress,
-        };
-
-        acc.push(mappedToken);
+            acc.push({
+                ...token,
+                address: friendlyAddress,
+            });
+        } catch {
+            // skip tokens with invalid addresses
+        }
 
         return acc;
     }, [] as AppkitUIToken[]);

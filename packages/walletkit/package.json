@@ -1,6 +1,6 @@
 {
   "name": "@ton/walletkit",
-  "version": "0.0.12-alpha.1",
+  "version": "0.0.12-alpha.3",
   "description": "Wallet kit for TON Connect",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -85,6 +85,7 @@
     "build:esm": "tsc -p tsconfig.esm.json",
     "dev": "tsc -p tsconfig.esm.json --watch",
     "test": "vitest run",
+
     "test:coverage": "vitest run --coverage",
     "test:mutation": "stryker run stryker.config.js",
     "quality": "pnpm test:coverage",
@@ -113,7 +114,7 @@
     "@tonconnect/bridge-sdk": "^0.2.8",
     "@tonconnect/protocol": "catalog:",
     "@tonconnect/sdk": "catalog:",
-    "lru-cache": "^11.3.5",
+    "lru-cache": "catalog:",
     "uuid": "^13.0.0"
   },
   "peerDependencies": {

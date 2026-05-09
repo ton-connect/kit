@@ -35,7 +35,7 @@ export class WalletNftClass implements WalletNftInterface {
         return getNftsFromClient(this.getClient(), this.getAddress(), params);
     }
 
-    async getNft(this: Wallet, address: UserFriendlyAddress): Promise<NFT | null> {
+    async getNft(this: Wallet, address: UserFriendlyAddress): Promise<NFT | undefined> {
         return getNftFromClient(this.getClient(), address);
     }
 

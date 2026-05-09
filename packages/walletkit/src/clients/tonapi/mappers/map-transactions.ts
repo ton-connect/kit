@@ -137,8 +137,8 @@ export function mapTonApiDescription(raw: TonApiTransaction): TransactionDescrip
             skippedActionsNumber: raw.action_phase?.skipped_actions ?? 0,
             messagesCreatedNumber: raw.out_msgs?.length ?? 0,
             totalMessagesSize: {
-                cells: '0',
-                bits: '0',
+                cells: 0,
+                bits: 0,
             },
         },
     };
