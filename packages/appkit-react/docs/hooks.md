@@ -984,4 +984,18 @@ return (
 );
 ```
 
+### `useCustomProvider`
+
+Hook to get a registered custom provider by id.
+
+```tsx
+const tac = useCustomProvider<TacProvider>('tac');
+
+if (!tac) {
+    return <div>TAC provider not registered</div>;
+}
+
+return <div>TAC provider is ready</div>;
+```
+
 

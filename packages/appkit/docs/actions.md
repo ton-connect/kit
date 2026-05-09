@@ -700,3 +700,15 @@ const unsubscribe = watchSelectedWallet(appKit, {
 
 // Later: unsubscribe();
 ```
+
+### `getCustomProvider`
+
+Get a registered custom provider by id.
+
+```tsx
+const tac = getCustomProvider<TacProvider>(appKit, { id: 'tac' });
+
+if (tac) {
+    console.log('TAC provider is available');
+}
+```

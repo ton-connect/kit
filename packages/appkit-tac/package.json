@@ -1,0 +1,55 @@
+{
+    "name": "@tac/appkit-provider",
+    "version": "0.0.1",
+    "description": "TAC cross-chain provider for @ton/appkit",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ton-connect/kit"
+    },
+    "sideEffects": false,
+    "main": "dist/cjs/index.js",
+    "module": "dist/esm/index.js",
+    "types": "dist/cjs/index.d.ts",
+    "exports": {
+        ".": {
+            "import": {
+                "types": "./dist/esm/index.d.ts",
+                "default": "./dist/esm/index.js"
+            },
+            "require": {
+                "types": "./dist/cjs/index.d.ts",
+                "default": "./dist/cjs/index.js"
+            }
+        }
+    },
+    "scripts": {
+        "build": "pnpm build:clean && pnpm build:cjs && pnpm build:esm",
+        "build:clean": "rimraf dist",
+        "build:esm": "tsc -p tsconfig.json",
+        "build:cjs": "tsc -p tsconfig.cjs.json",
+        "quality": "pnpm typecheck",
+        "typecheck": "tsc --noEmit",
+        "clean": "rimraf .turbo dist node_modules"
+    },
+    "dependencies": {
+        "@ton/appkit": "workspace:*",
+        "@ton/appkit-react": "workspace:*"
+    },
+    "peerDependencies": {
+        "@tanstack/react-query": ">=5.0.0",
+        "@tonappchain/sdk": ">=0.7.0",
+        "react": ">=18.0.0"
+    },
+    "devDependencies": {
+        "@tanstack/react-query": "catalog:",
+        "@tonappchain/sdk": "^0.7.2",
+        "@types/react": "catalog:",
+        "react": "catalog:",
+        "rimraf": "^6.0.1",
+        "typescript": "~5.9.3"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "MIT",
+    "packageManager": "pnpm@10.15.0"
+}

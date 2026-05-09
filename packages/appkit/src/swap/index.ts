@@ -7,6 +7,7 @@
  */
 
 export type {
+    SwapProviderInterface,
     SwapToken,
     TokenAmount,
     SwapParams,

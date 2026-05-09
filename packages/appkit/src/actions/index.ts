@@ -107,6 +107,11 @@ export { transferNft, type TransferNftParameters, type TransferNftReturnType } f
 
 // Providers
 export { registerProvider, type RegisterProviderOptions } from './providers/register-provider';
+export {
+    getCustomProvider,
+    type GetCustomProviderOptions,
+    type GetCustomProviderReturnType,
+} from './providers/get-custom-provider';
 
 // Signing
 export { signText, type SignTextParameters, type SignTextReturnType } from './signing/sign-text';

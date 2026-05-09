@@ -17,6 +17,8 @@ import {
 import { DeDustSwapProvider } from '@ton/appkit/swap/dedust';
 import { OmnistonSwapProvider } from '@ton/appkit/swap/omniston';
 import { createTonstakersProvider } from '@ton/appkit/staking/tonstakers';
+import { Network as TacNetwork } from '@tonappchain/sdk';
+import { createTacProvider } from '@tac/appkit-provider';
 
 import { ENV_TON_API_KEY_TESTNET, ENV_TON_API_KEY_MAINNET } from '@/core/configs/env';
 
@@ -48,7 +50,12 @@ export const appKit = new AppKit({
             },
         }),
     ],
-    providers: [new DeDustSwapProvider(), new OmnistonSwapProvider(), createTonstakersProvider({})],
+    providers: [
+        new DeDustSwapProvider(),
+        new OmnistonSwapProvider(),
+        createTonstakersProvider({}),
+        createTacProvider({ network: TacNetwork.TESTNET }),
+    ],
 });
 
 // TODO: replace in normal config
