@@ -23,7 +23,10 @@ export function useSwapBalances({ fromToken, toToken, ownerAddress, network }: U
     const isFromNative = fromToken?.address === 'ton';
     const isToNative = toToken?.address === 'ton';
 
-    const { data: tonBalance, isLoading: isTonBalanceLoading } = useBalance({ network });
+    const { data: tonBalance, isLoading: isTonBalanceLoading } = useBalance({
+        network,
+        query: { refetchInterval: 5000 },
+    });
 
     const { data: fromJettonBalance, isLoading: isFromJettonBalanceLoading } = useJettonBalanceByAddress({
         jettonAddress: fromToken?.address,

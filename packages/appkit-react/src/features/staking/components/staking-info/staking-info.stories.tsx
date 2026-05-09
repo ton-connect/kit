@@ -34,7 +34,7 @@ const mockMetadata = {
         symbol: 'tsTON',
         ticker: 'tsTON',
         decimals: 9,
-        address: 'UQC98_qAmNEptUtPc7W6xdHh_ZHrBUFpw5Ft_IzNU20QAMtq',
+        address: 'EQC98_qAmNEptUtPc7W6xdHh_ZHrBUFpw5Ft_IzNU20QAJav',
     },
     supportedUnstakeModes: [UnstakeMode.INSTANT, UnstakeMode.ROUND_END],
     supportsReversedQuote: false,
