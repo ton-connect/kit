@@ -37,7 +37,12 @@ export const getJettonBalanceByAddressQueryOptions = <selectData = GetJettonBala
     initialOptions: GetJettonBalanceByAddressQueryConfig<selectData> = {},
 ): GetJettonBalanceByAddressQueryOptions<selectData> => {
     const network = resolveNetwork(appKit, initialOptions.network);
-    const options = { ...initialOptions, network };
+    const options = {
+        ...initialOptions,
+        network,
+        jettonAddress: tryToBounceableAddress(initialOptions.jettonAddress) ?? initialOptions.jettonAddress,
+        ownerAddress: tryToBounceableAddress(initialOptions.ownerAddress) ?? initialOptions.ownerAddress,
+    };
 
     return {
         ...options.query,
@@ -59,16 +64,7 @@ export type GetJettonBalanceQueryFnData = Compute<TokenAmount>;
 export const getJettonBalanceByAddressQueryKey = (
     options: Compute<ExactPartial<GetJettonBalanceParameters>> = {},
 ): GetJettonBalanceByAddressQueryKey => {
-    const filteredOptions = filterQueryOptions(options);
-    if (filteredOptions.jettonAddress) {
-        filteredOptions.jettonAddress =
-            tryToBounceableAddress(filteredOptions.jettonAddress) ?? filteredOptions.jettonAddress;
-    }
-    if (filteredOptions.ownerAddress) {
-        filteredOptions.ownerAddress =
-            tryToBounceableAddress(filteredOptions.ownerAddress) ?? filteredOptions.ownerAddress;
-    }
-    return ['jetton-balance', filteredOptions] as const;
+    return ['jetton-balance', filterQueryOptions(options)] as const;
 };
 
 export type GetJettonBalanceByAddressQueryKey = readonly [
@@ -91,22 +87,18 @@ export const handleJettonBalanceUpdate = (
     { ownerAddress, jettonAddress, network }: { ownerAddress: string; jettonAddress: string; network: Network },
     update: JettonUpdate,
 ) => {
+    const queryKey = getJettonBalanceByAddressQueryKey({
+        ownerAddress: tryToBounceableAddress(ownerAddress) ?? ownerAddress,
+        jettonAddress: tryToBounceableAddress(jettonAddress) ?? jettonAddress,
+        network,
+    });
+
     if (update.status === 'finalized') {
-        const queryKey = getJettonBalanceByAddressQueryKey({
-            ownerAddress,
-            jettonAddress,
-            network,
-        });
         queryClient.setQueryData(queryKey, update.balance);
         sleep(5000).then(() => queryClient.invalidateQueries({ queryKey }));
     }
 
     if (update.status === 'invalidated') {
-        const queryKey = getJettonBalanceByAddressQueryKey({
-            ownerAddress,
-            jettonAddress,
-            network,
-        });
         queryClient.invalidateQueries({ queryKey });
     }
 };

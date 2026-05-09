@@ -12,7 +12,7 @@ import type { GetJettonInfoOptions } from '../../actions/jettons/get-jetton-info
 import type { GetJettonInfoReturnType } from '../../actions/jettons/get-jetton-info';
 import type { QueryOptions, QueryParameter } from '../../types/query';
 import type { Compute, ExactPartial } from '../../types/utils';
-import { filterQueryOptions, resolveNetwork } from '../../utils';
+import { filterQueryOptions, resolveNetwork, tryToBounceableAddress } from '../../utils';
 
 export type GetJettonInfoErrorType = Error;
 
@@ -24,7 +24,11 @@ export const getJettonInfoQueryOptions = <selectData = GetJettonInfoData>(
     initialOptions: GetJettonInfoQueryConfig<selectData> = {},
 ): GetJettonInfoQueryOptions<selectData> => {
     const network = resolveNetwork(appKit, initialOptions.network);
-    const options = { ...initialOptions, network };
+    const options = {
+        ...initialOptions,
+        network,
+        address: tryToBounceableAddress(initialOptions.address) ?? initialOptions.address,
+    };
 
     return {
         ...options.query,
