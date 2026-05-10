@@ -33,7 +33,7 @@ export interface WatchSelectedWalletParameters {
 export type WatchSelectedWalletReturnType = () => void;
 
 /**
- * Subscribe to selected-wallet changes — fires when {@link setSelectedWalletId} is called or when AppKit's wallet manager swaps the selection in response to connection events.
+ * Subscribe to selected-wallet changes — fires when {@link setSelectedWalletId} is called or when AppKit's wallet manager swaps the selection in response to connection events (auto-selecting the first wallet after a connect, clearing it on full disconnect).
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param parameters - {@link WatchSelectedWalletParameters} Update callback.

@@ -54,6 +54,7 @@ export class WalletsManager {
      */
     setSelectedWalletId(id: string | null): void {
         this._selectedWalletId = id;
+        this.emitter.emit(WALLETS_EVENTS.SELECTION_CHANGED, { walletId: this._selectedWalletId }, 'wallets-manager');
     }
 
     /**
@@ -70,18 +71,12 @@ export class WalletsManager {
 
         // If list is not empty, auto-select the first one
         if (wallets.length > 0) {
-            this._selectedWalletId = wallets[0].getWalletId();
-            this.emitter.emit(
-                WALLETS_EVENTS.SELECTION_CHANGED,
-                { walletId: this._selectedWalletId },
-                'wallets-manager',
-            );
+            this.setSelectedWalletId(wallets[0].getWalletId());
 
             return;
         }
 
         // Otherwise clear selection
-        this._selectedWalletId = null;
-        this.emitter.emit(WALLETS_EVENTS.SELECTION_CHANGED, { walletId: null }, 'wallets-manager');
+        this.setSelectedWalletId(null);
     }
 }

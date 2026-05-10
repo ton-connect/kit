@@ -15,10 +15,25 @@ import { TonConnectBridge } from '../tonconnect/tonconnect-bridge';
 
 export const AppKitContext = createContext<AppKit | undefined>(undefined);
 
+/**
+ * Props accepted by {@link AppKitProvider}.
+ *
+ * @public
+ * @category Type
+ * @section Providers
+ */
 export interface AppKitProviderProps extends PropsWithChildren {
+    /** Runtime instance constructed at app startup; shared across every appkit-react hook and component. */
     appKit: AppKit;
 }
 
+/**
+ * Top-level React provider that wires AppKit, the TonConnect bridge and i18n into the component tree — wrap your app once near the root so descendant hooks ({@link useAppKit}, {@link useBalance}, …) and components can resolve their context.
+ *
+ * @public
+ * @category Component
+ * @section Providers
+ */
 export const AppKitProvider: FC<AppKitProviderProps> = ({ appKit, children }) => {
     return (
         <AppKitContext.Provider value={appKit}>

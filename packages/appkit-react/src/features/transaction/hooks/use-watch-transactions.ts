@@ -12,12 +12,26 @@ import { useAddress } from '../../wallets/hooks/use-address';
 import { useNetwork } from '../../network/hooks/use-network';
 import { useWatchTransactionsByAddress } from './use-watch-transactions-by-address';
 
+/**
+ * Parameters accepted by {@link useWatchTransactions}.
+ *
+ * @public
+ * @category Type
+ * @section Transactions
+ */
 export interface UseWatchTransactionsParameters {
+    /** Callback fired on every transactions update from the streaming provider. */
     onChange?: (update: TransactionsUpdate) => void;
 }
 
 /**
- * Hook to watch transaction updates of the currently selected wallet in real-time.
+ * Subscribe to transaction-trace events for the currently selected wallet (use {@link useWatchTransactionsByAddress} for a fixed address); auto-rebinds when the user connects, switches or disconnects.
+ *
+ * @param parameters - {@link UseWatchTransactionsParameters} Update callback.
+ *
+ * @public
+ * @category Hook
+ * @section Transactions
  */
 export const useWatchTransactions = (parameters: UseWatchTransactionsParameters = {}): void => {
     const address = useAddress();

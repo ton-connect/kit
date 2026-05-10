@@ -21,8 +21,22 @@ import { useMutation } from '../../../libs/query';
 import type { UseMutationReturnType } from '../../../libs/query';
 import { useAppKit } from '../../settings';
 
+/**
+ * Parameters accepted by {@link useTransferTon} — TanStack Query mutation options.
+ *
+ * @public
+ * @category Type
+ * @section Transactions
+ */
 export type UseTransferTonParameters<context = unknown> = TransferTonOptions<context>;
 
+/**
+ * Return type of {@link useTransferTon} — TanStack Query mutation result.
+ *
+ * @public
+ * @category Type
+ * @section Transactions
+ */
 export type UseTransferTonReturnType<context = unknown> = UseMutationReturnType<
     TransferTonData,
     TransferTonErrorType,
@@ -35,6 +49,16 @@ export type UseTransferTonReturnType<context = unknown> = UseMutationReturnType<
     MutateFunction<TransferTonData, TransferTonErrorType, TransferTonVariables, context>
 >;
 
+/**
+ * React mutation hook that builds and sends a TON transfer from the selected wallet in one step (wraps {@link transferTon}); returns `mutate({ recipientAddress, amount, comment? })`.
+ *
+ * @param parameters - {@link UseTransferTonParameters} TanStack Query mutation overrides.
+ * @returns Mutation result for the transfer call.
+ *
+ * @public
+ * @category Hook
+ * @section Transactions
+ */
 export const useTransferTon = <context = unknown>(
     parameters: UseTransferTonParameters<context> = {},
 ): UseTransferTonReturnType<context> => {

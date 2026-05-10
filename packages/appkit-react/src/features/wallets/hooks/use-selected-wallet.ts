@@ -12,10 +12,23 @@ import type { GetSelectedWalletReturnType } from '@ton/appkit';
 
 import { useAppKit } from '../../settings';
 
+/**
+ * Return type of {@link useSelectedWallet} — `[wallet, setWalletId]` tuple. `wallet` is the active {@link WalletInterface} (or `null`); `setWalletId` calls {@link setSelectedWalletId} and emits `wallets:selection-changed`.
+ *
+ * @public
+ * @category Type
+ * @section Wallets
+ */
 export type UseSelectedWalletReturnType = readonly [GetSelectedWalletReturnType, (walletId: string | null) => void];
 
 /**
- * Hook to get the currently selected wallet
+ * Read and switch the wallet AppKit treats as "active" — most action hooks ({@link useBalance}, {@link useSignText}, {@link useTransferTon}) target this wallet implicitly. Returns a `useState`-style tuple.
+ *
+ * @returns Tuple `[wallet, setWalletId]`.
+ *
+ * @public
+ * @category Hook
+ * @section Wallets
  */
 export const useSelectedWallet = (): UseSelectedWalletReturnType => {
     const appKit = useAppKit();

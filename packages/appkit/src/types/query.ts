@@ -11,6 +11,7 @@ import type * as Query from '@tanstack/query-core';
 import type { Compute, LooseOmit, RequiredBy, UnionLooseOmit } from './utils.js';
 
 export type MutationParameter<data = unknown, error = Error, variables = void, context = unknown> = {
+    /** TanStack Query mutation options forwarded to `useMutation` (`onSuccess`, `onError`, `onMutate`, `retry`, …); `mutationFn`, `mutationKey` and `throwOnError` are managed by the wrapper. */
     mutation?:
         | LooseOmit<
               Query.MutationOptions<data, error, Compute<variables>, context>,
@@ -25,6 +26,7 @@ export type QueryParameter<
     data = queryFnData,
     queryKey extends Query.QueryKey = Query.QueryKey,
 > = {
+    /** TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …); `queryKey` and `queryFn` are managed by the wrapper. */
     query?: UnionLooseOmit<QueryOptions<queryFnData, error, data, queryKey>, 'queryKey' | 'queryFn'> | undefined;
 };
 

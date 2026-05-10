@@ -38,7 +38,7 @@ export interface GetNftsOptions {
 export type GetNftsReturnType = NFTsResponse | null;
 
 /**
- * List NFTs held by the currently selected wallet, returning `null` when no wallet is connected (use {@link getNftsByAddress} for an arbitrary address).
+ * List NFTs held by the currently selected wallet, returning `null` when no wallet is selected (use {@link getNftsByAddress} for an arbitrary address).
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param options - {@link GetNftsOptions} Optional network override and pagination.

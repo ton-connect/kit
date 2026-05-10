@@ -24,10 +24,10 @@ export interface AppKitConfig {
     /** Wallet connectors registered at startup. */
     connectors?: ConnectorInput[];
 
-    /** Default network connectors (e.g. TonConnect) enforce on new connections; `undefined` to allow any. */
+    /** Default network */
     defaultNetwork?: Network;
 
-    /** Defi/onramp providers registered at startup. */
+    /** Providers registered at startup. */
     providers?: ProviderInput[];
 
     /** Set to `true` to enable server-side rendering support. */

@@ -12,13 +12,26 @@ import type { GetDefaultNetworkReturnType, Network } from '@ton/appkit';
 
 import { useAppKit } from '../../settings';
 
+/**
+ * Return type of {@link useDefaultNetwork} — `[network, setNetwork]` tuple. `network` is the current default (or `undefined`); `setNetwork` calls {@link setDefaultNetwork} and emits `networks:default-changed`.
+ *
+ * @public
+ * @category Type
+ * @section Networks
+ */
 export type UseDefaultNetworkReturnType = [
     network: GetDefaultNetworkReturnType,
     setNetwork: (network: Network | undefined) => void,
 ];
 
 /**
- * Hook to get and set the default network for wallet connections.
+ * Read and write AppKit's default network — the one connectors enforce on new wallet connections. Returns a `useState`-style tuple; the read side re-renders when the default changes through any source (this hook, {@link setDefaultNetwork}, manager events).
+ *
+ * @returns Tuple `[network, setNetwork]`.
+ *
+ * @public
+ * @category Hook
+ * @section Networks
  */
 export const useDefaultNetwork = (): UseDefaultNetworkReturnType => {
     const appKit = useAppKit();

@@ -31,7 +31,7 @@ export interface GetSwapProviderOptions {
 export type GetSwapProviderReturnType = SwapProviderInterface;
 
 /**
- * Get a registered swap provider by id, or the default swap provider when no id is given; throws when the id does not match any registered provider.
+ * Get a registered swap provider by id, or the default swap provider when no id is given; throws when no provider matches — or when no id is passed and no default has been registered.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param options - {@link GetSwapProviderOptions} Optional provider id.

@@ -465,7 +465,20 @@ function extractType(
         };
     }
 
-    const typeText = typeNode ? typeNode.getText() : decl.getType().getText(decl, FORMAT_FLAGS);
+    // Resolved-shape intersection — `type X = A & B` or `type X = SomeAlias`
+    // that itself resolves to one. Flatten into a fields table when the merged
+    // properties form a clean object bag (catches our own `address`/`network`
+    // plus the `query` / `mutation` catch-all from `QueryParameter` /
+    // `MutationParameter` without hand-rolling a mirror interface).
+    const resolvedType = decl.getType();
+    if (resolvedType.isIntersection() && !resolvedType.isUnion()) {
+        const fields = readPropsFromType(resolvedType, decl);
+        if (fields.length > 0) {
+            return { kind: 'type', name, sourcePath, summary, fields, typeText: null, isConstant: false };
+        }
+    }
+
+    const typeText = typeNode ? typeNode.getText() : resolvedType.getText(decl, FORMAT_FLAGS);
     return { kind: 'type', name, sourcePath, summary, fields: null, typeText, isConstant: false };
 }
 

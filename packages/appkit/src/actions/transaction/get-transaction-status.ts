@@ -20,7 +20,7 @@ import { resolveNetwork } from '../../utils/network/resolve-network';
  * @section Transactions
  */
 export type GetTransactionStatusParameters = {
-    /** Network to check the transaction on. Defaults to the connected wallet's network, or the configured default if no wallet is connected. */
+    /** Network to check the transaction on. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
     network?: Network;
 } & (
     | {

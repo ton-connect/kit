@@ -16,8 +16,22 @@ import { useMutation } from '../../../libs/query';
 import type { UseMutationReturnType } from '../../../libs/query';
 import { useAppKit } from '../../settings';
 
+/**
+ * Parameters accepted by {@link useDisconnect} — TanStack Query mutation options.
+ *
+ * @public
+ * @category Type
+ * @section Wallets
+ */
 export type UseDisconnectParameters<context = unknown> = DisconnectOptions<context>;
 
+/**
+ * Return type of {@link useDisconnect} — TanStack Query mutation result.
+ *
+ * @public
+ * @category Type
+ * @section Wallets
+ */
 export type UseDisconnectReturnType<context = unknown> = UseMutationReturnType<
     DisconnectData,
     DisconnectErrorType,
@@ -30,6 +44,16 @@ export type UseDisconnectReturnType<context = unknown> = UseMutationReturnType<
     MutateFunction<DisconnectData, DisconnectErrorType, DisconnectVariables, context>
 >;
 
+/**
+ * React mutation hook that disconnects the wallet currently connected through a registered connector (wraps {@link disconnect}); returns `mutate({ connectorId })` you call from event handlers.
+ *
+ * @param parameters - {@link UseDisconnectParameters} TanStack Query mutation overrides.
+ * @returns Mutation result for the disconnect call.
+ *
+ * @public
+ * @category Hook
+ * @section Wallets
+ */
 export const useDisconnect = <context = unknown>(
     parameters: UseDisconnectParameters<context> = {},
 ): UseDisconnectReturnType<context> => {

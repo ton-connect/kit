@@ -31,7 +31,7 @@ export type GetStakingProviderOptions = {
 export type GetStakingProviderReturnType = StakingProviderInterface;
 
 /**
- * Get a registered staking provider by id, or the default staking provider when no id is given; throws when the id does not match any registered provider.
+ * Get a registered staking provider by id, or the default staking provider when no id is given; throws when no provider matches — or when no id is passed and no default has been registered.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param options - {@link GetStakingProviderOptions} Optional provider id.

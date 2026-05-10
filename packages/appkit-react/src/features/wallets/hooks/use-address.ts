@@ -10,10 +10,23 @@ import { useMemo } from 'react';
 
 import { useSelectedWallet } from './use-selected-wallet';
 
+/**
+ * Return type of {@link useAddress} — `undefined` when no wallet is selected.
+ *
+ * @public
+ * @category Type
+ * @section Wallets
+ */
 export type UseAddressReturnType = string | undefined;
 
 /**
- * Hook to get current wallet address
+ * Read the user-friendly address of the currently selected wallet; re-renders when the selection changes.
+ *
+ * @returns Selected wallet's address, or `undefined` when none is selected.
+ *
+ * @public
+ * @category Hook
+ * @section Wallets
  */
 export const useAddress = (): UseAddressReturnType => {
     const [wallet] = useSelectedWallet();

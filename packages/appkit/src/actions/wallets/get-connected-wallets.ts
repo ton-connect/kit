@@ -10,7 +10,7 @@ import type { AppKit } from '../../core/app-kit';
 import type { WalletInterface } from '../../types/wallet';
 
 /**
- * Return type of {@link getConnectedWallets} — read-only snapshot of the active wallet list.
+ * Return type of {@link getConnectedWallets} — read-only view of the connected-wallets array.
  *
  * @public
  * @category Type

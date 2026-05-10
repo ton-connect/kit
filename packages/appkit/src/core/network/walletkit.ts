@@ -30,7 +30,7 @@ export { KitNetworkManager } from '@ton/walletkit';
 export { ApiClient } from '@ton/walletkit';
 
 /**
- * {@link ApiClient} implementation backed by the Toncenter v3 indexer.
+ * {@link ApiClient} implementation backed by the Toncenter.
  *
  * @extract
  * @public

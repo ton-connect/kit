@@ -297,7 +297,15 @@ function formatTypeCell(typeText: string): string {
 }
 
 function escapeHtmlInCell(text: string): string {
-    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\|/g, '\\|');
+    // `{`/`}` need entity escapes because Mintlify's MDX parser treats them as
+    // JSX-expression delimiters even inside `<code>` blocks.
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\{/g, '&lbrace;')
+        .replace(/\}/g, '&rbrace;')
+        .replace(/\|/g, '\\|');
 }
 
 function escapeRegex(str: string): string {

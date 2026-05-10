@@ -26,7 +26,7 @@ export interface WatchJettonsByAddressOptions {
     address: UserFriendlyAddress | Address;
     /** Callback fired on every jetton-balance update from the streaming provider. */
     onChange: (update: JettonUpdate) => void;
-    /** Network to watch on. Defaults to the connected wallet's network, or the configured default if no wallet is connected. */
+    /** Network to watch on. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
     network?: Network;
 }
 

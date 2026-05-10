@@ -12,6 +12,16 @@ import type { Connector } from '@ton/appkit';
 
 import { useAppKit } from '../../settings';
 
+/**
+ * Read a connector by id (wraps {@link getConnectorById} + {@link watchConnectorById}); re-renders on every wallet-connection event so dependent UI re-evaluates `connector.getConnectedWallets()`.
+ *
+ * @param id - Id of the connector to look up.
+ * @returns The matching {@link Connector}, or `undefined` if none with that id is registered.
+ *
+ * @public
+ * @category Hook
+ * @section Connectors
+ */
 export const useConnectorById = (id: string): Connector | undefined => {
     const appKit = useAppKit();
 

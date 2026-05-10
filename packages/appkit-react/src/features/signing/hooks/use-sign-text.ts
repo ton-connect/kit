@@ -13,8 +13,22 @@ import type { SignTextData, SignTextErrorType, SignTextOptions, SignTextVariable
 import { useAppKit } from '../../settings';
 import { useMutation } from '../../../libs/query';
 
+/**
+ * Parameters accepted by {@link useSignText} — TanStack Query mutation options.
+ *
+ * @public
+ * @category Type
+ * @section Signing
+ */
 export type UseSignTextParameters<context = unknown> = SignTextOptions<context>;
 
+/**
+ * Return type of {@link useSignText} — TanStack Query mutation result.
+ *
+ * @public
+ * @category Type
+ * @section Signing
+ */
 export type UseSignTextReturnType<context = unknown> = UseMutationResult<
     SignTextData,
     SignTextErrorType,
@@ -23,16 +37,14 @@ export type UseSignTextReturnType<context = unknown> = UseMutationResult<
 >;
 
 /**
- * Hook to sign text messages with the connected wallet.
+ * React mutation hook that asks the connected wallet to sign a plain-text message (wraps {@link signText}); returns `mutate({ text })` you call from event handlers.
  *
- * @example
- * ```tsx
- * const { mutate: signText, isPending } = useSignText();
+ * @param parameters - {@link UseSignTextParameters} TanStack Query mutation overrides.
+ * @returns Mutation result for the signing call.
  *
- * const handleSign = () => {
- *   signText({ text: "Hello World" });
- * };
- * ```
+ * @public
+ * @category Hook
+ * @section Signing
  */
 export const useSignText = <context = unknown>(
     parameters: UseSignTextParameters<context> = {},

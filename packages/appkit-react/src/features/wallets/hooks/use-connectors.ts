@@ -12,8 +12,24 @@ import type { GetConnectorsReturnType } from '@ton/appkit';
 
 import { useAppKit } from '../../settings';
 
+/**
+ * Return type of {@link useConnectors} — same shape as {@link GetConnectorsReturnType}.
+ *
+ * @public
+ * @category Type
+ * @section Connectors
+ */
 export type UseConnectorsReturnType = GetConnectorsReturnType;
 
+/**
+ * Read the list of connectors registered on this AppKit instance; re-renders on every wallet-connection event so dependent UI (connect modals, list pickers) stays in sync.
+ *
+ * @returns Read-only array of registered {@link Connector}s.
+ *
+ * @public
+ * @category Hook
+ * @section Connectors
+ */
 export const useConnectors = (): UseConnectorsReturnType => {
     const appKit = useAppKit();
 

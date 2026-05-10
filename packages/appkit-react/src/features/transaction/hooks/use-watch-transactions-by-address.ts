@@ -12,10 +12,23 @@ import type { WatchTransactionsByAddressOptions, TransactionsUpdate } from '@ton
 
 import { useAppKit } from '../../settings';
 
+/**
+ * Parameters accepted by {@link useWatchTransactionsByAddress} — same fields as {@link WatchTransactionsByAddressOptions}, all optional so callers can render the hook before the address is known.
+ *
+ * @public
+ * @category Type
+ * @section Transactions
+ */
 export type UseWatchTransactionsByAddressParameters = Partial<WatchTransactionsByAddressOptions>;
 
 /**
- * Hook to watch transactions for a specific address in real-time.
+ * Subscribe to transaction-trace events for an arbitrary address (wraps {@link watchTransactionsByAddress}); logs a warning and exits when no streaming provider is configured for the resolved network or no `onChange` callback was provided.
+ *
+ * @param parameters - {@link UseWatchTransactionsByAddressParameters} Address, update callback and optional network override.
+ *
+ * @public
+ * @category Hook
+ * @section Transactions
  */
 export const useWatchTransactionsByAddress = (parameters: UseWatchTransactionsByAddressParameters): void => {
     const { address, network } = parameters;

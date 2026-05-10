@@ -24,7 +24,7 @@ export interface GetJettonWalletAddressOptions {
     jettonAddress: UserFriendlyAddress;
     /** Owner whose jetton wallet should be derived. */
     ownerAddress: UserFriendlyAddress;
-    /** Network to query. Defaults to the connected wallet's network, or the configured default if no wallet is connected. */
+    /** Network to query. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
     network?: Network;
 }
 

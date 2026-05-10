@@ -24,7 +24,7 @@ import { resolveNetwork } from '../../utils/network/resolve-network';
 export interface WatchBalanceByAddressOptions {
     /** Wallet address — pass a {@link UserFriendlyAddress} string or an `Address` instance from `@ton/core`. */
     address: UserFriendlyAddress | Address;
-    /** Network to watch on. Defaults to the connected wallet's network, or the configured default if no wallet is connected. */
+    /** Network to watch on. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
     network?: Network;
     /** Callback fired on every balance update from the streaming provider. */
     onChange: (update: BalanceUpdate) => void;

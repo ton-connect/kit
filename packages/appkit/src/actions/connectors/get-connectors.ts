@@ -10,7 +10,7 @@ import type { Connector } from '../../types/connector';
 import type { AppKit } from '../../core/app-kit';
 
 /**
- * Return type of {@link getConnectors} — read-only snapshot of registered connectors.
+ * Return type of {@link getConnectors} — read-only view of the registered-connectors array.
  *
  * @public
  * @category Type

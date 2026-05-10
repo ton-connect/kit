@@ -13,8 +13,22 @@ import type { SignCellData, SignCellErrorType, SignCellOptions, SignCellVariable
 import { useAppKit } from '../../settings';
 import { useMutation } from '../../../libs/query';
 
+/**
+ * Parameters accepted by {@link useSignCell} — TanStack Query mutation options.
+ *
+ * @public
+ * @category Type
+ * @section Signing
+ */
 export type UseSignCellParameters<context = unknown> = SignCellOptions<context>;
 
+/**
+ * Return type of {@link useSignCell} — TanStack Query mutation result.
+ *
+ * @public
+ * @category Type
+ * @section Signing
+ */
 export type UseSignCellReturnType<context = unknown> = UseMutationResult<
     SignCellData,
     SignCellErrorType,
@@ -23,17 +37,14 @@ export type UseSignCellReturnType<context = unknown> = UseMutationResult<
 >;
 
 /**
- * Hook to sign TON Cell data with the connected wallet.
- * Used for on-chain signature verification.
+ * React mutation hook that asks the connected wallet to sign a TON cell (wraps {@link signCell}); typically used so the signature can later be verified on-chain. Returns `mutate({ cell, schema })` you call from event handlers.
  *
- * @example
- * ```tsx
- * const { mutate: signCell, isPending } = useSignCell();
+ * @param parameters - {@link UseSignCellParameters} TanStack Query mutation overrides.
+ * @returns Mutation result for the signing call.
  *
- * const handleSign = () => {
- *   signCell({ cell: bocBase64, schema: "transfer#abc amount:uint64 = Transfer" });
- * };
- * ```
+ * @public
+ * @category Hook
+ * @section Signing
  */
 export const useSignCell = <context = unknown>(
     parameters?: UseSignCellParameters<context>,

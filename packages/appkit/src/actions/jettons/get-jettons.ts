@@ -38,7 +38,7 @@ export interface GetJettonsOptions {
 export type GetJettonsReturnType = JettonsResponse | null;
 
 /**
- * List jettons held by the currently selected wallet, returning `null` when no wallet is connected (use {@link getJettonsByAddress} for an arbitrary address).
+ * List jettons held by the currently selected wallet, returning `null` when no wallet is selected (use {@link getJettonsByAddress} for an arbitrary address).
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param options - {@link GetJettonsOptions} Optional network override and pagination.

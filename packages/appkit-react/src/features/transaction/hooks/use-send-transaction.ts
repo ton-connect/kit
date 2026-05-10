@@ -21,8 +21,22 @@ import { useMutation } from '../../../libs/query';
 import type { UseMutationReturnType } from '../../../libs/query';
 import { useAppKit } from '../../settings';
 
+/**
+ * Parameters accepted by {@link useSendTransaction} — TanStack Query mutation options.
+ *
+ * @public
+ * @category Type
+ * @section Transactions
+ */
 export type UseSendTransactionParameters<context = unknown> = SendTransactionOptions<context>;
 
+/**
+ * Return type of {@link useSendTransaction} — TanStack Query mutation result.
+ *
+ * @public
+ * @category Type
+ * @section Transactions
+ */
 export type UseSendTransactionReturnType<context = unknown> = UseMutationReturnType<
     SendTransactionData,
     SendTransactionErrorType,
@@ -35,6 +49,16 @@ export type UseSendTransactionReturnType<context = unknown> = UseMutationReturnT
     MutateFunction<SendTransactionData, SendTransactionErrorType, SendTransactionVariables, context>
 >;
 
+/**
+ * React mutation hook that hands a pre-built {@link TransactionRequest} to the selected wallet for signing and broadcast (wraps {@link sendTransaction}); returns `mutate(request)`.
+ *
+ * @param parameters - {@link UseSendTransactionParameters} TanStack Query mutation overrides.
+ * @returns Mutation result for the send call.
+ *
+ * @public
+ * @category Hook
+ * @section Transactions
+ */
 export const useSendTransaction = <context = unknown>(
     parameters: UseSendTransactionParameters<context> = {},
 ): UseSendTransactionReturnType<context> => {
