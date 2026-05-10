@@ -37,9 +37,9 @@ Constructor: `new AppKit(config)`
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `config`\* | [`AppKitConfig`](#appkitconfig) | Networks, connectors, providers and runtime flags. |
-| `config.networks` | <a href="#networkadapters"><code>NetworkAdapters</code></a> | Map of chain id to api-client config; if omitted, AppKit defaults to mainnet only. |
+| `config.networks` | <a href="#networkadapters"><code>NetworkAdapters</code></a> | Map of chain id to [`NetworkConfig`](#networkconfig) (which holds the api-client setup); if omitted, AppKit defaults to mainnet only. |
 | `config.connectors` | <a href="#connectorinput"><code>ConnectorInput</code></a><code>[]</code> | Wallet connectors registered at startup. |
-| `config.defaultNetwork` | <a href="#network"><code>Network</code></a> | Default network |
+| `config.defaultNetwork` | <a href="#network"><code>Network</code></a> | Default network. Currently not read by the AppKit constructor — set it at runtime via [`setDefaultNetwork`](#setdefaultnetwork). |
 | `config.providers` | <a href="#providerinput"><code>ProviderInput</code></a><code>[]</code> | Providers registered at startup. |
 | `config.ssr` | `boolean` | Set to `true` to enable server-side rendering support. |
 
@@ -294,7 +294,7 @@ class MySwapProvider extends SwapProvider {
 
 #### TonConnectWalletAdapter
 
-[`WalletInterface`](#walletinterface) implementation backed by a TonConnect wallet. Built for you by [`TonConnectConnector`](#tonconnectconnector) — apps interact with it through standard AppKit actions ([`sendTransaction`](#sendtransaction), [`signText`](#signtext)/[`signBinary`](#signbinary)/[`signCell`](#signcell)); reads (balance, jettons, NFTs) go through AppKit actions using `appKit.networkManager`, not this adapter.
+[`WalletInterface`](#walletinterface) implementation backed by a TonConnect wallet. Built for you by [`createTonConnectConnector`](#createtonconnectconnector) — apps interact with it through standard AppKit actions ([`sendTransaction`](#sendtransaction), [`signText`](#signtext)/[`signBinary`](#signbinary)/[`signCell`](#signcell)); reads (balance, jettons, NFTs) go through AppKit actions using `appKit.networkManager`, not this adapter.
 
 Constructor: `new TonConnectWalletAdapter(config)`
 
@@ -661,7 +661,7 @@ Returns: `void`.
 
 #### createTransferJettonTransaction
 
-Build a jetton transfer [`TransactionRequest`](#transactionrequest) for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing; throws `Error('Wallet not connected')` when no wallet is selected.
+Build a jetton transfer [`TransactionRequest`](#transactionrequest) for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing; throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -772,7 +772,7 @@ Returns: <code>Promise&lt;</code><a href="#getjettonsbyaddressreturntype"><code>
 
 #### transferJetton
 
-Build and send a jetton transfer from the selected wallet in one step (use [`createTransferJettonTransaction`](#createtransferjettontransaction) + `sendTransaction` if you need to inspect the transaction first); throws `Error('Wallet not connected')` when no wallet is selected.
+Build and send a jetton transfer from the selected wallet in one step (use [`createTransferJettonTransaction`](#createtransferjettontransaction) + [`sendTransaction`](#sendtransaction) if you need to inspect the transaction first); throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -821,7 +821,7 @@ Returns: <a href="#watchjettonsbyaddressreturntype"><code>WatchJettonsByAddressR
 
 #### createTransferNftTransaction
 
-Build an NFT transfer [`TransactionRequest`](#transactionrequest) for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing; throws `Error('Wallet not connected')` when no wallet is selected.
+Build an NFT transfer [`TransactionRequest`](#transactionrequest) for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing; throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -894,7 +894,7 @@ Returns: <code>Promise&lt;</code><a href="#getnftsbyaddressreturntype"><code>Get
 
 #### transferNft
 
-Build and send an NFT transfer from the selected wallet in one step (use [`createTransferNftTransaction`](#createtransfernfttransaction) + `sendTransaction` if you need to inspect the transaction first); throws `Error('Wallet not connected')` when no wallet is selected.
+Build and send an NFT transfer from the selected wallet in one step (use [`createTransferNftTransaction`](#createtransfernfttransaction) + [`sendTransaction`](#sendtransaction) if you need to inspect the transaction first); throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -1020,7 +1020,7 @@ Returns: <a href="#watchdefaultnetworkreturntype"><code>WatchDefaultNetworkRetur
 
 #### watchNetworks
 
-Subscribe to changes of the configured-networks list — fires when AppKit's network manager registers, replaces or drops a network's API client.
+Subscribe to changes of the configured-networks list — fires when AppKit's network manager registers or replaces a network's API client.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -1401,7 +1401,7 @@ Returns: <a href="#watchswapprovidersreturntype"><code>WatchSwapProvidersReturnT
 
 #### createTransferTonTransaction
 
-Build a TON transfer [`TransactionRequest`](#transactionrequest) for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing; throws `Error('Wallet not connected')` if no wallet is selected.
+Build a TON transfer [`TransactionRequest`](#transactionrequest) for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing; throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -1432,7 +1432,7 @@ Returns: <code>Promise&lt;</code><a href="#gettransactionstatusreturntype"><code
 
 #### sendTransaction
 
-Hand a pre-built [`TransactionRequest`](#transactionrequest) to the selected wallet for signing and broadcast — usually the second step after [`createTransferTonTransaction`](#createtransfertontransaction), [`buildSwapTransaction`](#buildswaptransaction) or [`buildStakeTransaction`](#buildstaketransaction); throws `Error('Wallet not connected')` if no wallet is selected.
+Hand a pre-built [`TransactionRequest`](#transactionrequest) to the selected wallet for signing and broadcast — usually the second step after [`createTransferTonTransaction`](#createtransfertontransaction), [`buildSwapTransaction`](#buildswaptransaction) or [`buildStakeTransaction`](#buildstaketransaction); throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -1447,7 +1447,7 @@ Returns: <code>Promise&lt;</code><a href="#sendtransactionreturntype"><code>Send
 
 #### transferTon
 
-Build and send a TON transfer from the selected wallet in one step (use [`createTransferTonTransaction`](#createtransfertontransaction) + [`sendTransaction`](#sendtransaction) if you need to inspect the transaction first); throws `Error('Wallet not connected')` if no wallet is selected.
+Build and send a TON transfer from the selected wallet in one step (use [`createTransferTonTransaction`](#createtransfertontransaction) + [`sendTransaction`](#sendtransaction) if you need to inspect the transaction first); throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -1936,9 +1936,9 @@ Constructor options for [`AppKit`](#appkit) — networks, connectors, providers 
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `networks` | <a href="#networkadapters"><code>NetworkAdapters</code></a> | Map of chain id to api-client config; if omitted, AppKit defaults to mainnet only. |
+| `networks` | <a href="#networkadapters"><code>NetworkAdapters</code></a> | Map of chain id to [`NetworkConfig`](#networkconfig) (which holds the api-client setup); if omitted, AppKit defaults to mainnet only. |
 | `connectors` | <a href="#connectorinput"><code>ConnectorInput</code></a><code>[]</code> | Wallet connectors registered at startup. |
-| `defaultNetwork` | <a href="#network"><code>Network</code></a> | Default network |
+| `defaultNetwork` | <a href="#network"><code>Network</code></a> | Default network. Currently not read by the AppKit constructor — set it at runtime via [`setDefaultNetwork`](#setdefaultnetwork). |
 | `providers` | <a href="#providerinput"><code>ProviderInput</code></a><code>[]</code> | Providers registered at startup. |
 | `ssr` | `boolean` | Set to `true` to enable server-side rendering support. |
 
@@ -3899,7 +3899,7 @@ const CONNECTOR_EVENTS = {
     ADDED: 'connector:added',
     /** A connector was unregistered via `removeConnector` or its own teardown. */
     REMOVED: 'connector:removed',
-    /** A connector's connected-wallets state changed (wallet connected, disconnected, or account switched inside the wallet). */
+    /** A connector's connected-wallets list changed (connect, disconnect, or account switch inside the wallet). */
     WALLETS_UPDATED: 'connector:wallets-updated',
 } as const;
 ```

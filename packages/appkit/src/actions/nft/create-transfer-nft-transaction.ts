@@ -40,7 +40,7 @@ export interface CreateTransferNftTransactionParameters {
 export type CreateTransferNftTransactionReturnType = TransactionRequest;
 
 /**
- * Build an NFT transfer {@link TransactionRequest} for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing; throws `Error('Wallet not connected')` when no wallet is selected.
+ * Build an NFT transfer {@link TransactionRequest} for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing; throws `Error('Wallet not connected')` if no wallet is currently selected.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param parameters - {@link CreateTransferNftTransactionParameters} NFT, recipient, optional gas amount and comment.

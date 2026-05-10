@@ -42,7 +42,7 @@ export interface CreateTransferTonTransactionParameters {
 export type CreateTransferTonTransactionReturnType = TransactionRequest;
 
 /**
- * Build a TON transfer {@link TransactionRequest} for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing; throws `Error('Wallet not connected')` if no wallet is selected.
+ * Build a TON transfer {@link TransactionRequest} for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing; throws `Error('Wallet not connected')` if no wallet is currently selected.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param parameters - {@link CreateTransferTonTransactionParameters} Recipient, amount and optional payload/comment/stateInit.

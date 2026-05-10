@@ -31,7 +31,7 @@ export type TransferNftParameters = CreateTransferNftTransactionParameters;
 export type TransferNftReturnType = SendTransactionResponse;
 
 /**
- * Build and send an NFT transfer from the selected wallet in one step (use {@link createTransferNftTransaction} + `sendTransaction` if you need to inspect the transaction first); throws `Error('Wallet not connected')` when no wallet is selected.
+ * Build and send an NFT transfer from the selected wallet in one step (use {@link createTransferNftTransaction} + {@link sendTransaction} if you need to inspect the transaction first); throws `Error('Wallet not connected')` if no wallet is currently selected.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param parameters - {@link TransferNftParameters} NFT, recipient, optional gas amount and comment.

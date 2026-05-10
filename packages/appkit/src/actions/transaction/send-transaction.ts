@@ -31,7 +31,7 @@ export type SendTransactionReturnType = SendTransactionResponse;
 export type SendTransactionErrorType = Error;
 
 /**
- * Hand a pre-built {@link TransactionRequest} to the selected wallet for signing and broadcast — usually the second step after {@link createTransferTonTransaction}, {@link buildSwapTransaction} or {@link buildStakeTransaction}; throws `Error('Wallet not connected')` if no wallet is selected.
+ * Hand a pre-built {@link TransactionRequest} to the selected wallet for signing and broadcast — usually the second step after {@link createTransferTonTransaction}, {@link buildSwapTransaction} or {@link buildStakeTransaction}; throws `Error('Wallet not connected')` if no wallet is currently selected.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param parameters - {@link SendTransactionParameters} Transaction request to broadcast.

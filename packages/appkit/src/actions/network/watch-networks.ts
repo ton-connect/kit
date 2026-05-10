@@ -33,7 +33,7 @@ export type WatchNetworksParameters = {
 export type WatchNetworksReturnType = () => void;
 
 /**
- * Subscribe to changes of the configured-networks list — fires when AppKit's network manager registers, replaces or drops a network's API client.
+ * Subscribe to changes of the configured-networks list — fires when AppKit's network manager registers or replaces a network's API client.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param parameters - {@link WatchNetworksParameters} Update callback.

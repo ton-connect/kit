@@ -18,7 +18,7 @@ export const CONNECTOR_EVENTS = {
     ADDED: 'connector:added',
     /** A connector was unregistered via `removeConnector` or its own teardown. */
     REMOVED: 'connector:removed',
-    /** A connector's connected-wallets state changed (wallet connected, disconnected, or account switched inside the wallet). */
+    /** A connector's connected-wallets list changed (connect, disconnect, or account switch inside the wallet). */
     WALLETS_UPDATED: 'connector:wallets-updated',
 } as const;
 
