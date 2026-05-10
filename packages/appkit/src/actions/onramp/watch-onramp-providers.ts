@@ -15,7 +15,7 @@ export interface WatchOnrampProvidersParameters {
 export type WatchOnrampProvidersReturnType = () => void;
 
 /**
- * Watch for new onramp providers registration
+ * Watch for newly registered onramp providers and default-provider changes.
  */
 export const watchOnrampProviders = (
     appKit: AppKit,

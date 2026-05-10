@@ -24,7 +24,7 @@ import { Send } from '../../../transaction';
 export interface SendTonButtonProps extends Omit<SendProps, 'request'> {
     /** Recipient address. */
     recipientAddress: string;
-    /** Amount in TONs as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. */
+    /** Amount in TON as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. */
     amount: string;
     /** Optional human-readable comment attached to the transfer. */
     comment?: string;

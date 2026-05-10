@@ -7,15 +7,19 @@
  */
 
 /**
- * Event names AppKit emits on wallet connection and disconnection; payloads are {@link WalletConnectedPayload} and {@link WalletDisconnectedPayload}.
+ * Event names AppKit emits for connector-list and connector-wallet changes; payloads are {@link ConnectorAddedPayload}, {@link ConnectorRemovedPayload} and {@link ConnectorWalletsUpdatedPayload}.
  *
  * @public
  * @category Constants
  * @section Connectors
  */
 export const CONNECTOR_EVENTS = {
-    CONNECTED: 'connector:connected',
-    DISCONNECTED: 'connector:disconnected',
+    /** A connector was registered via {@link addConnector} (or AppKit's constructor). */
+    ADDED: 'connector:added',
+    /** A connector was unregistered via `removeConnector` or its own teardown. */
+    REMOVED: 'connector:removed',
+    /** A connector's connected-wallets state changed (wallet connected, disconnected, or account switched inside the wallet). */
+    WALLETS_UPDATED: 'connector:wallets-updated',
 } as const;
 
 /**

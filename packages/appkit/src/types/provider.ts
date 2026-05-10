@@ -10,7 +10,7 @@ import type { SwapProviderInterface } from '../swap';
 import type { StakingProviderInterface } from '../staking';
 
 /**
- * Provider configuration
+ * Internal union of registerable DeFi provider instances (swap or staking) — used to type provider-related collections inside AppKit.
  */
 export type Provider = SwapProviderInterface | StakingProviderInterface;
 

@@ -35,7 +35,7 @@ export type ConnectReturnType = void;
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param parameters - {@link ConnectParameters} Connector to connect through.
- * @returns Resolves once the connector finishes its handshake — the wallet is then available via {@link getSelectedWallet}.
+ * @returns Resolves once the connector's connect flow completes (e.g., the TonConnect modal closes); if a wallet was successfully connected, it becomes available via {@link getSelectedWallet}.
  *
  * @sample docs/examples/src/appkit/actions/connectors#CONNECT
  * @expand parameters

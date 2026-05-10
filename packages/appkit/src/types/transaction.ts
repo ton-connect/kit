@@ -29,24 +29,16 @@ export type { SendTransactionResponse } from '@ton/walletkit';
  * @section Transactions
  */
 export interface TransactionRequest {
-    /**
-     * List of messages to include in the transaction
-     */
+    /** Messages to include in the transaction. */
     messages: TransactionRequestMessage[];
 
-    /**
-     * Network to execute the transaction on
-     */
+    /** Network to execute the transaction on. */
     network?: Network;
 
-    /**
-     * Unix timestamp after which the transaction becomes invalid
-     */
+    /** Unix timestamp (seconds) after which the transaction becomes invalid. */
     validUntil?: number;
 
-    /**
-     * Sender wallet address in received format(raw, user friendly)
-     */
+    /** Sender wallet address — accepts either raw or user-friendly format. */
     fromAddress?: string;
 }
 
@@ -58,28 +50,18 @@ export interface TransactionRequest {
  * @section Transactions
  */
 export interface TransactionRequestMessage {
-    /**
-     * Recipient wallet address in format received from caller (raw, user friendly)
-     */
+    /** Recipient wallet address — accepts either raw or user-friendly format. */
     address: string;
 
-    /**
-     * Amount to transfer in nanos
-     */
+    /** Amount to transfer, in nano-TON (1 TON = 10⁹ nano-TON). */
     amount: TokenAmount;
 
-    /**
-     * Additional currencies to include in the transfer
-     */
+    /** Additional currencies to include in the transfer. */
     extraCurrency?: ExtraCurrencies;
 
-    /**
-     * Initial state for deploying a new contract, encoded in Base64
-     */
+    /** Initial state for deploying a new contract, encoded as Base64. */
     stateInit?: string;
 
-    /**
-     * Message payload data encoded in Base64
-     */
+    /** Message payload, encoded as Base64. */
     payload?: string;
 }

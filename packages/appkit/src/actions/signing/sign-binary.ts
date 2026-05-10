@@ -23,7 +23,7 @@ import { getDefaultNetwork } from '../network/get-default-network';
 export interface SignBinaryParameters {
     /** Binary blob the user is asked to sign, encoded as Base64. */
     bytes: Base64String;
-    /** Network to issue the sign request against. Defaults to AppKit's configured default network. */
+    /** Network to issue the sign request against. Defaults to AppKit's configured default network; when none is set, the wallet falls back to its current network. */
     network?: Network;
 }
 
@@ -37,7 +37,7 @@ export interface SignBinaryParameters {
 export type SignBinaryReturnType = SignDataResponse;
 
 /**
- * Ask the connected wallet to sign a binary blob; throws `Error('Wallet not connected')` if no wallet is currently selected.
+ * Ask the selected wallet to sign a binary blob; throws `Error('Wallet not connected')` if no wallet is currently selected.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param parameters - {@link SignBinaryParameters} Binary content and optional network override.

@@ -322,7 +322,7 @@ Pre-wired button that builds a TON transfer with [`createTransferTonTransaction`
 | Prop | Type | Description |
 | --- | --- | --- |
 | `recipientAddress`\* | `string` | Recipient address. |
-| `amount`\* | `string` | Amount in TONs as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. |
+| `amount`\* | `string` | Amount in TON as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. |
 | `comment` | `string` | Optional human-readable comment attached to the transfer. |
 | `text` | `ReactNode` | Custom button text |
 | `children` | `(props: SendRenderProps) => ReactNode` | Custom render function |
@@ -386,7 +386,7 @@ Props accepted by [`SendTonButton`](#sendtonbutton) — extends the base [`Send`
 | Field | Type | Description |
 | --- | --- | --- |
 | `recipientAddress`\* | `string` | Recipient address. |
-| `amount`\* | `string` | Amount in TONs as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. |
+| `amount`\* | `string` | Amount in TON as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. |
 | `comment` | `string` | Optional human-readable comment attached to the transfer. |
 | `text` | `ReactNode` | Custom button text |
 | `children` | `(props: SendRenderProps) => ReactNode` | Custom render function |

@@ -40,8 +40,8 @@ export class AppKitNetworkManager extends KitNetworkManager {
     }
 
     /**
-     * Set the default network for wallet connections.
-     * Emits a change event and propagates to all connectors.
+     * Set the default network for wallet connections. Emits `networks:default-changed`;
+     * connectors that listen for it (e.g., TonConnect) can re-bind their connection network.
      */
     setDefaultNetwork(network: Network | undefined): void {
         this.defaultNetwork = network;

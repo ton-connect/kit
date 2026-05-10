@@ -15,7 +15,7 @@ const log = globalLogger.createChild('EventEmitter');
 export type EventPayload = object;
 
 export interface KitEvent<T> {
-    /** Event name (e.g., `'connector:connected'`). */
+    /** Event name (e.g., `'connector:wallets-updated'`). */
     type: string;
     /** Event-specific payload — typed via the emitter's event-name → payload map. */
     payload: T;

@@ -94,14 +94,7 @@ describe('Connector Actions Examples (Integration)', () => {
             watchConnectorsExample(appKit);
 
             // Trigger event
-            appKit.emitter.emit(
-                CONNECTOR_EVENTS.CONNECTED,
-                {
-                    wallets: [],
-                    connectorId: 'test',
-                },
-                'test',
-            );
+            appKit.emitter.emit(CONNECTOR_EVENTS.ADDED, { connector: mockConnector }, 'test');
 
             expect(consoleSpy).toHaveBeenCalledWith('Connectors updated:', expect.arrayContaining([mockConnector]));
         });
@@ -112,14 +105,7 @@ describe('Connector Actions Examples (Integration)', () => {
             watchConnectorByIdExample(appKit);
 
             // Trigger event
-            appKit.emitter.emit(
-                CONNECTOR_EVENTS.CONNECTED,
-                {
-                    wallets: [],
-                    connectorId: 'test',
-                },
-                'test',
-            );
+            appKit.emitter.emit(CONNECTOR_EVENTS.ADDED, { connector: mockConnector }, 'test');
 
             expect(consoleSpy).toHaveBeenCalledWith('Connector updated:', mockConnector);
         });

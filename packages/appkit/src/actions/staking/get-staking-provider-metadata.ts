@@ -35,7 +35,7 @@ export type GetStakingProviderMetadataOptions = {
 export type GetStakingProviderMetadataReturnType = StakingProviderMetadata;
 
 /**
- * Read static metadata for a staking provider — display name, logo, supported tokens. Use {@link getStakingProviderInfo} for live numbers (APR, pool size).
+ * Read static metadata for a staking provider — display name, logo, supported tokens. Use {@link getStakingProviderInfo} for live values (APR, pool size).
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param options - {@link GetStakingProviderMetadataOptions} Optional network and provider override.

@@ -36,7 +36,7 @@ export interface GetJettonInfoOptions {
 export type GetJettonInfoReturnType = JettonInfo | null;
 
 /**
- * Fetch token metadata for a jetton master — name, symbol, decimals, image and description as reported by the indexer; returns `null` when no metadata is available.
+ * Fetch token metadata for a jetton master — name, symbol, decimals, image and description as reported by the indexer; returns `null` when the indexer has no record for that master address.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param options - {@link GetJettonInfoOptions} Jetton master address and optional network override.

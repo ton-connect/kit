@@ -62,10 +62,16 @@ export const createTonConnectConnector = (config: TonConnectConnectorConfig) => 
     return createConnector(({ eventEmitter, networkManager, ssr }): TonConnectConnector => {
         let originalTonConnectUI: TonConnectUI | null = null;
         let unsubscribeTonConnect: (() => void) | null = null;
+        let unsubscribeDefaultNetwork: (() => void) | null = null;
+        let destroyed = false;
 
         const id = config.id ?? TONCONNECT_DEFAULT_CONNECTOR_ID;
 
         const getTonConnectUI = (): TonConnectUI | null => {
+            if (destroyed) {
+                return null;
+            }
+
             if (originalTonConnectUI) {
                 return originalTonConnectUI;
             }
@@ -114,19 +120,17 @@ export const createTonConnectConnector = (config: TonConnectConnectorConfig) => 
                 return;
             }
 
-            unsubscribeTonConnect = originalTonConnectUI.onStatusChange((wallet) => {
-                const wallets = getConnectedWallets();
-
-                if (wallet) {
-                    eventEmitter.emit(CONNECTOR_EVENTS.CONNECTED, { wallets, connectorId: id }, id);
-                } else {
-                    eventEmitter.emit(CONNECTOR_EVENTS.DISCONNECTED, { connectorId: id }, id);
-                }
+            unsubscribeTonConnect = originalTonConnectUI.onStatusChange(() => {
+                eventEmitter.emit(
+                    CONNECTOR_EVENTS.WALLETS_UPDATED,
+                    { connectorId: id, wallets: getConnectedWallets() },
+                    id,
+                );
             });
 
             // Set default network and subscribe to changes
             originalTonConnectUI.setConnectionNetwork(networkManager.getDefaultNetwork()?.chainId);
-            eventEmitter.on(NETWORKS_EVENTS.DEFAULT_CHANGED, ({ payload }) => {
+            unsubscribeDefaultNetwork = eventEmitter.on(NETWORKS_EVENTS.DEFAULT_CHANGED, ({ payload }) => {
                 if (originalTonConnectUI) {
                     originalTonConnectUI.setConnectionNetwork(payload.network?.chainId);
                 }
@@ -165,7 +169,11 @@ export const createTonConnectConnector = (config: TonConnectConnectorConfig) => 
             },
 
             destroy() {
+                destroyed = true;
                 unsubscribeTonConnect?.();
+                unsubscribeDefaultNetwork?.();
+                unsubscribeTonConnect = null;
+                unsubscribeDefaultNetwork = null;
                 originalTonConnectUI = null;
             },
         };

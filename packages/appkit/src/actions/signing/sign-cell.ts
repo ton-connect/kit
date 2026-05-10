@@ -25,7 +25,7 @@ export interface SignCellParameters {
     cell: Base64String;
     /** TL-B-style schema describing the cell layout so the wallet can render the payload to the user. */
     schema: string;
-    /** Network to issue the sign request against. Defaults to AppKit's configured default network. */
+    /** Network to issue the sign request against. Defaults to AppKit's configured default network; when none is set, the wallet falls back to its current network. */
     network?: Network;
 }
 
@@ -39,7 +39,7 @@ export interface SignCellParameters {
 export type SignCellReturnType = SignDataResponse;
 
 /**
- * Ask the connected wallet to sign a TON cell — typically used so the signature can later be verified on-chain; throws `Error('Wallet not connected')` if no wallet is currently selected.
+ * Ask the selected wallet to sign a TON cell — typically used so the signature can later be verified on-chain; throws `Error('Wallet not connected')` if no wallet is currently selected.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param parameters - {@link SignCellParameters} Cell content, TL-B schema and optional network override.

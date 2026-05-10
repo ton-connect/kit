@@ -37,6 +37,6 @@ export interface WalletInterface {
     /** Send a transaction — the wallet signs and broadcasts it. */
     sendTransaction(request: TransactionRequest): Promise<SendTransactionResponse>;
 
-    /** Sign arbitrary data via the TonConnect signData flow. */
+    /** Sign arbitrary data — text, binary or TON cell — through the wallet's sign-data flow. */
     signData(payload: SignDataRequest): Promise<SignDataResponse>;
 }

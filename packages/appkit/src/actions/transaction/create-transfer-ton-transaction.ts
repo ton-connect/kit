@@ -22,7 +22,7 @@ import { getSelectedWallet } from '../wallets/get-selected-wallet';
 export interface CreateTransferTonTransactionParameters {
     /** Recipient address. */
     recipientAddress: UserFriendlyAddress;
-    /** Amount in TONs as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. */
+    /** Amount in TON as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. */
     amount: string;
     /** Human-readable text comment; converted to a Base64 payload when no `payload` is supplied. */
     comment?: string;

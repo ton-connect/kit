@@ -35,7 +35,7 @@ export type GetStakingProviderInfoOptions = {
 export type GetStakingProviderInfoReturnType = Promise<StakingProviderInfo>;
 
 /**
- * Read live staking-pool info for a provider — APR, total pool size, minimum stake, etc. Use {@link getStakingProviderMetadata} for static metadata that doesn't change between calls.
+ * Read live staking-pool info for a provider — APR, total pool size, minimum stake, etc. Use {@link getStakingProviderMetadata} for static metadata (display name, logo, supported tokens).
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param options - {@link GetStakingProviderInfoOptions} Optional network and provider override.

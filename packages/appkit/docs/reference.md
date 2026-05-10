@@ -404,7 +404,7 @@ const unsubscribe = watchBalance(appKit, {
 
 #### watchBalanceByAddress
 
-Subscribe to Toncoin balance updates for an arbitrary address, useful for monitoring wallets that are not currently selected in AppKit (use [`watchBalance`](#watchbalance) for the selected wallet).
+Subscribe to Toncoin balance updates for an arbitrary address — useful for monitoring wallets that aren't selected in AppKit (use [`watchBalance`](#watchbalance) for the selected wallet).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -491,7 +491,7 @@ Trigger the connection flow on a registered connector by id; throws when no conn
 | `parameters`\* | [`ConnectParameters`](#connectparameters) | Connector to connect through. |
 | `parameters.connectorId`\* | `string` | Id of the registered connector to drive the connection through (e.g., `'tonconnect'`). |
 
-Returns: <code>Promise&lt;</code><a href="#connectreturntype"><code>ConnectReturnType</code></a><code>&gt;</code> — Resolves once the connector finishes its handshake — the wallet is then available via [`getSelectedWallet`](#getselectedwallet).
+Returns: <code>Promise&lt;</code><a href="#connectreturntype"><code>ConnectReturnType</code></a><code>&gt;</code> — Resolves once the connector's connect flow completes (e.g., the TonConnect modal closes); if a wallet was successfully connected, it becomes available via [`getSelectedWallet`](#getselectedwallet).
 
 **Example**
 
@@ -608,14 +608,14 @@ connectors.forEach((connector) => {
 
 #### watchConnectorById
 
-Subscribe to a connector by id; the callback fires after every wallet-connection event so the caller can re-read connector state (e.g., [`Connector`](#connector)`.getConnectedWallets()`).
+Subscribe to register/unregister events for a connector with the given id — the callback fires when the connector is added or removed, so callers can react to its presence. Use [`watchConnectedWallets`](#watchconnectedwallets) if you want to react to wallet connect/disconnect events instead.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `parameters`\* | [`WatchConnectorByIdParameters`](#watchconnectorbyidparameters) | Connector id and update callback. |
 | `parameters.id`\* | `string` | Id of the connector to watch. |
-| `parameters.onChange`\* | <code>(connector: </code><a href="#connector"><code>Connector</code></a><code> \| undefined) =&gt; void</code> | Callback fired after each wallet-connection event with the current connector (or `undefined` when none is registered under this id). |
+| `parameters.onChange`\* | <code>(connector: </code><a href="#connector"><code>Connector</code></a><code> \| undefined) =&gt; void</code> | Callback invoked when the connector with the watched id is registered or unregistered — receives the connector itself, or `undefined` when none is registered under that id. |
 
 Returns: <a href="#watchconnectorbyidreturntype"><code>WatchConnectorByIdReturnType</code></a> — Unsubscribe function — call it to stop receiving updates.
 
@@ -634,13 +634,13 @@ const unsubscribe = watchConnectorById(appKit, {
 
 #### watchConnectors
 
-Subscribe to the list of registered connectors; the callback fires after every wallet-connection event so the caller can re-read state derived from connectors (e.g., connected wallets).
+Subscribe to changes in the registered-connectors list — the callback fires when a connector is added (via [`addConnector`](#addconnector) or AppKit's constructor) or removed, and receives the current list. Use [`watchConnectedWallets`](#watchconnectedwallets) if you want to react to wallet connect/disconnect events instead.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `parameters`\* | [`WatchConnectorsParameters`](#watchconnectorsparameters) | Update callback. |
-| `parameters.onChange`\* | <code>(connectors: readonly </code><a href="#connector"><code>Connector</code></a><code>[]) =&gt; void</code> | Callback fired after each wallet-connection event with the current list of registered connectors. |
+| `parameters.onChange`\* | <code>(connectors: readonly </code><a href="#connector"><code>Connector</code></a><code>[]) =&gt; void</code> | Callback invoked when the list of registered connectors changes — receives the current list. |
 
 Returns: <a href="#watchconnectorsreturntype"><code>WatchConnectorsReturnType</code></a> — Unsubscribe function — call it to stop receiving updates.
 
@@ -866,7 +866,7 @@ console.log('Jetton Balance:', balance);
 
 #### getJettonInfo
 
-Fetch token metadata for a jetton master — name, symbol, decimals, image and description as reported by the indexer; returns `null` when no metadata is available.
+Fetch token metadata for a jetton master — name, symbol, decimals, image and description as reported by the indexer; returns `null` when the indexer has no record for that master address.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -1328,14 +1328,14 @@ const unsubscribe = watchNetworks(appKit, {
 
 #### signBinary
 
-Ask the connected wallet to sign a binary blob; throws `Error('Wallet not connected')` if no wallet is currently selected.
+Ask the selected wallet to sign a binary blob; throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `parameters`\* | [`SignBinaryParameters`](#signbinaryparameters) | Binary content and optional network override. |
 | `parameters.bytes`\* | <a href="#base64string"><code>Base64String</code></a> | Binary blob the user is asked to sign, encoded as Base64. |
-| `parameters.network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against. Defaults to AppKit's configured default network. |
+| `parameters.network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against. Defaults to AppKit's configured default network; when none is set, the wallet falls back to its current network. |
 
 Returns: <code>Promise&lt;</code><a href="#signbinaryreturntype"><code>SignBinaryReturnType</code></a><code>&gt;</code> — Signature and signed payload, as returned by the wallet.
 
@@ -1352,7 +1352,7 @@ console.log('Binary Signature:', result.signature);
 
 #### signCell
 
-Ask the connected wallet to sign a TON cell — typically used so the signature can later be verified on-chain; throws `Error('Wallet not connected')` if no wallet is currently selected.
+Ask the selected wallet to sign a TON cell — typically used so the signature can later be verified on-chain; throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -1360,7 +1360,7 @@ Ask the connected wallet to sign a TON cell — typically used so the signature 
 | `parameters`\* | [`SignCellParameters`](#signcellparameters) | Cell content, TL-B schema and optional network override. |
 | `parameters.cell`\* | <a href="#base64string"><code>Base64String</code></a> | TON cell content encoded as Base64 (BoC). |
 | `parameters.schema`\* | `string` | TL-B-style schema describing the cell layout so the wallet can render the payload to the user. |
-| `parameters.network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against. Defaults to AppKit's configured default network. |
+| `parameters.network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against. Defaults to AppKit's configured default network; when none is set, the wallet falls back to its current network. |
 
 Returns: <code>Promise&lt;</code><a href="#signcellreturntype"><code>SignCellReturnType</code></a><code>&gt;</code> — Signature and signed payload, as returned by the wallet.
 
@@ -1377,14 +1377,14 @@ console.log('Cell Signature:', result.signature);
 
 #### signText
 
-Ask the connected wallet to sign a plain text message; throws `Error('Wallet not connected')` if no wallet is currently selected.
+Ask the selected wallet to sign a plain text message; throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `parameters`\* | [`SignTextParameters`](#signtextparameters) | Text to sign and optional network override. |
 | `parameters.text`\* | `string` | UTF-8 text the user is asked to sign. |
-| `parameters.network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against. Defaults to AppKit's configured default network. |
+| `parameters.network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against. Defaults to AppKit's configured default network; when none is set, the wallet falls back to its current network. |
 
 Returns: <code>Promise&lt;</code><a href="#signtextreturntype"><code>SignTextReturnType</code></a><code>&gt;</code> — Signature and signed payload, as returned by the wallet.
 
@@ -1482,7 +1482,7 @@ Returns: <a href="#getstakingproviderreturntype"><code>GetStakingProviderReturnT
 
 #### getStakingProviderInfo
 
-Read live staking-pool info for a provider — APR, total pool size, minimum stake, etc. Use [`getStakingProviderMetadata`](#getstakingprovidermetadata) for static metadata that doesn't change between calls.
+Read live staking-pool info for a provider — APR, total pool size, minimum stake, etc. Use [`getStakingProviderMetadata`](#getstakingprovidermetadata) for static metadata (display name, logo, supported tokens).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -1504,7 +1504,7 @@ console.log('Provider Info:', providerInfo);
 
 #### getStakingProviderMetadata
 
-Read static metadata for a staking provider — display name, logo, supported tokens. Use [`getStakingProviderInfo`](#getstakingproviderinfo) for live numbers (APR, pool size).
+Read static metadata for a staking provider — display name, logo, supported tokens. Use [`getStakingProviderInfo`](#getstakingproviderinfo) for live values (APR, pool size).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -1784,7 +1784,7 @@ Build a TON transfer [`TransactionRequest`](#transactionrequest) for the selecte
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `parameters`\* | [`CreateTransferTonTransactionParameters`](#createtransfertontransactionparameters) | Recipient, amount and optional payload/comment/stateInit. |
 | `parameters.recipientAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Recipient address. |
-| `parameters.amount`\* | `string` | Amount in TONs as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. |
+| `parameters.amount`\* | `string` | Amount in TON as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. |
 | `parameters.comment` | `string` | Human-readable text comment; converted to a Base64 payload when no `payload` is supplied. |
 | `parameters.payload` | <a href="#base64string"><code>Base64String</code></a> | Raw Base64 message payload — wins over `comment` when both are set. |
 | `parameters.stateInit` | <a href="#base64string"><code>Base64String</code></a> | Initial state for deploying a new contract, encoded as Base64. |
@@ -1849,7 +1849,7 @@ Build and send a TON transfer from the selected wallet in one step (use [`create
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `parameters`\* | [`TransferTonParameters`](#transfertonparameters) | Recipient, amount and optional payload/comment/stateInit. |
 | `parameters.recipientAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Recipient address. |
-| `parameters.amount`\* | `string` | Amount in TONs as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. |
+| `parameters.amount`\* | `string` | Amount in TON as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. |
 | `parameters.comment` | `string` | Human-readable text comment; converted to a Base64 payload when no `payload` is supplied. |
 | `parameters.payload` | <a href="#base64string"><code>Base64String</code></a> | Raw Base64 message payload — wins over `comment` when both are set. |
 | `parameters.stateInit` | <a href="#base64string"><code>Base64String</code></a> | Initial state for deploying a new contract, encoded as Base64. |
@@ -1982,7 +1982,7 @@ const unsubscribe = watchConnectedWallets(appKit, {
 
 #### watchSelectedWallet
 
-Subscribe to selected-wallet changes — fires when [`setSelectedWalletId`](#setselectedwalletid) is called or when AppKit's wallet manager swaps the selection in response to connection events (auto-selecting the first wallet after a connect, clearing it on full disconnect).
+Subscribe to selected-wallet changes — fires when [`setSelectedWalletId`](#setselectedwalletid) runs, when the wallet manager auto-selects the first wallet because no prior selection survived a connector update, or when it clears the selection because no connected wallets remain.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -2340,7 +2340,7 @@ Parameters accepted by [`watchConnectorById`](#watchconnectorbyid).
 | Field | Type | Description |
 | --- | --- | --- |
 | `id`\* | `string` | Id of the connector to watch. |
-| `onChange`\* | <code>(connector: </code><a href="#connector"><code>Connector</code></a><code> \| undefined) =&gt; void</code> | Callback fired after each wallet-connection event with the current connector (or `undefined` when none is registered under this id). |
+| `onChange`\* | <code>(connector: </code><a href="#connector"><code>Connector</code></a><code> \| undefined) =&gt; void</code> | Callback invoked when the connector with the watched id is registered or unregistered — receives the connector itself, or `undefined` when none is registered under that id. |
 
 #### WatchConnectorByIdReturnType
 
@@ -2356,7 +2356,7 @@ Parameters accepted by [`watchConnectors`](#watchconnectors).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `onChange`\* | <code>(connectors: readonly </code><a href="#connector"><code>Connector</code></a><code>[]) =&gt; void</code> | Callback fired after each wallet-connection event with the current list of registered connectors. |
+| `onChange`\* | <code>(connectors: readonly </code><a href="#connector"><code>Connector</code></a><code>[]) =&gt; void</code> | Callback invoked when the list of registered connectors changes — receives the current list. |
 
 #### WatchConnectorsReturnType
 
@@ -2394,8 +2394,9 @@ Map of every event name AppKit can emit to its payload type, used to type listen
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `connector:connected`\* | <a href="#walletconnectedpayload"><code>WalletConnectedPayload</code></a> | _TODO: describe_ |
-| `connector:disconnected`\* | <a href="#walletdisconnectedpayload"><code>WalletDisconnectedPayload</code></a> | _TODO: describe_ |
+| `connector:added`\* | <a href="#connectoraddedpayload"><code>ConnectorAddedPayload</code></a> | _TODO: describe_ |
+| `connector:removed`\* | <a href="#connectorremovedpayload"><code>ConnectorRemovedPayload</code></a> | _TODO: describe_ |
+| `connector:wallets-updated`\* | <a href="#connectorwalletsupdatedpayload"><code>ConnectorWalletsUpdatedPayload</code></a> | _TODO: describe_ |
 | `wallets:updated`\* | <code>&lbrace; wallets: </code><a href="#walletinterface"><code>WalletInterface</code></a><code>[] &rbrace;</code> | _TODO: describe_ |
 | `wallets:selection-changed`\* | `{ walletId: string \| null }` | _TODO: describe_ |
 | `networks:updated`\* | `Record<string, never>` | _TODO: describe_ |
@@ -2406,13 +2407,38 @@ Map of every event name AppKit can emit to its payload type, used to type listen
 | `provider:registered`\* | `BaseProviderUpdate` | _TODO: describe_ |
 | `provider:default-changed`\* | `BaseProviderUpdate` | _TODO: describe_ |
 
+#### ConnectorAddedPayload
+
+Payload of `connector:added` events — the connector that was just registered.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `connector`\* | <a href="#connector"><code>Connector</code></a> | [`Connector`](#connector) just registered with AppKit. |
+
+#### ConnectorRemovedPayload
+
+Payload of `connector:removed` events — the connector that was just unregistered.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `connector`\* | <a href="#connector"><code>Connector</code></a> | [`Connector`](#connector) just unregistered from AppKit (already torn down via `destroy()`). |
+
+#### ConnectorWalletsUpdatedPayload
+
+Payload of `connector:wallets-updated` events — fired by a connector when its connected-wallets list changes (connect, disconnect, or account switch inside the wallet).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `connectorId`\* | `string` | Id of the [`Connector`](#connector) whose wallets just changed. |
+| `wallets`\* | <a href="#walletinterface"><code>WalletInterface</code></a><code>[]</code> | Wallets currently exposed by the connector — empty when the wallet was just disconnected. |
+
 #### DefaultNetworkChangedPayload
 
 Payload of `networks:default-changed` events — the new default network, or `undefined` when cleared.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `network`\* | <a href="#network"><code>Network</code></a><code> \| undefined</code> | New default network, or `undefined` when the constraint was cleared. |
+| `network`\* | <a href="#network"><code>Network</code></a><code> \| undefined</code> | New default network, or `undefined` when the constraint is cleared. |
 
 #### EventListener
 
@@ -2436,7 +2462,7 @@ Envelope every [`EventEmitter`](#eventemitter) listener receives — `type` is t
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `type`\* | `string` | Event name (e.g., `'connector:connected'`). |
+| `type`\* | `string` | Event name (e.g., `'connector:wallets-updated'`). |
 | `payload`\* | `T = any` | Event-specific payload — typed via the emitter's event-name → payload map. |
 | `source` | `string` | Identifier of the component that emitted the event (connector id, manager name, etc.); useful for filtering listeners. |
 | `timestamp`\* | `number` | Wall-clock timestamp in milliseconds when the event was emitted. |
@@ -2452,23 +2478,6 @@ Event-name → payload map shared between AppKit and walletkit; AppKit extends i
 | `streaming:jettons-update`\* | <a href="#jettonupdate"><code>JettonUpdate</code></a> | _TODO: describe_ |
 | `provider:registered`\* | `BaseProviderUpdate` | _TODO: describe_ |
 | `provider:default-changed`\* | `BaseProviderUpdate` | _TODO: describe_ |
-
-#### WalletConnectedPayload
-
-Payload of `connector:connected` events — newly connected wallets and the originating connector id.
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `wallets`\* | <a href="#walletinterface"><code>WalletInterface</code></a><code>[]</code> | Wallets newly available through the connector after the connect handshake. |
-| `connectorId`\* | `string` | Id of the [`Connector`](#connector) that produced the connection. |
-
-#### WalletDisconnectedPayload
-
-Payload of `connector:disconnected` events — id of the connector whose wallet was just disconnected.
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `connectorId`\* | `string` | Id of the [`Connector`](#connector) whose wallet was just disconnected. |
 
 ### Crypto Onramp
 
@@ -3365,7 +3374,7 @@ Parameters accepted by [`signBinary`](#signbinary).
 | Field | Type | Description |
 | --- | --- | --- |
 | `bytes`\* | <a href="#base64string"><code>Base64String</code></a> | Binary blob the user is asked to sign, encoded as Base64. |
-| `network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against. Defaults to AppKit's configured default network. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against. Defaults to AppKit's configured default network; when none is set, the wallet falls back to its current network. |
 
 #### SignBinaryReturnType
 
@@ -3383,7 +3392,7 @@ Parameters accepted by [`signCell`](#signcell).
 | --- | --- | --- |
 | `cell`\* | <a href="#base64string"><code>Base64String</code></a> | TON cell content encoded as Base64 (BoC). |
 | `schema`\* | `string` | TL-B-style schema describing the cell layout so the wallet can render the payload to the user. |
-| `network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against. Defaults to AppKit's configured default network. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against. Defaults to AppKit's configured default network; when none is set, the wallet falls back to its current network. |
 
 #### SignCellReturnType
 
@@ -3457,7 +3466,7 @@ Parameters accepted by [`signText`](#signtext).
 | Field | Type | Description |
 | --- | --- | --- |
 | `text`\* | `string` | UTF-8 text the user is asked to sign. |
-| `network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against. Defaults to AppKit's configured default network. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to issue the sign request against. Defaults to AppKit's configured default network; when none is set, the wallet falls back to its current network. |
 
 #### SignTextReturnType
 
@@ -4040,7 +4049,7 @@ Parameters accepted by [`createTransferTonTransaction`](#createtransfertontransa
 | Field | Type | Description |
 | --- | --- | --- |
 | `recipientAddress`\* | <a href="#userfriendlyaddress"><code>UserFriendlyAddress</code></a> | Recipient address. |
-| `amount`\* | `string` | Amount in TONs as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. |
+| `amount`\* | `string` | Amount in TON as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. |
 | `comment` | `string` | Human-readable text comment; converted to a Base64 payload when no `payload` is supplied. |
 | `payload` | <a href="#base64string"><code>Base64String</code></a> | Raw Base64 message payload — wins over `comment` when both are set. |
 | `stateInit` | <a href="#base64string"><code>Base64String</code></a> | Initial state for deploying a new contract, encoded as Base64. |
@@ -4142,10 +4151,10 @@ Transaction payload passed to [`WalletInterface`](#walletinterface)`.sendTransac
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `messages`\* | <a href="#transactionrequestmessage"><code>TransactionRequestMessage</code></a><code>[]</code> | List of messages to include in the transaction |
-| `network` | <a href="#network"><code>Network</code></a> | Network to execute the transaction on |
-| `validUntil` | `number` | Unix timestamp after which the transaction becomes invalid |
-| `fromAddress` | `string` | Sender wallet address in received format(raw, user friendly) |
+| `messages`\* | <a href="#transactionrequestmessage"><code>TransactionRequestMessage</code></a><code>[]</code> | Messages to include in the transaction. |
+| `network` | <a href="#network"><code>Network</code></a> | Network to execute the transaction on. |
+| `validUntil` | `number` | Unix timestamp (seconds) after which the transaction becomes invalid. |
+| `fromAddress` | `string` | Sender wallet address — accepts either raw or user-friendly format. |
 
 #### TransactionRequestMessage
 
@@ -4153,11 +4162,11 @@ Individual message inside a [`TransactionRequest`](#transactionrequest) — reci
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `address`\* | `string` | Recipient wallet address in format received from caller (raw, user friendly) |
-| `amount`\* | <a href="#tokenamount"><code>TokenAmount</code></a> | Amount to transfer in nanos |
-| `extraCurrency` | <a href="#extracurrencies"><code>ExtraCurrencies</code></a> | Additional currencies to include in the transfer |
-| `stateInit` | `string` | Initial state for deploying a new contract, encoded in Base64 |
-| `payload` | `string` | Message payload data encoded in Base64 |
+| `address`\* | `string` | Recipient wallet address — accepts either raw or user-friendly format. |
+| `amount`\* | <a href="#tokenamount"><code>TokenAmount</code></a> | Amount to transfer, in nano-TON (1 TON = 10⁹ nano-TON). |
+| `extraCurrency` | <a href="#extracurrencies"><code>ExtraCurrencies</code></a> | Additional currencies to include in the transfer. |
+| `stateInit` | `string` | Initial state for deploying a new contract, encoded as Base64. |
+| `payload` | `string` | Message payload, encoded as Base64. |
 
 #### TransactionsUpdate
 
@@ -4280,7 +4289,7 @@ Wallet contract surfaced by every [`Connector`](#connector) — covers identity 
 | `getNetwork`\* | <code>() =&gt; </code><a href="#network"><code>Network</code></a> | Network the wallet is currently connected to. |
 | `getWalletId`\* | `() => string` | Stable identifier combining address and network — unique across AppKit's connected wallets. |
 | `sendTransaction`\* | <code>(request: </code><a href="#transactionrequest"><code>TransactionRequest</code></a><code>) =&gt; Promise&lt;</code><a href="#sendtransactionresponse"><code>SendTransactionResponse</code></a><code>&gt;</code> | Send a transaction — the wallet signs and broadcasts it. |
-| `signData`\* | <code>(payload: </code><a href="#signdatarequest"><code>SignDataRequest</code></a><code>) =&gt; Promise&lt;</code><a href="#signdataresponse"><code>SignDataResponse</code></a><code>&gt;</code> | Sign arbitrary data via the TonConnect signData flow. |
+| `signData`\* | <code>(payload: </code><a href="#signdatarequest"><code>SignDataRequest</code></a><code>) =&gt; Promise&lt;</code><a href="#signdataresponse"><code>SignDataResponse</code></a><code>&gt;</code> | Sign arbitrary data — text, binary or TON cell — through the wallet's sign-data flow. |
 
 #### WatchConnectedWalletsParameters
 
@@ -4320,12 +4329,16 @@ type WatchSelectedWalletReturnType = () => void;
 
 #### CONNECTOR_EVENTS
 
-Event names AppKit emits on wallet connection and disconnection; payloads are [`WalletConnectedPayload`](#walletconnectedpayload) and [`WalletDisconnectedPayload`](#walletdisconnectedpayload).
+Event names AppKit emits for connector-list and connector-wallet changes; payloads are [`ConnectorAddedPayload`](#connectoraddedpayload), [`ConnectorRemovedPayload`](#connectorremovedpayload) and [`ConnectorWalletsUpdatedPayload`](#connectorwalletsupdatedpayload).
 
 ```ts
 const CONNECTOR_EVENTS = {
-    CONNECTED: 'connector:connected',
-    DISCONNECTED: 'connector:disconnected',
+    /** A connector was registered via {@link addConnector} (or AppKit's constructor). */
+    ADDED: 'connector:added',
+    /** A connector was unregistered via `removeConnector` or its own teardown. */
+    REMOVED: 'connector:removed',
+    /** A connector's connected-wallets state changed (wallet connected, disconnected, or account switched inside the wallet). */
+    WALLETS_UPDATED: 'connector:wallets-updated',
 } as const;
 ```
 

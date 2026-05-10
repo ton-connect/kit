@@ -19,7 +19,7 @@ import { getConnectors } from './get-connectors';
  * @section Connectors
  */
 export type WatchConnectorsParameters = {
-    /** Callback fired after each wallet-connection event with the current list of registered connectors. */
+    /** Callback invoked when the list of registered connectors changes — receives the current list. */
     onChange: (connectors: readonly Connector[]) => void;
 };
 
@@ -33,7 +33,7 @@ export type WatchConnectorsParameters = {
 export type WatchConnectorsReturnType = () => void;
 
 /**
- * Subscribe to the list of registered connectors; the callback fires after every wallet-connection event so the caller can re-read state derived from connectors (e.g., connected wallets).
+ * Subscribe to changes in the registered-connectors list — the callback fires when a connector is added (via {@link addConnector} or AppKit's constructor) or removed, and receives the current list. Use {@link watchConnectedWallets} if you want to react to wallet connect/disconnect events instead.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param parameters - {@link WatchConnectorsParameters} Update callback.
@@ -49,9 +49,15 @@ export type WatchConnectorsReturnType = () => void;
 export const watchConnectors = (appKit: AppKit, parameters: WatchConnectorsParameters): WatchConnectorsReturnType => {
     const { onChange } = parameters;
 
-    const unsubscribe = appKit.emitter.on(CONNECTOR_EVENTS.CONNECTED, () => {
+    const handler = (): void => {
         onChange(getConnectors(appKit));
-    });
+    };
 
-    return unsubscribe;
+    const unsubscribeAdded = appKit.emitter.on(CONNECTOR_EVENTS.ADDED, handler);
+    const unsubscribeRemoved = appKit.emitter.on(CONNECTOR_EVENTS.REMOVED, handler);
+
+    return () => {
+        unsubscribeAdded();
+        unsubscribeRemoved();
+    };
 };
