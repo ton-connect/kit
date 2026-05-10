@@ -15,7 +15,7 @@ export interface WatchOnrampProvidersParameters {
 export type WatchOnrampProvidersReturnType = () => void;
 
 /**
- * Watch for newly registered onramp providers and default-provider changes.
+ * Subscribe to onramp provider lifecycle — fires `onChange` whenever a new provider is registered or the default onramp provider switches.
  */
 export const watchOnrampProviders = (
     appKit: AppKit,

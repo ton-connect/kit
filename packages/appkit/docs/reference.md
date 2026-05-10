@@ -1482,7 +1482,7 @@ Returns: <a href="#getstakingproviderreturntype"><code>GetStakingProviderReturnT
 
 #### getStakingProviderInfo
 
-Read live staking-pool info for a provider — APR, total pool size, minimum stake, etc. Use [`getStakingProviderMetadata`](#getstakingprovidermetadata) for static metadata (display name, logo, supported tokens).
+Read live staking-pool info for a provider — APY, instant-unstake liquidity and (for liquid staking) the current exchange rate between stake and receive tokens. Use [`getStakingProviderMetadata`](#getstakingprovidermetadata) for static metadata (display name, stake/receive tokens, supported unstake modes).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -1504,7 +1504,7 @@ console.log('Provider Info:', providerInfo);
 
 #### getStakingProviderMetadata
 
-Read static metadata for a staking provider — display name, logo, supported tokens. Use [`getStakingProviderInfo`](#getstakingproviderinfo) for live values (APR, pool size).
+Read static metadata for a staking provider — display name, stake/receive tokens, supported unstake modes, contract address. Use [`getStakingProviderInfo`](#getstakingproviderinfo) for live values (APY, instant-unstake liquidity, exchange rate).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
