@@ -19,7 +19,7 @@
 export { StakingProvider } from '@ton/walletkit';
 
 /**
- * Error thrown by {@link StakingManager} and staking providers — extends {@link DefiError} with a `'staking'` discriminator and a {@link StakingErrorCode} on `code`.
+ * Error thrown by {@link StakingManager} and staking providers — extends {@link DefiError} with `name: 'StakingError'` and a typed {@link StakingErrorCode} on `code`.
  *
  * @extract
  * @public
@@ -49,7 +49,7 @@ export { StakingManager } from '@ton/walletkit';
 export { StakingErrorCode } from '@ton/walletkit';
 
 /**
- * Allowed unstake-timing flavours referenced by {@link UnstakeModes} and {@link StakingProviderInfo} — `'INSTANT'` (immediate withdrawal at a discount), `'WHEN_AVAILABLE'` (paid out as the pool unlocks), `'ROUND_END'` (paid out at the end of the staking round).
+ * Allowed unstake-timing flavours referenced by {@link UnstakeModes} and {@link StakingProviderMetadata}`.supportedUnstakeModes` — `'INSTANT'` (immediate withdrawal at a discount), `'WHEN_AVAILABLE'` (paid out as soon as liquidity is available — instantly or at round end), `'ROUND_END'` (paid out at the end of the staking round).
  *
  * @extract
  * @public
@@ -77,7 +77,7 @@ export type {
 } from '@ton/walletkit';
 
 /**
- * Display metadata for a token a staking provider supports — name, symbol, image and optional address; carried on {@link StakingProviderInfo}`.tokens` so the UI can render the pool's input/output assets.
+ * Display metadata for a staking-pool token — `ticker`, `decimals` and `address` (or `'ton'` for native TON); carried on {@link StakingProviderMetadata}`.stakeToken` and `.receiveToken` so the UI can render the pool's input/output assets.
  *
  * @extract
  * @public

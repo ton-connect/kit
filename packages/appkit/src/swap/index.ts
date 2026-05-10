@@ -17,7 +17,7 @@
 export { DefiError } from '@ton/walletkit';
 
 /**
- * Error thrown by {@link SwapManager} and swap providers — extends {@link DefiError} with a `'swap'` discriminator.
+ * Error thrown by {@link SwapManager} and swap providers — extends {@link DefiError} with `name: 'SwapError'` and a stable `code` from the static `SwapError.*` / `DefiError.*` constants.
  *
  * @extract
  * @public
@@ -77,7 +77,7 @@ export type { DefiProvider } from '@ton/walletkit';
 export type { DefiProviderType } from '@ton/walletkit';
 
 /**
- * Token entry returned by {@link SwapProvider}`.getSupportedTokens` — address, decimals, image, symbol; consumed by swap-input UIs to render the source/target token list.
+ * Token descriptor passed to {@link getSwapQuote} via {@link SwapQuoteParams}`.from` / `.to` (and surfaced on the resulting {@link SwapQuote}) — address, decimals plus optional symbol/name/image used by swap-input UIs.
  *
  * @extract
  * @public
@@ -97,7 +97,7 @@ export type { SwapToken } from '@ton/walletkit';
 export type { SwapParams } from '@ton/walletkit';
 
 /**
- * API surface exposed by {@link SwapManager} — quote, build-transaction and supported-token reads. Mostly relevant when authoring a swap manager replacement.
+ * API surface exposed by {@link SwapManager} — quote and build-transaction calls (plus the provider-management methods inherited from {@link DefiManagerAPI}). Mostly relevant when authoring a swap manager replacement.
  *
  * @extract
  * @public
@@ -117,7 +117,7 @@ export type { SwapAPI } from '@ton/walletkit';
 export type { SwapQuote } from '@ton/walletkit';
 
 /**
- * Parameters consumed by {@link getSwapQuote} — source/target token addresses, an amount in either source or target units (`isSourceAmount` flag), optional slippage and provider-specific options.
+ * Parameters consumed by {@link getSwapQuote} — source/target tokens and an amount that is interpreted as either the spend side or the receive side (`isReverseSwap` flag), plus optional slippage and provider-specific options.
  *
  * @extract
  * @public

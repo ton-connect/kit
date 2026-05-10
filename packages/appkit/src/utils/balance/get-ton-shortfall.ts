@@ -45,7 +45,7 @@ export interface GetTonShortfallParams {
 
 /**
  * Check whether the user's TON balance covers the built transaction.
- * - Returns `null` if the balance is sufficient.
+ * - Returns `undefined` if the balance is sufficient.
  * - Returns `{ mode: 'reduce', ... }` with a smaller suggested `fromAmount` when `fromToken` is TON
  *   and the balance is enough to cover at least gas (user can fix it by reducing the amount).
  * - Returns `{ mode: 'topup', ... }` when `fromToken` is a jetton (reducing jetton amount won't free up TON gas),

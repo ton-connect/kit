@@ -57,7 +57,7 @@ Constructor: `new EventEmitter()`
 
 #### CryptoOnrampError
 
-Error thrown by [`CryptoOnrampManager`](#cryptoonrampmanager) and crypto-onramp providers — extends [`DefiError`](#defierror) with a `'crypto-onramp'` discriminator.
+Error thrown by [`CryptoOnrampManager`](#cryptoonrampmanager) and crypto-onramp providers — extends [`DefiError`](#defierror) with `name: 'CryptoOnrampError'` and a stable `code` from the static `CryptoOnrampError.*` / `DefiError.*` constants.
 
 Constructor: `new CryptoOnrampError(message, code, details)`
 
@@ -160,7 +160,7 @@ Constructor: `new KitNetworkManager(options)`
 
 #### StakingError
 
-Error thrown by [`StakingManager`](#stakingmanager) and staking providers — extends [`DefiError`](#defierror) with a `'staking'` discriminator and a [`StakingErrorCode`](#stakingerrorcode) on `code`.
+Error thrown by [`StakingManager`](#stakingmanager) and staking providers — extends [`DefiError`](#defierror) with `name: 'StakingError'` and a typed [`StakingErrorCode`](#stakingerrorcode) on `code`.
 
 Constructor: `new StakingError(message, code, details)`
 
@@ -250,7 +250,7 @@ kit.swap.registerProvider(
 
 #### SwapError
 
-Error thrown by [`SwapManager`](#swapmanager) and swap providers — extends [`DefiError`](#defierror) with a `'swap'` discriminator.
+Error thrown by [`SwapManager`](#swapmanager) and swap providers — extends [`DefiError`](#defierror) with `name: 'SwapError'` and a stable `code` from the static `SwapError.*` / `DefiError.*` constants.
 
 Constructor: `new SwapError(message, code, details)`
 
@@ -3287,7 +3287,7 @@ Parameters for getting a staking quote
 
 #### StakingTokenInfo
 
-Display metadata for a token a staking provider supports — name, symbol, image and optional address; carried on [`StakingProviderInfo`](#stakingproviderinfo)`.tokens` so the UI can render the pool's input/output assets.
+Display metadata for a staking-pool token — `ticker`, `decimals` and `address` (or `'ton'` for native TON); carried on [`StakingProviderMetadata`](#stakingprovidermetadata)`.stakeToken` and `.receiveToken` so the UI can render the pool's input/output assets.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -3511,7 +3511,7 @@ type SetDefaultSwapProviderReturnType = void;
 
 #### SwapAPI
 
-API surface exposed by [`SwapManager`](#swapmanager) — quote, build-transaction and supported-token reads. Mostly relevant when authoring a swap manager replacement.
+API surface exposed by [`SwapManager`](#swapmanager) — quote and build-transaction calls (plus the provider-management methods inherited from [`DefiManagerAPI`](#defimanagerapi)). Mostly relevant when authoring a swap manager replacement.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -3560,7 +3560,7 @@ Quote returned by [`getSwapQuote`](#getswapquote) — source/target tokens, expe
 
 #### SwapQuoteParams
 
-Parameters consumed by [`getSwapQuote`](#getswapquote) — source/target token addresses, an amount in either source or target units (`isSourceAmount` flag), optional slippage and provider-specific options.
+Parameters consumed by [`getSwapQuote`](#getswapquote) — source/target tokens and an amount that is interpreted as either the spend side or the receive side (`isReverseSwap` flag), plus optional slippage and provider-specific options.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -3575,7 +3575,7 @@ Parameters consumed by [`getSwapQuote`](#getswapquote) — source/target token a
 
 #### SwapToken
 
-Token entry returned by [`SwapProvider`](#swapprovider)`.getSupportedTokens` — address, decimals, image, symbol; consumed by swap-input UIs to render the source/target token list.
+Token descriptor passed to [`getSwapQuote`](#getswapquote) via [`SwapQuoteParams`](#swapquoteparams)`.from` / `.to` (and surfaced on the resulting [`SwapQuote`](#swapquote)) — address, decimals plus optional symbol/name/image used by swap-input UIs.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -3938,7 +3938,7 @@ Discriminator carried on every [`StakingError`](#stakingerror)`.code` — `'INVA
 
 #### UnstakeMode
 
-Allowed unstake-timing flavours referenced by [`UnstakeModes`](#unstakemodes) and [`StakingProviderInfo`](#stakingproviderinfo) — `'INSTANT'` (immediate withdrawal at a discount), `'WHEN_AVAILABLE'` (paid out as the pool unlocks), `'ROUND_END'` (paid out at the end of the staking round).
+Allowed unstake-timing flavours referenced by [`UnstakeModes`](#unstakemodes) and [`StakingProviderMetadata`](#stakingprovidermetadata)`.supportedUnstakeModes` — `'INSTANT'` (immediate withdrawal at a discount), `'WHEN_AVAILABLE'` (paid out as soon as liquidity is available — instantly or at round end), `'ROUND_END'` (paid out at the end of the staking round).
 
 ```ts
 const UnstakeMode = { readonly INSTANT: "INSTANT"; readonly WHEN_AVAILABLE: "WHEN_AVAILABLE"; readonly ROUND_END: "ROUND_END"; };

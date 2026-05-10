@@ -7,7 +7,7 @@
  */
 
 /**
- * Error thrown by {@link CryptoOnrampManager} and crypto-onramp providers — extends {@link DefiError} with a `'crypto-onramp'` discriminator.
+ * Error thrown by {@link CryptoOnrampManager} and crypto-onramp providers — extends {@link DefiError} with `name: 'CryptoOnrampError'` and a stable `code` from the static `CryptoOnrampError.*` / `DefiError.*` constants.
  *
  * @extract
  * @public

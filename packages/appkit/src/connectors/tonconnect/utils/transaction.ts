@@ -16,7 +16,7 @@ import type { TransactionRequest, TransactionRequestMessage } from '../../../typ
 export const DEFAULT_TRANSACTION_VALIDITY_SECONDS = 300;
 
 /**
- * Convert TonWalletKit TransactionRequest to TonConnect SendTransactionRequest format
+ * Convert a walletkit `TransactionRequest` to a TonConnect `SendTransactionRequest`.
  */
 export const toTonConnectTransaction = (request: TransactionRequest): SendTransactionRequest => {
     return {
