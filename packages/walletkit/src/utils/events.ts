@@ -6,7 +6,7 @@
  *
  */
 
-import type { Wallet } from '../api/interfaces';
+import type { ApiClient, Wallet } from '../api/interfaces';
 import type { TransactionRequest } from '../api/models';
 import type { WalletManager } from '../core/WalletManager';
 import { ERROR_CODES, WalletKitError } from '../errors';
@@ -17,7 +17,6 @@ import type {
     RawBridgeEventTransaction,
     RawConnectTransactionParamContent,
 } from '../types/internal';
-import type { ApiClient } from '../types/toncenter/ApiClient';
 import type { ValidationResult } from '../validation';
 import { validateStructuredItems, validateTransactionMessages } from '../validation/transaction';
 import { resolveItemsToMessages } from './itemsResolver';

@@ -15,6 +15,12 @@ import { AssetType } from '../api/models/core/AssetType';
 import { asMaybeAddressFriendly } from './address';
 import type { Hex } from '../api/models';
 
+export interface ProcessMoneyFlowOptions {
+    // When true, the first transaction's incoming message is excluded from inputs
+    // (used for sign-message previews where that message is a synthetic 2-TON gasless-relay wrapper).
+    skipFirstTxInput?: boolean;
+}
+
 const JETTON_TRANSFER_OPCODE = '0x0f8a7ea5' as Hex;
 
 // pTON proxy contracts (STON.fi v1 and v2) — wrapped TON used in DEX swaps.
@@ -24,7 +30,10 @@ const TON_PROXY_ADDRESSES = new Set([
     'EQBnGWMCf3-FZZq1W4IWcWiGAc3PHuZ0_H-7sad2oY00o83S',
 ]);
 
-export function computeMoneyFlow(response: EmulationResponse): TransactionTraceMoneyFlow {
+export function computeMoneyFlow(
+    response: EmulationResponse,
+    options: ProcessMoneyFlowOptions = {},
+): TransactionTraceMoneyFlow {
     const empty: TransactionTraceMoneyFlow = {
         outputs: '0',
         inputs: '0',
@@ -32,6 +41,10 @@ export function computeMoneyFlow(response: EmulationResponse): TransactionTraceM
         ourTransfers: [],
         ourAddress: undefined,
     };
+
+    if (!response || !response.transactions) {
+        return empty;
+    }
 
     const rootTxHash = response.trace?.txHash;
     if (!rootTxHash) return empty;
@@ -44,7 +57,8 @@ export function computeMoneyFlow(response: EmulationResponse): TransactionTraceM
 
     const outputs = ourTxs.reduce((acc, tx) => tx.outMsgs.reduce((a, m) => a + BigInt(m.value ?? 0), acc), 0n);
 
-    const inputs = ourTxs.reduce((acc, tx) => (tx.inMsg?.value ? acc + BigInt(tx.inMsg.value) : acc), 0n);
+    const incomingTxes = options.skipFirstTxInput ? ourTxs.filter((t) => t.hash !== rootTx.hash) : ourTxs;
+    const inputs = incomingTxes.reduce((acc, tx) => (tx.inMsg?.value ? acc + BigInt(tx.inMsg.value) : acc), 0n);
 
     const jettonTxHashes = new Set(
         Object.values(response.transactions)

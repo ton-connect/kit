@@ -17,7 +17,6 @@ import type {
     RawBridgeEventSignMessage,
 } from '../types/internal';
 import { globalLogger } from '../core/Logger';
-import { createTransactionPreviewIfPossible } from '../utils/toncenterEmulation';
 import { BasicHandler } from './BasicHandler';
 import type { WalletKitEventEmitter } from '../types/emitter';
 import type { WalletManager } from '../core/WalletManager';
@@ -26,6 +25,7 @@ import type { TransactionRequest, SendTransactionRequestEvent } from '../api/mod
 import type { Analytics, AnalyticsManager } from '../analytics';
 import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 import { checkTransactionRequestItems, getWalletFromEvent, parseTonConnectTransactionRequest } from '../utils/events';
+import { createTransactionPreviewIfPossible } from '../utils';
 
 const log = globalLogger.createChild('TransactionHandler');
 
