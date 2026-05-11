@@ -15,12 +15,12 @@ import type { TokenInfo } from '../core/TokenInfo';
  */
 export interface Jetton {
     /**
-     * The Jetton contract address
+     * The jetton master contract address (the token itself).
      */
     address: UserFriendlyAddress;
 
     /**
-     * The Jetton wallet address
+     * The owner's jetton-wallet contract address — the per-owner contract that actually holds this balance.
      */
     walletAddress: UserFriendlyAddress;
 

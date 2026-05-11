@@ -48,9 +48,9 @@ const BalanceSymbol: FC<ComponentProps<'span'> & { symbol: string }> = ({ classN
 export const BalanceBadge = {
     /** Pill wrapper — renders a horizontal {@link Block} that hosts the icon and balance block. */
     Container: BalanceBadgeContainer,
-    /** Token icon — re-exported {@link Logo} that draws the asset's image with a network badge. */
+    /** Token icon — re-exported {@link Logo} that draws the asset's image. */
     Icon: Logo,
-    /** Vertical block holding the balance amount and ticker symbol side by side. */
+    /** Block holding the balance amount and ticker symbol side by side. */
     BalanceBlock: BalanceBlock,
     /** Ticker symbol cell rendered next to the amount (e.g., `TON`, `USDT`). */
     Symbol: BalanceSymbol,

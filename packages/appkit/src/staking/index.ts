@@ -49,7 +49,7 @@ export { StakingManager } from '@ton/walletkit';
 export { StakingErrorCode } from '@ton/walletkit';
 
 /**
- * Allowed unstake-timing flavours referenced by {@link UnstakeModes} and {@link StakingProviderMetadata}'s `supportedUnstakeModes` — `'INSTANT'` (immediate withdrawal at a discount), `'WHEN_AVAILABLE'` (paid out as soon as liquidity is available — instantly or at round end), `'ROUND_END'` (paid out at the end of the staking round).
+ * Allowed unstake-timing flavours referenced by {@link UnstakeModes} and {@link StakingProviderMetadata}'s `supportedUnstakeModes` — `'INSTANT'` (immediate withdrawal when the pool has liquidity, otherwise the funds are returned), `'WHEN_AVAILABLE'` (paid out as soon as liquidity is available — instantly or at round end), `'ROUND_END'` (paid out at the end of the staking round, typically for the best rate).
  *
  * @extract
  * @public

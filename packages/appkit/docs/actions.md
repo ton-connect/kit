@@ -27,7 +27,7 @@ Fetch the TON balance of a specific address.
 
 ```ts
 const balanceByAddress = await getBalanceByAddress(appKit, {
-    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c', // Zero Address
+    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
 });
 console.log('Balance by address:', balanceByAddress);
 ```
@@ -78,7 +78,7 @@ await connect(appKit, {
 Add a wallet connector to AppKit (e.g., TonConnect).
 
 ```ts
-const stopWatching = addConnector(
+const unregister = addConnector(
     appKit,
     createTonConnectConnector({
         tonConnectOptions: {
@@ -87,7 +87,7 @@ const stopWatching = addConnector(
     }),
 );
 
-// Later: stopWatching();
+// Later: unregister();
 ```
 
 ### `disconnect`
@@ -390,7 +390,7 @@ Get all NFTs owned by a specific address.
 
 ```ts
 const response = await getNftsByAddress(appKit, {
-    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c', // Zero Address
+    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
 });
 
 console.log('NFTs by address:', response.nfts.length);
@@ -657,7 +657,7 @@ console.log('Swap Transaction:', transactionResponse);
 Get all available staking provider IDs.
 
 ```ts
-const providers = await getStakingProviders(appKit);
+const providers = getStakingProviders(appKit);
 console.log('Available Staking Providers:', providers);
 ```
 
@@ -725,7 +725,7 @@ console.log('Staked Balance:', balance);
 Create a TON transfer transaction request without sending it.
  
 ```ts
-const tx = await createTransferTonTransaction(appKit, {
+const tx = createTransferTonTransaction(appKit, {
     recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
     amount: '0.1', // 0.1 TON (human-readable format)
     comment: 'Draft transaction',

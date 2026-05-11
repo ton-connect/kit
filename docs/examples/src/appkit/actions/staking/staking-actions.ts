@@ -20,7 +20,7 @@ export const stakingExample = async (appKit: AppKit) => {
     const userAddress = 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c';
 
     // SAMPLE_START: GET_STAKING_PROVIDERS
-    const providers = await getStakingProviders(appKit);
+    const providers = getStakingProviders(appKit);
     console.log('Available Staking Providers:', providers);
     // SAMPLE_END: GET_STAKING_PROVIDERS
 

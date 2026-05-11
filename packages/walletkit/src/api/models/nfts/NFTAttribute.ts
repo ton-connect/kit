@@ -16,7 +16,7 @@ export interface NFTAttribute {
     traitType?: string;
 
     /**
-     * How the attribute should be displayed (e.g., "string", "number", "date")
+     * Indexer-supplied hint for how the attribute should be rendered. Optional and indexer-specific.
      */
     displayType?: string;
 

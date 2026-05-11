@@ -36,7 +36,7 @@ export interface SwapFieldProps extends Omit<ComponentProps<typeof Input.Contain
     token?: AppkitUIToken;
     /** Called with the raw input value when the user edits the amount. Only fired for `type: "pay"`. */
     onAmountChange?: (value: string) => void;
-    /** Raw balance (in base units) of `token` for the active wallet; rendered next to the amount. */
+    /** Formatted balance of `token` for the active wallet, as a human-readable decimal string; rendered in the balance line beneath the input. */
     balance?: string;
     /** When true, the balance area renders a skeleton placeholder instead of the value. */
     isBalanceLoading?: boolean;

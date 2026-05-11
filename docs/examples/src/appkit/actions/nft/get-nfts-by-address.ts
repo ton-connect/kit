@@ -12,7 +12,7 @@ import { getNftsByAddress } from '@ton/appkit';
 export const getNftsByAddressExample = async (appKit: AppKit) => {
     // SAMPLE_START: GET_NFTS_BY_ADDRESS
     const response = await getNftsByAddress(appKit, {
-        address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c', // Zero Address
+        address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
     });
 
     console.log('NFTs by address:', response.nfts.length);

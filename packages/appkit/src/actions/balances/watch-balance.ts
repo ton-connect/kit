@@ -37,7 +37,7 @@ export interface WatchBalanceOptions {
 export type WatchBalanceReturnType = () => void;
 
 /**
- * Subscribe to Toncoin balance updates for the currently selected wallet, automatically rebinding when the user connects, switches, or disconnects (use {@link watchBalanceByAddress} for a fixed address).
+ * Subscribe to Toncoin balance updates for the currently selected wallet, automatically rebinding whenever the selected wallet changes or the connected-wallets list updates (use {@link watchBalanceByAddress} for a fixed address).
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param options - {@link WatchBalanceOptions} Update callback and optional network override.

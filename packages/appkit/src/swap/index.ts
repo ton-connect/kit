@@ -7,7 +7,7 @@
  */
 
 /**
- * Base error thrown across all DeFi domains (swap, staking, onramp, crypto-onramp). Subclassed by {@link SwapError}, {@link StakingError}, `OnrampError`, {@link CryptoOnrampError} — catch the base when you don't care which domain produced the failure.
+ * Base error thrown across all DeFi domains (swap, staking, onramp, crypto-onramp). Subclassed by {@link SwapError}, {@link StakingError}, {@link CryptoOnrampError} and the internal onramp error — catch the base when you don't care which domain produced the failure.
  *
  * @extract
  * @public
@@ -57,7 +57,7 @@ export { SwapManager } from '@ton/walletkit';
 export type { DefiManagerAPI } from '@ton/walletkit';
 
 /**
- * Base interface implemented by every {@link DefiProvider} (swap, staking, onramp, crypto-onramp) — exposes `providerId`, `type` and `getSupportedNetworks`. Domain-specific provider interfaces extend this with quote/build/status methods.
+ * Base interface implemented by every DeFi provider (swap, staking, onramp, crypto-onramp) — exposes `providerId`, `type` and `getSupportedNetworks`. Domain-specific provider interfaces extend this with quote/build/status methods.
  *
  * @extract
  * @public

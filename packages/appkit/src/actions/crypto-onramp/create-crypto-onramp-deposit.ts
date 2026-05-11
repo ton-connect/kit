@@ -35,7 +35,7 @@ export type CreateCryptoOnrampDepositReturnType = Promise<CryptoOnrampDeposit>;
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param options - {@link CreateCryptoOnrampDepositOptions} Quote, refund address, and optional provider override.
- * @returns Deposit details the UI should show to the user (address, amount, expiry).
+ * @returns Deposit details the UI should show to the user (address, amount, optional `memo`/`expiresAt`).
  *
  * @expand options
  *

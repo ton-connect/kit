@@ -86,7 +86,7 @@ export interface NFT {
     saleContractAddress?: UserFriendlyAddress;
 
     /**
-     * Off-chain metadata of the NFT (key-value pairs)
+     * Additional arbitrary data related to the NFT.
      */
     extra?: { [key: string]: unknown };
 }

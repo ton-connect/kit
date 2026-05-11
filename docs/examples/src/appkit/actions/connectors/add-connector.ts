@@ -12,7 +12,7 @@ import { createTonConnectConnector } from '@ton/appkit';
 
 export const addConnectorExample = (appKit: AppKit) => {
     // SAMPLE_START: ADD_CONNECTOR
-    const stopWatching = addConnector(
+    const unregister = addConnector(
         appKit,
         createTonConnectConnector({
             tonConnectOptions: {
@@ -21,7 +21,7 @@ export const addConnectorExample = (appKit: AppKit) => {
         }),
     );
 
-    // Later: stopWatching();
+    // Later: unregister();
     // SAMPLE_END: ADD_CONNECTOR
-    return stopWatching;
+    return unregister;
 };

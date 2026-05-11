@@ -31,11 +31,11 @@ export type ConnectParameters = {
 export type ConnectReturnType = void;
 
 /**
- * Trigger the connection flow on a registered connector by id; throws when no connector with that id exists.
+ * Trigger the connection flow on a registered connector by id — drives it against AppKit's default network (set via {@link setDefaultNetwork}); throws when no connector with that id exists.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param parameters - {@link ConnectParameters} Connector to connect through.
- * @returns Resolves once the connector's connect flow completes (e.g., the TonConnect modal closes); if a wallet was successfully connected, it becomes available via {@link getSelectedWallet}.
+ * @returns Resolves once the connector's connect flow completes; if a wallet was successfully connected, it becomes available via {@link getSelectedWallet}.
  *
  * @sample docs/examples/src/appkit/actions/connectors#CONNECT
  * @expand parameters

@@ -20,7 +20,7 @@ Constructor: `new ApiClientTonApi(config)`
 
 #### ApiClientToncenter
 
-[`ApiClient`](#apiclient) implementation backed by the Toncenter.
+[`ApiClient`](#apiclient) implementation backed by the Toncenter API.
 
 Constructor: `new ApiClientToncenter(config)`
 
@@ -145,7 +145,7 @@ Constructor: `new SwapsXyzCryptoOnrampProvider(config)`
 
 #### DefiError
 
-Base error thrown across all DeFi domains (swap, staking, onramp, crypto-onramp). Subclassed by [`SwapError`](#swaperror), [`StakingError`](#stakingerror), `OnrampError`, [`CryptoOnrampError`](#cryptoonramperror) — catch the base when you don't care which domain produced the failure.
+Base error thrown across all DeFi domains (swap, staking, onramp, crypto-onramp). Subclassed by [`SwapError`](#swaperror), [`StakingError`](#stakingerror), [`CryptoOnrampError`](#cryptoonramperror) and the internal onramp error — catch the base when you don't care which domain produced the failure.
 
 Constructor: `new DefiError(message, code, details)`
 
@@ -170,7 +170,7 @@ Constructor: `new AppKitNetworkManager(options, emitter)`
 
 #### KitNetworkManager
 
-Walletkit-side network manager — the base class [`AppKitNetworkManager`](#appkitnetworkmanager) extends with default-network state and AppKit event emission. Apps usually interact with the [`AppKitNetworkManager`](#appkitnetworkmanager) subclass via [`AppKit`](#appkit)'s `networkManager`.
+Walletkit-side network manager that [`AppKitNetworkManager`](#appkitnetworkmanager) extends, adding default-network state and AppKit event emission. Apps usually interact with the [`AppKitNetworkManager`](#appkitnetworkmanager) subclass via [`AppKit`](#appkit)'s `networkManager`.
 
 Constructor: `new KitNetworkManager(options)`
 
@@ -214,7 +214,7 @@ Constructor: `new StakingProvider(providerId)`
 
 #### TonStakersStakingProvider
 
-[`StakingProvider`](#stakingprovider) implementation backed by Tonstakers. Use [`createTonstakersProvider`](#createtonstakersprovider) to register it on AppKit; quote and stake calls go through [`getStakingQuote`](#getstakingquote) / [`buildStakeTransaction`](#buildstaketransaction) like any other staking provider.
+[`StakingProvider`](#stakingprovider) implementation backed by Tonstakers. The constructor is private — use [`createTonstakersProvider`](#createtonstakersprovider) to register it on AppKit; quote and stake calls then go through [`getStakingQuote`](#getstakingquote) / [`buildStakeTransaction`](#buildstaketransaction) like any other staking provider.
 
 Constructor: `new TonStakersStakingProvider()`
 
@@ -366,14 +366,14 @@ Returns: <code>Promise&lt;<a href="#getbalancebyaddressreturntype">GetBalanceByA
 
 ```ts
 const balanceByAddress = await getBalanceByAddress(appKit, {
-    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c', // Zero Address
+    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
 });
 console.log('Balance by address:', balanceByAddress);
 ```
 
 #### watchBalance
 
-Subscribe to Toncoin balance updates for the currently selected wallet, automatically rebinding when the user connects, switches, or disconnects (use [`watchBalanceByAddress`](#watchbalancebyaddress) for a fixed address).
+Subscribe to Toncoin balance updates for the currently selected wallet, automatically rebinding whenever the selected wallet changes or the connected-wallets list updates (use [`watchBalanceByAddress`](#watchbalancebyaddress) for a fixed address).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -463,7 +463,7 @@ Returns: <code><a href="#addconnectorreturntype">AddConnectorReturnType</a></cod
 **Example**
 
 ```ts
-const stopWatching = addConnector(
+const unregister = addConnector(
     appKit,
     createTonConnectConnector({
         tonConnectOptions: {
@@ -472,12 +472,12 @@ const stopWatching = addConnector(
     }),
 );
 
-// Later: stopWatching();
+// Later: unregister();
 ```
 
 #### connect
 
-Trigger the connection flow on a registered connector by id; throws when no connector with that id exists.
+Trigger the connection flow on a registered connector by id — drives it against AppKit's default network (set via [`setDefaultNetwork`](#setdefaultnetwork)); throws when no connector with that id exists.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -485,7 +485,7 @@ Trigger the connection flow on a registered connector by id; throws when no conn
 | `parameters`\* | [`ConnectParameters`](#connectparameters) | Connector to connect through. |
 | `parameters.connectorId`\* | `string` | ID of the registered connector to drive the connection through (e.g., `'tonconnect'`). |
 
-Returns: <code>Promise&lt;<a href="#connectreturntype">ConnectReturnType</a>&gt;</code> — Resolves once the connector's connect flow completes (e.g., the TonConnect modal closes); if a wallet was successfully connected, it becomes available via [`getSelectedWallet`](#getselectedwallet).
+Returns: <code>Promise&lt;<a href="#connectreturntype">ConnectReturnType</a>&gt;</code> — Resolves once the connector's connect flow completes; if a wallet was successfully connected, it becomes available via [`getSelectedWallet`](#getselectedwallet).
 
 **Example**
 
@@ -539,7 +539,7 @@ const appKit = new AppKit({
 
 #### disconnect
 
-Disconnect the wallet currently connected through a registered connector; throws when no connector with that id exists.
+Tear down the session on a registered connector — disconnects the wallet currently connected through it, if any; throws when no connector with that id exists.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -665,7 +665,7 @@ Create a crypto-onramp deposit from a quote previously obtained via [`getCryptoO
 | `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
 | `options.providerId` | `string` | Provider to create the deposit through; defaults to `quote.providerId`, then to the default provider. |
 
-Returns: <code><a href="#createcryptoonrampdepositreturntype">CreateCryptoOnrampDepositReturnType</a></code> — Deposit details the UI should show to the user (address, amount, expiry).
+Returns: <code><a href="#createcryptoonrampdepositreturntype">CreateCryptoOnrampDepositReturnType</a></code> — Deposit details the UI should show to the user (address, amount, optional `memo`/`expiresAt`).
 
 #### createLayerswapProvider
 
@@ -1121,7 +1121,7 @@ Returns: <code>Promise&lt;<a href="#getnftsbyaddressreturntype">GetNftsByAddress
 
 ```ts
 const response = await getNftsByAddress(appKit, {
-    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c', // Zero Address
+    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
 });
 
 console.log('NFTs by address:', response.nfts.length);
@@ -1531,7 +1531,7 @@ Returns: <code><a href="#getstakingprovidersreturntype">GetStakingProvidersRetur
 **Example**
 
 ```ts
-const providers = await getStakingProviders(appKit);
+const providers = getStakingProviders(appKit);
 console.log('Available Staking Providers:', providers);
 ```
 
@@ -1788,7 +1788,7 @@ Returns: <code><a href="#createtransfertontransactionreturntype">CreateTransferT
 **Example**
 
 ```ts
-const tx = await createTransferTonTransaction(appKit, {
+const tx = createTransferTonTransaction(appKit, {
     recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
     amount: '0.1', // 0.1 TON (human-readable format)
     comment: 'Draft transaction',
@@ -2758,7 +2758,7 @@ Shape every DeFi domain manager (swap, staking, onramp, crypto-onramp) satisfies
 
 #### DefiProvider
 
-Base interface implemented by every [`DefiProvider`](#defiprovider) (swap, staking, onramp, crypto-onramp) — exposes `providerId`, `type` and `getSupportedNetworks`. Domain-specific provider interfaces extend this with quote/build/status methods.
+Base interface implemented by every DeFi provider (swap, staking, onramp, crypto-onramp) — exposes `providerId`, `type` and `getSupportedNetworks`. Domain-specific provider interfaces extend this with quote/build/status methods.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -2919,8 +2919,8 @@ Fungible TEP-74 token held in the user's TON wallet — carries the master contr
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | The Jetton contract address |
-| `walletAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | The Jetton wallet address |
+| `address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | The jetton master contract address (the token itself). |
+| `walletAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | The owner's jetton-wallet contract address — the per-owner contract that actually holds this balance. |
 | `balance`\* | <code><a href="#tokenamount">TokenAmount</a></code> | The current jetton balance |
 | `info`\* | <code><a href="#tokeninfo">TokenInfo</a></code> | Information about the token |
 | `decimalsNumber` | `number` | The number of decimal places used by the token |
@@ -3126,7 +3126,7 @@ Non-fungible TEP-62 token held in the user's TON wallet — carries the contract
 | `ownerAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Current owner address of the NFT |
 | `realOwnerAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Real owner address when NFT is on sale (sale contract becomes temporary owner) |
 | `saleContractAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the sale contract, if the NFT is listed for sale |
-| `extra` | `{         [key: string]: unknown;     }` | Off-chain metadata of the NFT (key-value pairs) |
+| `extra` | `{         [key: string]: unknown;     }` | Additional arbitrary data related to the NFT. |
 
 #### NFTAttribute
 
@@ -3135,7 +3135,7 @@ Single trait of an [`NFT`](#nft) — `traitType` names the category (e.g., `"Bac
 | Field | Type | Description |
 | --- | --- | --- |
 | `traitType` | `string` | Category or type of the trait (e.g., "Background", "Eyes") |
-| `displayType` | `string` | How the attribute should be displayed (e.g., "string", "number", "date") |
+| `displayType` | `string` | Indexer-supplied hint for how the attribute should be rendered. Optional and indexer-specific. |
 | `value` | `string` | Value of the attribute (e.g., "Blue", "Rare") |
 
 #### NFTCollection
@@ -4021,7 +4021,7 @@ Token descriptor passed to [`getSwapQuote`](#getswapquote) via [`SwapQuoteParams
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `address`\* | `string` | Token contract address — `'0x0...0'` for the native chain currency. |
+| `address`\* | `string` | Token contract address; `'ton'` is used for native TON on the TON chain. |
 | `decimals`\* | `number` | Number of decimal places used to format raw amounts. |
 | `name` | `string` | Display name (e.g., `"Tether USD"`). |
 | `symbol` | `string` | Ticker symbol (e.g., `"USDT"`). |
@@ -4380,7 +4380,7 @@ Discriminator carried on every [`StakingError`](#stakingerror)'s `code` — `'IN
 
 #### UnstakeMode
 
-Allowed unstake-timing flavours referenced by [`UnstakeModes`](#unstakemodes) and [`StakingProviderMetadata`](#stakingprovidermetadata)'s `supportedUnstakeModes` — `'INSTANT'` (immediate withdrawal at a discount), `'WHEN_AVAILABLE'` (paid out as soon as liquidity is available — instantly or at round end), `'ROUND_END'` (paid out at the end of the staking round).
+Allowed unstake-timing flavours referenced by [`UnstakeModes`](#unstakemodes) and [`StakingProviderMetadata`](#stakingprovidermetadata)'s `supportedUnstakeModes` — `'INSTANT'` (immediate withdrawal when the pool has liquidity, otherwise the funds are returned), `'WHEN_AVAILABLE'` (paid out as soon as liquidity is available — instantly or at round end), `'ROUND_END'` (paid out at the end of the staking round, typically for the best rate).
 
 ```ts
 const UnstakeMode = { readonly INSTANT: "INSTANT"; readonly WHEN_AVAILABLE: "WHEN_AVAILABLE"; readonly ROUND_END: "ROUND_END"; };

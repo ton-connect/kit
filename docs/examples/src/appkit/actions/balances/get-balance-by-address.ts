@@ -12,7 +12,7 @@ import { getBalanceByAddress } from '@ton/appkit';
 export const getBalanceByAddressExample = async (appKit: AppKit) => {
     // SAMPLE_START: GET_BALANCE_BY_ADDRESS
     const balanceByAddress = await getBalanceByAddress(appKit, {
-        address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c', // Zero Address
+        address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
     });
     console.log('Balance by address:', balanceByAddress);
     // SAMPLE_END: GET_BALANCE_BY_ADDRESS

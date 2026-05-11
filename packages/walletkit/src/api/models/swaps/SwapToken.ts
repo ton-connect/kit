@@ -10,7 +10,7 @@
  * Token type for swap
  */
 export type SwapToken = {
-    /** Token contract address — `'0x0...0'` for the native chain currency. */
+    /** Token contract address; `'ton'` is used for native TON on the TON chain. */
     address: string;
 
     /**

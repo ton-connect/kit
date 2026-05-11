@@ -11,7 +11,7 @@ import { createTransferTonTransaction } from '@ton/appkit';
 
 export const createTransferTonTransactionExample = async (appKit: AppKit) => {
     // SAMPLE_START: CREATE_TRANSFER_TON_TRANSACTION
-    const tx = await createTransferTonTransaction(appKit, {
+    const tx = createTransferTonTransaction(appKit, {
         recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
         amount: '0.1', // 0.1 TON (human-readable format)
         comment: 'Draft transaction',

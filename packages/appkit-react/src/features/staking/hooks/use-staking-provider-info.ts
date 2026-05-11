@@ -60,8 +60,8 @@ export const useStakingProviderInfo = <selectData = GetStakingProviderInfoData>(
 
     return useQuery(
         getStakingProviderInfoQueryOptions(appKit, {
-            providerId: provider?.providerId,
             ...parameters,
+            providerId: parameters.providerId ?? provider?.providerId,
             network: parameters.network ?? walletNetwork,
         }),
     );
