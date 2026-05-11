@@ -395,7 +395,8 @@ function extractNamespaceComponent(
         const propsParam = callSig?.getParameters()[0];
         const propsType = propsParam?.getValueDeclaration()?.getType() ?? null;
         const props = propsType ? readPropsFromType(propsType, decl) : [];
-        members.push({ name: memberName, props, summary: null });
+        const memberSummary = readLeadingJsDocSummary(prop);
+        members.push({ name: memberName, props, summary: memberSummary });
     }
 
     return { kind: 'componentNamespace', name, sourcePath, summary, members };
@@ -743,6 +744,27 @@ function formatType(type: Type, contextNode: Node): string {
 
 function pickJsDoc(jsDocs: JSDoc[]): JSDoc | null {
     return jsDocs.length > 0 ? jsDocs[jsDocs.length - 1] : null;
+}
+
+/**
+ * Read the leading `/** ... *\/` JSDoc-style comment attached to a property
+ * assignment inside an object literal. ts-morph's `PropertyAssignment` is not
+ * JSDocable, so we walk the raw leading-comment trivia.
+ */
+function readLeadingJsDocSummary(prop: Node): string | null {
+    for (const cr of prop.getLeadingCommentRanges()) {
+        const text = cr.getText();
+        if (!text.startsWith('/**')) continue;
+        const inner = text
+            .replace(/^\/\*\*+/, '')
+            .replace(/\*+\/$/, '')
+            .split('\n')
+            .map((line) => line.replace(/^\s*\*\s?/, ''))
+            .join('\n')
+            .trim();
+        if (inner) return sanitizeJsDocText(inner);
+    }
+    return null;
 }
 
 function readSummary(jsdoc: JSDoc | null): string | null {

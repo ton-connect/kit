@@ -11,10 +11,25 @@ import type { FC, ComponentProps } from 'react';
 
 import styles from './collapsible.module.css';
 
+/**
+ * Props accepted by {@link Collapsible}.
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export interface CollapsibleProps extends ComponentProps<'div'> {
+    /** When true, the content is expanded; when false, it is collapsed to zero height. */
     open: boolean;
 }
 
+/**
+ * Animated collapsible container — transitions its height between `0` and the content's natural height when `open` toggles. Sets `aria-hidden` to mirror the open state.
+ *
+ * @public
+ * @category Component
+ * @section UI
+ */
 export const Collapsible: FC<CollapsibleProps> = ({ open, children, ...props }) => {
     const contentRef = useRef<HTMLDivElement>(null);
     const [height, setHeight] = useState<number | undefined>(open ? undefined : 0);

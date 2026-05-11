@@ -11,6 +11,13 @@ import type { FC } from 'react';
 import { DEFAULT_ICON_SIZE } from './types';
 import type { IconProps } from './types';
 
+/**
+ * Success icon — a circle with an inner checkmark for confirmation states.
+ *
+ * @public
+ * @category Component
+ * @section UI
+ */
 export const SuccessIcon: FC<IconProps> = ({ size = DEFAULT_ICON_SIZE, ...props }) => (
     <svg
         width={size}

@@ -37,7 +37,7 @@ export interface SendJettonButtonProps extends Omit<SendProps, 'request'> {
 }
 
 /**
- * Pre-wired button that builds a jetton transfer with {@link createTransferJettonTransaction} and dispatches it through the standard {@link Send} flow on click — disabled until `recipientAddress`, `amount`, `jetton.address` and `jetton.decimals` are all set; throws inside the click handler when `jetton.address` or `jetton.decimals` are missing.
+ * Pre-wired button that builds a jetton transfer with {@link createTransferJettonTransaction} and dispatches it through the standard {@link Send} flow on click — disabled until `recipientAddress`, `amount`, `jetton.address` and a non-zero `jetton.decimals` are all set; throws inside the click handler when `jetton.address` is missing or `jetton.decimals` is falsy. (A `0`-decimal jetton must be passed as a truthy value to avoid being treated as missing.)
  *
  * @public
  * @category Component

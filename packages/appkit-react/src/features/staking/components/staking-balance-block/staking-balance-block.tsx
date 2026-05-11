@@ -20,16 +20,37 @@ import styles from './staking-balance-block.module.css';
 import { Logo } from '../../../../components/ui/logo';
 import { useJettonInfo } from '../../../jettons';
 
+/**
+ * Props accepted by {@link StakingBalanceBlock}.
+ *
+ * @public
+ * @category Type
+ * @section Staking
+ */
 export interface StakingBalanceBlockProps extends ComponentProps<'div'> {
+    /** Provider metadata — supplies the stake/receive tokens (address, ticker, decimals). */
     providerMetadata: StakingProviderMetadata | undefined;
+    /** Operation direction; selects which token and balance to render. */
     direction: StakingQuoteDirection;
+    /** User's currently staked amount, used when `direction === 'unstake'`. */
     stakedBalance?: string;
+    /** True while the staked balance is being fetched. */
     isStakedBalanceLoading?: boolean;
+    /** User's wallet balance of the stake token, used when `direction === 'stake'`. */
     balance?: string;
+    /** True while the wallet balance is being fetched. */
     isBalanceLoading?: boolean;
+    /** When provided, renders a `MAX` button that invokes this callback. */
     onMaxClick?: () => void;
 }
 
+/**
+ * Row showing the user's relevant balance for the current direction: wallet balance of the stake token when staking, staked balance when unstaking. Renders a token icon (native TON when the token address is `'ton'`, otherwise a jetton icon resolved via {@link useJettonInfo}), a label, the formatted amount with ticker, and an optional `MAX` button.
+ *
+ * @public
+ * @category Component
+ * @section Staking
+ */
 export const StakingBalanceBlock: FC<StakingBalanceBlockProps> = ({
     providerMetadata,
     direction,

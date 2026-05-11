@@ -43,8 +43,11 @@ import { useDebounceValue } from '../../../../hooks/use-debounce-value';
 import { useStakingValidation } from './use-staking-validation';
 
 /**
- * Context type for the StakingWidget.
- * Provides all necessary state and actions for building custom staking UIs.
+ * Shape of the staking context exposed by {@link StakingWidgetProvider} and read via {@link useStakingContext}. Aggregates inputs (amount, direction, unstake mode), fetched data (balances, quote, provider info/metadata), derived flags (`canSubmit`, `error`, loading states), and the actions used by {@link StakingWidgetUI} (send transaction, switch provider, max, low-balance handling).
+ *
+ * @public
+ * @category Type
+ * @section Staking
  */
 export interface StakingContextType {
     /** Amount the user wants to stake (string to preserve input UX) */
@@ -149,24 +152,35 @@ export const StakingContext = createContext<StakingContextType>({
 });
 
 /**
- * Hook to access the staking context.
- * Must be used within a StakingWidgetProvider (or StakingWidget).
+ * Reads the {@link StakingContextType} from the nearest {@link StakingWidgetProvider} (or {@link StakingWidget}). Outside a provider, returns the default context (empty inputs, no-op actions) so a custom UI can still mount without crashing.
+ *
+ * @public
+ * @category Hook
+ * @section Staking
  */
 export const useStakingContext = () => {
     return useContext(StakingContext);
 };
 
 /**
- * Props for the StakingWidgetProvider.
+ * Props accepted by {@link StakingWidgetProvider}.
+ *
+ * @public
+ * @category Type
+ * @section Staking
  */
 export interface StakingProviderProps extends PropsWithChildren {
-    /**
-     * Network to use for quote fetching and transactions.
-     * When omitted, uses the selected wallet's network.
-     */
+    /** Network used for quote fetching, balance reads, and transactions. Falls back to the connected wallet's network when omitted. */
     network?: Network;
 }
 
+/**
+ * Headless provider that owns all staking-widget state. Tracks the input amount, direction (stake/unstake), unstake mode, and reverse-input toggle; resolves the selected provider via {@link useStakingProvider} and its info/metadata via {@link useStakingProviderInfo} and {@link useStakingProviderMetadata}; reads the user's wallet balance (native TON or jetton) and staked balance; debounces inputs into {@link useStakingQuote}; and submits via {@link useBuildStakeTransaction} + `useSendTransaction`, gating on a TON-shortfall check to surface a low-balance warning. Validation flags (`error`, `canSubmit`) come from `useStakingValidation`. Exposes everything through {@link StakingContext} for {@link useStakingContext} consumers.
+ *
+ * @public
+ * @category Component
+ * @section Staking
+ */
 export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, network: networkProp }) => {
     const [amount, setAmountRaw] = useState('');
     const [unstakeMode, setUnstakeMode] = useState<UnstakeModes>(UnstakeMode.INSTANT);

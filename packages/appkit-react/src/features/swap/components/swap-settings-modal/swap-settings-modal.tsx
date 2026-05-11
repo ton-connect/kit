@@ -23,16 +23,37 @@ const formatSlippage = (bps: number): string => `${(bps / 100).toFixed(2)}%`;
 
 const SLIPPAGE_OPTIONS = SLIPPAGE_PRESETS.map((bps) => ({ value: String(bps), label: formatSlippage(bps) }));
 
+/**
+ * Props accepted by {@link SwapSettingsModal} — the modal that lets the user pick a {@link SwapProvider} and a slippage preset before confirming a swap.
+ *
+ * @public
+ * @category Type
+ * @section Swap
+ */
 export interface SwapSettingsModalProps {
+    /** Controls modal visibility. */
     open: boolean;
+    /** Called when the user dismisses the modal (close icon, overlay click, or after pressing "save"). */
     onClose: () => void;
+    /** Current slippage tolerance in basis points (`100` = 1%); seeds the staged value when the modal opens. */
     slippage: number;
+    /** Called with the newly selected slippage in basis points when the user presses "save". */
     onSlippageChange: (bps: number) => void;
+    /** Currently active swap provider; its `providerId` seeds the staged selection. */
     provider: SwapProvider | undefined;
+    /** All swap providers available for selection — each gets a switcher option. */
     providers: SwapProvider[];
+    /** Called with the newly selected `providerId` when the user presses "save". */
     onProviderChange: (providerId: string) => void;
 }
 
+/**
+ * Modal that exposes per-swap settings: the {@link SwapProvider} and a slippage preset. Selections are staged locally and committed via `onSlippageChange` / `onProviderChange` only when the user presses "save"; closing without saving discards them.
+ *
+ * @public
+ * @category Component
+ * @section Swap
+ */
 export const SwapSettingsModal: FC<SwapSettingsModalProps> = ({
     open,
     onClose,

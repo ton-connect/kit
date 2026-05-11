@@ -13,11 +13,27 @@ import { ChevronsIcon } from '../../ui/icons';
 import { Select } from '../../ui/select';
 import styles from './option-switcher.module.css';
 
+/**
+ * Single entry rendered as an item inside {@link OptionSwitcher}.
+ *
+ * @public
+ * @category Type
+ * @section Shared
+ */
 export interface OptionSwitcherOption {
+    /** Stable value passed back to {@link OptionSwitcherProps.onChange} when selected. */
     value: string;
+    /** Human-readable label shown in the trigger and dropdown item. */
     label: string;
 }
 
+/**
+ * Props accepted by {@link OptionSwitcher}.
+ *
+ * @public
+ * @category Type
+ * @section Shared
+ */
 export interface OptionSwitcherProps {
     /** Currently selected option value. */
     value: string | undefined;
@@ -27,11 +43,16 @@ export interface OptionSwitcherProps {
     onChange: (value: string) => void;
     /** When true, the trigger is non-interactive and dimmed. */
     disabled?: boolean;
+    /** Extra class applied to the trigger button. */
     className?: string;
 }
 
 /**
- * Compact selector used inside settings modals next to a label.
+ * Compact dropdown selector — renders the current option's label and a chevron, opening a {@link Select} popover with the remaining choices. Falls back to the raw `value` or `"—"` when no option matches.
+ *
+ * @public
+ * @category Component
+ * @section Shared
  */
 export const OptionSwitcher: FC<OptionSwitcherProps> = ({ value, options, onChange, disabled, className }) => {
     const current = options.find((option) => option.value === value);

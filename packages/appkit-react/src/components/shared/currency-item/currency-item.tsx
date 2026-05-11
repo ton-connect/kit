@@ -13,12 +13,25 @@ import { Logo } from '../../ui/logo';
 import type { LogoProps } from '../../ui/logo';
 import styles from './currency-item.module.css';
 
+/**
+ * Props accepted by {@link CurrencyItem} when used as a single-shot button. Passing `children` switches it into compound mode and bypasses these fields.
+ *
+ * @public
+ * @category Type
+ * @section Shared
+ */
 export interface CurrencyItemProps extends ComponentProps<'button'> {
+    /** Token symbol (e.g., `"TON"`) — also used as the icon fallback and rendered in the secondary line. */
     ticker?: string;
+    /** Human-readable token name shown as the primary line; falls back to `ticker` when absent. */
     name?: string;
+    /** Main balance value shown on the right side (already-formatted string). */
     balance?: string;
+    /** Optional secondary value (e.g., fiat equivalent) shown beneath the main balance. */
     underBalance?: string;
+    /** URL of the token logo. */
     icon?: string;
+    /** When true, renders a verified checkmark badge next to the name. */
     isVerified?: boolean;
 }
 
@@ -123,15 +136,32 @@ const CurrencyItemRoot: FC<CurrencyItemProps> = ({
     );
 };
 
+/**
+ * Compound row used inside currency/token select lists: shows a token logo, name + ticker, optional verified badge, and an optional balance / under-balance on the right. Pass top-level props for the default layout, or pass `children` made of the sub-components for full control.
+ *
+ * @public
+ * @category Component
+ * @section Shared
+ */
 export const CurrencyItem = Object.assign(CurrencyItemRoot, {
+    /** Root `<button>` wrapper — receives all native button props. */
     Container,
+    /** Token logo cell rendered as a 40px {@link Logo}. */
     Logo: LogoWrapper,
+    /** Vertical block holding the {@link Header} and {@link Ticker}. */
     Info,
+    /** Verified checkmark badge — rendered next to the name when `isVerified` is set. */
     VerifiedBadge,
+    /** Top line of `Info` (name + verified badge). */
     Header,
+    /** Primary text line — defaults to the token name, falling back to the ticker when no name is provided. */
     Name,
+    /** Secondary text line — renders the ticker and, when both ticker and name are present, appends `• {name}`. */
     Ticker,
+    /** Right-aligned column for balance values. */
     RightSide,
+    /** Primary balance number (top of `RightSide`). */
     MainBalance,
+    /** Secondary balance value (e.g., fiat) shown under `MainBalance`. */
     UnderBalance,
 });

@@ -13,10 +13,17 @@ import type { OnrampProvider } from '../../types';
 import { Logo } from '../../../../components/ui/logo';
 import styles from './onramp-provider-item.module.css';
 
+/**
+ * Props for `OnrampProviderItem` — extends native `<button>` props with the provider to render. Internal: fiat onramp is not part of the public API yet.
+ */
 export interface OnrampProviderItemProps extends ComponentProps<'button'> {
+    /** Onramp provider to render — logo, name and description are taken from `OnrampProvider`. */
     provider: OnrampProvider;
 }
 
+/**
+ * Button-row component rendering a single `OnrampProvider` (logo, name, description) — used inside `OnrampProviderSelect`. Internal: fiat onramp is not part of the public API yet.
+ */
 export const OnrampProviderItem: FC<OnrampProviderItemProps> = ({ provider, className, ...props }) => {
     return (
         <button type="button" className={clsx(styles.container, className)} {...props}>

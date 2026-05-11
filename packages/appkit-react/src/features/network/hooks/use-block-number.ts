@@ -15,7 +15,7 @@ import type { UseQueryReturnType } from '../../../libs/query';
 import { useNetwork } from '../hooks/use-network';
 
 /**
- * Parameters accepted by {@link useBlockNumber} — TanStack Query options plus an optional network override (defaults to the selected wallet's network).
+ * Parameters accepted by {@link useBlockNumber} — TanStack Query options plus an optional network override. Defaults to the selected wallet's network; if no wallet is selected, falls back to mainnet.
  *
  * @public
  * @category Type

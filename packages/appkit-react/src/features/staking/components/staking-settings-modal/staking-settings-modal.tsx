@@ -16,12 +16,25 @@ import { OptionSwitcher } from '../../../../components/shared/option-switcher';
 import { useI18n } from '../../../settings/hooks/use-i18n';
 import styles from './staking-settings-modal.module.css';
 
+/**
+ * Props accepted by {@link StakingSettingsModal}.
+ *
+ * @public
+ * @category Type
+ * @section Staking
+ */
 export interface StakingSettingsModalProps {
+    /** Controls modal visibility. */
     open: boolean;
+    /** Called when the user dismisses the modal or after a successful save. */
     onClose: () => void;
+    /** Currently active staking provider — used to preselect the option when the modal opens. */
     provider: StakingProvider | undefined;
+    /** All registered staking providers to choose from. */
     providers: StakingProvider[];
+    /** Invoked with the chosen `providerId` when the user saves a different selection. */
     onProviderChange: (providerId: string) => void;
+    /** Network used to resolve each provider's display name via its metadata. */
     network?: Network;
 }
 
@@ -33,6 +46,13 @@ const getProviderName = (provider: StakingProvider, network?: Network): string =
     }
 };
 
+/**
+ * Modal that lets the user pick the active staking provider. The selection is staged locally and only committed via `onProviderChange` when the user presses `Save`; closing the modal otherwise discards the change. Each option is labeled with the provider's metadata `name`, falling back to its `providerId` if metadata is unavailable on the given network.
+ *
+ * @public
+ * @category Component
+ * @section Staking
+ */
 export const StakingSettingsModal: FC<StakingSettingsModalProps> = ({
     open,
     onClose,

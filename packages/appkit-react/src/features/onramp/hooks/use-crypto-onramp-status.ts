@@ -19,16 +19,37 @@ import { useAppKit } from '../../settings';
 import { useQuery } from '../../../libs/query';
 import type { UseQueryReturnType } from '../../../libs/query';
 
+/**
+ * Parameters accepted by {@link useCryptoOnrampStatus} — TanStack Query options (`select`, `enabled`, `refetchInterval`, …) plus the deposit id, originating provider id and optional provider override forwarded to {@link getCryptoOnrampStatus}.
+ *
+ * @public
+ * @category Type
+ * @section Crypto Onramp
+ */
 export type UseCryptoOnrampStatusParameters<selectData = GetCryptoOnrampStatusData> =
     GetCryptoOnrampStatusQueryConfig<selectData>;
 
+/**
+ * Return type of {@link useCryptoOnrampStatus} — TanStack Query result carrying `data`, `isLoading`, `error` and the standard companions.
+ *
+ * @public
+ * @category Type
+ * @section Crypto Onramp
+ */
 export type UseCryptoOnrampStatusReturnType<selectData = GetCryptoOnrampStatusData> = UseQueryReturnType<
     selectData,
     GetCryptoOnrampStatusErrorType
 >;
 
 /**
- * Hook to get a crypto onramp quote
+ * React hook reading the current status of a crypto-onramp deposit previously created via {@link useCreateCryptoOnrampDeposit} through TanStack Query (wraps {@link getCryptoOnrampStatus}) — typically polled via `refetchInterval` until the status is `'success'` or `'failed'`.
+ *
+ * @param parameters - {@link UseCryptoOnrampStatusParameters} Deposit id, originating provider id and TanStack Query overrides.
+ * @returns TanStack Query result for the status read.
+ *
+ * @public
+ * @category Hook
+ * @section Crypto Onramp
  */
 export const useCryptoOnrampStatus = <selectData = GetCryptoOnrampStatusData>(
     parameters: UseCryptoOnrampStatusParameters<selectData> = {},

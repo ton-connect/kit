@@ -13,7 +13,7 @@ import type { Connector } from '@ton/appkit';
 import { useAppKit } from '../../settings';
 
 /**
- * Read a connector by id (wraps {@link getConnectorById} + {@link watchConnectorById}); re-renders on every wallet-connection event so dependent UI re-evaluates `connector.getConnectedWallets()`.
+ * Read a connector by id (wraps {@link getConnectorById} + {@link watchConnectorById}); re-renders when the connector with that id is registered or unregistered (use {@link useConnectedWallets} to react to wallet connect/disconnect events).
  *
  * @param id - Id of the connector to look up.
  * @returns The matching {@link Connector}, or `undefined` if none with that id is registered.

@@ -18,7 +18,7 @@ import { useEffect, useState } from 'react';
 export type AppKitTheme = 'light' | 'dark' | string;
 
 /**
- * State hook that mirrors the active appkit-react theme onto `document.body[data-ta-theme]` — returns a `[theme, setTheme]` tuple just like `useState`.
+ * State hook that mirrors the active appkit-react theme to `document.body[data-ta-theme]` — returns a `[theme, setTheme]` tuple just like `useState`.
  *
  * @returns Tuple `[theme, setTheme]` for reading and switching the active theme.
  *

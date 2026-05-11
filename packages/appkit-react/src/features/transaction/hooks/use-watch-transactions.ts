@@ -25,9 +25,11 @@ export interface UseWatchTransactionsParameters {
 }
 
 /**
- * Subscribe to transaction-trace events for the currently selected wallet (use {@link useWatchTransactionsByAddress} for a fixed address); auto-rebinds when the user connects, switches or disconnects.
+ * Subscribe to incoming-transaction events for the currently selected wallet (use {@link useWatchTransactionsByAddress} for a fixed address); auto-rebinds when the user connects, switches or disconnects.
  *
  * @param parameters - {@link UseWatchTransactionsParameters} Update callback.
+ *
+ * @sample docs/examples/src/appkit/hooks/transaction#USE_WATCH_TRANSACTIONS
  *
  * @public
  * @category Hook

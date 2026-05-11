@@ -16,10 +16,25 @@ import { ImageIcon } from '../../../../components/ui/icons';
 import { useI18n } from '../../../settings/hooks/use-i18n';
 import styles from './nft-item.module.css';
 
+/**
+ * Props accepted by {@link NftItem} — extends the native `<button>` props (`onClick`, `disabled`, `className`, …) with the NFT to render.
+ *
+ * @public
+ * @category Type
+ * @section NFTs
+ */
 export interface NftItemProps extends ComponentProps<'button'> {
+    /** NFT to render — name, collection name, image and on-sale state are derived via `getFormattedNftInfo`. */
     nft: NFT;
 }
 
+/**
+ * Card-style button rendering an NFT's image, name and collection name with an "On Sale" badge when applicable — falls back to a placeholder icon when the image is missing or fails to load.
+ *
+ * @public
+ * @category Component
+ * @section NFTs
+ */
 export const NftItem: FC<NftItemProps> = ({ nft, className, ...props }) => {
     const { t } = useI18n();
     const { name, collectionName, image, isOnSale } = useMemo(() => getFormattedNftInfo(nft), [nft]);

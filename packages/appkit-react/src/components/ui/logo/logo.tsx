@@ -86,13 +86,31 @@ const LogoFallback = forwardRef<ComponentRef<'span'>, LogoFallbackProps>(({ dela
 
 LogoFallback.displayName = 'LogoFallback';
 
+/**
+ * Props accepted by {@link Logo}.
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export interface LogoProps extends ComponentPropsWithoutRef<'span'> {
+    /** Square size in pixels for the rendered logo. Defaults to `30`. */
     size?: number;
+    /** Image URL to render. While loading or on failure, the fallback is shown. */
     src?: string;
+    /** Alt text passed to the underlying `<img>`. When `fallback` is not provided, its first character is shown as the fallback; if both are missing, no fallback is rendered. */
     alt?: string;
+    /** Text shown in place of the image when `src` fails or is missing (defaults to the first character of `alt`). */
     fallback?: string;
 }
 
+/**
+ * Square logo / avatar primitive — renders an `<img>` when `src` loads successfully, otherwise shows a text fallback (after a brief delay to avoid flicker). Useful for token icons, wallet avatars, and project logos.
+ *
+ * @public
+ * @category Component
+ * @section UI
+ */
 export const Logo = forwardRef<ComponentRef<'span'>, LogoProps>(({ size = 30, src, alt, fallback, ...props }, ref) => {
     return (
         <LogoRoot

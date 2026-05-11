@@ -37,11 +37,24 @@ const ValueSkeleton: FC<SkeletonProps> = ({ width = 80, height = '1lh', ...props
     return <Skeleton width={width} height={height} {...props} />;
 };
 
+/**
+ * Compound component for rendering a stacked list of label/value rows (e.g., transaction details, settings summaries). Sub-components forward extra props to the underlying DOM element so callers can layer custom classes and handlers.
+ *
+ * @public
+ * @category Component
+ * @section UI
+ */
 export const InfoBlock = {
+    /** Outer wrapper — vertical container that hosts the rows. */
     Container,
+    /** Horizontal row that pairs a label with a value. */
     Row,
+    /** Label cell — typically the muted descriptor on the left. */
     Label,
+    /** Value cell — typically the emphasized content on the right. */
     Value,
+    /** Skeleton placeholder for a {@link InfoBlock.Label} while data is loading. Defaults to `width=64`, `height='1lh'`. */
     LabelSkeleton,
+    /** Skeleton placeholder for a {@link InfoBlock.Value} while data is loading. Defaults to `width=80`, `height='1lh'`. */
     ValueSkeleton,
 };

@@ -22,78 +22,98 @@ import type {
     PaymentMethodSectionConfig,
 } from '../../../types';
 
+/**
+ * Which side the amount input is currently denominated in — `token` means the user is entering the target-token amount, `method` means they are entering the source payment-method amount.
+ *
+ * @public
+ * @category Type
+ * @section Crypto Onramp
+ */
 export type CryptoAmountInputMode = 'token' | 'method';
 
+/**
+ * Shape of the {@link CryptoOnrampContext} value — selection state, quote/deposit data and actions exposed by {@link CryptoOnrampWidgetProvider} to the widget UI (and to custom render callbacks passed to {@link CryptoOnrampWidget}).
+ *
+ * @public
+ * @category Type
+ * @section Crypto Onramp
+ */
 export interface CryptoOnrampContextType {
-    /** Full list of tokens to buy */
+    /** Full list of target tokens the user can buy. */
     tokens: CryptoOnrampToken[];
-    /** Optional section configs for grouping tokens */
+    /** Optional section configs grouping `tokens` in the picker. */
     tokenSections?: CryptoOnrampTokenSectionConfig[];
-    /** Currently selected token to buy */
+    /** Currently selected target token to buy. `null` until tokens load. */
     selectedToken: CryptoOnrampToken | null;
+    /** Updates `selectedToken`. */
     setSelectedToken: (token: CryptoOnrampToken) => void;
 
-    /** Available crypto payment methods */
+    /** Available source crypto payment methods. */
     paymentMethods: CryptoPaymentMethod[];
-    /** Optional section configs for grouping payment methods */
+    /** Optional section configs grouping `paymentMethods` in the picker. */
     methodSections?: PaymentMethodSectionConfig[];
-    /** Currently selected payment method */
+    /** Currently selected source payment method. */
     selectedMethod: CryptoPaymentMethod;
+    /** Updates `selectedMethod`. */
     setSelectedMethod: (method: CryptoPaymentMethod) => void;
-    /** CAIP-2 → chain display info map (defaults merged with consumer overrides) */
+    /** CAIP-2 → chain display info map (built-in defaults merged with consumer overrides). */
     chains: Record<string, ChainInfo>;
 
-    /** Current amount input value */
+    /** Current amount input value as a decimal string. */
     amount: string;
+    /** Updates `amount`. */
     setAmount: (value: string) => void;
-    /** Whether user is entering token amount or payment-method amount */
+    /** Which side `amount` is denominated in — see {@link CryptoAmountInputMode}. */
     amountInputMode: CryptoAmountInputMode;
+    /** Updates `amountInputMode`. */
     setAmountInputMode: (mode: CryptoAmountInputMode) => void;
-    /** Converted amount from quote */
+    /** Other side of `amount` after applying the current quote's rate. */
     convertedAmount: string;
+    /** Quick-pick amount buttons rendered in the widget. */
     presetAmounts: OnrampAmountPreset[];
 
-    /** Current quote from provider */
+    /** Current quote, or `null` if not yet fetched / invalidated. */
     quote: CryptoOnrampQuote | null;
-    /** Whether quote is being fetched */
+    /** Whether a quote is in flight (includes the input-debounce window). */
     isLoadingQuote: boolean;
-    /** Error from quote fetch (i18n key) */
+    /** Quote-side validation/fetch error as an i18n key, or `null`. */
     quoteError: string | null;
-    /** Display name of the provider behind the current quote, when one is available. */
+    /** Display name of the provider behind the current quote, when available. */
     quoteProviderName: string | null;
 
-    /** Current deposit offer from provider */
+    /** Current deposit returned by the provider once `createDeposit` succeeded. */
     deposit: CryptoOnrampDeposit | null;
-    /** Whether deposit is being created */
+    /** Whether `createDeposit` is in flight. */
     isCreatingDeposit: boolean;
-    /** Error from deposit creation (i18n key) */
+    /** Deposit-side error as an i18n key, or `null`. */
     depositError: string | null;
-    /** Formatted deposit amount */
+    /** Formatted deposit amount the user must send on the source chain. */
     depositAmount: string;
-    /** Function to trigger deposit creation */
+    /** Triggers deposit creation from the current quote. */
     createDeposit: () => void;
-    /** Deposit status */
+    /** Latest deposit status polled via {@link useCryptoOnrampStatus}, or `null`. */
     depositStatus: CryptoOnrampStatus | null;
 
-    /** Whether the current quote provider requires a refund address */
+    /** Whether the current quote provider requires a refund address before deposit. */
     isRefundAddressRequired: boolean;
-    /** Whether the current quote provider supports reversed (target-amount) input */
+    /** Whether the current quote provider supports reversed (target-amount) input. */
     isReversedAmountSupported: boolean;
-    /** Refund address */
+    /** Refund address the user typed, if `isRefundAddressRequired`. */
     refundAddress: string;
+    /** Updates `refundAddress`. */
     setRefundAddress: (address: string) => void;
 
-    /** User's balance of the selected target token (formatted, token units) */
+    /** Connected wallet's balance of the selected target token (formatted, token units). */
     targetBalance: string;
-    /** Whether the target token balance is being fetched */
+    /** Whether the target token balance is being fetched. */
     isLoadingTargetBalance: boolean;
 
-    /** Whether a TON wallet is currently connected */
+    /** Whether a TON wallet is currently connected. */
     isWalletConnected: boolean;
 
-    /** Whether the user can proceed (valid amount + quote available + wallet connected) */
+    /** Whether the user can proceed — valid amount, quote available, and wallet connected. */
     canContinue: boolean;
-    /** Reset state (invalidate quote and clear deposit) */
+    /** Invalidates the active quote and clears the deposit, returning the widget to its initial state. */
     onReset: () => void;
 }
 
@@ -140,8 +160,18 @@ const defaultContext: CryptoOnrampContextType = {
     onReset: () => {},
 };
 
+/**
+ * React context carrying the {@link CryptoOnrampContextType} value populated by {@link CryptoOnrampWidgetProvider}. Prefer reading it via {@link useCryptoOnrampContext}; direct access is an escape hatch (e.g. `Context.Consumer`).
+ */
 export const CryptoOnrampContext = createContext<CryptoOnrampContextType>(defaultContext);
 
+/**
+ * Reads the {@link CryptoOnrampContext} populated by {@link CryptoOnrampWidgetProvider} — returns the widget's selection state, quote/deposit data and actions ({@link CryptoOnrampContextType}).
+ *
+ * @public
+ * @category Hook
+ * @section Crypto Onramp
+ */
 export const useCryptoOnrampContext = (): CryptoOnrampContextType => {
     return useContext(CryptoOnrampContext);
 };

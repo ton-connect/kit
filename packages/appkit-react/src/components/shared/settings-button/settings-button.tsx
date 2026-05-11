@@ -13,10 +13,25 @@ import { Button } from '../../ui/button';
 import { SlidersIcon } from '../../ui/icons';
 import styles from './settings-button.module.css';
 
+/**
+ * Props accepted by {@link SettingsButton} — extends the base {@link Button} props.
+ *
+ * @public
+ * @category Type
+ * @section Shared
+ */
 export interface SettingsButtonProps extends ComponentProps<typeof Button> {
+    /** Click handler — typically used to open a settings modal. */
     onClick?: () => void;
 }
 
+/**
+ * Icon-only secondary button with a sliders icon — drop-in trigger for opening settings panels.
+ *
+ * @public
+ * @category Component
+ * @section Shared
+ */
 export const SettingsButton: FC<SettingsButtonProps> = ({ onClick, className, ...props }) => {
     return (
         <Button

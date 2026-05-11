@@ -15,34 +15,85 @@ import type { AppkitUIToken } from '../../../types/appkit-ui-token';
 import { useI18n } from '../../../features/settings/hooks/use-i18n';
 import { filterTokens, groupTokenSections } from './utils';
 
+/**
+ * Minimal shape every token in {@link TokenSelectModal} must satisfy. Callers may use richer types (e.g., {@link AppkitUIToken}) — `TokenBase` only fixes the fields the modal reads.
+ *
+ * @public
+ * @category Type
+ * @section Shared
+ */
 export interface TokenBase {
+    /** Stable identifier used to match tokens against {@link TokenSectionConfig.ids}. */
     id: string;
+    /** Ticker (e.g., `"TON"`) — used for display and search matching. */
     symbol: string;
+    /** Human-readable name — used for display and search matching. */
     name: string;
+    /** Token contract address — used for exact-address search matching and as the React `key`. */
     address: string;
+    /** Optional logo URL. */
     logo?: string;
 }
 
+/**
+ * Pre-grouped section of tokens as it appears inside {@link TokenSelectModal}.
+ *
+ * @public
+ * @category Type
+ * @section Shared
+ */
 export interface TokenSection<T extends TokenBase = AppkitUIToken> {
+    /** Header label rendered above the section; falsy values hide the header. */
     title: string;
+    /** Tokens belonging to this section, in render order. */
     tokens: T[];
 }
 
+/**
+ * Configuration that maps token `id`s to a named section in {@link TokenSelectModal}; tokens not covered are placed in an "Other tokens" trailing section.
+ *
+ * @public
+ * @category Type
+ * @section Shared
+ */
 export interface TokenSectionConfig {
+    /** Section header label. */
     title: string;
+    /** {@link TokenBase.id} values to include in this section, in render order. */
     ids: string[];
 }
 
+/**
+ * Props accepted by {@link TokenSelectModal}.
+ *
+ * @public
+ * @category Type
+ * @section Shared
+ */
 export interface TokenSelectModalProps<T extends TokenBase = AppkitUIToken> {
+    /** Controls modal visibility. */
     open: boolean;
+    /** Called when the modal is dismissed (selection, backdrop click, or escape). */
     onClose: () => void;
+    /** Full set of tokens available for selection and search. */
     tokens: T[];
+    /** Optional sectioning rules; when omitted, all tokens render as a single untitled section. */
     tokenSections?: TokenSectionConfig[];
+    /** Called with the picked token; the modal closes and resets its search on selection. */
     onSelect: (token: T) => void;
+    /** Modal header title. */
     title: string;
+    /** Placeholder shown inside the search input. */
     searchPlaceholder?: string;
 }
 
+/**
+ * Ready-made token picker modal — renders a search field and a sectioned list of {@link CurrencyItem} rows backed by {@link CurrencySelect}. Search matches by symbol, name, or exact address; selecting a row fires `onSelect`, closes the modal, and resets the search.
+ *
+ * @public
+ * @category Component
+ * @section Shared
+ */
 export const TokenSelectModal = <T extends TokenBase = AppkitUIToken>({
     open,
     onClose,

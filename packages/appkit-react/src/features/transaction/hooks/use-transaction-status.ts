@@ -42,7 +42,7 @@ export type UseTransactionStatusReturnType<selectData = GetTransactionStatusData
 >;
 
 /**
- * React hook that reads the trace status of a sent transaction (wraps {@link getTransactionStatus}); typically paired with `refetchInterval` to poll until the trace completes.
+ * React hook that reads the trace status of a sent transaction (wraps {@link getTransactionStatus}); typically paired with `refetchInterval` to poll until the trace completes. The underlying action throws `Error('Either boc or normalizedHash must be provided')` when neither field is supplied — TanStack Query surfaces it via the query's `error`.
  *
  * @param parameters - {@link UseTransactionStatusParameters} `boc` xor `normalizedHash`, optional network and TanStack Query overrides.
  * @returns TanStack Query result for the status read.

@@ -50,7 +50,7 @@ export type UseTransferTonReturnType<context = unknown> = UseMutationReturnType<
 >;
 
 /**
- * React mutation hook that builds and sends a TON transfer from the selected wallet in one step (wraps {@link transferTon}); returns `mutate({ recipientAddress, amount, comment? })`.
+ * React mutation hook that builds and sends a TON transfer from the selected wallet in one step (wraps {@link transferTon}); returns `mutate({ recipientAddress, amount, comment? })`. The underlying action throws `Error('Wallet not connected')` if no wallet is currently selected — TanStack Query surfaces it via the mutation's `error`.
  *
  * @param parameters - {@link UseTransferTonParameters} TanStack Query mutation overrides.
  * @returns Mutation result for the transfer call.

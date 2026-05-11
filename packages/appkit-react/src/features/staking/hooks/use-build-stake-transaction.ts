@@ -17,6 +17,13 @@ import type {
 import { useAppKit } from '../../settings';
 import { useMutation } from '../../../libs/query';
 
+/**
+ * Return type of {@link useBuildStakeTransaction} — TanStack Query mutation result that resolves to a {@link TransactionRequest}.
+ *
+ * @public
+ * @category Type
+ * @section Staking
+ */
 export type UseBuildStakeTransactionReturnType<context = unknown> = UseMutationResult<
     BuildStakeTransactionData,
     BuildStakeTransactionErrorType,
@@ -25,7 +32,13 @@ export type UseBuildStakeTransactionReturnType<context = unknown> = UseMutationR
 >;
 
 /**
- * Hook to build stake transaction
+ * React mutation hook that wraps {@link buildStakeTransaction} — turns a {@link StakingQuote} obtained via {@link useStakingQuote} into a {@link TransactionRequest} without sending it, so the UI can inspect or batch before signing. Returns `mutate(params)` where `params` matches {@link BuildStakeTransactionOptions}.
+ *
+ * @returns Mutation result for the build call.
+ *
+ * @public
+ * @category Hook
+ * @section Staking
  */
 export const useBuildStakeTransaction = <context = unknown>(): UseBuildStakeTransactionReturnType<context> => {
     const appKit = useAppKit();

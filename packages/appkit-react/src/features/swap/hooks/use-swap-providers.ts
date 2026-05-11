@@ -12,10 +12,23 @@ import type { GetSwapProvidersReturnType } from '@ton/appkit';
 
 import { useAppKit } from '../../settings/hooks/use-app-kit';
 
+/**
+ * Return type of {@link useSwapProviders} — array of every {@link SwapProviderInterface} currently registered on the AppKit instance.
+ *
+ * @public
+ * @category Type
+ * @section Swap
+ */
 export type UseSwapProvidersReturnType = GetSwapProvidersReturnType;
 
 /**
- * Hook to get all registered swap providers.
+ * List every swap provider registered on the AppKit instance (both those passed via {@link AppKitConfig}`.providers` and those added later through {@link registerProvider}); subscribes to {@link watchSwapProviders} and re-reads via {@link getSwapProviders} so the array stays in sync.
+ *
+ * @returns Array of registered swap providers.
+ *
+ * @public
+ * @category Hook
+ * @section Swap
  */
 export const useSwapProviders = (): UseSwapProvidersReturnType => {
     const appKit = useAppKit();

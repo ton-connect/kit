@@ -14,15 +14,35 @@ import { InfoBlock } from '../../../../components/ui/info-block';
 import { useI18n } from '../../../settings/hooks/use-i18n';
 import { formatAmount } from './utils';
 
+/**
+ * Props accepted by {@link StakingInfo}.
+ *
+ * @public
+ * @category Type
+ * @section Staking
+ */
 export interface StakingInfoProps extends ComponentProps<typeof InfoBlock.Container> {
+    /** Current staking quote — its `amountOut` is rendered in the "You get" row. */
     quote: StakingQuote | undefined;
+    /** True while the quote is being fetched; swaps the "You get" value for a skeleton. */
     isQuoteLoading: boolean;
+    /** Dynamic provider info — supplies APY and exchange rate. */
     providerInfo: StakingProviderInfo | undefined;
+    /** Static provider metadata — supplies token tickers/decimals and the provider name. */
     providerMetadata: StakingProviderMetadata | undefined;
+    /** True while provider info is being fetched. */
     isProviderInfoLoading: boolean;
+    /** Operation direction — controls which token's decimals/ticker label the "You get" amount. Defaults to `'stake'`. */
     direction?: StakingQuoteDirection;
 }
 
+/**
+ * Summary block rendered below the staking input. Shows the amount the user will receive, the provider's current APY, the stake-token to receive-token exchange rate (only when the provider has a receive token), and the provider name. The exchange-rate row always reads as `1 stakeToken = X receiveToken`, regardless of `direction`.
+ *
+ * @public
+ * @category Component
+ * @section Staking
+ */
 export const StakingInfo: FC<StakingInfoProps> = ({
     quote,
     isQuoteLoading,

@@ -21,8 +21,22 @@ import { useMutation } from '../../../libs/query';
 import type { UseMutationReturnType } from '../../../libs/query';
 import { useAppKit } from '../../settings';
 
+/**
+ * Parameters accepted by {@link useTransferJetton} — TanStack Query mutation options.
+ *
+ * @public
+ * @category Type
+ * @section Jettons
+ */
 export type UseTransferJettonParameters<context = unknown> = TransferJettonOptions<context>;
 
+/**
+ * Return type of {@link useTransferJetton} — TanStack Query mutation result.
+ *
+ * @public
+ * @category Type
+ * @section Jettons
+ */
 export type UseTransferJettonReturnType<context = unknown> = UseMutationReturnType<
     TransferJettonData,
     TransferJettonErrorType,
@@ -35,6 +49,18 @@ export type UseTransferJettonReturnType<context = unknown> = UseMutationReturnTy
     MutateFunction<TransferJettonData, TransferJettonErrorType, TransferJettonVariables, context>
 >;
 
+/**
+ * React mutation hook that builds and sends a jetton transfer from the selected wallet in one step (wraps {@link transferJetton}); returns `mutate({ jettonAddress, recipientAddress, amount, jettonDecimals, comment? })`. Throws `Error('Wallet not connected')` if no wallet is currently selected.
+ *
+ * @param parameters - {@link UseTransferJettonParameters} TanStack Query mutation overrides.
+ * @returns Mutation result for the jetton transfer call.
+ *
+ * @sample docs/examples/src/appkit/hooks/jettons#USE_TRANSFER_JETTON
+ *
+ * @public
+ * @category Hook
+ * @section Jettons
+ */
 export const useTransferJetton = <context = unknown>(
     parameters: UseTransferJettonParameters<context> = {},
 ): UseTransferJettonReturnType<context> => {

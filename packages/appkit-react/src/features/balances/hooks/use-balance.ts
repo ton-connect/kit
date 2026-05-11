@@ -13,7 +13,7 @@ import { useBalanceByAddress } from './use-balance-by-address';
 import type { UseBalanceByAddressParameters, UseBalanceByAddressReturnType } from './use-balance-by-address';
 
 /**
- * Parameters accepted by {@link useBalance} — same shape as {@link UseBalanceByAddressParameters} minus `address`, which the hook resolves from the selected wallet.
+ * Parameters accepted by {@link useBalance} — same shape as {@link UseBalanceByAddressParameters}; the hook resolves `address` from the selected wallet and overrides any value supplied here.
  *
  * @public
  * @category Type

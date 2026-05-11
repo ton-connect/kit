@@ -14,16 +14,39 @@ import { useQuery } from '../../../libs/query';
 import type { UseQueryReturnType } from '../../../libs/query';
 import { useNetwork } from '../../network';
 
+/**
+ * Parameters accepted by {@link useJettonsByAddress} — TanStack Query options (`select`, `enabled`, `staleTime`, …) plus the owner address, optional network override and pagination.
+ *
+ * @public
+ * @category Type
+ * @section Jettons
+ */
 export type UseJettonsByAddressParameters<selectData = GetJettonsByAddressData> =
     GetJettonsByAddressQueryConfig<selectData>;
 
+/**
+ * Return type of {@link useJettonsByAddress} — TanStack Query result carrying `data`, `isLoading`, `error` and the standard companions.
+ *
+ * @public
+ * @category Type
+ * @section Jettons
+ */
 export type UseJettonsByAddressReturnType<selectData = GetJettonsByAddressData> = UseQueryReturnType<
     selectData,
     GetJettonsErrorType
 >;
 
 /**
- * Hook to get jettons
+ * React hook listing jettons held by an arbitrary address through TanStack Query — useful for wallets that aren't selected in AppKit (use {@link useJettons} for the selected wallet).
+ *
+ * @param parameters - {@link UseJettonsByAddressParameters} Owner address, optional network override, pagination and TanStack Query overrides.
+ * @returns TanStack Query result for the jettons list.
+ *
+ * @sample docs/examples/src/appkit/hooks/jettons#USE_JETTONS_BY_ADDRESS
+ *
+ * @public
+ * @category Hook
+ * @section Jettons
  */
 export const useJettonsByAddress = <selectData = GetJettonsByAddressData>(
     parameters: UseJettonsByAddressParameters<selectData> = {},

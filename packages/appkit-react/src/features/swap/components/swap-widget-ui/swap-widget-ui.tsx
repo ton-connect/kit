@@ -23,8 +23,22 @@ import type { SwapContextType } from '../swap-widget-provider';
 import { ButtonWithConnect } from '../../../../components/shared/button-with-connect';
 import { SettingsButton } from '../../../../components/shared/settings-button';
 
+/**
+ * Props accepted by {@link SwapWidgetUI} (and the `children` render-prop on {@link SwapWidget}). Combines the full {@link SwapContextType} with the standard `<div>` attributes forwarded to the wrapper element.
+ *
+ * @public
+ * @category Type
+ * @section Swap
+ */
 export type SwapWidgetRenderProps = SwapContextType & ComponentProps<'div'>;
 
+/**
+ * Default visual implementation of the swap widget — composes {@link SwapField} (source, then target), a {@link SwapFlipButton} between them, the submit button (auto-prompts wallet connect when no wallet is selected), the settings trigger that opens {@link SwapSettingsModal}, a {@link SwapTokenSelectModal} for picking source/target tokens, the {@link SwapInfo} summary, and a low-balance warning. Drives all state from the swap context props it receives — pair with {@link SwapWidgetProvider}, or use {@link SwapWidget} which mounts both.
+ *
+ * @public
+ * @category Component
+ * @section Swap
+ */
 export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     fromToken,
     toToken,

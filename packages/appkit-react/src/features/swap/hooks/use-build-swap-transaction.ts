@@ -20,8 +20,22 @@ import type {
 import { useAppKit } from '../../settings';
 import { useMutation } from '../../../libs/query';
 
+/**
+ * Parameters accepted by {@link useBuildSwapTransaction} — TanStack Query mutation options.
+ *
+ * @public
+ * @category Type
+ * @section Swap
+ */
 export type UseBuildSwapTransactionParameters<context = unknown> = BuildSwapTransactionMutationOptions<context>;
 
+/**
+ * Return type of {@link useBuildSwapTransaction} — TanStack Query mutation result.
+ *
+ * @public
+ * @category Type
+ * @section Swap
+ */
 export type UseBuildSwapTransactionReturnType<context = unknown> = UseMutationResult<
     BuildSwapTransactionData,
     BuildSwapTransactionErrorType,
@@ -30,7 +44,14 @@ export type UseBuildSwapTransactionReturnType<context = unknown> = UseMutationRe
 >;
 
 /**
- * Hook to build a swap transaction from a previously fetched quote.
+ * React mutation hook that wraps {@link buildSwapTransaction} — turns a {@link SwapQuote} obtained via {@link useSwapQuote} into a {@link TransactionRequest} without sending it, so the UI can inspect or batch before signing. Returns `mutate(params)` where `params` matches {@link BuildSwapTransactionOptions}.
+ *
+ * @param parameters - {@link UseBuildSwapTransactionParameters} TanStack Query mutation overrides.
+ * @returns Mutation result for the build call.
+ *
+ * @public
+ * @category Hook
+ * @section Swap
  */
 export const useBuildSwapTransaction = <context = unknown>(
     parameters?: UseBuildSwapTransactionParameters<context>,

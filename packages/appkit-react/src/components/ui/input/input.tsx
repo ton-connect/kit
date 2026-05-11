@@ -36,13 +36,27 @@ const useInputContext = () => {
     return context;
 };
 
+/**
+ * Props accepted by {@link Input.Container} (also used by {@link Input} itself).
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export interface InputContainerProps extends ComponentProps<'div'> {
+    /** Size token applied to the input control(s) inside: `'s' | 'm' | 'l'`. Defaults to `'m'`. */
     size?: InputSize;
+    /** Visual variant: `'default'` paints a filled field; `'unstyled'` drops the chrome. */
     variant?: InputVariant;
+    /** When true, descendant input controls are disabled. */
     disabled?: boolean;
+    /** When true, the field renders in error styling and {@link Input.Caption} switches to error text. */
     error?: boolean;
+    /** When true, {@link Input.Input} renders a skeleton placeholder instead of an `<input>`. */
     loading?: boolean;
+    /** When true, {@link Input.Input} scales its font down to fit the available width as the user types. */
     resizable?: boolean;
+    /** Compound sub-components (header, field, control, caption). */
     children: ReactNode;
 }
 
@@ -81,7 +95,15 @@ const Container: FC<InputContainerProps> = ({
     );
 };
 
+/**
+ * Props accepted by {@link Input.Header}.
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export interface InputHeaderProps extends ComponentProps<'div'> {
+    /** Header content — typically a {@link Input.Title} and optional trailing controls. */
     children: ReactNode;
 }
 
@@ -97,7 +119,15 @@ const Title: FC<ComponentProps<'span'>> = ({ className, children, ...props }) =>
     </span>
 );
 
+/**
+ * Props accepted by {@link Input.Field}.
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export interface InputFieldProps extends ComponentProps<'div'> {
+    /** Field content — typically slots and the input control laid out horizontally. */
     children: ReactNode;
 }
 
@@ -107,7 +137,15 @@ const Field: FC<InputFieldProps> = ({ className, children, ...props }) => (
     </div>
 );
 
+/**
+ * Props accepted by {@link Input.Slot}.
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export interface InputSlotProps extends ComponentProps<'div'> {
+    /** Which edge of the field the slot adheres to. */
     side?: 'left' | 'right';
 }
 
@@ -117,6 +155,13 @@ const Slot: FC<InputSlotProps> = ({ side, className, children, ...props }) => (
     </div>
 );
 
+/**
+ * Props accepted by {@link Input.Input} — standard `<input>` props. Size, disabled, loading, and resizable behavior are inherited from the surrounding {@link Input.Container}.
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export type InputControlProps = ComponentProps<'input'>;
 
 const InputControl: FC<InputControlProps> = ({ className, disabled: propsDisabled, onChange, ...props }) => {
@@ -183,12 +228,26 @@ const Caption: FC<ComponentProps<'span'>> = ({ className, children, ...props }) 
     );
 };
 
+/**
+ * Compound text-input component. Use the default export as the outer wrapper (it is the {@link Input.Container}) and compose sub-components for the header, field, slots, control, and caption. State flags (`disabled`, `error`, `loading`, `resizable`, `size`) live on the container and are read by the inner control via context.
+ *
+ * @public
+ * @category Component
+ * @section UI
+ */
 export const Input = Object.assign(Container, {
+    /** Outer wrapper that provides input context (size, variant, disabled, error, loading, resizable). */
     Container,
+    /** Header row above the field — holds the title and optional trailing controls. */
     Header,
+    /** Title text shown inside {@link Input.Header}. */
     Title,
+    /** Horizontal row that holds slots and the input control. */
     Field,
+    /** Side-anchored slot used for adornments such as icons or buttons. */
     Slot,
+    /** The actual `<input>` control; respects context flags and reads its size/variant from {@link Input.Container}. */
     Input: InputControl,
+    /** Caption / helper text below the field; switches to error styling when the container has `error` set. */
     Caption,
 });

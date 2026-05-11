@@ -15,7 +15,7 @@ import { useAppKit } from '../../settings/hooks/use-app-kit';
 export type UseOnrampProvidersReturnType = GetOnrampProvidersReturnType;
 
 /**
- * Hook to get all registered onramp providers
+ * React hook that lists every onramp provider registered on the AppKit instance; subscribes via `watchOnrampProviders` so the array stays in sync. Internal: not part of the public API yet (fiat onramp is WIP).
  */
 export const useOnrampProviders = (): UseOnrampProvidersReturnType => {
     const appKit = useAppKit();

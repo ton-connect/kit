@@ -22,7 +22,7 @@ import { useAppKit } from '../../settings';
 export type UseSelectedWalletReturnType = readonly [GetSelectedWalletReturnType, (walletId: string | null) => void];
 
 /**
- * Read and switch the wallet AppKit treats as "active" — most action hooks ({@link useBalance}, {@link useSignText}, {@link useTransferTon}) target this wallet implicitly. Returns a `useState`-style tuple.
+ * Read and switch the wallet that AppKit treats as active — most action hooks ({@link useBalance}, {@link useSignText}, {@link useTransferTon}) target this wallet implicitly. Returns a `useState`-style tuple.
  *
  * @returns Tuple `[wallet, setWalletId]`.
  *

@@ -27,10 +27,21 @@ import { useCryptoOnrampQuoteAndDeposit } from './use-crypto-onramp-quote-and-de
 import { useCryptoOnrampTokenState } from './use-crypto-onramp-token-state';
 import { useCryptoOnrampValidation } from './use-crypto-onramp-validation';
 
+/**
+ * Props for {@link CryptoOnrampWidgetProvider} — configures the target tokens and payment methods exposed to the widget, plus optional chain display overrides.
+ *
+ * @public
+ * @category Type
+ * @section Crypto Onramp
+ */
 export interface CryptoOnrampProviderProps extends PropsWithChildren {
+    /** Target tokens (what the user buys on TON). Defaults to a built-in list. */
     tokens?: CryptoOnrampToken[];
+    /** Optional section configs grouping `tokens` in the picker. */
     tokenSections?: CryptoOnrampTokenSectionConfig[];
+    /** Source crypto payment methods (what the user pays with on another chain). Defaults to a built-in list. */
     paymentMethods?: CryptoPaymentMethod[];
+    /** Optional section configs grouping `paymentMethods` in the picker. */
     methodSections?: PaymentMethodSectionConfig[];
     /**
      * Custom CAIP-2 → chain display info overrides. Merged on top of the
@@ -38,10 +49,19 @@ export interface CryptoOnrampProviderProps extends PropsWithChildren {
      * override or add (e.g. `{ 'eip155:42161': { name: 'Arbitrum', logo: '...' } }`).
      */
     chains?: Record<string, ChainInfo>;
+    /** Id of the target token pre-selected on mount. */
     defaultTokenId?: string;
+    /** Id of the source payment method pre-selected on mount. */
     defaultMethodId?: string;
 }
 
+/**
+ * Context provider that powers the crypto-to-TON onramp widget — wires together token/method selection state, quote fetching ({@link useCryptoOnrampQuote}), deposit creation ({@link useCreateCryptoOnrampDeposit}), deposit status polling ({@link useCryptoOnrampStatus}), the target-token balance and validation. Consumers read the state via {@link useCryptoOnrampContext}.
+ *
+ * @public
+ * @category Component
+ * @section Crypto Onramp
+ */
 export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
     children,
     tokens = CRYPTO_ONRAMP_TARGET_TOKENS,

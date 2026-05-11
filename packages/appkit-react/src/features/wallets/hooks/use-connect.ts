@@ -15,7 +15,7 @@ import type { UseMutationReturnType } from '../../../libs/query';
 import { useAppKit } from '../../settings';
 
 /**
- * Parameters accepted by {@link useConnect} — TanStack Query mutation options (`onSuccess`, `onError`, `mutationKey`, …).
+ * Parameters accepted by {@link useConnect} — TanStack Query mutation options (`onSuccess`, `onError`, `onMutate`, `retry`, …).
  *
  * @public
  * @category Type
@@ -43,7 +43,7 @@ export type UseConnectReturnType<context = unknown> = UseMutationReturnType<
 >;
 
 /**
- * React mutation hook that triggers the connection flow on a registered connector by id (wraps {@link connect}); returns a `mutate({ connectorId })` you call from event handlers.
+ * React mutation hook that triggers the connection flow on a registered connector by id (wraps {@link connect}); returns `mutate({ connectorId })` you call from event handlers. The underlying action throws `Error('Connector with id "<id>" not found')` when no connector with that id is registered — TanStack Query surfaces it via the mutation's `error`.
  *
  * @param parameters - {@link UseConnectParameters} TanStack Query mutation overrides.
  * @returns Mutation result for the connect call.

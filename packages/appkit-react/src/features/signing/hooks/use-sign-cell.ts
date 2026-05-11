@@ -37,7 +37,7 @@ export type UseSignCellReturnType<context = unknown> = UseMutationResult<
 >;
 
 /**
- * React mutation hook that asks the connected wallet to sign a TON cell (wraps {@link signCell}); typically used so the signature can later be verified on-chain. Returns `mutate({ cell, schema })` you call from event handlers.
+ * React mutation hook that asks the selected wallet to sign a TON cell (wraps {@link signCell}); typically used so the signature can later be verified on-chain. Returns `mutate({ cell, schema })` you call from event handlers. The underlying action throws `Error('Wallet not connected')` if no wallet is currently selected — TanStack Query surfaces it via the mutation's `error`.
  *
  * @param parameters - {@link UseSignCellParameters} TanStack Query mutation overrides.
  * @returns Mutation result for the signing call.
