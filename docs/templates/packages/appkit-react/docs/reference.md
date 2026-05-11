@@ -612,31 +612,21 @@ Compound component. Members:
 
 Pill wrapper — renders a horizontal [`Block`](#block) that hosts the icon and balance block.
 
-_No props._
-
 ##### BalanceBadge.Icon
 
 Token icon — re-exported [`Logo`](#logo) that draws the asset's image with a network badge.
-
-_No props._
 
 ##### BalanceBadge.BalanceBlock
 
 Vertical block holding the balance amount and ticker symbol side by side.
 
-_No props._
-
 ##### BalanceBadge.Symbol
 
 Ticker symbol cell rendered next to the amount (e.g., `TON`, `USDT`).
 
-_No props._
-
 ##### BalanceBadge.Balance
 
 Formatted balance number; takes a raw `balance` and `decimals` and renders the human-readable amount.
-
-_No props._
 
 #### SendJettonButton
 
@@ -805,8 +795,6 @@ Icon-only button that copies `value` to the clipboard on click and flips its ico
 
 Compound row used inside currency/token select lists: shows a token logo, name + ticker, optional verified badge, and an optional balance / under-balance on the right. Pass top-level props for the default layout, or pass `children` made of the sub-components for full control.
 
-_No props._
-
 #### CurrencySelect
 
 Compound currency-select primitives — compose [`CurrencySelect.Modal`](#currencyselect.modal) with a [`CurrencySelect.Search`](#currencyselect.search) and [`CurrencySelect.ListContainer`](#currencyselect.listcontainer) of [`CurrencySelect.Section`](#currencyselect.section) rows to build a custom token picker. For a ready-made implementation see [`TokenSelectModal`](#tokenselectmodal).
@@ -817,31 +805,21 @@ Compound component. Members:
 
 Modal wrapper.
 
-_No props._
-
 ##### CurrencySelect.Search
 
 Auto-focused search input row.
-
-_No props._
 
 ##### CurrencySelect.ListContainer
 
 Scrollable list area with built-in empty state.
 
-_No props._
-
 ##### CurrencySelect.SectionHeader
 
 Header label rendered above a section.
 
-_No props._
-
 ##### CurrencySelect.Section
 
 Container for a group of currency rows.
-
-_No props._
 
 #### LowBalanceModal
 
@@ -1149,8 +1127,6 @@ Flex container primitive — renders a `<div>` that lays its children out vertic
 
 Themed `<button>` with size, border-radius, and variant tokens. Renders an optional leading `icon`, swaps content for a spinner while `loading`, and is disabled whenever `disabled` or `loading` is true.
 
-_No props._
-
 #### CenteredAmountInput
 
 Center-aligned, auto-resizing amount input with optional leading symbol and trailing ticker. Scales the font down to fit the container when the rendered text overflows, and clicking the wrapper focuses the input.
@@ -1246,55 +1222,37 @@ Compound component. Members:
 
 Outer wrapper — vertical container that hosts the rows.
 
-_No props._
-
 ##### InfoBlock.Row
 
 Horizontal row that pairs a label with a value.
-
-_No props._
 
 ##### InfoBlock.Label
 
 Label cell — typically the muted descriptor on the left.
 
-_No props._
-
 ##### InfoBlock.Value
 
 Value cell — typically the emphasized content on the right.
-
-_No props._
 
 ##### InfoBlock.LabelSkeleton
 
 Skeleton placeholder for a [`InfoBlock.Label`](#infoblock.label) while data is loading. Defaults to `width=64`, `height='1lh'`.
 
-_No props._
-
 ##### InfoBlock.ValueSkeleton
 
 Skeleton placeholder for a [`InfoBlock.Value`](#infoblock.value) while data is loading. Defaults to `width=80`, `height='1lh'`.
-
-_No props._
 
 #### Input
 
 Compound text-input component. Use the default export as the outer wrapper (it is the [`Input.Container`](#input.container)) and compose sub-components for the header, field, slots, control, and caption. State flags (`disabled`, `error`, `loading`, `resizable`, `size`) live on the container and are read by the inner control via context.
 
-_No props._
-
 #### Logo
 
 Square logo / avatar primitive — renders an `<img>` when `src` loads successfully, otherwise shows a text fallback (after a brief delay to avoid flicker). Useful for token icons, wallet avatars, and project logos.
 
-_No props._
-
 #### LogoWithNetwork
 
 Token logo with an overlaid network badge — wraps [`Logo`](#logo) and renders a smaller secondary logo as a corner badge to indicate which network the asset belongs to.
-
-_No props._
 
 #### Modal
 
@@ -1327,31 +1285,21 @@ Compound component. Members:
 
 Provider that owns the selected value and open state, controlled or uncontrolled.
 
-_No props._
-
 ##### Select.Trigger
 
 [`Button`](#button)-based trigger that toggles the popover and exposes `aria-expanded`.
-
-_No props._
 
 ##### Select.Content
 
 Portaled popover that renders the list of items; positioned under the trigger with optional `sideOffset`.
 
-_No props._
-
 ##### Select.Item
 
 Selectable option row; commits its `value` to the root on click.
 
-_No props._
-
 #### Skeleton
 
 Animated placeholder block used while data is loading. Supply `width` / `height` to match the dimensions of the eventual content.
-
-_No props._
 
 #### SlidersIcon
 

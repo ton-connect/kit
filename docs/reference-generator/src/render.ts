@@ -137,8 +137,6 @@ function renderComponent(entry: ExtractedComponent, level: HeadingLevel): string
     lines.push('');
     if (entry.props.length > 0) {
         lines.push(renderPropsTable(entry.props));
-    } else {
-        lines.push('_No props._');
     }
     appendExamples(lines, entry.examples, entry.samples);
     return lines.join('\n');
@@ -160,10 +158,8 @@ function renderNamespaceComponent(entry: ExtractedNamespaceComponent, level: Hea
         lines.push('');
         if (member.props.length > 0) {
             lines.push(renderPropsTable(member.props));
-        } else {
-            lines.push('_No props._');
+            lines.push('');
         }
-        lines.push('');
     }
     return lines.join('\n').trimEnd();
 }
