@@ -41,7 +41,7 @@ Constructor: `new AppKit(config)`
 | `config`\* | [`AppKitConfig`](#appkitconfig) | Networks, connectors, providers and runtime flags. |
 | `config.networks` | <a href="#networkadapters"><code>NetworkAdapters</code></a> | Map of chain id to [`NetworkConfig`](#networkconfig) (which holds the api-client setup); if omitted, AppKit defaults to mainnet only. |
 | `config.connectors` | <a href="#connectorinput"><code>ConnectorInput</code></a><code>[]</code> | Wallet connectors registered at startup. |
-| `config.defaultNetwork` | <a href="#network"><code>Network</code></a> | Default network. Currently not read by the AppKit constructor — set it at runtime via [`setDefaultNetwork`](#setdefaultnetwork). |
+| `config.defaultNetwork` | <a href="#network"><code>Network</code></a> | Default network. |
 | `config.providers` | <a href="#providerinput"><code>ProviderInput</code></a><code>[]</code> | Providers registered at startup. |
 | `config.ssr` | `boolean` | Set to `true` to enable server-side rendering support. |
 
@@ -2376,7 +2376,7 @@ Constructor options for [`AppKit`](#appkit) — networks, connectors, providers 
 | --- | --- | --- |
 | `networks` | <a href="#networkadapters"><code>NetworkAdapters</code></a> | Map of chain id to [`NetworkConfig`](#networkconfig) (which holds the api-client setup); if omitted, AppKit defaults to mainnet only. |
 | `connectors` | <a href="#connectorinput"><code>ConnectorInput</code></a><code>[]</code> | Wallet connectors registered at startup. |
-| `defaultNetwork` | <a href="#network"><code>Network</code></a> | Default network. Currently not read by the AppKit constructor — set it at runtime via [`setDefaultNetwork`](#setdefaultnetwork). |
+| `defaultNetwork` | <a href="#network"><code>Network</code></a> | Default network. |
 | `providers` | <a href="#providerinput"><code>ProviderInput</code></a><code>[]</code> | Providers registered at startup. |
 | `ssr` | `boolean` | Set to `true` to enable server-side rendering support. |
 
