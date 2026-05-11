@@ -1104,7 +1104,8 @@ export class McpWalletService {
      */
     async resolveDns(domain: string): Promise<string | null> {
         const client = this.wallet.getClient();
-        return client.resolveDnsWallet(domain);
+        const address = await client.resolveDnsWallet(domain);
+        return address ?? null;
     }
 
     /**
@@ -1112,7 +1113,8 @@ export class McpWalletService {
      */
     async backResolveDns(address: string): Promise<string | null> {
         const client = this.wallet.getClient();
-        return client.backResolveDnsWallet(address);
+        const domain = await client.backResolveDnsWallet(address);
+        return domain ?? null;
     }
 
     /**

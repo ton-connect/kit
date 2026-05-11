@@ -41,7 +41,7 @@ export const getNftQueryOptions = <selectData = GetNftData>(
     };
 };
 
-export type GetNftQueryFnData = Compute<NFT | null>;
+export type GetNftQueryFnData = Compute<NFT | undefined>;
 
 export type GetNftData = GetNftQueryFnData;
 

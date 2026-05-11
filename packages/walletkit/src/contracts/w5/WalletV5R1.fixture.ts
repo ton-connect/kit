@@ -9,11 +9,12 @@
 import { Dictionary } from '@ton/core';
 
 import { mockFn } from '../../../mock.config';
-import type { ApiClient, GetEventsResponse } from '../../types/toncenter/ApiClient';
+import type { ApiClient, GetEventsResponse } from '../../api/interfaces';
 import type { FullAccountState } from '../../types/toncenter/api';
-import type { ToncenterEmulationResponse, ToncenterTracesResponse } from '../../types';
+import type { ToncenterTracesResponse } from '../../types';
+import type { EmulationResponse, MasterchainInfo } from '../../api/models';
 import type { ResponseUserJettons } from '../../types/export/responses/jettons';
-import type { NftItemsResponse } from '../../types/toncenter/NftItemsResponse';
+import type { NftItemsResponse } from '../../clients/toncenter/types/nfts';
 import type { WalletV5R1Id } from './WalletV5R1';
 import { walletV5ConfigToCell } from './WalletV5R1';
 import { WalletV5R1Adapter } from './WalletV5R1Adapter';
@@ -76,9 +77,10 @@ const walletDataBase64 = walletDataCell.toBoc().toString('base64');
 
 export function createMockApiClient(): ApiClient {
     return {
+        getMasterchainInfo: mockFn().mockResolvedValue({} as MasterchainInfo),
         nftItemsByAddress: mockFn().mockResolvedValue({} as NftItemsResponse),
         nftItemsByOwner: mockFn().mockResolvedValue({} as NftItemsResponse),
-        fetchEmulation: mockFn().mockResolvedValue({} as ToncenterEmulationResponse),
+        fetchEmulation: mockFn().mockResolvedValue({} as EmulationResponse),
         sendBoc: mockFn().mockResolvedValue('mock-tx-hash'),
         runGetMethod: mockFn().mockResolvedValue({}),
         getAccountState: mockFn().mockResolvedValue({
@@ -95,8 +97,8 @@ export function createMockApiClient(): ApiClient {
         getPendingTransactions: mockFn().mockResolvedValue({} as ToncenterTransactionsResponse),
         getTrace: mockFn().mockResolvedValue({} as ToncenterTracesResponse),
         getTransactionsByHash: mockFn().mockResolvedValue({} as ToncenterTransactionsResponse),
-        resolveDnsWallet: mockFn().mockResolvedValue({} as string | null),
-        backResolveDnsWallet: mockFn().mockResolvedValue({} as string | null),
+        resolveDnsWallet: mockFn().mockResolvedValue({} as string | undefined),
+        backResolveDnsWallet: mockFn().mockResolvedValue({} as string | undefined),
         jettonsByAddress: mockFn().mockResolvedValue({} as ToncenterResponseJettonMasters),
         jettonsByOwnerAddress: mockFn().mockResolvedValue({
             jettons: [],

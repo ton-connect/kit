@@ -6,7 +6,7 @@
  *
  */
 
-import type { ApiClient } from '../../types/toncenter/ApiClient';
+import type { ApiClient } from './ApiClient';
 import type {
     TokenAmount,
     TONTransferRequest,
@@ -56,5 +56,5 @@ export interface WalletNftInterface {
     createTransferNftTransaction(params: NFTTransferRequest): Promise<TransactionRequest>;
     createTransferNftRawTransaction(params: NFTRawTransferRequest): Promise<TransactionRequest>;
     getNfts(params: NFTsRequest): Promise<NFTsResponse>;
-    getNft(address: UserFriendlyAddress): Promise<NFT | null>;
+    getNft(address: UserFriendlyAddress): Promise<NFT | undefined>;
 }

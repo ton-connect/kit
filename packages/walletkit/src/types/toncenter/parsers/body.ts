@@ -6,41 +6,50 @@
  *
  */
 
-/**
- * Common helpers for extracting decoded body and operation types from messages
- * Refactored to use centralized opcode registry and message decoder
- */
-
 import type { EmulationMessage } from '../emulation';
-import { getDecodedBody, getDecodedType } from './messageDecoder';
 import { resolveOpCode, MessageType, matchesDecodedType } from './opcodes';
 
 type Json = Record<string, unknown>;
 
-/**
- * Get decoded body from message
- * @deprecated Use getDecodedBody from messageDecoder instead
- */
+function isRecord(v: unknown): v is Record<string, unknown> {
+    return v !== null && typeof v === 'object';
+}
+
+function getDecodedBody(msg?: EmulationMessage | null): Json | null {
+    if (!msg) return null;
+    const mc = msg.message_content as unknown;
+    if (isRecord(mc)) {
+        const decoded = (mc as Json).decoded as unknown;
+        return isRecord(decoded) ? (decoded as Json) : null;
+    }
+    return null;
+}
+
+function getDecodedType(msg?: EmulationMessage | null): string | null {
+    const decoded = getDecodedBody(msg);
+    if (decoded) {
+        const type = decoded['@type'];
+        if (typeof type === 'string') return type;
+
+        const value = decoded['value'];
+        if (isRecord(value) && typeof value['@type'] === 'string') {
+            return value['@type'] as string;
+        }
+    }
+    return null;
+}
+
 export function getDecoded(msg?: EmulationMessage | null): Json | null {
     return getDecodedBody(msg);
 }
 
-/**
- * Extract operation type from message body
- * @deprecated Use getDecodedType from messageDecoder instead
- */
 export function extractOpFromBody(msg?: EmulationMessage | null): string | null {
     return getDecodedType(msg);
 }
 
-/**
- * Match operation code with type mapping
- * Now uses centralized opcode registry
- */
 export function matchOpWithMap(op: string, types: string[], mapping: Record<string, string>): string | '' {
     if (!op) return '';
 
-    // First try the new resolver
     const messageType = resolveOpCode(op);
     if (messageType !== MessageType.Unknown) {
         const typeString = messageType as string;
@@ -49,14 +58,10 @@ export function matchOpWithMap(op: string, types: string[], mapping: Record<stri
         }
     }
 
-    // Fallback to legacy mapping for backwards compatibility
     const normalized = mapping[op] ?? op;
     return types.includes(normalized) ? normalized : '';
 }
 
-/**
- * Match decoded @type with expected types
- */
 export function matchDecodedType(decodedType: string, types: string[]): string | '' {
     const matched = matchesDecodedType(decodedType, types as MessageType[]);
     return matched ? (matched as string) : '';

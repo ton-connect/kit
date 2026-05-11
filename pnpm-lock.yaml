@@ -24,6 +24,9 @@ catalogs:
     '@types/react-dom':
       specifier: 19.2.3
       version: 19.2.3
+    lru-cache:
+      specifier: 11.3.5
+      version: 11.3.5
     react:
       specifier: 19.2.3
       version: 19.2.3
@@ -630,6 +633,9 @@ importers:
       '@tonconnect/ui':
         specifier: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.2/tonconnect-ui-2.4.4.tgz
         version: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.2/tonconnect-ui-2.4.4.tgz
+      lru-cache:
+        specifier: 'catalog:'
+        version: 11.3.5
     devDependencies:
       '@tanstack/query-core':
         specifier: 'catalog:'
@@ -769,7 +775,7 @@ importers:
         specifier: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.2/tonconnect-sdk-3.4.1.tgz
         version: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.2/tonconnect-sdk-3.4.1.tgz
       lru-cache:
-        specifier: ^11.3.5
+        specifier: 'catalog:'
         version: 11.3.5
       uuid:
         specifier: ^13.0.0

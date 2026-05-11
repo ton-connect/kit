@@ -9,8 +9,8 @@
 import { isValidAddress } from '../../../utils/address';
 import { isValidNanotonAmount, validateTransactionMessage } from '../../../validation';
 import { CallForSuccess } from '../../../utils/retry';
-import { createTransactionPreview as createTransactionPreviewHelper } from '../../../utils/toncenterEmulation';
 import type { TransactionPreviewOptions } from '../../../utils/toncenterEmulation';
+import { createTransactionPreview as createTransactionPreviewHelper } from '../../../utils/transactionPreview';
 import { createCommentPayloadBase64 } from '../../../utils/messageBuilders';
 import { getNormalizedExtMessageHash } from '../../../utils/getNormalizedExtMessageHash';
 import { ERROR_CODES, WalletKitError } from '../../../errors';

@@ -72,19 +72,6 @@ export class JettonsManager implements JettonsAPI {
         }
 
         log.info('JettonsManager initialized', { cacheSize });
-
-        // Set up event listener for emulation results for jetton caching
-        // TODO Fix network in emulation result
-        // this.eventEmitter.on('emulationResult', ({ payload: emulationResult }) => {
-        //     if (emulationResult && emulationResult.metadata) {
-        //         const network = (emulationResult as { network: ChainId }).network;
-        //         this.addJettonsFromEmulationMetadata(
-        //             Network.custom(network),
-        //             (emulationResult as { metadata: Record<string, { is_indexed: boolean; token_info?: unknown[] }> })
-        //                 .metadata,
-        //         );
-        //     }
-        // });
     }
 
     /**

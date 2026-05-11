@@ -19,7 +19,7 @@ import type {
     GetTraceRequest,
     GetTransactionByHashRequest,
     TransactionsByAddressRequest,
-} from '../../types/toncenter/ApiClient';
+} from '../../api/interfaces';
 import { Network } from '../../api/models';
 import type {
     Base64String,
@@ -34,9 +34,10 @@ import type {
     UserFriendlyAddress,
     UserNFTsRequest,
 } from '../../api/models';
-import type { ToncenterEmulationResult } from '../../utils/toncenterEmulation';
+import type { EmulationResult } from '../../api/models';
 import type { FullAccountState } from '../../types/toncenter/api';
-import type { ToncenterResponseJettonMasters, ToncenterTracesResponse } from '../../types/toncenter/emulation';
+import type { ToncenterTracesResponse } from '../../types/toncenter/emulation';
+import type { ToncenterResponseJettonMasters } from '../toncenter/types/jettons';
 import { BaseApiClient } from '../BaseApiClient';
 import type { BaseApiClientConfig } from '../BaseApiClient';
 import { TonClientError } from '../TonClientError';
@@ -52,9 +53,11 @@ import type { TonApiDnsResolveResponse, TonApiDnsBackresolveResponse } from './t
 import type { TonApiMethodExecutionResult } from './types/methods';
 import type { TonApiMasterchainHeadResponse } from './types/masterchain';
 import { mapTonApiGetMethodArgs, mapTonApiTvmStackRecord } from './mappers/map-methods';
+import { mapTonApiEmulationResponse } from './mappers/map-emulation';
 import { Base64Normalize, Base64ToBigInt, Base64ToHex, getNormalizedExtMessageHash, isHex } from '../../utils';
 import type { TonApiTransactionsResponse, TonApiTransaction } from './types/transactions';
 import type { TonApiTrace } from './types/traces';
+import type { TonApiMessageConsequences } from './types/emulation';
 import type { TonApiAccountEventsResponse } from './types/events';
 import { mapTonApiTransaction } from './mappers/map-transactions';
 import { mapTonApiTrace, mapTonApiTraceTransaction } from './mappers/map-traces';
@@ -166,8 +169,15 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
         return Base64ToBigInt(hash).toString(16);
     }
 
-    async fetchEmulation(_messageBoc: Base64String, _ignoreSignature?: boolean): Promise<ToncenterEmulationResult> {
-        throw new Error('Method not implemented.');
+    async fetchEmulation(messageBoc: Base64String, ignoreSignature?: boolean): Promise<EmulationResult> {
+        const result = await this.postJson<TonApiMessageConsequences>('/v2/wallet/emulate', {
+            boc: messageBoc,
+            ignore_signature_check: ignoreSignature === true,
+        });
+        return {
+            result: 'success',
+            emulationResult: mapTonApiEmulationResponse(result),
+        };
     }
 
     async runGetMethod(
@@ -300,23 +310,23 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
         throw new Error('Failed to fetch pending trace');
     }
 
-    async resolveDnsWallet(domain: string): Promise<string | null> {
+    async resolveDnsWallet(domain: string): Promise<string | undefined> {
         try {
             const raw = await this.getJson<TonApiDnsResolveResponse>(`/v2/dns/${domain}/resolve`);
             const address = raw?.wallet?.address;
 
-            return address ? asAddressFriendly(address) : null;
+            return address ? asAddressFriendly(address) : undefined;
         } catch (_e) {
-            return null;
+            return undefined;
         }
     }
 
-    async backResolveDnsWallet(address: UserFriendlyAddress): Promise<string | null> {
+    async backResolveDnsWallet(address: UserFriendlyAddress): Promise<string | undefined> {
         try {
             const raw = await this.getJson<TonApiDnsBackresolveResponse>(`/v2/accounts/${address}/dns/backresolve`);
-            return raw.domains && raw.domains.length > 0 ? raw.domains[0] : null;
+            return raw.domains && raw.domains.length > 0 ? raw.domains[0] : undefined;
         } catch (_e) {
-            return null;
+            return undefined;
         }
     }
 
