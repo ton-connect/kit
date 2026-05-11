@@ -13,7 +13,7 @@ import type { WatchTransactionsByAddressOptions, TransactionsUpdate } from '@ton
 import { useAppKit } from '../../settings';
 
 /**
- * Parameters accepted by {@link useWatchTransactionsByAddress} — same fields as {@link WatchTransactionsByAddressOptions}, all optional so callers can render the hook before the address is known.
+ * Parameters accepted by {@link useWatchTransactionsByAddress} — same fields as {@link appkit:WatchTransactionsByAddressOptions}, all optional so callers can render the hook before the address is known.
  *
  * @public
  * @category Type

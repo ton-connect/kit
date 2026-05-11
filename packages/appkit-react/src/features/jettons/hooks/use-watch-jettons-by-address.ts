@@ -15,7 +15,7 @@ import { handleJettonBalanceUpdate, handleJettonsUpdate } from '@ton/appkit/quer
 import { useAppKit } from '../../settings';
 
 /**
- * Parameters accepted by {@link useWatchJettonsByAddress} — same fields as {@link WatchJettonsByAddressOptions}, all optional so callers can render the hook before the address is known.
+ * Parameters accepted by {@link useWatchJettonsByAddress} — same fields as {@link appkit:WatchJettonsByAddressOptions}, all optional so callers can render the hook before the address is known.
  *
  * @public
  * @category Type

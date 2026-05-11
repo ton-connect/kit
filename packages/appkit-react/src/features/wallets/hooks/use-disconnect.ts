@@ -45,7 +45,7 @@ export type UseDisconnectReturnType<context = unknown> = UseMutationReturnType<
 >;
 
 /**
- * React mutation hook that disconnects the wallet currently connected through a registered connector (wraps {@link disconnect}); returns `mutate({ connectorId })` you call from event handlers. The underlying action throws `Error('Connector with id "<id>" not found')` when no connector with that id is registered — TanStack Query surfaces it via the mutation's `error`.
+ * React mutation hook that disconnects the wallet currently connected through a registered connector (wraps {@link appkit:disconnect}); returns `mutate({ connectorId })` you call from event handlers. The underlying action throws `Error('Connector with id "<id>" not found')` when no connector with that id is registered — TanStack Query surfaces it via the mutation's `error`.
  *
  * @param parameters - {@link UseDisconnectParameters} TanStack Query mutation overrides.
  * @returns Mutation result for the disconnect call.

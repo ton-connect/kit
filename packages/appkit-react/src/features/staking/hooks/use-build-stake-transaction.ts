@@ -18,7 +18,7 @@ import { useAppKit } from '../../settings';
 import { useMutation } from '../../../libs/query';
 
 /**
- * Return type of {@link useBuildStakeTransaction} — TanStack Query mutation result that resolves to a {@link TransactionRequest}.
+ * Return type of {@link useBuildStakeTransaction} — TanStack Query mutation result that resolves to a {@link appkit:TransactionRequest}.
  *
  * @public
  * @category Type
@@ -32,7 +32,7 @@ export type UseBuildStakeTransactionReturnType<context = unknown> = UseMutationR
 >;
 
 /**
- * React mutation hook that wraps {@link buildStakeTransaction} — turns a {@link StakingQuote} obtained via {@link useStakingQuote} into a {@link TransactionRequest} without sending it, so the UI can inspect or batch before signing. Returns `mutate(params)` where `params` matches {@link BuildStakeTransactionOptions}.
+ * React mutation hook that wraps {@link appkit:buildStakeTransaction} — turns a {@link appkit:StakingQuote} obtained via {@link useStakingQuote} into a {@link appkit:TransactionRequest} without sending it, so the UI can inspect or batch before signing. Returns `mutate(params)` where `params` matches {@link appkit:BuildStakeTransactionOptions}.
  *
  * @returns Mutation result for the build call.
  *

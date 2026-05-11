@@ -23,10 +23,38 @@ const TODO_MARKER = '_TODO: describe_';
 
 const CATEGORY_ORDER = ['Class', 'Action', 'Hook', 'Component', 'Type', 'Constants'];
 
-let LINKABLE_NAMES: Set<string> = new Set();
+/**
+ * Symbol-name → URL-prefix map used to resolve unqualified `{@link X}`
+ * references and type-cell auto-links. Empty string means "local to this
+ * document" (the link resolves to `#anchor`); a non-empty prefix is
+ * prepended before `#anchor` so the reference points to a sibling reference
+ * page in the published docs.
+ */
+let LINKABLE: Map<string, string> = new Map();
 
-export function render(extracted: Extracted[]): string {
-    LINKABLE_NAMES = new Set(extracted.map((e) => e.name));
+/**
+ * Package-prefix → URL map used to resolve qualified `{@link pkg:Name}`
+ * references. The current package is included with an empty prefix so authors
+ * can write `{@link appkit-react:Foo}` from inside appkit-react and still get
+ * a local anchor.
+ */
+let PACKAGE_PREFIX: Map<string, string> = new Map();
+
+export interface RenderOptions {
+    /** Symbols documented in other packages, keyed by name with their URL prefix as value. */
+    externalRefs?: Map<string, string>;
+    /** Map of package-key → URL prefix (current package's value should be `""`). Enables `{@link pkg:Name}` syntax. */
+    packagePrefixes?: Map<string, string>;
+}
+
+export function render(extracted: Extracted[], options: RenderOptions = {}): string {
+    const externalRefs = options.externalRefs ?? new Map();
+    PACKAGE_PREFIX = options.packagePrefixes ?? new Map();
+
+    LINKABLE = new Map();
+    for (const [name, prefix] of externalRefs) LINKABLE.set(name, prefix);
+    // Local entries override any external mapping with the same name.
+    for (const e of extracted) LINKABLE.set(e.name, '');
 
     const parts: string[] = [];
 
@@ -270,9 +298,9 @@ function escapeForCell(text: string): string {
  * styles as a chip, matching {@link formatTypeOverride}'s markdown chips.
  */
 function formatTypeCell(typeText: string): string {
-    if (LINKABLE_NAMES.size === 0) return '`' + escapeForCell(typeText) + '`';
+    if (LINKABLE.size === 0) return '`' + escapeForCell(typeText) + '`';
 
-    const names = [...LINKABLE_NAMES].sort((a, b) => b.length - a.length);
+    const names = [...LINKABLE.keys()].sort((a, b) => b.length - a.length);
     const pattern = new RegExp(`\\b(${names.map(escapeRegex).join('|')})\\b`, 'g');
 
     const segments: string[] = [];
@@ -282,7 +310,8 @@ function formatTypeCell(typeText: string): string {
         if (match.index > lastIndex) {
             segments.push(`<code>${escapeHtmlInCell(typeText.slice(lastIndex, match.index))}</code>`);
         }
-        segments.push(`<a href="#${slugify(match[1])}"><code>${match[1]}</code></a>`);
+        const prefix = LINKABLE.get(match[1]) ?? '';
+        segments.push(`<a href="${prefix}#${slugify(match[1])}"><code>${match[1]}</code></a>`);
         lastIndex = pattern.lastIndex;
     }
     if (segments.length === 0) return '`' + escapeForCell(typeText) + '`';
@@ -309,15 +338,29 @@ function escapeRegex(str: string): string {
 }
 
 /**
- * Renders a type-override that the author requested via `{@link X}` at the
- * start of a `@param` or `@returns` description. If the target is documented
- * in this reference, emits a markdown link; otherwise plain inline-code.
+ * Renders a type-override that the author requested via `{@link X}` (or
+ * `{@link pkg:X}`) at the start of a `@param` or `@returns` description.
+ * Qualified forms point at the matching sibling reference; unqualified forms
+ * use the LINKABLE lookup. Unknown package prefixes throw — same contract as
+ * `resolveLinks` — so authors can't accidentally ship a dead chip.
  */
-function formatTypeOverride(name: string): string {
-    if (LINKABLE_NAMES.has(name)) {
-        return `[\`${name}\`](#${slugify(name)})`;
+function formatTypeOverride(raw: string): string {
+    const colon = raw.indexOf(':');
+    if (colon > 0) {
+        const pkg = raw.slice(0, colon).trim();
+        const name = raw.slice(colon + 1).trim();
+        if (!PACKAGE_PREFIX.has(pkg)) {
+            const known = [...PACKAGE_PREFIX.keys()].join(', ');
+            throw new Error(`Unknown package prefix in {@link ${raw}}. Got "${pkg}"; expected one of: ${known}.`);
+        }
+        const prefix = PACKAGE_PREFIX.get(pkg) ?? '';
+        return `[\`${name}\`](${prefix}#${slugify(name)})`;
     }
-    return '`' + name + '`';
+    if (LINKABLE.has(raw)) {
+        const prefix = LINKABLE.get(raw) ?? '';
+        return `[\`${raw}\`](${prefix}#${slugify(raw)})`;
+    }
+    return '`' + raw + '`';
 }
 
 function slugify(name: string): string {
@@ -325,10 +368,19 @@ function slugify(name: string): string {
 }
 
 /**
- * Resolves `{@link Foo}` markers (planted by sanitizeJsDocText) into
- * markdown links pointing to `#foo` in this same reference. The author is
- * responsible for using `{@link …}` only with names that exist as headings
- * — otherwise the link will be dead.
+ * Resolves `{@link Foo}` markers (planted by sanitizeJsDocText) into markdown
+ * links. Two forms are recognized:
+ *
+ *  - **Qualified** `{@link pkg:Name}` — the prefix names a sibling package
+ *    from `PACKAGE_PREFIX`; the link gets that package's URL prefix. Unknown
+ *    package prefixes fall through to the unqualified path (treats the colon
+ *    as part of the symbol name and emits a dead local anchor).
+ *  - **Unqualified** `{@link Foo}` — looked up in `LINKABLE`: local names
+ *    resolve to `#anchor`, cross-package names get the sibling reference's
+ *    URL prefix, anything else emits a dead local anchor.
+ *
+ * In both cases the displayed text is the bare symbol name (without the
+ * package prefix), so qualified and unqualified forms render identically.
  */
 function resolveLinks(text: string): string {
     if (!text.includes(LINK_MARKER_OPEN)) return text;
@@ -346,8 +398,22 @@ function resolveLinks(text: string): string {
             out.push(text.slice(start));
             break;
         }
-        const name = text.slice(start + LINK_MARKER_OPEN.length, end).trim();
-        out.push(`[\`${name}\`](#${slugify(name)})`);
+        const raw = text.slice(start + LINK_MARKER_OPEN.length, end).trim();
+
+        const colon = raw.indexOf(':');
+        if (colon > 0) {
+            const pkg = raw.slice(0, colon).trim();
+            const name = raw.slice(colon + 1).trim();
+            if (!PACKAGE_PREFIX.has(pkg)) {
+                const known = [...PACKAGE_PREFIX.keys()].join(', ');
+                throw new Error(`Unknown package prefix in {@link ${raw}}. Got "${pkg}"; expected one of: ${known}.`);
+            }
+            const prefix = PACKAGE_PREFIX.get(pkg) ?? '';
+            out.push(`[\`${name}\`](${prefix}#${slugify(name)})`);
+        } else {
+            const prefix = LINKABLE.get(raw) ?? '';
+            out.push(`[\`${raw}\`](${prefix}#${slugify(raw)})`);
+        }
         cursor = end + LINK_MARKER_CLOSE.length;
     }
     return out.join('');

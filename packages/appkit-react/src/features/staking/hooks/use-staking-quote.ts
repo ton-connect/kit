@@ -24,7 +24,7 @@ import { useNetwork } from '../../network';
 export type UseStakingQuoteParameters<selectData = GetStakingQuoteData> = GetStakingQuoteQueryConfig<selectData>;
 
 /**
- * Return type of {@link useStakingQuote} — TanStack Query result carrying a {@link StakingQuote}.
+ * Return type of {@link useStakingQuote} — TanStack Query result carrying a {@link appkit:StakingQuote}.
  *
  * @public
  * @category Type
@@ -36,7 +36,7 @@ export type UseStakingQuoteReturnType<selectData = GetStakingQuoteData> = UseQue
 >;
 
 /**
- * React hook quoting a stake or unstake through TanStack Query (wraps {@link getStakingQuote}) — returns the rate, expected output and provider metadata needed to feed into {@link useBuildStakeTransaction}. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
+ * React hook quoting a stake or unstake through TanStack Query (wraps {@link appkit:getStakingQuote}) — returns the rate, expected output and provider metadata needed to feed into {@link useBuildStakeTransaction}. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
  *
  * @param parameters - {@link UseStakingQuoteParameters} Quote parameters, optional `providerId`, optional network override, and TanStack Query overrides.
  * @returns TanStack Query result for the quote read.

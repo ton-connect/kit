@@ -44,7 +44,7 @@ export type UseBuildSwapTransactionReturnType<context = unknown> = UseMutationRe
 >;
 
 /**
- * React mutation hook that wraps {@link buildSwapTransaction} — turns a {@link SwapQuote} obtained via {@link useSwapQuote} into a {@link TransactionRequest} without sending it, so the UI can inspect or batch before signing. Returns `mutate(params)` where `params` matches {@link BuildSwapTransactionOptions}.
+ * React mutation hook that wraps {@link appkit:buildSwapTransaction} — turns a {@link appkit:SwapQuote} obtained via {@link useSwapQuote} into a {@link appkit:TransactionRequest} without sending it, so the UI can inspect or batch before signing. Returns `mutate(params)` where `params` matches {@link appkit:BuildSwapTransactionOptions}.
  *
  * @param parameters - {@link UseBuildSwapTransactionParameters} TanStack Query mutation overrides.
  * @returns Mutation result for the build call.

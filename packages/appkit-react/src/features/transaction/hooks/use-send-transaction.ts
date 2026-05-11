@@ -50,7 +50,7 @@ export type UseSendTransactionReturnType<context = unknown> = UseMutationReturnT
 >;
 
 /**
- * React mutation hook that hands a pre-built {@link TransactionRequest} to the selected wallet for signing and broadcast (wraps {@link sendTransaction}); returns `mutate(request)`. The underlying action throws `Error('Wallet not connected')` if no wallet is currently selected — TanStack Query surfaces it via the mutation's `error`.
+ * React mutation hook that hands a pre-built {@link appkit:TransactionRequest} to the selected wallet for signing and broadcast (wraps {@link appkit:sendTransaction}); returns `mutate(request)`. The underlying action throws `Error('Wallet not connected')` if no wallet is currently selected — TanStack Query surfaces it via the mutation's `error`.
  *
  * @param parameters - {@link UseSendTransactionParameters} TanStack Query mutation overrides.
  * @returns Mutation result for the send call.

@@ -37,7 +37,7 @@ export type UseSignBinaryReturnType<context = unknown> = UseMutationResult<
 >;
 
 /**
- * React mutation hook that asks the selected wallet to sign a binary blob (wraps {@link signBinary}); returns `mutate({ bytes })` you call from event handlers. The underlying action throws `Error('Wallet not connected')` if no wallet is currently selected — TanStack Query surfaces it via the mutation's `error`.
+ * React mutation hook that asks the selected wallet to sign a binary blob (wraps {@link appkit:signBinary}); returns `mutate({ bytes })` you call from event handlers. The underlying action throws `Error('Wallet not connected')` if no wallet is currently selected — TanStack Query surfaces it via the mutation's `error`.
  *
  * @param parameters - {@link UseSignBinaryParameters} TanStack Query mutation overrides.
  * @returns Mutation result for the signing call.

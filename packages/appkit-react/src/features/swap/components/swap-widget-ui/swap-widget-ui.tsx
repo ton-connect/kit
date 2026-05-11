@@ -33,7 +33,7 @@ import { SettingsButton } from '../../../../components/shared/settings-button';
 export type SwapWidgetRenderProps = SwapContextType & ComponentProps<'div'>;
 
 /**
- * Default visual implementation of the swap widget — composes {@link SwapField} (source, then target), a {@link SwapFlipButton} between them, the submit button (auto-prompts wallet connect when no wallet is selected), the settings trigger that opens {@link SwapSettingsModal}, a {@link SwapTokenSelectModal} for picking source/target tokens, the {@link SwapInfo} summary, and a low-balance warning. Drives all state from the swap context props it receives — pair with {@link SwapWidgetProvider}, or use {@link SwapWidget} which mounts both.
+ * Default visual implementation of the swap widget — composes {@link SwapField} (source, then target), a {@link SwapFlipButton} between them, the submit button (auto-prompts wallet connect when no wallet is selected), the settings trigger that opens `SwapSettingsModal`, a `SwapTokenSelectModal` for picking source/target tokens, the {@link SwapInfo} summary, and a low-balance warning. Drives all state from the swap context props it receives — pair with {@link SwapWidgetProvider}, or use {@link SwapWidget} which mounts both.
  *
  * @public
  * @category Component

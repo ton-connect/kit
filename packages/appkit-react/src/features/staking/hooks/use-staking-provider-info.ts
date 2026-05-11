@@ -30,7 +30,7 @@ export type UseStakingProviderInfoParameters<selectData = GetStakingProviderInfo
     GetStakingProviderInfoQueryConfig<selectData>;
 
 /**
- * Return type of {@link useStakingProviderInfo} — TanStack Query result carrying live {@link StakingProviderInfo}.
+ * Return type of {@link useStakingProviderInfo} — TanStack Query result carrying live {@link appkit:StakingProviderInfo}.
  *
  * @public
  * @category Type

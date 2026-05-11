@@ -15,7 +15,7 @@ import { handleBalanceUpdate } from '@ton/appkit/queries';
 import { useAppKit } from '../../settings';
 
 /**
- * Parameters accepted by {@link useWatchBalanceByAddress} — same fields as {@link WatchBalanceByAddressOptions}, all optional so callers can render the hook before the address is known.
+ * Parameters accepted by {@link useWatchBalanceByAddress} — same fields as {@link appkit:WatchBalanceByAddressOptions}, all optional so callers can render the hook before the address is known.
  *
  * @public
  * @category Type

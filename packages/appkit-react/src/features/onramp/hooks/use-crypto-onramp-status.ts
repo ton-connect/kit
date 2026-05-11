@@ -20,7 +20,7 @@ import { useQuery } from '../../../libs/query';
 import type { UseQueryReturnType } from '../../../libs/query';
 
 /**
- * Parameters accepted by {@link useCryptoOnrampStatus} — TanStack Query options (`select`, `enabled`, `refetchInterval`, …) plus the deposit id, originating provider id and optional provider override forwarded to {@link getCryptoOnrampStatus}.
+ * Parameters accepted by {@link useCryptoOnrampStatus} — TanStack Query options (`select`, `enabled`, `refetchInterval`, …) plus the deposit id, originating provider id and optional provider override forwarded to {@link appkit:getCryptoOnrampStatus}.
  *
  * @public
  * @category Type
@@ -42,7 +42,7 @@ export type UseCryptoOnrampStatusReturnType<selectData = GetCryptoOnrampStatusDa
 >;
 
 /**
- * React hook reading the current status of a crypto-onramp deposit previously created via {@link useCreateCryptoOnrampDeposit} through TanStack Query (wraps {@link getCryptoOnrampStatus}) — typically polled via `refetchInterval` until the status is `'success'` or `'failed'`.
+ * React hook reading the current status of a crypto-onramp deposit previously created via {@link useCreateCryptoOnrampDeposit} through TanStack Query (wraps {@link appkit:getCryptoOnrampStatus}) — typically polled via `refetchInterval` until the status is `'success'` or `'failed'`.
  *
  * @param parameters - {@link UseCryptoOnrampStatusParameters} Deposit id, originating provider id and TanStack Query overrides.
  * @returns TanStack Query result for the status read.

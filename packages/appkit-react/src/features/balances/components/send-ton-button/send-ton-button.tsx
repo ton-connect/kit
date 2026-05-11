@@ -15,7 +15,7 @@ import type { SendProps } from '../../../transaction';
 import { Send } from '../../../transaction';
 
 /**
- * Props accepted by {@link SendTonButton} — extends the base {@link Send} button props (button text, sizing, callbacks) with the TON-transfer details.
+ * Props accepted by {@link SendTonButton} — extends the base `Send` button props (button text, sizing, callbacks) with the TON-transfer details.
  *
  * @public
  * @category Type
@@ -31,7 +31,7 @@ export interface SendTonButtonProps extends Omit<SendProps, 'request'> {
 }
 
 /**
- * Pre-wired button that builds a TON transfer with {@link createTransferTonTransaction} and dispatches it through the standard {@link Send} flow on click — disabled until both `recipientAddress` and `amount` are set.
+ * Pre-wired button that builds a TON transfer with {@link appkit:createTransferTonTransaction} and dispatches it through the standard `Send` flow on click — disabled until both `recipientAddress` and `amount` are set.
  *
  * @public
  * @category Component

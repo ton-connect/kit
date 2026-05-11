@@ -20,7 +20,7 @@ import { useQuery } from '../../../libs/query';
 import type { UseQueryReturnType } from '../../../libs/query';
 
 /**
- * Parameters accepted by {@link useCryptoOnrampQuote} — TanStack Query options (`select`, `enabled`, `staleTime`, …) plus the source/target assets, amount and optional provider override forwarded to {@link getCryptoOnrampQuote}.
+ * Parameters accepted by {@link useCryptoOnrampQuote} — TanStack Query options (`select`, `enabled`, `staleTime`, …) plus the source/target assets, amount and optional provider override forwarded to {@link appkit:getCryptoOnrampQuote}.
  *
  * @public
  * @category Type
@@ -42,7 +42,7 @@ export type UseCryptoOnrampQuoteReturnType<selectData = GetCryptoOnrampQuoteData
 >;
 
 /**
- * React hook quoting a crypto-to-TON onramp through TanStack Query (wraps {@link getCryptoOnrampQuote}) — returns the rate, expected amount and provider metadata needed to call {@link useCreateCryptoOnrampDeposit}.
+ * React hook quoting a crypto-to-TON onramp through TanStack Query (wraps {@link appkit:getCryptoOnrampQuote}) — returns the rate, expected amount and provider metadata needed to call {@link useCreateCryptoOnrampDeposit}.
  *
  * @param parameters - {@link UseCryptoOnrampQuoteParameters} Quote inputs and TanStack Query overrides.
  * @returns TanStack Query result for the quote read.

@@ -26,7 +26,7 @@ export interface SwapInfoProps extends ComponentProps<typeof InfoBlock.Container
     toToken: AppkitUIToken | null;
     /** Slippage tolerance in basis points (`100` = 1%). Rendered as a percentage. */
     slippage: number;
-    /** Current {@link SwapProvider}; its display name is shown in the provider row. */
+    /** Current {@link appkit:SwapProvider}; its display name is shown in the provider row. */
     provider?: SwapProvider;
     /** Quote whose `minReceived` value is displayed; when undefined the value falls back to `0` (still suffixed with the token symbol). */
     quote?: SwapQuote;
@@ -35,7 +35,7 @@ export interface SwapInfoProps extends ComponentProps<typeof InfoBlock.Container
 }
 
 /**
- * Summary block rendered under the swap form. Shows the minimum amount the user is guaranteed to receive after slippage, the configured slippage tolerance, and the active {@link SwapProvider}.
+ * Summary block rendered under the swap form. Shows the minimum amount the user is guaranteed to receive after slippage, the configured slippage tolerance, and the active {@link appkit:SwapProvider}.
  *
  * @public
  * @category Component

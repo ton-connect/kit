@@ -13,7 +13,7 @@ import type { TokenSelectModalProps } from '../../../../components/shared/token-
 import { useI18n } from '../../../settings/hooks/use-i18n';
 
 /**
- * Props accepted by {@link SwapTokenSelectModal} — same shape as the underlying {@link TokenSelectModalProps} but with the title and search placeholder fixed to the swap-flow strings.
+ * Props accepted by `SwapTokenSelectModal` — same shape as the underlying {@link TokenSelectModalProps} but with the title and search placeholder fixed to the swap-flow strings.
  *
  * @public
  * @category Type

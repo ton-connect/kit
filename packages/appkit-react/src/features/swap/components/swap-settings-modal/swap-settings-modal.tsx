@@ -24,7 +24,7 @@ const formatSlippage = (bps: number): string => `${(bps / 100).toFixed(2)}%`;
 const SLIPPAGE_OPTIONS = SLIPPAGE_PRESETS.map((bps) => ({ value: String(bps), label: formatSlippage(bps) }));
 
 /**
- * Props accepted by {@link SwapSettingsModal} — the modal that lets the user pick a {@link SwapProvider} and a slippage preset before confirming a swap.
+ * Props accepted by `SwapSettingsModal` — the modal that lets the user pick a {@link appkit:SwapProvider} and a slippage preset before confirming a swap.
  *
  * @public
  * @category Type
@@ -48,7 +48,7 @@ export interface SwapSettingsModalProps {
 }
 
 /**
- * Modal that exposes per-swap settings: the {@link SwapProvider} and a slippage preset. Selections are staged locally and committed via `onSlippageChange` / `onProviderChange` only when the user presses "save"; closing without saving discards them.
+ * Modal that exposes per-swap settings: the {@link appkit:SwapProvider} and a slippage preset. Selections are staged locally and committed via `onSlippageChange` / `onProviderChange` only when the user presses "save"; closing without saving discards them.
  *
  * @public
  * @category Component

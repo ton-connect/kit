@@ -44,7 +44,7 @@ export interface SwapFieldProps extends Omit<ComponentProps<typeof Input.Contain
     loading?: boolean;
     /** Called when the user clicks the "max" shortcut to fill the maximum spendable amount. */
     onMaxClick?: () => void;
-    /** Called when the user clicks the token selector chip — typically opens a {@link SwapTokenSelectModal}. */
+    /** Called when the user clicks the token selector chip — typically opens a `SwapTokenSelectModal`. */
     onTokenSelectorClick?: () => void;
     /** Reserved flag indicating whether a wallet is connected — currently accepted for API symmetry. */
     isWalletConnected?: boolean;

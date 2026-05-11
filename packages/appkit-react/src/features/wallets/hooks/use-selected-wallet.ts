@@ -13,7 +13,7 @@ import type { GetSelectedWalletReturnType } from '@ton/appkit';
 import { useAppKit } from '../../settings';
 
 /**
- * Return type of {@link useSelectedWallet} — `[wallet, setWalletId]` tuple. `wallet` is the active {@link WalletInterface} (or `null`); `setWalletId` calls {@link setSelectedWalletId} and emits `wallets:selection-changed`.
+ * Return type of {@link useSelectedWallet} — `[wallet, setWalletId]` tuple. `wallet` is the active {@link appkit:WalletInterface} (or `null`); `setWalletId` calls {@link appkit:setSelectedWalletId} and emits `wallets:selection-changed`.
  *
  * @public
  * @category Type

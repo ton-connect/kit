@@ -13,7 +13,7 @@ import type { GetConnectedWalletsReturnType } from '@ton/appkit';
 import { useAppKit } from '../../settings';
 
 /**
- * Return type of {@link useConnectedWallets} — same shape as {@link GetConnectedWalletsReturnType}.
+ * Return type of {@link useConnectedWallets} — same shape as {@link appkit:GetConnectedWalletsReturnType}.
  *
  * @public
  * @category Type
@@ -24,7 +24,7 @@ export type UseConnectedWalletsReturnType = GetConnectedWalletsReturnType;
 /**
  * Read the list of currently connected wallets across all registered connectors; re-renders when a wallet connects or disconnects.
  *
- * @returns Read-only array of {@link WalletInterface}s.
+ * @returns Read-only array of {@link appkit:WalletInterface}s.
  *
  * @public
  * @category Hook

@@ -50,7 +50,7 @@ export type UseTransferNftReturnType<context = unknown> = UseMutationReturnType<
 >;
 
 /**
- * React mutation hook that builds and sends an NFT transfer from the selected wallet in one step (wraps {@link transferNft}); returns `mutate({ nftAddress, recipientAddress, amount?, comment? })` and throws `Error('Wallet not connected')` if no wallet is currently selected.
+ * React mutation hook that builds and sends an NFT transfer from the selected wallet in one step (wraps {@link appkit:transferNft}); returns `mutate({ nftAddress, recipientAddress, amount?, comment? })` and throws `Error('Wallet not connected')` if no wallet is currently selected.
  *
  * @param parameters - {@link UseTransferNftParameters} TanStack Query mutation overrides.
  * @returns Mutation result for the transfer call.

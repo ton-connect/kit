@@ -17,7 +17,7 @@ import type { UseQueryReturnType } from '../../../libs/query';
 import { useNetwork } from '../../network';
 
 /**
- * Parameters accepted by {@link useSwapQuote} — TanStack Query options (`select`, `enabled`, `staleTime`, …) plus the {@link SwapQuoteParams} fields (source/target tokens, amount, `isReverseSwap` flag) and an optional `providerId` / network override.
+ * Parameters accepted by {@link useSwapQuote} — TanStack Query options (`select`, `enabled`, `staleTime`, …) plus the {@link appkit:SwapQuoteParams} fields (source/target tokens, amount, `isReverseSwap` flag) and an optional `providerId` / network override.
  *
  * @public
  * @category Type
@@ -26,7 +26,7 @@ import { useNetwork } from '../../network';
 export type UseSwapQuoteParameters<selectData = GetSwapQuoteData> = GetSwapQuoteQueryConfig<selectData>;
 
 /**
- * Return type of {@link useSwapQuote} — TanStack Query result carrying `data` ({@link SwapQuote}), `isLoading`, `error` and the standard companions.
+ * Return type of {@link useSwapQuote} — TanStack Query result carrying `data` ({@link appkit:SwapQuote}), `isLoading`, `error` and the standard companions.
  *
  * @public
  * @category Type
@@ -38,7 +38,7 @@ export type UseSwapQuoteReturnType<selectData = GetSwapQuoteData> = UseQueryRetu
 >;
 
 /**
- * React hook fetching a swap quote through TanStack Query — wraps {@link getSwapQuote}. The resulting `data` is the {@link SwapQuote} payload required to call {@link buildSwapTransaction} (see {@link useBuildSwapTransaction}). The `network` field defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
+ * React hook fetching a swap quote through TanStack Query — wraps {@link appkit:getSwapQuote}. The resulting `data` is the {@link appkit:SwapQuote} payload required to call {@link appkit:buildSwapTransaction} (see {@link useBuildSwapTransaction}). The `network` field defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
  *
  * @param parameters - {@link UseSwapQuoteParameters} Source and target tokens, amount, optional network/provider override, and TanStack Query overrides.
  * @returns TanStack Query result for the swap quote.

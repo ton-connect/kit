@@ -13,7 +13,7 @@ import type { GetStakingProviderOptions, GetStakingProviderReturnType } from '@t
 import { useAppKit } from '../../settings/hooks/use-app-kit';
 
 /**
- * Return type of {@link useStakingProvider} — the matching staking provider, or `undefined` when none resolves (the hook swallows the throw from {@link getStakingProvider}).
+ * Return type of {@link useStakingProvider} — the matching staking provider, or `undefined` when none resolves (the hook swallows the throw from {@link appkit:getStakingProvider}).
  *
  * @public
  * @category Type
@@ -22,7 +22,7 @@ import { useAppKit } from '../../settings/hooks/use-app-kit';
 export type UseStakingProviderReturnType = GetStakingProviderReturnType | undefined;
 
 /**
- * React hook returning a registered staking provider; subscribes to provider-registry changes via {@link watchStakingProviders} and looks up by `id`, or returns the registered default when no id is given. Returns `undefined` when no provider matches and no default has been registered (where the underlying {@link getStakingProvider} action would throw).
+ * React hook returning a registered staking provider; subscribes to provider-registry changes via {@link appkit:watchStakingProviders} and looks up by `id`, or returns the registered default when no id is given. Returns `undefined` when no provider matches and no default has been registered (where the underlying {@link appkit:getStakingProvider} action would throw).
  *
  * @param options - Optional provider `id`.
  * @returns Matching staking provider instance, or `undefined` when none resolves.

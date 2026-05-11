@@ -26,7 +26,7 @@ import styles from './select-unstake-mode.module.css';
  * @section Staking
  */
 export interface SelectUnstakeModeProps extends ComponentProps<'div'> {
-    /** Currently selected unstake mode (see {@link UnstakeMode}). */
+    /** Currently selected unstake mode (see {@link appkit:UnstakeMode}). */
     value: UnstakeModes;
     /** Called when the user picks a different mode. */
     onValueChange: (mode: UnstakeModes) => void;

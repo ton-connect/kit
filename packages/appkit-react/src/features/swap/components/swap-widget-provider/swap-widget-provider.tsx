@@ -164,7 +164,7 @@ export const useSwapContext = () => {
 export interface SwapProviderProps extends PropsWithChildren {
     /** Full list of tokens available for swapping in the UI. Filtered to the active network internally. */
     tokens: AppkitUIToken[];
-    /** Optional section configs for grouping tokens inside the {@link SwapTokenSelectModal}. */
+    /** Optional section configs for grouping tokens inside the `SwapTokenSelectModal`. */
     tokenSections?: TokenSectionConfig[];
     /** Symbol of the token pre-selected as the source on first mount (e.g. `"TON"`). */
     defaultFromSymbol?: string;
@@ -179,7 +179,7 @@ export interface SwapProviderProps extends PropsWithChildren {
 }
 
 /**
- * Provider that wires up the full swap state machine — debounces the entered amount, fetches the quote via {@link useSwapQuote}, reads source/target balances, validates the input, exposes the active {@link SwapProvider}, and offers `sendSwapTransaction` which builds the transaction with {@link useBuildSwapTransaction} and sends it (raising the low-balance warning when the outflow exceeds the user's TON balance). Children read everything through {@link useSwapContext}.
+ * Provider that wires up the full swap state machine — debounces the entered amount, fetches the quote via {@link useSwapQuote}, reads source/target balances, validates the input, exposes the active {@link appkit:SwapProvider}, and offers `sendSwapTransaction` which builds the transaction with {@link useBuildSwapTransaction} and sends it (raising the low-balance warning when the outflow exceeds the user's TON balance). Children read everything through {@link useSwapContext}.
  *
  * @public
  * @category Component

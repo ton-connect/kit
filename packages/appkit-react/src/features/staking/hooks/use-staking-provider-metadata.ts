@@ -23,7 +23,7 @@ import { useStakingProvider } from './use-staking-provider';
 export type UseStakingProviderMetadataParameters = GetStakingProviderMetadataOptions;
 
 /**
- * Return type of {@link useStakingProviderMetadata} — static {@link StakingProviderMetadata} for the resolved provider, or `undefined` when no provider matches and no default is registered (the hook swallows the throw from {@link getStakingProviderMetadata}).
+ * Return type of {@link useStakingProviderMetadata} — static {@link appkit:StakingProviderMetadata} for the resolved provider, or `undefined` when no provider matches and no default is registered (the hook swallows the throw from {@link appkit:getStakingProviderMetadata}).
  *
  * @public
  * @category Type
@@ -32,10 +32,10 @@ export type UseStakingProviderMetadataParameters = GetStakingProviderMetadataOpt
 export type UseStakingProviderMetadataReturnType = GetStakingProviderMetadataReturnType | undefined;
 
 /**
- * React hook reading static metadata for a staking provider (wraps {@link getStakingProviderMetadata}) — display name, stake/receive tokens, supported unstake modes and contract address. Returns `undefined` when no provider matches and no default is registered. Use {@link useStakingProviderInfo} for live values (APY, instant-unstake liquidity, exchange rate). Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
+ * React hook reading static metadata for a staking provider (wraps {@link appkit:getStakingProviderMetadata}) — display name, stake/receive tokens, supported unstake modes and contract address. Returns `undefined` when no provider matches and no default is registered. Use {@link useStakingProviderInfo} for live values (APY, instant-unstake liquidity, exchange rate). Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
  *
  * @param parameters - {@link UseStakingProviderMetadataParameters} Optional `providerId` and network override.
- * @returns Static {@link StakingProviderMetadata}, or `undefined` when the provider can't be resolved.
+ * @returns Static {@link appkit:StakingProviderMetadata}, or `undefined` when the provider can't be resolved.
  *
  * @public
  * @category Hook

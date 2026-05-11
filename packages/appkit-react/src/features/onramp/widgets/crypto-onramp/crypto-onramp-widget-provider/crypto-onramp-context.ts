@@ -32,7 +32,7 @@ import type {
 export type CryptoAmountInputMode = 'token' | 'method';
 
 /**
- * Shape of the {@link CryptoOnrampContext} value — selection state, quote/deposit data and actions exposed by {@link CryptoOnrampWidgetProvider} to the widget UI (and to custom render callbacks passed to {@link CryptoOnrampWidget}).
+ * Shape of the `CryptoOnrampContext` value — selection state, quote/deposit data and actions exposed by {@link CryptoOnrampWidgetProvider} to the widget UI (and to custom render callbacks passed to {@link CryptoOnrampWidget}).
  *
  * @public
  * @category Type
@@ -166,7 +166,7 @@ const defaultContext: CryptoOnrampContextType = {
 export const CryptoOnrampContext = createContext<CryptoOnrampContextType>(defaultContext);
 
 /**
- * Reads the {@link CryptoOnrampContext} populated by {@link CryptoOnrampWidgetProvider} — returns the widget's selection state, quote/deposit data and actions ({@link CryptoOnrampContextType}).
+ * Reads the `CryptoOnrampContext` populated by {@link CryptoOnrampWidgetProvider} — returns the widget's selection state, quote/deposit data and actions ({@link CryptoOnrampContextType}).
  *
  * @public
  * @category Hook

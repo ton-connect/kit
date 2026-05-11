@@ -175,7 +175,7 @@ export interface StakingProviderProps extends PropsWithChildren {
 }
 
 /**
- * Headless provider that owns all staking-widget state. Tracks the input amount, direction (stake/unstake), unstake mode, and reverse-input toggle; resolves the selected provider via {@link useStakingProvider} and its info/metadata via {@link useStakingProviderInfo} and {@link useStakingProviderMetadata}; reads the user's wallet balance (native TON or jetton) and staked balance; debounces inputs into {@link useStakingQuote}; and submits via {@link useBuildStakeTransaction} + `useSendTransaction`, gating on a TON-shortfall check to surface a low-balance warning. Validation flags (`error`, `canSubmit`) come from `useStakingValidation`. Exposes everything through {@link StakingContext} for {@link useStakingContext} consumers.
+ * Headless provider that owns all staking-widget state. Tracks the input amount, direction (stake/unstake), unstake mode, and reverse-input toggle; resolves the selected provider via {@link useStakingProvider} and its info/metadata via {@link useStakingProviderInfo} and {@link useStakingProviderMetadata}; reads the user's wallet balance (native TON or jetton) and staked balance; debounces inputs into {@link useStakingQuote}; and submits via {@link useBuildStakeTransaction} + `useSendTransaction`, gating on a TON-shortfall check to surface a low-balance warning. Validation flags (`error`, `canSubmit`) come from `useStakingValidation`. Exposes everything through `StakingContext` for {@link useStakingContext} consumers.
  *
  * @public
  * @category Component

@@ -45,7 +45,7 @@ export type UseCreateCryptoOnrampDepositReturnType<context = unknown> = UseMutat
 >;
 
 /**
- * React mutation hook that creates a crypto-onramp deposit from a quote previously obtained via {@link useCryptoOnrampQuote} (wraps {@link createCryptoOnrampDeposit}) — the resolved {@link CryptoOnrampDeposit} carries the address and amount the user must send on the source chain.
+ * React mutation hook that creates a crypto-onramp deposit from a quote previously obtained via {@link useCryptoOnrampQuote} (wraps {@link appkit:createCryptoOnrampDeposit}) — the resolved {@link appkit:CryptoOnrampDeposit} carries the address and amount the user must send on the source chain.
  *
  * @param parameters - {@link UseCreateCryptoOnrampDepositParameters} TanStack Query mutation overrides (`parameters.mutation`).
  * @returns Mutation result for the deposit call.

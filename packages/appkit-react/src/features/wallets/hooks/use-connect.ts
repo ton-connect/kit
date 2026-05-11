@@ -43,7 +43,7 @@ export type UseConnectReturnType<context = unknown> = UseMutationReturnType<
 >;
 
 /**
- * React mutation hook that triggers the connection flow on a registered connector by id (wraps {@link connect}); returns `mutate({ connectorId })` you call from event handlers. The underlying action throws `Error('Connector with id "<id>" not found')` when no connector with that id is registered — TanStack Query surfaces it via the mutation's `error`.
+ * React mutation hook that triggers the connection flow on a registered connector by id (wraps {@link appkit:connect}); returns `mutate({ connectorId })` you call from event handlers. The underlying action throws `Error('Connector with id "<id>" not found')` when no connector with that id is registered — TanStack Query surfaces it via the mutation's `error`.
  *
  * @param parameters - {@link UseConnectParameters} TanStack Query mutation overrides.
  * @returns Mutation result for the connect call.

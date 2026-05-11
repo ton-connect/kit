@@ -13,7 +13,7 @@ import type { GetSwapProviderReturnType } from '@ton/appkit';
 import { useAppKit } from '../../settings/hooks/use-app-kit';
 
 /**
- * Return type of {@link useSwapProvider} — `[provider, setProviderId]` tuple. `provider` is the default {@link SwapProviderInterface} (or `undefined` when none is registered); `setProviderId` calls {@link setDefaultSwapProvider} and emits `provider:default-changed`, which {@link watchSwapProviders} picks up.
+ * Return type of {@link useSwapProvider} — `[provider, setProviderId]` tuple. `provider` is the default `SwapProviderInterface` (or `undefined` when none is registered); `setProviderId` calls {@link appkit:setDefaultSwapProvider} and emits `provider:default-changed`, which {@link appkit:watchSwapProviders} picks up.
  *
  * @public
  * @category Type
@@ -22,7 +22,7 @@ import { useAppKit } from '../../settings/hooks/use-app-kit';
 export type UseSwapProviderReturnType = readonly [GetSwapProviderReturnType | undefined, (providerId: string) => void];
 
 /**
- * Read and switch the default swap provider — subscribes to {@link watchSwapProviders} and re-reads via {@link getSwapProvider}. Returns a `useState`-style tuple; the read swallows the throw from {@link getSwapProvider} (which throws when no provider matches — or when no id is passed and no default has been registered) and yields `undefined` instead.
+ * Read and switch the default swap provider — subscribes to {@link appkit:watchSwapProviders} and re-reads via {@link appkit:getSwapProvider}. Returns a `useState`-style tuple; the read swallows the throw from {@link appkit:getSwapProvider} (which throws when no provider matches — or when no id is passed and no default has been registered) and yields `undefined` instead.
  *
  * @returns Tuple `[provider, setProviderId]`.
  *

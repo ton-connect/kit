@@ -21,7 +21,7 @@ import { useSelectedWallet } from '../../wallets';
 export type UseNetworkReturnType = Network | undefined;
 
 /**
- * Read the {@link Network} the selected wallet is connected to; re-renders when the wallet's network changes (e.g. user switches mainnet/testnet inside the wallet).
+ * Read the {@link appkit:Network} the selected wallet is connected to; re-renders when the wallet's network changes (e.g. user switches mainnet/testnet inside the wallet).
  *
  * @returns Selected wallet's network, or `undefined` when no wallet is selected.
  *

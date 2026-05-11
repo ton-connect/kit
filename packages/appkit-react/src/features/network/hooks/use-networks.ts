@@ -13,7 +13,7 @@ import type { GetNetworksReturnType } from '@ton/appkit';
 import { useAppKit } from '../../settings';
 
 /**
- * Return type of {@link useNetworks} — same shape as {@link GetNetworksReturnType}.
+ * Return type of {@link useNetworks} — same shape as {@link appkit:GetNetworksReturnType}.
  *
  * @public
  * @category Type
@@ -22,9 +22,9 @@ import { useAppKit } from '../../settings';
 export type UseNetworksReturnType = GetNetworksReturnType;
 
 /**
- * Read the list of networks configured on AppKit; re-renders when {@link AppKitNetworkManager} adds, replaces or drops a network.
+ * Read the list of networks configured on AppKit; re-renders when {@link appkit:AppKitNetworkManager} adds, replaces or drops a network.
  *
- * @returns Array of configured {@link Network}s.
+ * @returns Array of configured {@link appkit:Network}s.
  *
  * @public
  * @category Hook

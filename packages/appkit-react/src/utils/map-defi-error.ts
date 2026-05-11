@@ -10,7 +10,7 @@ import { DefiError } from '@ton/appkit';
 
 /**
  * Map a thrown error to an i18n key from the `defi.*` namespace.
- * Returns `null` when the error isn't a {@link DefiError} or the code isn't recognised —
+ * Returns `null` when the error isn't a {@link appkit:DefiError} or the code isn't recognised —
  * callers should decide on their own fallback (usually a domain-specific key).
  */
 export const mapDefiError = (error: unknown): string | null => {

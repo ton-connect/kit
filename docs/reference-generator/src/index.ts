@@ -24,6 +24,16 @@ const PACKAGES: Record<PackageKey, string> = {
     'appkit-react': 'packages/appkit-react',
 };
 
+/**
+ * URL prefixes used to point cross-package `{@link X}` references at sibling
+ * reference pages in the published docs. Keyed by `PackageKey`; appended
+ * before `#anchor` when a symbol resolves to a different package.
+ */
+const PUBLISHED_URL: Record<PackageKey, string> = {
+    appkit: '/ecosystem/appkit/reference/appkit',
+    'appkit-react': '/ecosystem/appkit/reference/appkit-react',
+};
+
 function parseTargets(argv: string[]): PackageKey[] {
     const flag = argv.find((a) => a.startsWith('--package='));
     const value = flag?.split('=')[1] ?? 'all';
@@ -32,7 +42,7 @@ function parseTargets(argv: string[]): PackageKey[] {
     throw new Error(`Unknown --package value: ${value}`);
 }
 
-function generateForPackage(pkg: PackageKey): { output: string; entryCount: number } {
+function collectForPackage(pkg: PackageKey): Extracted[] {
     const packagePath = join(REPO_ROOT, PACKAGES[pkg]);
     const collected = collectPublicApi({ packagePath });
     const extracted: Extracted[] = collected.map(extract);
@@ -54,15 +64,41 @@ function generateForPackage(pkg: PackageKey): { output: string; entryCount: numb
         );
     }
 
-    const output = render(extracted);
-    return { output, entryCount: extracted.length };
+    return extracted;
 }
 
 function main(): void {
     const targets = parseTargets(process.argv.slice(2));
 
+    // Collect both packages first so each render pass knows which symbols live
+    // in the sibling document and can emit absolute URLs instead of dead local
+    // anchors for cross-package `{@link X}` references.
+    const collected: Record<PackageKey, Extracted[]> = {
+        appkit: collectForPackage('appkit'),
+        'appkit-react': collectForPackage('appkit-react'),
+    };
+
     for (const pkg of targets) {
-        const { output, entryCount } = generateForPackage(pkg);
+        const externalRefs = new Map<string, string>();
+        for (const otherPkg of Object.keys(collected) as PackageKey[]) {
+            if (otherPkg === pkg) continue;
+            for (const entry of collected[otherPkg]) {
+                externalRefs.set(entry.name, PUBLISHED_URL[otherPkg]);
+            }
+        }
+
+        // Package prefixes for the explicit `{@link pkg:Name}` form. The
+        // current package maps to an empty prefix so authors can write
+        // qualified links from within their own package and still get local
+        // anchors instead of fully-qualified URLs.
+        const packagePrefixes = new Map<string, string>();
+        for (const otherPkg of Object.keys(collected) as PackageKey[]) {
+            packagePrefixes.set(otherPkg, otherPkg === pkg ? '' : PUBLISHED_URL[otherPkg]);
+        }
+
+        const output = render(collected[pkg], { externalRefs, packagePrefixes });
+        const entryCount = collected[pkg].length;
+
         const outPath = join(REPO_ROOT, 'docs/templates/packages', pkg, 'docs/reference.md');
         const target = `packages/${pkg}/docs/reference.md`;
         const frontMatter = `---\ntarget: ${target}\n---\n\n`;

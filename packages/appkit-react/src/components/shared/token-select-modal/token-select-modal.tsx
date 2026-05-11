@@ -16,7 +16,7 @@ import { useI18n } from '../../../features/settings/hooks/use-i18n';
 import { filterTokens, groupTokenSections } from './utils';
 
 /**
- * Minimal shape every token in {@link TokenSelectModal} must satisfy. Callers may use richer types (e.g., {@link AppkitUIToken}) — `TokenBase` only fixes the fields the modal reads.
+ * Minimal shape every token in {@link TokenSelectModal} must satisfy. Callers may use richer types (e.g., `AppkitUIToken`) — `TokenBase` only fixes the fields the modal reads.
  *
  * @public
  * @category Type
