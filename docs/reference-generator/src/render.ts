@@ -285,17 +285,11 @@ function escapeForCell(text: string): string {
 }
 
 /**
- * Renders a type cell as one or more inline-code "chips":
- *   - linked names → `<a href="#name"><code>Name</code></a>` (chip-link)
- *   - surrounding syntax → `<code>…</code>` (plain chip)
- *
- * Each segment is its own HTML element, so adjacent backtick code spans never
- * sit flush against a markdown link (a combo MDX mishandled in Mintlify) and
- * the link scope stays tight to the type name itself instead of wrapping the
- * whole compound type.
- *
- * Both segment forms collapse to the same `<code>` DOM element Mintlify
- * styles as a chip, matching {@link formatTypeOverride}'s markdown chips.
+ * Renders a type cell as a single `<code>` chip with linked names inlined as
+ * `<a>` children. The wrapping `<code>` keeps Mintlify's chip styling unified
+ * across the whole compound type (e.g., `ConnectorInput[]` stays one chip
+ * instead of fragmenting into a chip-link + plain chip combo), while the
+ * inline `<a>` preserves the precise link scope on the symbol name only.
  */
 function formatTypeCell(typeText: string): string {
     if (LINKABLE.size === 0) return '`' + escapeForCell(typeText) + '`';
@@ -303,22 +297,24 @@ function formatTypeCell(typeText: string): string {
     const names = [...LINKABLE.keys()].sort((a, b) => b.length - a.length);
     const pattern = new RegExp(`\\b(${names.map(escapeRegex).join('|')})\\b`, 'g');
 
-    const segments: string[] = [];
+    let body = '';
     let lastIndex = 0;
     let match: RegExpExecArray | null;
+    let matched = false;
     while ((match = pattern.exec(typeText)) !== null) {
+        matched = true;
         if (match.index > lastIndex) {
-            segments.push(`<code>${escapeHtmlInCell(typeText.slice(lastIndex, match.index))}</code>`);
+            body += escapeHtmlInCell(typeText.slice(lastIndex, match.index));
         }
         const prefix = LINKABLE.get(match[1]) ?? '';
-        segments.push(`<a href="${prefix}#${slugify(match[1])}"><code>${match[1]}</code></a>`);
+        body += `<a href="${prefix}#${slugify(match[1])}">${match[1]}</a>`;
         lastIndex = pattern.lastIndex;
     }
-    if (segments.length === 0) return '`' + escapeForCell(typeText) + '`';
+    if (!matched) return '`' + escapeForCell(typeText) + '`';
     if (lastIndex < typeText.length) {
-        segments.push(`<code>${escapeHtmlInCell(typeText.slice(lastIndex))}</code>`);
+        body += escapeHtmlInCell(typeText.slice(lastIndex));
     }
-    return segments.join('');
+    return `<code>${body}</code>`;
 }
 
 function escapeHtmlInCell(text: string): string {
