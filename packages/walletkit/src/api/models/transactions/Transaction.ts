@@ -25,7 +25,7 @@ export interface Transaction {
     accountStateBefore?: AccountState;
 
     /**
-     * * The state of the account after the transaction has been applied
+     * The state of the account after the transaction has been applied
      */
     accountStateAfter?: AccountState;
 

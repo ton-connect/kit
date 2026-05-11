@@ -13,7 +13,7 @@ import { I18nContext } from '../../../providers/i18n-provider';
 /**
  * Read the i18n context published by {@link I18nProvider} (or the wrapping {@link AppKitProvider}); returns the active locale, translation function and helpers to switch locales or merge dictionaries. Throws when rendered outside the provider tree.
  *
- * @returns {@link I18nContextType} with `activeLocale`, `t`, `locale` and `addDict`.
+ * @returns The i18n context ({@link I18nContextType}) with `activeLocale`, `t`, `locale` and `addDict`.
  *
  * @public
  * @category Hook

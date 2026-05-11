@@ -97,19 +97,13 @@ Constructor: `new CryptoOnrampError(message, code, details)`
 
 #### CryptoOnrampManager
 
-CryptoOnrampManager — manages crypto onramp providers and delegates crypto onramp operations.
-
-Allows registration of multiple crypto onramp providers and provides a unified API
-for crypto-to-TON onramp operations. Providers can be switched dynamically.
+Runtime that owns registered [`CryptoOnrampProvider`](#cryptoonrampprovider)s and dispatches quote/deposit/status calls. Exposed as [`AppKit`](#appkit)'s `cryptoOnrampManager`; usually accessed through the higher-level actions ([`getCryptoOnrampQuote`](#getcryptoonrampquote), [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit), [`getCryptoOnrampStatus`](#getcryptoonrampstatus)).
 
 Constructor: `new CryptoOnrampManager()`
 
 #### CryptoOnrampProvider
 
-Abstract base class for crypto onramp providers
-
-Provides a common interface for implementing crypto-to-TON onramp functionality
-across different gateways.
+Abstract base class implemented by crypto-onramp providers (Layerswap, swaps.xyz, custom integrations); apps don't use it directly — they consume providers through [`CryptoOnrampManager`](#cryptoonrampmanager) and the `getCryptoOnramp*` / [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit) actions.
 
 Constructor: `new CryptoOnrampProvider()`
 
@@ -145,7 +139,7 @@ Constructor: `new SwapsXyzCryptoOnrampProvider(config)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config`\* | [`SwapsXyzProviderConfig`](#swapsxyzproviderconfig) | carrying the required `apiKey` plus optional URL/sender overrides. |
+| `config`\* | [`SwapsXyzProviderConfig`](#swapsxyzproviderconfig) | Configuration carrying the required `apiKey` plus optional URL/sender overrides. |
 
 ### DeFi
 
@@ -182,7 +176,7 @@ Constructor: `new KitNetworkManager(options)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `options`\* | [`TonWalletKitOptions`](#tonwalletkitoptions) | carrying the `networks` map keyed by chain ID; at least one network must be configured. |
+| `options`\* | [`TonWalletKitOptions`](#tonwalletkitoptions) | Configuration carrying the `networks` map keyed by chain ID; at least one network must be configured. |
 
 ### Staking
 
@@ -689,7 +683,7 @@ Build a swaps.xyz-backed [`CryptoOnrampProvider`](#cryptoonrampprovider) for App
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config`\* | [`SwapsXyzProviderConfig`](#swapsxyzproviderconfig) | carrying the required `apiKey` plus optional URL/sender overrides. |
+| `config`\* | [`SwapsXyzProviderConfig`](#swapsxyzproviderconfig) | Configuration carrying the required `apiKey` plus optional URL/sender overrides. |
 
 Returns: <code>ProviderFactory&lt;<a href="#swapsxyzcryptoonrampprovider">SwapsXyzCryptoOnrampProvider</a>&gt;</code>.
 
@@ -1447,7 +1441,7 @@ Read a user's staked balance from a staking provider — total staked plus, depe
 | `options.network` | <code><a href="#network">Network</a></code> | Network to query. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 | `options.providerId` | `string` | Provider to query; defaults to the registered default staking provider. |
 
-Returns: <code><a href="#getstakedbalancereturntype">GetStakedBalanceReturnType</a></code>.
+Returns: <code><a href="#getstakedbalancereturntype">GetStakedBalanceReturnType</a></code> — Staked-balance breakdown ([`StakingBalance`](#stakingbalance)) for the user on the resolved network/provider.
 
 **Example**
 
@@ -3246,7 +3240,7 @@ TON blockchain network identifier.
 #### NetworkAdapters
 
 Multi-network configuration keyed by chain ID
-Example: \{ [Networl.mainnet().chainId]: \{ apiClient: \{...\} \}, [Networl.testnet().chainId]: \{ apiClient: \{...\} \} \}
+Example: \{ [Network.mainnet().chainId]: \{ apiClient: \{...\} \}, [Network.testnet().chainId]: \{ apiClient: \{...\} \} \}
 
 ```ts
 type NetworkAdapters = {
@@ -4136,7 +4130,7 @@ Single transaction record carried inside [`TransactionsUpdate`](#transactionsupd
 | --- | --- | --- |
 | `account`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Account of the transaction |
 | `accountStateBefore` | `AccountState` | The state of the account before the transaction was executed |
-| `accountStateAfter` | `AccountState` | * The state of the account after the transaction has been applied |
+| `accountStateAfter` | `AccountState` | The state of the account after the transaction has been applied |
 | `description` | `TransactionDescription` | The detailed breakdown of the transaction execution |
 | `hash`\* | <code><a href="#hex">Hex</a></code> | Hash of the transaction |
 | `logicalTime`\* | `LogicalTime` | The logical time of the transaction |

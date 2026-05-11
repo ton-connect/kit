@@ -354,7 +354,7 @@ Returns: `readonly [string, Dispatch<SetStateAction<string>>]` — Tuple `[theme
 
 Read the i18n context published by [`I18nProvider`](#i18nprovider) (or the wrapping [`AppKitProvider`](#appkitprovider)); returns the active locale, translation function and helpers to switch locales or merge dictionaries. Throws when rendered outside the provider tree.
 
-Returns: `I18nContextType`.
+Returns: `I18nContextType` — The i18n context ([`I18nContextType`](#i18ncontexttype)) with `activeLocale`, `t`, `locale` and `addDict`.
 
 ### Signing
 

@@ -123,7 +123,7 @@ class ProxyStreamingProvider implements StreamingProvider {
     dispose(): void {
         const subs = kotlinProviderSubs.get(this.providerId);
         if (!subs) return;
-        for (const subID of subs) {
+        for (const subId of subs) {
             kotlinSubCallbacks.delete(subId);
             void bridgeRequest('kotlinProviderUnwatch', { subId });
         }

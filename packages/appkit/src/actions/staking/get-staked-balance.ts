@@ -42,7 +42,7 @@ export type GetStakedBalanceReturnType = Promise<StakingBalance>;
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param options - {@link GetStakedBalanceOptions} Owner address and optional network/provider override.
- * @returns {@link StakingBalance} for the user on the resolved network/provider.
+ * @returns Staked-balance breakdown ({@link StakingBalance}) for the user on the resolved network/provider.
  *
  * @sample docs/examples/src/appkit/actions/staking#GET_STAKED_BALANCE
  * @expand options

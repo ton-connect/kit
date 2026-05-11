@@ -17,12 +17,24 @@
 export { CryptoOnrampError } from '@ton/walletkit';
 
 /**
+ * Abstract base class implemented by crypto-onramp providers (Layerswap, swaps.xyz, custom integrations); apps don't use it directly — they consume providers through {@link CryptoOnrampManager} and the `getCryptoOnramp*` / {@link createCryptoOnrampDeposit} actions.
+ *
  * @extract
  * @public
  * @category Class
  * @section Crypto Onramp
  */
-export { CryptoOnrampProvider, CryptoOnrampManager } from '@ton/walletkit';
+export { CryptoOnrampProvider } from '@ton/walletkit';
+
+/**
+ * Runtime that owns registered {@link CryptoOnrampProvider}s and dispatches quote/deposit/status calls. Exposed as {@link AppKit}'s `cryptoOnrampManager`; usually accessed through the higher-level actions ({@link getCryptoOnrampQuote}, {@link createCryptoOnrampDeposit}, {@link getCryptoOnrampStatus}).
+ *
+ * @extract
+ * @public
+ * @category Class
+ * @section Crypto Onramp
+ */
+export { CryptoOnrampManager } from '@ton/walletkit';
 
 /**
  * @extract
