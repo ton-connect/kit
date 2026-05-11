@@ -2348,9 +2348,9 @@ Context that AppKit's DeFi managers inject into a [`ProviderInput`](#providerinp
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `networkManager`\* | `NetworkManager` | _TODO: describe_ |
-| `eventEmitter`\* | <code><a href="#eventemitter">EventEmitter</a>&lt;Events = <a href="#sharedkitevents">SharedKitEvents</a>&gt;</code> | _TODO: describe_ |
-| `ssr` | `boolean` | _TODO: describe_ |
+| `networkManager`\* | `NetworkManager` | Network manager the provider should use for client lookups and default-network reads. |
+| `eventEmitter`\* | <code><a href="#eventemitter">EventEmitter</a>&lt;Events = <a href="#sharedkitevents">SharedKitEvents</a>&gt;</code> | Event emitter the provider should publish its events to. |
+| `ssr` | `boolean` | `true` when the provider is constructed during server-side rendering — factories may skip browser-only setup. |
 
 #### ProviderInput
 
