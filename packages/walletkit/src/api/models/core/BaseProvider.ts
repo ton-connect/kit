@@ -22,6 +22,8 @@ export interface BaseProviderUpdate {
 }
 
 export interface BaseProviderEvents {
+    /** Fired by a DeFi manager when a provider is registered through it (carries the provider's id and kind). */
     'provider:registered': BaseProviderUpdate;
+    /** Fired by a DeFi manager when its default provider is set or cleared (carries the new default's id and kind). */
     'provider:default-changed': BaseProviderUpdate;
 }

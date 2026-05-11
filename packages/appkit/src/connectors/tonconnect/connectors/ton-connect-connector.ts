@@ -43,6 +43,7 @@ export interface TonConnectConnectorConfig {
  */
 export type TonConnectConnector = Connector & {
     type: 'tonconnect';
+    /** Underlying `TonConnectUI` instance — `null` during SSR or before the connector has been initialised. Apps that need to drive the modal directly (e.g. custom UI flows) can read this and call its methods. */
     tonConnectUI: TonConnectUI | null;
 };
 

@@ -72,16 +72,23 @@ export interface DefaultNetworkChangedPayload {
  */
 export type AppKitEvents = {
     // Connector events
+    /** Fired by {@link addConnector} when a connector is registered with AppKit. */
     [CONNECTOR_EVENTS.ADDED]: ConnectorAddedPayload;
+    /** Fired by `removeConnector` when a connector is unregistered from AppKit. */
     [CONNECTOR_EVENTS.REMOVED]: ConnectorRemovedPayload;
+    /** Fired by a connector whenever its connected-wallets list changes (connect, disconnect, or account switch inside the wallet). */
     [CONNECTOR_EVENTS.WALLETS_UPDATED]: ConnectorWalletsUpdatedPayload;
 
     // Wallets events
+    /** Fired by AppKit's wallet manager after re-aggregating connectors — `wallets` is the full current set. */
     [WALLETS_EVENTS.UPDATED]: { wallets: WalletInterface[] };
+    /** Fired when the selected wallet changes — `walletId` is the new selection, or `null` when cleared. */
     [WALLETS_EVENTS.SELECTION_CHANGED]: { walletId: string | null };
 
     // Networks events
+    /** Fired by the network manager when a network's API client is registered or replaced via `setClient`. */
     [NETWORKS_EVENTS.UPDATED]: Record<string, never>;
+    /** Fired by {@link setDefaultNetwork} — carries the new default network, or `undefined` when the constraint was cleared. */
     [NETWORKS_EVENTS.DEFAULT_CHANGED]: DefaultNetworkChangedPayload;
 } & SharedKitEvents;
 

@@ -2320,7 +2320,7 @@ type GetConnectorsReturnType = readonly Connector[];
 | `connectWallet`\* | <code>(network?: <a href="#network">Network</a>) =&gt; Promise&lt;void&gt;</code> | Initiate a wallet connection flow on the given network. |
 | `disconnectWallet`\* | `() => Promise<void>` | Disconnect the currently connected wallet, if any. |
 | `getConnectedWallets`\* | <code>() =&gt; <a href="#walletinterface">WalletInterface</a>[]</code> | Wallets currently connected through this connector. |
-| `tonConnectUI`\* | `TonConnectUI \| null` | _TODO: describe_ |
+| `tonConnectUI`\* | `TonConnectUI \| null` | Underlying `TonConnectUI` instance — `null` during SSR or before the connector has been initialised. Apps that need to drive the modal directly (e.g. custom UI flows) can read this and call its methods. |
 
 #### TonConnectConnectorConfig
 
@@ -2394,18 +2394,18 @@ Map of every event name AppKit can emit to its payload type, used to type listen
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `connector:added`\* | <code><a href="#connectoraddedpayload">ConnectorAddedPayload</a></code> | _TODO: describe_ |
-| `connector:removed`\* | <code><a href="#connectorremovedpayload">ConnectorRemovedPayload</a></code> | _TODO: describe_ |
-| `connector:wallets-updated`\* | <code><a href="#connectorwalletsupdatedpayload">ConnectorWalletsUpdatedPayload</a></code> | _TODO: describe_ |
-| `wallets:updated`\* | <code>&lbrace; wallets: <a href="#walletinterface">WalletInterface</a>[] &rbrace;</code> | _TODO: describe_ |
-| `wallets:selection-changed`\* | `{ walletId: string \| null }` | _TODO: describe_ |
-| `networks:updated`\* | `Record<string, never>` | _TODO: describe_ |
-| `networks:default-changed`\* | <code><a href="#defaultnetworkchangedpayload">DefaultNetworkChangedPayload</a></code> | _TODO: describe_ |
-| `streaming:balance-update`\* | <code><a href="#balanceupdate">BalanceUpdate</a></code> | _TODO: describe_ |
-| `streaming:transactions`\* | <code><a href="#transactionsupdate">TransactionsUpdate</a></code> | _TODO: describe_ |
-| `streaming:jettons-update`\* | <code><a href="#jettonupdate">JettonUpdate</a></code> | _TODO: describe_ |
-| `provider:registered`\* | `BaseProviderUpdate` | _TODO: describe_ |
-| `provider:default-changed`\* | `BaseProviderUpdate` | _TODO: describe_ |
+| `connector:added`\* | <code><a href="#connectoraddedpayload">ConnectorAddedPayload</a></code> | Fired by [`addConnector`](#addconnector) when a connector is registered with AppKit. |
+| `connector:removed`\* | <code><a href="#connectorremovedpayload">ConnectorRemovedPayload</a></code> | Fired by `removeConnector` when a connector is unregistered from AppKit. |
+| `connector:wallets-updated`\* | <code><a href="#connectorwalletsupdatedpayload">ConnectorWalletsUpdatedPayload</a></code> | Fired by a connector whenever its connected-wallets list changes (connect, disconnect, or account switch inside the wallet). |
+| `wallets:updated`\* | <code>&lbrace; wallets: <a href="#walletinterface">WalletInterface</a>[] &rbrace;</code> | Fired by AppKit's wallet manager after re-aggregating connectors — `wallets` is the full current set. |
+| `wallets:selection-changed`\* | `{ walletId: string \| null }` | Fired when the selected wallet changes — `walletId` is the new selection, or `null` when cleared. |
+| `networks:updated`\* | `Record<string, never>` | Fired by the network manager when a network's API client is registered or replaced via `setClient`. |
+| `networks:default-changed`\* | <code><a href="#defaultnetworkchangedpayload">DefaultNetworkChangedPayload</a></code> | Fired by [`setDefaultNetwork`](#setdefaultnetwork) — carries the new default network, or `undefined` when the constraint was cleared. |
+| `streaming:balance-update`\* | <code><a href="#balanceupdate">BalanceUpdate</a></code> | Fired by a streaming provider when a watched address's TON balance changes. |
+| `streaming:transactions`\* | <code><a href="#transactionsupdate">TransactionsUpdate</a></code> | Fired by a streaming provider when new transactions land for a watched address. |
+| `streaming:jettons-update`\* | <code><a href="#jettonupdate">JettonUpdate</a></code> | Fired by a streaming provider when a watched address's jetton holdings change. |
+| `provider:registered`\* | `BaseProviderUpdate` | Fired by a DeFi manager when a provider is registered through it (carries the provider's id and kind). |
+| `provider:default-changed`\* | `BaseProviderUpdate` | Fired by a DeFi manager when its default provider is set or cleared (carries the new default's id and kind). |
 
 #### ConnectorAddedPayload
 
@@ -2473,11 +2473,11 @@ Event-name → payload map shared between AppKit and walletkit; AppKit extends i
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `streaming:balance-update`\* | <code><a href="#balanceupdate">BalanceUpdate</a></code> | _TODO: describe_ |
-| `streaming:transactions`\* | <code><a href="#transactionsupdate">TransactionsUpdate</a></code> | _TODO: describe_ |
-| `streaming:jettons-update`\* | <code><a href="#jettonupdate">JettonUpdate</a></code> | _TODO: describe_ |
-| `provider:registered`\* | `BaseProviderUpdate` | _TODO: describe_ |
-| `provider:default-changed`\* | `BaseProviderUpdate` | _TODO: describe_ |
+| `streaming:balance-update`\* | <code><a href="#balanceupdate">BalanceUpdate</a></code> | Fired by a streaming provider when a watched address's TON balance changes. |
+| `streaming:transactions`\* | <code><a href="#transactionsupdate">TransactionsUpdate</a></code> | Fired by a streaming provider when new transactions land for a watched address. |
+| `streaming:jettons-update`\* | <code><a href="#jettonupdate">JettonUpdate</a></code> | Fired by a streaming provider when a watched address's jetton holdings change. |
+| `provider:registered`\* | `BaseProviderUpdate` | Fired by a DeFi manager when a provider is registered through it (carries the provider's id and kind). |
+| `provider:default-changed`\* | `BaseProviderUpdate` | Fired by a DeFi manager when its default provider is set or cleared (carries the new default's id and kind). |
 
 ### Crypto Onramp
 
