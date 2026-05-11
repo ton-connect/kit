@@ -17,7 +17,7 @@
 export { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
 
 /**
- * Build an Omniston-backed {@link SwapProvider} for AppKit; pass the result to {@link AppKitConfig}`.providers` or {@link registerProvider}.
+ * Build an Omniston-backed {@link SwapProvider} for AppKit; pass the result to {@link AppKitConfig}'s `providers` or {@link registerProvider}.
  *
  * @extract
  * @public
@@ -57,7 +57,7 @@ export type { OmnistonProviderOptions } from '@ton/walletkit/swap/omniston';
 export type { OmnistonReferrerOptions } from '@ton/walletkit/swap/omniston';
 
 /**
- * Provider-specific metadata returned on a {@link SwapQuote}`.metadata` from Omniston — carries the resolved route and signed quote payload that {@link buildSwapTransaction} needs.
+ * Provider-specific metadata returned on a {@link SwapQuote}'s `metadata` from Omniston — carries the resolved route and signed quote payload that {@link buildSwapTransaction} needs.
  *
  * @extract
  * @public

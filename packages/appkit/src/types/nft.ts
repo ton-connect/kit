@@ -37,7 +37,7 @@ export type { NFTsResponse } from '@ton/walletkit';
 export type { NFTAttribute } from '@ton/walletkit';
 
 /**
- * NFT collection (TEP-62) — surfaced as {@link NFT}`.collection` and carries the collection's name, image, owner and minting cursor.
+ * NFT collection (TEP-62) — surfaced as {@link NFT}'s `collection` and carries the collection's name, image, owner and minting cursor.
  *
  * @extract
  * @public

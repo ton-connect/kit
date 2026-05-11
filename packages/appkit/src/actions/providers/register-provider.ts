@@ -10,7 +10,7 @@ import type { AppKit } from '../../core/app-kit';
 import type { ProviderInput } from '../../types/provider';
 
 /**
- * Provider instance or factory accepted by {@link registerProvider} — same shape used in {@link AppKitConfig}`.providers`. AppKit dispatches it to the right manager based on `provider.type` (`'swap'`, `'staking'`, `'onramp'`, `'crypto-onramp'`).
+ * Provider instance or factory accepted by {@link registerProvider} — same shape used in {@link AppKitConfig}'s `providers`. AppKit dispatches it to the right manager based on `provider.type` (`'swap'`, `'staking'`, `'onramp'`, `'crypto-onramp'`).
  *
  * @public
  * @category Type
@@ -19,7 +19,7 @@ import type { ProviderInput } from '../../types/provider';
 export type RegisterProviderOptions = ProviderInput;
 
 /**
- * Register a DeFi / onramp provider at runtime — equivalent to passing it via {@link AppKitConfig}`.providers` at construction, but available after AppKit is up. AppKit emits `provider:registered`, picked up by domain-specific subscribers like {@link watchSwapProviders} and {@link watchCryptoOnrampProviders}.
+ * Register a DeFi / onramp provider at runtime — equivalent to passing it via {@link AppKitConfig}'s `providers` at construction, but available after AppKit is up. AppKit emits `provider:registered`, picked up by domain-specific subscribers like {@link watchSwapProviders} and {@link watchCryptoOnrampProviders}.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param provider - {@link RegisterProviderOptions} Provider instance or factory to register.

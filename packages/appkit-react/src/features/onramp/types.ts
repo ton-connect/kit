@@ -52,7 +52,7 @@ export interface CurrencySectionConfig {
 export type AmountInputMode = 'token' | 'currency';
 
 /**
- * Quick-pick amount button shown above the crypto-onramp input (carried on {@link CryptoOnrampContextType}`.presetAmounts`).
+ * Quick-pick amount button shown above the crypto-onramp input (carried on {@link CryptoOnrampContextType}'s `presetAmounts`).
  *
  * @public
  * @category Type

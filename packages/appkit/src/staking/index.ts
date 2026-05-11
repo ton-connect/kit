@@ -29,7 +29,7 @@ export { StakingProvider } from '@ton/walletkit';
 export { StakingError } from '@ton/walletkit';
 
 /**
- * Runtime that owns registered {@link StakingProvider}s and dispatches quote/stake/balance calls. Exposed as {@link AppKit}`.stakingManager`; usually accessed through the higher-level actions ({@link getStakingQuote}, {@link buildStakeTransaction}, {@link getStakedBalance}).
+ * Runtime that owns registered {@link StakingProvider}s and dispatches quote/stake/balance calls. Exposed as {@link AppKit}'s `stakingManager`; usually accessed through the higher-level actions ({@link getStakingQuote}, {@link buildStakeTransaction}, {@link getStakedBalance}).
  *
  * @extract
  * @public
@@ -39,7 +39,7 @@ export { StakingError } from '@ton/walletkit';
 export { StakingManager } from '@ton/walletkit';
 
 /**
- * Discriminator carried on every {@link StakingError}`.code` — `'INVALID_PARAMS'` (the request was malformed) or `'UNSUPPORTED_OPERATION'` (the provider doesn't support this call).
+ * Discriminator carried on every {@link StakingError}'s `code` — `'INVALID_PARAMS'` (the request was malformed) or `'UNSUPPORTED_OPERATION'` (the provider doesn't support this call).
  *
  * @extract
  * @public
@@ -49,7 +49,7 @@ export { StakingManager } from '@ton/walletkit';
 export { StakingErrorCode } from '@ton/walletkit';
 
 /**
- * Allowed unstake-timing flavours referenced by {@link UnstakeModes} and {@link StakingProviderMetadata}`.supportedUnstakeModes` — `'INSTANT'` (immediate withdrawal at a discount), `'WHEN_AVAILABLE'` (paid out as soon as liquidity is available — instantly or at round end), `'ROUND_END'` (paid out at the end of the staking round).
+ * Allowed unstake-timing flavours referenced by {@link UnstakeModes} and {@link StakingProviderMetadata}'s `supportedUnstakeModes` — `'INSTANT'` (immediate withdrawal at a discount), `'WHEN_AVAILABLE'` (paid out as soon as liquidity is available — instantly or at round end), `'ROUND_END'` (paid out at the end of the staking round).
  *
  * @extract
  * @public
@@ -77,7 +77,7 @@ export type {
 } from '@ton/walletkit';
 
 /**
- * Display metadata for a staking-pool token — `ticker`, `decimals` and `address` (or `'ton'` for native TON); carried on {@link StakingProviderMetadata}`.stakeToken` and `.receiveToken` so the UI can render the pool's input/output assets.
+ * Display metadata for a staking-pool token — `ticker`, `decimals` and `address` (or `'ton'` for native TON); carried on {@link StakingProviderMetadata}'s `stakeToken` and `receiveToken` so the UI can render the pool's input/output assets.
  *
  * @extract
  * @public

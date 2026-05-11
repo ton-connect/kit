@@ -10,7 +10,7 @@ import type { AppKit } from '../../core/app-kit';
 import type { ConnectorInput } from '../../types/connector';
 
 /**
- * Connector instance or factory accepted by {@link addConnector} — same shape used in {@link AppKitConfig}`.connectors`.
+ * Connector instance or factory accepted by {@link addConnector} — same shape used in {@link AppKitConfig}'s `connectors`.
  *
  * @public
  * @category Type
@@ -28,7 +28,7 @@ export type AddConnectorParameters = ConnectorInput;
 export type AddConnectorReturnType = () => void;
 
 /**
- * Register a wallet connector at runtime — equivalent to passing it via {@link AppKitConfig}`.connectors` at construction, but available after AppKit is up.
+ * Register a wallet connector at runtime — equivalent to passing it via {@link AppKitConfig}'s `connectors` at construction, but available after AppKit is up.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param connectorFn - {@link AddConnectorParameters} Connector instance or factory to register.

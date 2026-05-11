@@ -17,7 +17,7 @@
 export { TonStakersStakingProvider } from '@ton/walletkit/staking/tonstakers';
 
 /**
- * Build a Tonstakers-backed {@link StakingProvider} for AppKit; pass the result to {@link AppKitConfig}`.providers` or {@link registerProvider}.
+ * Build a Tonstakers-backed {@link StakingProvider} for AppKit; pass the result to {@link AppKitConfig}'s `providers` or {@link registerProvider}.
  *
  * @extract
  * @public

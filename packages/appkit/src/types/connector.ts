@@ -12,7 +12,7 @@ import type { AppKitNetworkManager } from '../core/network';
 import type { Network } from './network';
 
 /**
- * Wallet connector contract — the protocol-specific bridge (TonConnect, embedded wallet, …) AppKit drives once you register it via {@link AppKitConfig}`.connectors`.
+ * Wallet connector contract — the protocol-specific bridge (TonConnect, embedded wallet, …) AppKit drives once you register it via {@link AppKitConfig}'s `connectors`.
  *
  * @public
  * @category Type
@@ -81,7 +81,7 @@ export interface ConnectorFactoryContext {
 export type ConnectorFactory = (ctx: ConnectorFactoryContext) => Connector;
 
 /**
- * Either a ready-made {@link Connector} or a {@link ConnectorFactory} that produces one — the value accepted by {@link addConnector} and {@link AppKitConfig}`.connectors`.
+ * Either a ready-made {@link Connector} or a {@link ConnectorFactory} that produces one — the value accepted by {@link addConnector} and {@link AppKitConfig}'s `connectors`.
  *
  * @public
  * @category Type

@@ -19,7 +19,7 @@ import type { AppKit } from '../../core/app-kit';
 export type GetNetworksReturnType = Network[];
 
 /**
- * List every network configured on this AppKit instance via {@link AppKitConfig}`.networks`.
+ * List every network configured on this AppKit instance via {@link AppKitConfig}'s `networks`.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @returns Array of configured {@link Network}s.

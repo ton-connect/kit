@@ -17,7 +17,7 @@
 export { SwapsXyzCryptoOnrampProvider } from '@ton/walletkit/crypto-onramp/swaps-xyz';
 
 /**
- * Build a swaps.xyz-backed {@link CryptoOnrampProvider} for AppKit; pass the result to {@link AppKitConfig}`.providers` or {@link registerProvider}.
+ * Build a swaps.xyz-backed {@link CryptoOnrampProvider} for AppKit; pass the result to {@link AppKitConfig}'s `providers` or {@link registerProvider}.
  *
  * @extract
  * @public
@@ -47,7 +47,7 @@ export type { SwapsXyzProviderConfig } from '@ton/walletkit/crypto-onramp/swaps-
 export type { SwapsXyzQuoteOptions } from '@ton/walletkit/crypto-onramp/swaps-xyz';
 
 /**
- * Provider-specific metadata returned on a {@link CryptoOnrampQuote}`.metadata` from swaps.xyz — carries the resolved action and bridge route that {@link createCryptoOnrampDeposit} needs.
+ * Provider-specific metadata returned on a {@link CryptoOnrampQuote}'s `metadata` from swaps.xyz — carries the resolved action and bridge route that {@link createCryptoOnrampDeposit} needs.
  *
  * @extract
  * @public

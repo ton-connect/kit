@@ -37,7 +37,7 @@ export { SwapError } from '@ton/walletkit';
 export { SwapProvider } from '@ton/walletkit';
 
 /**
- * Runtime that owns registered {@link SwapProvider}s and dispatches quote/swap calls. Exposed as {@link AppKit}`.swapManager`; usually accessed through the higher-level actions ({@link getSwapQuote}, {@link buildSwapTransaction}).
+ * Runtime that owns registered {@link SwapProvider}s and dispatches quote/swap calls. Exposed as {@link AppKit}'s `swapManager`; usually accessed through the higher-level actions ({@link getSwapQuote}, {@link buildSwapTransaction}).
  *
  * @extract
  * @public
@@ -77,7 +77,7 @@ export type { DefiProvider } from '@ton/walletkit';
 export type { DefiProviderType } from '@ton/walletkit';
 
 /**
- * Token descriptor passed to {@link getSwapQuote} via {@link SwapQuoteParams}`.from` / `.to` (and surfaced on the resulting {@link SwapQuote}) — address, decimals plus optional symbol/name/image used by swap-input UIs.
+ * Token descriptor passed to {@link getSwapQuote} via {@link SwapQuoteParams}'s `from` and `to` fields (and surfaced on the resulting {@link SwapQuote}) — address, decimals plus optional symbol/name/image used by swap-input UIs.
  *
  * @extract
  * @public

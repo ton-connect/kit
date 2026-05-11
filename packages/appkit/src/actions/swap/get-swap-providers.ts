@@ -19,7 +19,7 @@ import type { SwapProviderInterface } from '../../swap';
 export type GetSwapProvidersReturnType = SwapProviderInterface[];
 
 /**
- * List every swap provider registered on this AppKit instance — both those passed via {@link AppKitConfig}`.providers` and those added later through {@link registerProvider}.
+ * List every swap provider registered on this AppKit instance — both those passed via {@link AppKitConfig}'s `providers` and those added later through {@link registerProvider}.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @returns Array of registered swap providers.

@@ -15,7 +15,7 @@
 export { Network, NetworkAdapters, NetworkConfig } from '@ton/walletkit';
 
 /**
- * Configuration accepted by {@link NetworkConfig}`.apiClient` — picks an {@link ApiClient} implementation (Toncenter / TonAPI) and supplies its endpoint URL plus optional API key.
+ * Configuration accepted by {@link NetworkConfig}'s `apiClient` — picks an {@link ApiClient} implementation (Toncenter / TonAPI) and supplies its endpoint URL plus optional API key.
  *
  * @extract
  * @public

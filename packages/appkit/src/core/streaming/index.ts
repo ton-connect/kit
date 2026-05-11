@@ -36,7 +36,7 @@ export type {
 export type { TransactionsUpdate } from '@ton/walletkit';
 
 /**
- * Single transaction record carried inside {@link TransactionsUpdate}`.transactions` — account, lt/hash, in/out messages and emulation result.
+ * Single transaction record carried inside {@link TransactionsUpdate}'s `transactions` — account, lt/hash, in/out messages and emulation result.
  *
  * @extract
  * @public

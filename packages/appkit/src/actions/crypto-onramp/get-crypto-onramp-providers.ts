@@ -19,7 +19,7 @@ import type { CryptoOnrampProviderInterface } from '../../crypto-onramp';
 export type GetCryptoOnrampProvidersReturnType = CryptoOnrampProviderInterface[];
 
 /**
- * List every crypto-onramp provider registered on this AppKit instance — both those passed via {@link AppKitConfig}`.providers` and those added later through {@link registerProvider}.
+ * List every crypto-onramp provider registered on this AppKit instance — both those passed via {@link AppKitConfig}'s `providers` and those added later through {@link registerProvider}.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @returns Array of registered {@link CryptoOnrampProviderInterface}s.

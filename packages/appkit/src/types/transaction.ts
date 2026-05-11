@@ -22,7 +22,7 @@ export type { TransactionStatus, TransactionStatusResponse } from '@ton/walletki
 export type { SendTransactionResponse } from '@ton/walletkit';
 
 /**
- * Transaction payload passed to {@link WalletInterface}`.sendTransaction` — one or more messages, optional network override and `validUntil` deadline.
+ * Transaction payload passed to {@link WalletInterface}'s `sendTransaction` — one or more messages, optional network override and `validUntil` deadline.
  *
  * @public
  * @category Type

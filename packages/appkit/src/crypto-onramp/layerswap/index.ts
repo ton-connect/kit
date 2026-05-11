@@ -17,7 +17,7 @@
 export { LayerswapCryptoOnrampProvider } from '@ton/walletkit/crypto-onramp/layerswap';
 
 /**
- * Build a Layerswap-backed {@link CryptoOnrampProvider} for AppKit; pass the result to {@link AppKitConfig}`.providers` or {@link registerProvider}.
+ * Build a Layerswap-backed {@link CryptoOnrampProvider} for AppKit; pass the result to {@link AppKitConfig}'s `providers` or {@link registerProvider}.
  *
  * @extract
  * @public
@@ -37,7 +37,7 @@ export { createLayerswapProvider } from '@ton/walletkit/crypto-onramp/layerswap'
 export type { LayerswapProviderConfig } from '@ton/walletkit/crypto-onramp/layerswap';
 
 /**
- * Provider-specific metadata returned on a {@link CryptoOnrampQuote}`.metadata` from Layerswap — carries the swap id and deposit action that {@link createCryptoOnrampDeposit} reads to build the deposit.
+ * Provider-specific metadata returned on a {@link CryptoOnrampQuote}'s `metadata` from Layerswap — carries the swap id and deposit action that {@link createCryptoOnrampDeposit} reads to build the deposit.
  *
  * @extract
  * @public

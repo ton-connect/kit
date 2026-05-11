@@ -19,7 +19,7 @@ import type { AppKit } from '../../core/app-kit';
 export type GetConnectorsReturnType = readonly Connector[];
 
 /**
- * List every connector registered on this AppKit instance — both those passed via {@link AppKitConfig}`.connectors` and those added later through {@link addConnector}.
+ * List every connector registered on this AppKit instance — both those passed via {@link AppKitConfig}'s `connectors` and those added later through {@link addConnector}.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @returns Read-only array of registered {@link Connector}s.

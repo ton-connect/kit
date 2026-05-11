@@ -48,7 +48,7 @@ export type TonConnectConnector = Connector & {
 };
 
 /**
- * Build a TonConnect-backed {@link Connector} for AppKit; pass the result to {@link AppKitConfig}`.connectors` or {@link addConnector}.
+ * Build a TonConnect-backed {@link Connector} for AppKit; pass the result to {@link AppKitConfig}'s `connectors` or {@link addConnector}.
  *
  * @param config - {@link TonConnectConnectorConfig} Connector id, metadata override and TonConnect options or pre-built UI instance.
  * @returns Factory function consumed by AppKit at registration time.

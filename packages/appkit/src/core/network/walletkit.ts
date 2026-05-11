@@ -10,7 +10,7 @@
 // modules (`./services/...`) can import without forming a cycle through `./index.ts`.
 
 /**
- * Walletkit-side network manager — the base class {@link AppKitNetworkManager} extends with default-network state and AppKit event emission. Apps usually interact with the {@link AppKitNetworkManager} subclass via {@link AppKit}`.networkManager`.
+ * Walletkit-side network manager — the base class {@link AppKitNetworkManager} extends with default-network state and AppKit event emission. Apps usually interact with the {@link AppKitNetworkManager} subclass via {@link AppKit}'s `networkManager`.
  *
  * @extract
  * @public
