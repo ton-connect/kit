@@ -65,6 +65,44 @@ export async function getJettonWalletAddressFromClient(
 }
 
 /**
+ * Gets the jetton wallet address for an owner
+ */
+export async function getJettonMasterAddressFromClient(
+    client: ApiClient,
+    jettonWalletAddress: UserFriendlyAddress,
+): Promise<UserFriendlyAddress> {
+    if (!isValidAddress(jettonWalletAddress)) {
+        throw new Error(`Invalid jetton address: ${jettonWalletAddress}`);
+    }
+
+    if (!jettonWalletAddress) {
+        throw new Error(`Invalid jetton wallet address: ${jettonWalletAddress}`);
+    }
+
+    try {
+        const result = await client.runGetMethod(jettonWalletAddress, 'get_wallet_data');
+
+        const parsedStack = ParseStack(result.stack);
+        const jettonMasterAddress =
+            parsedStack[2].type === 'slice' || parsedStack[2].type === 'cell'
+                ? parsedStack[2].cell.asSlice().loadAddress()
+                : null;
+
+        if (!jettonMasterAddress) {
+            throw new Error('Failed to get jetton master address');
+        }
+
+        return asAddressFriendly(jettonMasterAddress.toString());
+    } catch (error) {
+        throw new Error(
+            `Failed to get jetton master address for ${jettonWalletAddress}: ${
+                error instanceof Error ? error.message : 'Unknown error'
+            }`,
+        );
+    }
+}
+
+/**
  * Gets the jetton balance for an owner's jetton wallet
  */
 export async function getJettonBalanceFromClient(

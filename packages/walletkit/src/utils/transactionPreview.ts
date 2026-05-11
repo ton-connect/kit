@@ -87,7 +87,7 @@ export async function createTransactionPreview(
     return {
         result: Result.success,
         trace: toTransactionEmulatedTrace(emulationResult),
-        moneyFlow: computeMoneyFlow(emulationResult, { skipFirstTxInput: isSignMode }),
+        moneyFlow: await computeMoneyFlow(client, emulationResult, { skipFirstTxInput: isSignMode }),
     };
 }
 
