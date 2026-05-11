@@ -13,7 +13,7 @@ import type { SwapsXyzErrorResponse } from './types';
 const EVM_ADDRESS_REGEX = /^(0x)?[0-9a-fA-F]{40}$/;
 
 /**
- * Extract a numeric EVM chain id from a CAIP-2 string. Returns `undefined`
+ * Extract a numeric EVM chain ID from a CAIP-2 string. Returns `undefined`
  * for non-EVM (`namespace !== 'eip155'`) or malformed values.
  */
 export const parseEvmChainIdFromCaip2 = (value: string): number | undefined => {
@@ -24,7 +24,7 @@ export const parseEvmChainIdFromCaip2 = (value: string): number | undefined => {
 };
 
 /**
- * Build the CAIP-2 representation for an EVM chain id.
+ * Build the CAIP-2 representation for an EVM chain ID.
  */
 export const evmChainIdToCaip2 = (chainId: number | string): string => `eip155:${chainId}`;
 

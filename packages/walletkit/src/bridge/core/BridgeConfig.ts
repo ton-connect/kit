@@ -39,7 +39,7 @@ export interface BridgeConfig {
     protocolVersion: number;
 
     /**
-     * Id of wallet assosiated with dApp connection in bridge
+     * ID of wallet assosiated with dApp connection in bridge
      */
     walletId?: WalletId;
 }

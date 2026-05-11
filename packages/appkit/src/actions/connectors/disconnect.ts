@@ -16,7 +16,7 @@ import type { AppKit } from '../../core/app-kit';
  * @section Connectors
  */
 export type DisconnectParameters = {
-    /** Id of the registered connector whose wallet should be disconnected. */
+    /** ID of the registered connector whose wallet should be disconnected. */
     connectorId: string;
 };
 

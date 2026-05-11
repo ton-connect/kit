@@ -49,9 +49,9 @@ export interface CryptoOnrampProviderProps extends PropsWithChildren {
      * override or add (e.g. `{ 'eip155:42161': { name: 'Arbitrum', logo: '...' } }`).
      */
     chains?: Record<string, ChainInfo>;
-    /** Id of the target token pre-selected on mount. */
+    /** ID of the target token pre-selected on mount. */
     defaultTokenId?: string;
-    /** Id of the source payment method pre-selected on mount. */
+    /** ID of the source payment method pre-selected on mount. */
     defaultMethodId?: string;
 }
 

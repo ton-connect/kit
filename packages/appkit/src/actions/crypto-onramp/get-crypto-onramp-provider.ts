@@ -17,7 +17,7 @@ import type { CryptoOnrampProviderInterface } from '../../crypto-onramp';
  * @section Crypto Onramp
  */
 export interface GetCryptoOnrampProviderOptions {
-    /** Provider id to look up; when omitted, returns the registered default provider. */
+    /** Provider ID to look up; when omitted, returns the registered default provider. */
     id?: string;
 }
 

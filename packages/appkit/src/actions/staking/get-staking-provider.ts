@@ -17,7 +17,7 @@ import type { StakingProviderInterface } from '../../staking';
  * @section Staking
  */
 export type GetStakingProviderOptions = {
-    /** Provider id to look up; when omitted, returns the registered default staking provider. */
+    /** Provider ID to look up; when omitted, returns the registered default staking provider. */
     id?: string;
 };
 

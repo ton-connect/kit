@@ -27,7 +27,7 @@ import { getValidUntil } from '../utils/transaction';
  * @section Wallets
  */
 export interface TonConnectWalletAdapterConfig {
-    /** Id of the connector that produced this wallet — surfaced as `WalletInterface.connectorId`. */
+    /** ID of the connector that produced this wallet — surfaced as `WalletInterface.connectorId`. */
     connectorId: string;
     /** Underlying TonConnect wallet object. */
     tonConnectWallet: TonConnectWallet;

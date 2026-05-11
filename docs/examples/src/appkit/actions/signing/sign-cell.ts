@@ -12,7 +12,7 @@ import { signCell } from '@ton/appkit';
 export const signCellExample = async (appKit: AppKit) => {
     // SAMPLE_START: SIGN_CELL
     const result = await signCell(appKit, {
-        cell: 'te6ccgEBAQEAAgAAGA==' as Base64String, // Example BOC
+        cell: 'te6ccgEBAQEAAgAAGA==' as Base64String, // Example BoC
         schema: 'transfer#abc123 amount:uint64 = Transfer',
     });
 

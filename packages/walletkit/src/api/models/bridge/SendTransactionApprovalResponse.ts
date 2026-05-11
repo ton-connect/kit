@@ -13,7 +13,7 @@ import type { Base64String } from '../core/Primitives';
  */
 export interface SendTransactionApprovalResponse {
     /**
-     * Signed transaction in BOC (Bag of Cells) format, encoded in Base64
+     * Signed transaction in BoC (Bag of Cells) format, encoded in Base64
      */
     signedBoc: Base64String;
 }

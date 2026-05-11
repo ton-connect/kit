@@ -283,7 +283,7 @@ export interface TransactionMessageContent {
     hash?: string;
 
     /**
-     * The body in BOC format
+     * The body in BoC format
      */
     body?: Base64String;
 

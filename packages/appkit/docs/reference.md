@@ -39,7 +39,7 @@ Constructor: `new AppKit(config)`
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `config`\* | [`AppKitConfig`](#appkitconfig) | Networks, connectors, providers and runtime flags. |
-| `config.networks` | <code><a href="#networkadapters">NetworkAdapters</a></code> | Map of chain id to [`NetworkConfig`](#networkconfig) (which holds the api-client setup); if omitted, AppKit defaults to mainnet only. |
+| `config.networks` | <code><a href="#networkadapters">NetworkAdapters</a></code> | Map of chain ID to [`NetworkConfig`](#networkconfig) (which holds the api-client setup); if omitted, AppKit defaults to mainnet only. |
 | `config.connectors` | <code><a href="#connectorinput">ConnectorInput</a>[]</code> | Wallet connectors registered at startup. |
 | `config.defaultNetwork` | <code><a href="#network">Network</a></code> | Default network. |
 | `config.providers` | <code><a href="#providerinput">ProviderInput</a>[]</code> | Providers registered at startup. |
@@ -171,7 +171,7 @@ Constructor: `new AppKitNetworkManager(options, emitter)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `options`\* | [`TonWalletKitOptions`](#tonwalletkitoptions) | Forwarded to the [`KitNetworkManager`](#kitnetworkmanager) base — chiefly the `networks` map keyed by chain id. |
+| `options`\* | [`TonWalletKitOptions`](#tonwalletkitoptions) | Forwarded to the [`KitNetworkManager`](#kitnetworkmanager) base — chiefly the `networks` map keyed by chain ID. |
 | `emitter`\* | [`AppKitEmitter`](#appkitemitter) | Emitter the manager publishes `networks:default-changed` / `networks:updated` events through. |
 
 #### KitNetworkManager
@@ -182,7 +182,7 @@ Constructor: `new KitNetworkManager(options)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `options`\* | [`TonWalletKitOptions`](#tonwalletkitoptions) | carrying the `networks` map keyed by chain id; at least one network must be configured. |
+| `options`\* | [`TonWalletKitOptions`](#tonwalletkitoptions) | carrying the `networks` map keyed by chain ID; at least one network must be configured. |
 
 ### Staking
 
@@ -489,7 +489,7 @@ Trigger the connection flow on a registered connector by id; throws when no conn
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `parameters`\* | [`ConnectParameters`](#connectparameters) | Connector to connect through. |
-| `parameters.connectorId`\* | `string` | Id of the registered connector to drive the connection through (e.g., `'tonconnect'`). |
+| `parameters.connectorId`\* | `string` | ID of the registered connector to drive the connection through (e.g., `'tonconnect'`). |
 
 Returns: <code>Promise&lt;<a href="#connectreturntype">ConnectReturnType</a>&gt;</code> — Resolves once the connector's connect flow completes (e.g., the TonConnect modal closes); if a wallet was successfully connected, it becomes available via [`getSelectedWallet`](#getselectedwallet).
 
@@ -517,7 +517,7 @@ Build a TonConnect-backed [`Connector`](#connector) for AppKit; pass the result 
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config`\* | [`TonConnectConnectorConfig`](#tonconnectconnectorconfig) | Connector id, metadata override and TonConnect options or pre-built UI instance. |
+| `config`\* | [`TonConnectConnectorConfig`](#tonconnectconnectorconfig) | Connector ID, metadata override and TonConnect options or pre-built UI instance. |
 
 Returns: <code><a href="#connectorfactory">ConnectorFactory</a></code> — Factory function consumed by AppKit at registration time.
 
@@ -551,7 +551,7 @@ Disconnect the wallet currently connected through a registered connector; throws
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `parameters`\* | [`DisconnectParameters`](#disconnectparameters) | Connector to disconnect. |
-| `parameters.connectorId`\* | `string` | Id of the registered connector whose wallet should be disconnected. |
+| `parameters.connectorId`\* | `string` | ID of the registered connector whose wallet should be disconnected. |
 
 Returns: <code>Promise&lt;<a href="#disconnectreturntype">DisconnectReturnType</a>&gt;</code> — Resolves once the connector tears down its session.
 
@@ -570,8 +570,8 @@ Look up a registered connector by its id.
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
-| `options`\* | [`GetConnectorByIdOptions`](#getconnectorbyidoptions) | Id of the connector to find. |
-| `options.id`\* | `string` | Id of the connector to look up. |
+| `options`\* | [`GetConnectorByIdOptions`](#getconnectorbyidoptions) | ID of the connector to find. |
+| `options.id`\* | `string` | ID of the connector to look up. |
 
 Returns: <code><a href="#getconnectorbyidreturntype">GetConnectorByIdReturnType</a></code> — The matching [`Connector`](#connector), or `undefined` if none with that id is registered.
 
@@ -613,8 +613,8 @@ Subscribe to register/unregister events for a connector with the given id — th
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
-| `parameters`\* | [`WatchConnectorByIdParameters`](#watchconnectorbyidparameters) | Connector id and update callback. |
-| `parameters.id`\* | `string` | Id of the connector to watch. |
+| `parameters`\* | [`WatchConnectorByIdParameters`](#watchconnectorbyidparameters) | Connector ID and update callback. |
+| `parameters.id`\* | `string` | ID of the connector to watch. |
 | `parameters.onChange`\* | <code>(connector: <a href="#connector">Connector</a> \| undefined) =&gt; void</code> | Callback invoked when the connector with the watched id is registered or unregistered — receives the connector itself, or `undefined` when none is registered under that id. |
 
 Returns: <code><a href="#watchconnectorbyidreturntype">WatchConnectorByIdReturnType</a></code> — Unsubscribe function — call it to stop receiving updates.
@@ -701,7 +701,7 @@ Get a registered crypto-onramp provider by id, or the default provider when no i
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options` | [`GetCryptoOnrampProviderOptions`](#getcryptoonrampprovideroptions) | Optional provider id. |
-| `options.id` | `string` | Provider id to look up; when omitted, returns the registered default provider. |
+| `options.id` | `string` | Provider ID to look up; when omitted, returns the registered default provider. |
 
 Returns: <code><a href="#getcryptoonrampproviderreturntype">GetCryptoOnrampProviderReturnType</a></code> — The matching [`CryptoOnrampProviderInterface`](#cryptoonrampproviderinterface).
 
@@ -1368,7 +1368,7 @@ Returns: <code>Promise&lt;<a href="#signcellreturntype">SignCellReturnType</a>&g
 
 ```ts
 const result = await signCell(appKit, {
-    cell: 'te6ccgEBAQEAAgAAGA==' as Base64String, // Example BOC
+    cell: 'te6ccgEBAQEAAgAAGA==' as Base64String, // Example BoC
     schema: 'transfer#abc123 amount:uint64 = Transfer',
 });
 
@@ -1476,7 +1476,7 @@ Get a registered staking provider by id, or the default staking provider when no
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options` | [`GetStakingProviderOptions`](#getstakingprovideroptions) | Optional provider id. |
-| `options.id` | `string` | Provider id to look up; when omitted, returns the registered default staking provider. |
+| `options.id` | `string` | Provider ID to look up; when omitted, returns the registered default staking provider. |
 
 Returns: <code><a href="#getstakingproviderreturntype">GetStakingProviderReturnType</a></code> — The matching staking provider instance.
 
@@ -1577,8 +1577,8 @@ Set the default staking provider — subsequent [`getStakingQuote`](#getstakingq
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
-| `parameters`\* | [`SetDefaultStakingProviderParameters`](#setdefaultstakingproviderparameters) | Id of the provider to make default. |
-| `parameters.providerId`\* | `string` | Id of the provider to make default — must already be registered. |
+| `parameters`\* | [`SetDefaultStakingProviderParameters`](#setdefaultstakingproviderparameters) | ID of the provider to make default. |
+| `parameters.providerId`\* | `string` | ID of the provider to make default — must already be registered. |
 
 Returns: <code><a href="#setdefaultstakingproviderreturntype">SetDefaultStakingProviderReturnType</a></code>.
 
@@ -1669,7 +1669,7 @@ Get a registered swap provider by id, or the default swap provider when no id is
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options` | [`GetSwapProviderOptions`](#getswapprovideroptions) | Optional provider id. |
-| `options.id` | `string` | Provider id to look up; when omitted, returns the registered default swap provider. |
+| `options.id` | `string` | Provider ID to look up; when omitted, returns the registered default swap provider. |
 
 Returns: <code><a href="#getswapproviderreturntype">GetSwapProviderReturnType</a></code> — The matching swap provider instance.
 
@@ -1741,8 +1741,8 @@ Set the default swap provider — subsequent [`getSwapQuote`](#getswapquote) and
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
-| `parameters`\* | [`SetDefaultSwapProviderParameters`](#setdefaultswapproviderparameters) | Id of the provider to make default. |
-| `parameters.providerId`\* | `string` | Id of the provider to make default — must already be registered. |
+| `parameters`\* | [`SetDefaultSwapProviderParameters`](#setdefaultswapproviderparameters) | ID of the provider to make default. |
+| `parameters.providerId`\* | `string` | ID of the provider to make default — must already be registered. |
 
 Returns: <code><a href="#setdefaultswapproviderreturntype">SetDefaultSwapProviderReturnType</a></code>.
 
@@ -1943,8 +1943,8 @@ Switch which connected wallet AppKit treats as selected — emits `WALLETS_EVENT
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
-| `parameters`\* | [`SetSelectedWalletIdParameters`](#setselectedwalletidparameters) | Wallet id to select, or `null` to clear. |
-| `parameters.walletId`\* | `string \| null` | Wallet id (as returned by [`WalletInterface`](#walletinterface)'s `getWalletId()`) to select; pass `null` to clear the selection. |
+| `parameters`\* | [`SetSelectedWalletIdParameters`](#setselectedwalletidparameters) | Wallet ID to select, or `null` to clear. |
+| `parameters.walletId`\* | `string \| null` | Wallet ID (as returned by [`WalletInterface`](#walletinterface)'s `getWalletId()`) to select; pass `null` to clear the selection. |
 
 Returns: <code><a href="#setselectedwalletidreturntype">SetSelectedWalletIdReturnType</a></code>.
 
@@ -2208,7 +2208,7 @@ Parameters accepted by [`connect`](#connect).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `connectorId`\* | `string` | Id of the registered connector to drive the connection through (e.g., `'tonconnect'`). |
+| `connectorId`\* | `string` | ID of the registered connector to drive the connection through (e.g., `'tonconnect'`). |
 
 #### ConnectReturnType
 
@@ -2273,7 +2273,7 @@ Parameters accepted by [`disconnect`](#disconnect).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `connectorId`\* | `string` | Id of the registered connector whose wallet should be disconnected. |
+| `connectorId`\* | `string` | ID of the registered connector whose wallet should be disconnected. |
 
 #### DisconnectReturnType
 
@@ -2289,7 +2289,7 @@ Options for [`getConnectorById`](#getconnectorbyid).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `id`\* | `string` | Id of the connector to look up. |
+| `id`\* | `string` | ID of the connector to look up. |
 
 #### GetConnectorByIdReturnType
 
@@ -2328,7 +2328,7 @@ Configuration accepted by [`createTonConnectConnector`](#createtonconnectconnect
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `id` | `string` | Connector id. Defaults to [`TONCONNECT_DEFAULT_CONNECTOR_ID`](#tonconnect_default_connector_id) (`'tonconnect'`); set this when you need to register multiple TonConnect-flavoured connectors side by side. |
+| `id` | `string` | Connector ID. Defaults to [`TONCONNECT_DEFAULT_CONNECTOR_ID`](#tonconnect_default_connector_id) (`'tonconnect'`); set this when you need to register multiple TonConnect-flavoured connectors side by side. |
 | `metadata` | <code><a href="#connectormetadata">ConnectorMetadata</a></code> | Display metadata override; merged on top of TonConnect's default name and icon. |
 | `tonConnectOptions` | `TonConnectUiCreateOptions` | Options forwarded to the underlying `TonConnectUI` constructor (manifest URL, etc.). Ignored when `tonConnectUI` is supplied. |
 | `tonConnectUI` | `TonConnectUI` | Pre-built `TonConnectUI` instance to reuse; when set, the connector skips its own instantiation and `tonConnectOptions` is ignored. |
@@ -2339,7 +2339,7 @@ Parameters accepted by [`watchConnectorById`](#watchconnectorbyid).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `id`\* | `string` | Id of the connector to watch. |
+| `id`\* | `string` | ID of the connector to watch. |
 | `onChange`\* | <code>(connector: <a href="#connector">Connector</a> \| undefined) =&gt; void</code> | Callback invoked when the connector with the watched id is registered or unregistered — receives the connector itself, or `undefined` when none is registered under that id. |
 
 #### WatchConnectorByIdReturnType
@@ -2374,7 +2374,7 @@ Constructor options for [`AppKit`](#appkit) — networks, connectors, providers 
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `networks` | <code><a href="#networkadapters">NetworkAdapters</a></code> | Map of chain id to [`NetworkConfig`](#networkconfig) (which holds the api-client setup); if omitted, AppKit defaults to mainnet only. |
+| `networks` | <code><a href="#networkadapters">NetworkAdapters</a></code> | Map of chain ID to [`NetworkConfig`](#networkconfig) (which holds the api-client setup); if omitted, AppKit defaults to mainnet only. |
 | `connectors` | <code><a href="#connectorinput">ConnectorInput</a>[]</code> | Wallet connectors registered at startup. |
 | `defaultNetwork` | <code><a href="#network">Network</a></code> | Default network. |
 | `providers` | <code><a href="#providerinput">ProviderInput</a>[]</code> | Providers registered at startup. |
@@ -2429,7 +2429,7 @@ Payload of `connector:wallets-updated` events — fired by a connector when its 
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `connectorId`\* | `string` | Id of the [`Connector`](#connector) whose wallets just changed. |
+| `connectorId`\* | `string` | ID of the [`Connector`](#connector) whose wallets just changed. |
 | `wallets`\* | <code><a href="#walletinterface">WalletInterface</a>[]</code> | Wallets currently exposed by the connector — empty when the wallet was just disconnected. |
 
 #### DefaultNetworkChangedPayload
@@ -2624,7 +2624,7 @@ Options for [`getCryptoOnrampProvider`](#getcryptoonrampprovider).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `id` | `string` | Provider id to look up; when omitted, returns the registered default provider. |
+| `id` | `string` | Provider ID to look up; when omitted, returns the registered default provider. |
 
 #### GetCryptoOnrampProviderReturnType
 
@@ -3280,7 +3280,7 @@ type SetDefaultNetworkReturnType = void;
 
 #### TonWalletKitOptions
 
-Walletkit-side options shape consumed by [`KitNetworkManager`](#kitnetworkmanager)'s constructor — chiefly the `networks` map keyed by chain id. [`AppKit`](#appkit) constructs the manager for you, so apps rarely instantiate this directly.
+Walletkit-side options shape consumed by [`KitNetworkManager`](#kitnetworkmanager)'s constructor — chiefly the `networks` map keyed by chain ID. [`AppKit`](#appkit) constructs the manager for you, so apps rarely instantiate this directly.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -3573,7 +3573,7 @@ Options for [`getStakingProvider`](#getstakingprovider).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `id` | `string` | Provider id to look up; when omitted, returns the registered default staking provider. |
+| `id` | `string` | Provider ID to look up; when omitted, returns the registered default staking provider. |
 
 #### GetStakingProviderReturnType
 
@@ -3620,7 +3620,7 @@ Parameters accepted by [`setDefaultStakingProvider`](#setdefaultstakingprovider)
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `providerId`\* | `string` | Id of the provider to make default — must already be registered. |
+| `providerId`\* | `string` | ID of the provider to make default — must already be registered. |
 
 #### SetDefaultStakingProviderReturnType
 
@@ -3855,7 +3855,7 @@ Options for [`getSwapProvider`](#getswapprovider).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `id` | `string` | Provider id to look up; when omitted, returns the registered default swap provider. |
+| `id` | `string` | Provider ID to look up; when omitted, returns the registered default swap provider. |
 
 #### GetSwapProviderReturnType
 
@@ -3914,7 +3914,7 @@ Provider-specific metadata returned on a [`SwapQuote`](#swapquote)'s `metadata` 
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `omnistonQuote`\* | `Quote` | The actual omniston quote object |
+| `omnistonQuote`\* | `Quote` | The actual Omniston quote object |
 
 #### OmnistonReferrerOptions
 
@@ -3947,7 +3947,7 @@ Parameters accepted by [`setDefaultSwapProvider`](#setdefaultswapprovider).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `providerId`\* | `string` | Id of the provider to make default — must already be registered. |
+| `providerId`\* | `string` | ID of the provider to make default — must already be registered. |
 
 #### SetDefaultSwapProviderReturnType
 
@@ -4116,8 +4116,8 @@ Wallet response carrying the BoC (bag of cells) of the external message that was
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `boc`\* | <code><a href="#base64string">Base64String</a></code> | BOC of the sent transaction |
-| `normalizedBoc`\* | <code><a href="#base64string">Base64String</a></code> | Normalized BOC of the external-in message |
+| `boc`\* | <code><a href="#base64string">Base64String</a></code> | BoC of the sent transaction |
+| `normalizedBoc`\* | <code><a href="#base64string">Base64String</a></code> | Normalized BoC of the external-in message |
 | `normalizedHash`\* | <code><a href="#hex">Hex</a></code> | Hash of the normalized external-in message |
 
 #### SendTransactionReturnType
@@ -4267,7 +4267,7 @@ Parameters accepted by [`setSelectedWalletId`](#setselectedwalletid).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `walletId`\* | `string \| null` | Wallet id (as returned by [`WalletInterface`](#walletinterface)'s `getWalletId()`) to select; pass `null` to clear the selection. |
+| `walletId`\* | `string \| null` | Wallet ID (as returned by [`WalletInterface`](#walletinterface)'s `getWalletId()`) to select; pass `null` to clear the selection. |
 
 #### SetSelectedWalletIdReturnType
 
@@ -4283,7 +4283,7 @@ Configuration accepted by [`TonConnectWalletAdapter`](#tonconnectwalletadapter) 
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `connectorId`\* | `string` | Id of the connector that produced this wallet — surfaced as `WalletInterface.connectorId`. |
+| `connectorId`\* | `string` | ID of the connector that produced this wallet — surfaced as `WalletInterface.connectorId`. |
 | `tonConnectWallet`\* | `TonConnectWallet` | Underlying TonConnect wallet object. |
 | `tonConnectUI`\* | `TonConnectUI` | TonConnect UI instance used to drive `sendTransaction` and `signData` calls. |
 
@@ -4293,7 +4293,7 @@ Wallet contract surfaced by every [`Connector`](#connector) — covers identity 
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `connectorId`\* | `string` | Id of the [`Connector`](#connector) that produced this wallet. |
+| `connectorId`\* | `string` | ID of the [`Connector`](#connector) that produced this wallet. |
 | `getAddress`\* | <code>() =&gt; <a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Wallet address as a user-friendly base64url string. |
 | `getPublicKey`\* | <code>() =&gt; <a href="#hex">Hex</a></code> | Wallet public key as a `0x`-prefixed hex string. |
 | `getNetwork`\* | <code>() =&gt; <a href="#network">Network</a></code> | Network the wallet is currently connected to. |

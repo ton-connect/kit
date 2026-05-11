@@ -563,7 +563,7 @@ Sign a TON Cell with the connected wallet. Used for on-chain signature verificat
 
 ```ts
 const result = await signCell(appKit, {
-    cell: 'te6ccgEBAQEAAgAAGA==' as Base64String, // Example BOC
+    cell: 'te6ccgEBAQEAAgAAGA==' as Base64String, // Example BoC
     schema: 'transfer#abc123 amount:uint64 = Transfer',
 });
 

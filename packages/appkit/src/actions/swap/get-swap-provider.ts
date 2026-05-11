@@ -17,7 +17,7 @@ import type { SwapProviderInterface } from '../../swap';
  * @section Swap
  */
 export interface GetSwapProviderOptions {
-    /** Provider id to look up; when omitted, returns the registered default swap provider. */
+    /** Provider ID to look up; when omitted, returns the registered default swap provider. */
     id?: string;
 }
 

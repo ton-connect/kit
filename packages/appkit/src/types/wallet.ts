@@ -19,7 +19,7 @@ import type { Network } from './network';
  * @section Wallets
  */
 export interface WalletInterface {
-    /** Id of the {@link Connector} that produced this wallet. */
+    /** ID of the {@link Connector} that produced this wallet. */
     readonly connectorId: string;
 
     /** Wallet address as a user-friendly base64url string. */

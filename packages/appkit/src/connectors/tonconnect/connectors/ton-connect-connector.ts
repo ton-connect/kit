@@ -24,7 +24,7 @@ import { createConnector } from '../../../types/connector';
  * @section Connectors
  */
 export interface TonConnectConnectorConfig {
-    /** Connector id. Defaults to {@link TONCONNECT_DEFAULT_CONNECTOR_ID} (`'tonconnect'`); set this when you need to register multiple TonConnect-flavoured connectors side by side. */
+    /** Connector ID. Defaults to {@link TONCONNECT_DEFAULT_CONNECTOR_ID} (`'tonconnect'`); set this when you need to register multiple TonConnect-flavoured connectors side by side. */
     id?: string;
     /** Display metadata override; merged on top of TonConnect's default name and icon. */
     metadata?: ConnectorMetadata;
@@ -50,7 +50,7 @@ export type TonConnectConnector = Connector & {
 /**
  * Build a TonConnect-backed {@link Connector} for AppKit; pass the result to {@link AppKitConfig}'s `connectors` or {@link addConnector}.
  *
- * @param config - {@link TonConnectConnectorConfig} Connector id, metadata override and TonConnect options or pre-built UI instance.
+ * @param config - {@link TonConnectConnectorConfig} Connector ID, metadata override and TonConnect options or pre-built UI instance.
  * @returns Factory function consumed by AppKit at registration time.
  *
  * @sample docs/examples/src/appkit/connectors/tonconnect#TON_CONNECT_CONNECTOR

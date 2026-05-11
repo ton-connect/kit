@@ -16,7 +16,7 @@ import type { AppKit } from '../../core/app-kit';
  * @section Staking
  */
 export interface SetDefaultStakingProviderParameters {
-    /** Id of the provider to make default — must already be registered. */
+    /** ID of the provider to make default — must already be registered. */
     providerId: string;
 }
 
@@ -33,7 +33,7 @@ export type SetDefaultStakingProviderReturnType = void;
  * Set the default staking provider — subsequent {@link getStakingQuote} and {@link buildStakeTransaction} calls without an explicit `providerId` route through it. Emits `provider:default-changed`, picked up by {@link watchStakingProviders}.
  *
  * @param appKit - {@link AppKit} Runtime instance.
- * @param parameters - {@link SetDefaultStakingProviderParameters} Id of the provider to make default.
+ * @param parameters - {@link SetDefaultStakingProviderParameters} ID of the provider to make default.
  *
  * @expand parameters
  *

@@ -19,7 +19,7 @@ import { getConnectorById } from './get-connector-by-id';
  * @section Connectors
  */
 export interface WatchConnectorByIdParameters {
-    /** Id of the connector to watch. */
+    /** ID of the connector to watch. */
     id: string;
     /** Callback invoked when the connector with the watched id is registered or unregistered — receives the connector itself, or `undefined` when none is registered under that id. */
     onChange: (connector: Connector | undefined) => void;
@@ -38,7 +38,7 @@ export type WatchConnectorByIdReturnType = () => void;
  * Subscribe to register/unregister events for a connector with the given id — the callback fires when the connector is added or removed, so callers can react to its presence. Use {@link watchConnectedWallets} if you want to react to wallet connect/disconnect events instead.
  *
  * @param appKit - {@link AppKit} Runtime instance.
- * @param parameters - {@link WatchConnectorByIdParameters} Connector id and update callback.
+ * @param parameters - {@link WatchConnectorByIdParameters} Connector ID and update callback.
  * @returns Unsubscribe function — call it to stop receiving updates.
  *
  * @sample docs/examples/src/appkit/actions/connectors#WATCH_CONNECTOR_BY_ID

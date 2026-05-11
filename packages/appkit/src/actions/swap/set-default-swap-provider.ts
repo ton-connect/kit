@@ -16,7 +16,7 @@ import type { AppKit } from '../../core/app-kit';
  * @section Swap
  */
 export interface SetDefaultSwapProviderParameters {
-    /** Id of the provider to make default — must already be registered. */
+    /** ID of the provider to make default — must already be registered. */
     providerId: string;
 }
 
@@ -33,7 +33,7 @@ export type SetDefaultSwapProviderReturnType = void;
  * Set the default swap provider — subsequent {@link getSwapQuote} and {@link buildSwapTransaction} calls without an explicit `providerId` route through it. Emits `provider:default-changed`, picked up by {@link watchSwapProviders}.
  *
  * @param appKit - {@link AppKit} Runtime instance.
- * @param parameters - {@link SetDefaultSwapProviderParameters} Id of the provider to make default.
+ * @param parameters - {@link SetDefaultSwapProviderParameters} ID of the provider to make default.
  *
  * @sample docs/examples/src/appkit/actions/swap#SET_DEFAULT_SWAP_PROVIDER
  * @expand parameters

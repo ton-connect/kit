@@ -16,7 +16,7 @@ import type { AppKit } from '../../core/app-kit';
  * @section Wallets
  */
 export interface SetSelectedWalletIdParameters {
-    /** Wallet id (as returned by {@link WalletInterface}'s `getWalletId()`) to select; pass `null` to clear the selection. */
+    /** Wallet ID (as returned by {@link WalletInterface}'s `getWalletId()`) to select; pass `null` to clear the selection. */
     walletId: string | null;
 }
 
@@ -33,7 +33,7 @@ export type SetSelectedWalletIdReturnType = void;
  * Switch which connected wallet AppKit treats as selected — emits `WALLETS_EVENTS.SELECTION_CHANGED` so {@link watchSelectedWallet} subscribers fire. Pass `null` to clear the selection.
  *
  * @param appKit - {@link AppKit} Runtime instance.
- * @param parameters - {@link SetSelectedWalletIdParameters} Wallet id to select, or `null` to clear.
+ * @param parameters - {@link SetSelectedWalletIdParameters} Wallet ID to select, or `null` to clear.
  *
  * @sample docs/examples/src/appkit/actions/wallets#SET_SELECTED_WALLET_ID
  * @expand parameters

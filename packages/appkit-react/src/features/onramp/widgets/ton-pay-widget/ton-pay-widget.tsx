@@ -38,13 +38,13 @@ export interface TonPayWidgetProps {
     tokens: AppkitUIToken[];
     /** Optional section configs for grouping tokens in the picker. */
     tokenSections?: TokenSectionConfig[];
-    /** Id of the token pre-selected for purchase. */
+    /** ID of the token pre-selected for purchase. */
     defaultTokenId?: string;
     /** Fiat currencies offered in the picker. Defaults to USD only. */
     currencies?: OnrampCurrency[];
     /** Optional section configs for grouping currencies in the picker. */
     currencySections?: CurrencySectionConfig[];
-    /** Id of the fiat currency pre-selected. */
+    /** ID of the fiat currency pre-selected. */
     defaultCurrencyId?: string;
     /** Pre-filled crypto amount as a decimal string. */
     defaultAmount?: string;

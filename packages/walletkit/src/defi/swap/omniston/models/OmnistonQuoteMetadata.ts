@@ -13,7 +13,7 @@ import type { Quote } from '@ston-fi/omniston-sdk';
  */
 export interface OmnistonQuoteMetadata {
     /**
-     * The actual omniston quote object
+     * The actual Omniston quote object
      * @format frozen
      */
     omnistonQuote: Quote;

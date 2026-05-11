@@ -17,7 +17,7 @@ import { getDefaultNetwork } from '../network/get-default-network';
  * @section Connectors
  */
 export type ConnectParameters = {
-    /** Id of the registered connector to drive the connection through (e.g., `'tonconnect'`). */
+    /** ID of the registered connector to drive the connection through (e.g., `'tonconnect'`). */
     connectorId: string;
 };
 

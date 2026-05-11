@@ -25,7 +25,7 @@ export { Network, NetworkAdapters, NetworkConfig } from '@ton/walletkit';
 export { ApiClientConfig } from '@ton/walletkit';
 
 /**
- * Walletkit-side options shape consumed by {@link KitNetworkManager}'s constructor — chiefly the `networks` map keyed by chain id. {@link AppKit} constructs the manager for you, so apps rarely instantiate this directly.
+ * Walletkit-side options shape consumed by {@link KitNetworkManager}'s constructor — chiefly the `networks` map keyed by chain ID. {@link AppKit} constructs the manager for you, so apps rarely instantiate this directly.
  *
  * @extract
  * @public

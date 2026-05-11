@@ -24,7 +24,7 @@ export class AppKitNetworkManager extends KitNetworkManager {
     private defaultNetwork: Network | undefined = undefined;
 
     /**
-     * @param options - {@link TonWalletKitOptions} Forwarded to the {@link KitNetworkManager} base — chiefly the `networks` map keyed by chain id.
+     * @param options - {@link TonWalletKitOptions} Forwarded to the {@link KitNetworkManager} base — chiefly the `networks` map keyed by chain ID.
      * @param emitter - {@link AppKitEmitter} Emitter the manager publishes `networks:default-changed` / `networks:updated` events through.
      */
     constructor(options: ConstructorParameters<typeof KitNetworkManager>[0], emitter: AppKitEmitter) {

@@ -60,11 +60,11 @@ const setNetworkConfigSchema = z.object({
 });
 
 const setActiveWalletSchema = z.object({
-    walletSelector: z.string().min(1).describe('Wallet id, name, or address'),
+    walletSelector: z.string().min(1).describe('Wallet ID, name, or address'),
 });
 
 const removeWalletSchema = z.object({
-    walletSelector: z.string().min(1).describe('Wallet id, name, or address to remove'),
+    walletSelector: z.string().min(1).describe('Wallet ID, name, or address to remove'),
 });
 
 const validateAgenticWalletSchema = z.object({

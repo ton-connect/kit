@@ -70,7 +70,7 @@ Read a connector by id (wraps [`getConnectorById`](/ecosystem/appkit/reference/a
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `id`\* | `string` | Id of the connector to look up. |
+| `id`\* | `string` | ID of the connector to look up. |
 
 Returns: <code><a href="/ecosystem/appkit/reference/appkit#connector">Connector</a> \| undefined</code> — The matching [`Connector`](/ecosystem/appkit/reference/appkit#connector), or `undefined` if none with that id is registered.
 
@@ -683,8 +683,8 @@ Drop-in widget for buying TON-side tokens with a crypto payment from another cha
 | `paymentMethods` | <code><a href="#cryptopaymentmethod">CryptoPaymentMethod</a>[]</code> | Source crypto payment methods (what the user pays with on another chain). Defaults to a built-in list. |
 | `methodSections` | <code><a href="#paymentmethodsectionconfig">PaymentMethodSectionConfig</a>[]</code> | Optional section configs grouping `paymentMethods` in the picker. |
 | `chains` | <code>Record&lt;string, <a href="#chaininfo">ChainInfo</a>&gt;</code> | Custom CAIP-2 → chain display info overrides. Merged on top of the built-in defaults, so consumers only need to provide what they want to override or add (e.g. `\{ 'eip155:42161': \{ name: 'Arbitrum', logo: '...' \} \}`). |
-| `defaultTokenId` | `string` | Id of the target token pre-selected on mount. |
-| `defaultMethodId` | `string` | Id of the source payment method pre-selected on mount. |
+| `defaultTokenId` | `string` | ID of the target token pre-selected on mount. |
+| `defaultMethodId` | `string` | ID of the source payment method pre-selected on mount. |
 
 #### CryptoOnrampWidgetProvider
 
@@ -697,8 +697,8 @@ Context provider that powers the crypto-to-TON onramp widget — wires together 
 | `paymentMethods` | <code><a href="#cryptopaymentmethod">CryptoPaymentMethod</a>[]</code> | Source crypto payment methods (what the user pays with on another chain). Defaults to a built-in list. |
 | `methodSections` | <code><a href="#paymentmethodsectionconfig">PaymentMethodSectionConfig</a>[]</code> | Optional section configs grouping `paymentMethods` in the picker. |
 | `chains` | <code>Record&lt;string, <a href="#chaininfo">ChainInfo</a>&gt;</code> | Custom CAIP-2 → chain display info overrides. Merged on top of the built-in defaults, so consumers only need to provide what they want to override or add (e.g. `\{ 'eip155:42161': \{ name: 'Arbitrum', logo: '...' \} \}`). |
-| `defaultTokenId` | `string` | Id of the target token pre-selected on mount. |
-| `defaultMethodId` | `string` | Id of the source payment method pre-selected on mount. |
+| `defaultTokenId` | `string` | ID of the target token pre-selected on mount. |
+| `defaultMethodId` | `string` | ID of the source payment method pre-selected on mount. |
 
 #### CryptoOnrampWidgetUI
 
@@ -1567,8 +1567,8 @@ Props for [`CryptoOnrampWidgetProvider`](#cryptoonrampwidgetprovider) — config
 | `paymentMethods` | <code><a href="#cryptopaymentmethod">CryptoPaymentMethod</a>[]</code> | Source crypto payment methods (what the user pays with on another chain). Defaults to a built-in list. |
 | `methodSections` | <code><a href="#paymentmethodsectionconfig">PaymentMethodSectionConfig</a>[]</code> | Optional section configs grouping `paymentMethods` in the picker. |
 | `chains` | <code>Record&lt;string, <a href="#chaininfo">ChainInfo</a>&gt;</code> | Custom CAIP-2 → chain display info overrides. Merged on top of the built-in defaults, so consumers only need to provide what they want to override or add (e.g. `\{ 'eip155:42161': \{ name: 'Arbitrum', logo: '...' \} \}`). |
-| `defaultTokenId` | `string` | Id of the target token pre-selected on mount. |
-| `defaultMethodId` | `string` | Id of the source payment method pre-selected on mount. |
+| `defaultTokenId` | `string` | ID of the target token pre-selected on mount. |
+| `defaultMethodId` | `string` | ID of the source payment method pre-selected on mount. |
 
 #### CryptoOnrampToken
 
@@ -1604,8 +1604,8 @@ Props for [`CryptoOnrampWidget`](#cryptoonrampwidget) — extends [`CryptoOnramp
 | `paymentMethods` | <code><a href="#cryptopaymentmethod">CryptoPaymentMethod</a>[]</code> | Source crypto payment methods (what the user pays with on another chain). Defaults to a built-in list. |
 | `methodSections` | <code><a href="#paymentmethodsectionconfig">PaymentMethodSectionConfig</a>[]</code> | Optional section configs grouping `paymentMethods` in the picker. |
 | `chains` | <code>Record&lt;string, <a href="#chaininfo">ChainInfo</a>&gt;</code> | Custom CAIP-2 → chain display info overrides. Merged on top of the built-in defaults, so consumers only need to provide what they want to override or add (e.g. `\{ 'eip155:42161': \{ name: 'Arbitrum', logo: '...' \} \}`). |
-| `defaultTokenId` | `string` | Id of the target token pre-selected on mount. |
-| `defaultMethodId` | `string` | Id of the source payment method pre-selected on mount. |
+| `defaultTokenId` | `string` | ID of the target token pre-selected on mount. |
+| `defaultMethodId` | `string` | ID of the source payment method pre-selected on mount. |
 
 #### CryptoOnrampWidgetRenderProps
 

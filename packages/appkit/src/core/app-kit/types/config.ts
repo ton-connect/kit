@@ -18,7 +18,7 @@ import type { ProviderInput } from '../../../types/provider';
  * @section Core
  */
 export interface AppKitConfig {
-    /** Map of chain id to {@link NetworkConfig} (which holds the api-client setup); if omitted, AppKit defaults to mainnet only. */
+    /** Map of chain ID to {@link NetworkConfig} (which holds the api-client setup); if omitted, AppKit defaults to mainnet only. */
     networks?: NetworkAdapters;
 
     /** Wallet connectors registered at startup. */

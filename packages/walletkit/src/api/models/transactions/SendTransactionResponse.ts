@@ -10,11 +10,11 @@ import type { Base64String, Hex } from '../core/Primitives';
 
 export interface SendTransactionResponse {
     /**
-     * BOC of the sent transaction
+     * BoC of the sent transaction
      */
     boc: Base64String;
     /**
-     * Normalized BOC of the external-in message
+     * Normalized BoC of the external-in message
      */
     normalizedBoc: Base64String;
     /**

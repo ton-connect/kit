@@ -45,7 +45,7 @@ export interface ConnectorRemovedPayload {
  * @section Core
  */
 export interface ConnectorWalletsUpdatedPayload {
-    /** Id of the {@link Connector} whose wallets just changed. */
+    /** ID of the {@link Connector} whose wallets just changed. */
     connectorId: string;
     /** Wallets currently exposed by the connector — empty when the wallet was just disconnected. */
     wallets: WalletInterface[];

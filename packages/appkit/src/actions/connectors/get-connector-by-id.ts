@@ -17,7 +17,7 @@ import type { AppKit } from '../../core/app-kit';
  * @section Connectors
  */
 export interface GetConnectorByIdOptions {
-    /** Id of the connector to look up. */
+    /** ID of the connector to look up. */
     id: string;
 }
 
@@ -34,7 +34,7 @@ export type GetConnectorByIdReturnType = Connector | undefined;
  * Look up a registered connector by its id.
  *
  * @param appKit - {@link AppKit} Runtime instance.
- * @param options - {@link GetConnectorByIdOptions} Id of the connector to find.
+ * @param options - {@link GetConnectorByIdOptions} ID of the connector to find.
  * @returns The matching {@link Connector}, or `undefined` if none with that id is registered.
  *
  * @sample docs/examples/src/appkit/actions/connectors#GET_CONNECTOR_BY_ID
