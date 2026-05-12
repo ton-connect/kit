@@ -40,6 +40,7 @@ import type {
     StakingAPI,
 } from '@ton/walletkit';
 import {
+    CreateTonMnemonic,
     MemoryStorageAdapter,
     Signer,
     WalletV4R2Adapter,
@@ -227,6 +228,14 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
             walletKit.removeDisconnectCallback();
 
             console.log('🗑️ All event listeners removed');
+        },
+
+        async createMnemonic(): Promise<string[]> {
+            if (!initialized) throw new Error('WalletKit Bridge not initialized');
+
+            console.log('➕ Bridge: Creating mnemonic');
+
+            return await CreateTonMnemonic();
         },
 
         async createSignerFromMnemonic(mnemonic: string): Promise<WalletSigner> {
