@@ -53,6 +53,7 @@ export type UseTransferTonReturnType<context = unknown> = UseMutationReturnType<
  * Send TON from the selected wallet in one step — builds the transfer message, hands it to the wallet for signing and broadcasts it. Call `mutate` with a `recipientAddress`, an `amount` (in TON as a human-readable decimal, converted to nano-TON internally) and any of the optional `comment` / `payload` / `stateInit` fields. On success, `data` carries the BoC and normalized hash of the broadcast transaction — pair with {@link useTransactionStatus} to poll the trace to completion. Throws `Error('Wallet not connected')` if no wallet is currently selected — TanStack Query surfaces it via the mutation's `error`.
  *
  * @param parameters - {@link UseTransferTonParameters} TanStack Query mutation overrides.
+ * @expand parameters
  * @returns Mutation result for the transfer call.
  *
  * @public

@@ -39,6 +39,7 @@ export type UseBlockNumberReturnType<selectData = GetBlockNumberData> = UseQuery
  * React hook reading the latest masterchain seqno through TanStack Query — useful for freshness checks and pagination cursors.
  *
  * @param parameters - {@link UseBlockNumberParameters} TanStack Query overrides and optional network.
+ * @expand parameters
  * @returns TanStack Query result for the seqno read.
  *
  * @public

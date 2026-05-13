@@ -39,6 +39,7 @@ export type UseStakingQuoteReturnType<selectData = GetStakingQuoteData> = UseQue
  * Quote a stake or unstake — given an amount, direction (`'stake'` / `'unstake'`) and the target asset, returns the rate, expected output and the provider-specific metadata required to feed {@link useBuildStakeTransaction}. `data` is the {@link appkit:StakingQuote} payload. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
  *
  * @param parameters - {@link UseStakingQuoteParameters} Quote parameters, optional `providerId`, optional network override, and TanStack Query overrides.
+ * @expand parameters
  * @returns TanStack Query result for the quote read.
  *
  * @public

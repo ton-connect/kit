@@ -53,6 +53,7 @@ export type UseSendTransactionReturnType<context = unknown> = UseMutationReturnT
  * Hand a pre-built {@link appkit:TransactionRequest} to the selected wallet for signing and broadcast — typically the second step after a `buildX` / `createX` action (e.g. {@link useBuildSwapTransaction}, {@link useBuildStakeTransaction}) produces the request. Call `mutate(request)`. On success, `data` carries the BoC and normalized hash of the broadcast transaction. Throws `Error('Wallet not connected')` if no wallet is currently selected — TanStack Query surfaces it via the mutation's `error`.
  *
  * @param parameters - {@link UseSendTransactionParameters} TanStack Query mutation overrides.
+ * @expand parameters
  * @returns Mutation result for the send call.
  *
  * @public

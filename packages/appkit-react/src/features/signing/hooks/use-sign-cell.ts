@@ -40,6 +40,7 @@ export type UseSignCellReturnType<context = unknown> = UseMutationResult<
  * Ask the selected wallet to sign a TON cell — typically so the signature can later be verified on-chain by a contract. Call `mutate` from an event handler with the `cell` content, a TL-B-style `schema` (used by the wallet to render the payload to the user before signing) and an optional `network` override. On success, `data` carries the signature plus the signer address, timestamp and dApp domain. Throws `Error('Wallet not connected')` if no wallet is currently selected — TanStack Query surfaces it via the mutation's `error`.
  *
  * @param parameters - {@link UseSignCellParameters} TanStack Query mutation overrides.
+ * @expand parameters
  * @returns Mutation result for the signing call.
  *
  * @public

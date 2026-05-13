@@ -48,6 +48,7 @@ export type UseDisconnectReturnType<context = unknown> = UseMutationReturnType<
  * Tear down the session on a registered connector, disconnecting whichever wallet it currently holds. Call `mutate` from a Log out / Disconnect button with the `connectorId` of the connector to tear down. Once it resolves the wallet drops out of {@link useSelectedWallet} / {@link useConnectedWallets}. Throws `Error('Connector with id "<id>" not found')` when no connector with that id is registered — TanStack Query surfaces it via the mutation's `error`.
  *
  * @param parameters - {@link UseDisconnectParameters} TanStack Query mutation overrides.
+ * @expand parameters
  * @returns Mutation result for the disconnect call.
  *
  * @public

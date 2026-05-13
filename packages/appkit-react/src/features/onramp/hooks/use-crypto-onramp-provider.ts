@@ -13,6 +13,15 @@ import type { GetCryptoOnrampProviderOptions, GetCryptoOnrampProviderReturnType 
 import { useAppKit } from '../../settings/hooks/use-app-kit';
 
 /**
+ * Parameters accepted by {@link useCryptoOnrampProvider} — optional provider id forwarded to {@link appkit:getCryptoOnrampProvider}.
+ *
+ * @public
+ * @category Type
+ * @section Crypto Onramp
+ */
+export type UseCryptoOnrampProviderParameters = GetCryptoOnrampProviderOptions;
+
+/**
  * Return type of {@link useCryptoOnrampProvider} — the matching {@link appkit:CryptoOnrampProviderInterface}, or `undefined` when none is registered (the hook swallows the throw from {@link appkit:getCryptoOnrampProvider}).
  *
  * @public
@@ -24,7 +33,8 @@ export type UseCryptoOnrampProviderReturnType = GetCryptoOnrampProviderReturnTyp
 /**
  * Read a registered crypto-onramp provider by id, or the default provider when no id is given — subscribes to {@link appkit:watchCryptoOnrampProviders} and re-reads via {@link appkit:getCryptoOnrampProvider} so the result stays in sync. The read swallows the throw from {@link appkit:getCryptoOnrampProvider} (which throws when no provider matches — or when no id is passed and no default has been registered) and yields `undefined` instead.
  *
- * @param options - {@link appkit:GetCryptoOnrampProviderOptions} Optional provider id.
+ * @param parameters - {@link UseCryptoOnrampProviderParameters} Optional provider id.
+ * @expand parameters
  * @returns The matching provider, or `undefined` when none is registered.
  *
  * @public
@@ -32,10 +42,10 @@ export type UseCryptoOnrampProviderReturnType = GetCryptoOnrampProviderReturnTyp
  * @section Crypto Onramp
  */
 export const useCryptoOnrampProvider = (
-    options: GetCryptoOnrampProviderOptions = {},
+    parameters: UseCryptoOnrampProviderParameters = {},
 ): UseCryptoOnrampProviderReturnType => {
     const appKit = useAppKit();
-    const { id } = options;
+    const { id } = parameters;
 
     const subscribe = useCallback(
         (onChange: () => void) => {

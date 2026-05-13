@@ -34,6 +34,7 @@ export type UseNFTsReturnType<selectData = GetNFTsData> = UseNFTsByAddressReturn
  * React hook that reads NFTs held by the currently selected wallet through TanStack Query — auto-resolves the wallet address (use {@link useNftsByAddress} for an arbitrary address).
  *
  * @param parameters - {@link UseNFTsParameters} Optional pagination, network override, and TanStack Query overrides.
+ * @expand parameters
  * @returns TanStack Query result for the NFTs read.
  *
  * @sample docs/examples/src/appkit/hooks/nft#USE_NFTS

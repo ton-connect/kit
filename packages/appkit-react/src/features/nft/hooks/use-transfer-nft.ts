@@ -53,6 +53,7 @@ export type UseTransferNftReturnType<context = unknown> = UseMutationReturnType<
  * Transfer an NFT from the selected wallet in one step — builds the ownership-transfer message and broadcasts it. Call `mutate` with an `nftAddress`, the `recipientAddress`, an optional `amount` (the TON attached for gas — defaults to AppKit's NFT gas-fee constant when omitted) and an optional `comment`. On success, `data` carries the BoC and normalized hash of the broadcast transaction. Throws `Error('Wallet not connected')` if no wallet is currently selected — TanStack Query surfaces it via the mutation's `error`.
  *
  * @param parameters - {@link UseTransferNftParameters} TanStack Query mutation overrides.
+ * @expand parameters
  * @returns Mutation result for the transfer call.
  *
  * @sample docs/examples/src/appkit/hooks/nft#USE_TRANSFER_NFT

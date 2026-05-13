@@ -40,6 +40,7 @@ export type UseSignTextReturnType<context = unknown> = UseMutationResult<
  * Ask the selected wallet to sign a plain-text message — useful for off-chain login proofs and signed challenges. Call `mutate` from an event handler with the `text` to sign and an optional `network` override. On success, `data` carries the signature plus the canonicalized signer address, timestamp and dApp domain the wallet bound to the signature. Throws `Error('Wallet not connected')` if no wallet is currently selected — TanStack Query surfaces it via the mutation's `error`.
  *
  * @param parameters - {@link UseSignTextParameters} TanStack Query mutation overrides.
+ * @expand parameters
  * @returns Mutation result for the signing call.
  *
  * @public

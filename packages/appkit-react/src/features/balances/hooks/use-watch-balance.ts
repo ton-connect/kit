@@ -24,6 +24,7 @@ export type UseWatchBalanceParameters = Omit<UseWatchBalanceByAddressParameters,
  * Subscribe to Toncoin balance updates for the currently selected wallet. Updates flow into the TanStack Query cache so {@link useBalance} picks up the new data automatically (use {@link useWatchBalanceByAddress} for a fixed address). Requires a streaming provider registered for the network — the hook exits silently with a console warning when none is configured.
  *
  * @param parameters - {@link UseWatchBalanceParameters} Update callback and optional network override.
+ * @expand parameters
  *
  * @sample docs/examples/src/appkit/hooks/balances#USE_WATCH_BALANCE
  *

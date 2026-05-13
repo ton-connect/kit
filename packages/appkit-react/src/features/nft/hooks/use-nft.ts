@@ -38,6 +38,7 @@ export type UseNftReturnType<selectData = GetNftData> = UseQueryReturnType<selec
  * React hook reading metadata and ownership for a single NFT through TanStack Query, keyed by its contract address. `data` is `null` when the indexer has no record.
  *
  * @param parameters - {@link UseNftParameters} NFT address, optional network override, and TanStack Query overrides.
+ * @expand parameters
  * @returns TanStack Query result for the NFT read.
  *
  * @sample docs/examples/src/appkit/hooks/nft#USE_NFT

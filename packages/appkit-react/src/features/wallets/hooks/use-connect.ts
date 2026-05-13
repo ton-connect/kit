@@ -46,6 +46,7 @@ export type UseConnectReturnType<context = unknown> = UseMutationReturnType<
  * Open a registered connector's connection flow (e.g., the TonConnect modal) and await its completion. Call `mutate` from a Connect button with the `connectorId` of the connector to drive. Once the user finishes the flow the new wallet becomes available via {@link useSelectedWallet} / {@link useConnectedWallets}. Throws `Error('Connector with id "<id>" not found')` when no connector with that id is registered — TanStack Query surfaces it via the mutation's `error`.
  *
  * @param parameters - {@link UseConnectParameters} TanStack Query mutation overrides.
+ * @expand parameters
  * @returns Mutation result for the connect call.
  *
  * @public

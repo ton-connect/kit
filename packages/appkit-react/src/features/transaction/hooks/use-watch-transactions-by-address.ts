@@ -25,6 +25,7 @@ export type UseWatchTransactionsByAddressParameters = Partial<WatchTransactionsB
  * Subscribe to incoming-transaction events for an arbitrary address (use {@link useWatchTransactions} for the selected wallet). Requires a streaming provider registered for the network — the hook exits silently with a console warning when none is configured.
  *
  * @param parameters - {@link UseWatchTransactionsByAddressParameters} Address, update callback and optional network override.
+ * @expand parameters
  *
  * @sample docs/examples/src/appkit/hooks/transaction#USE_WATCH_TRANSACTIONS_BY_ADDRESS
  *

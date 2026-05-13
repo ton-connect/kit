@@ -44,6 +44,7 @@ export type UseJettonWalletAddressReturnType<selectData = GetJettonWalletAddress
  * React hook deriving the owner's jetton-wallet address — the per-owner contract that actually holds the jetton balance for a given master — through TanStack Query.
  *
  * @param parameters - {@link UseJettonWalletAddressParameters} Jetton master, owner address, optional network override and TanStack Query overrides.
+ * @expand parameters
  * @returns TanStack Query result for the jetton-wallet address read.
  *
  * @sample docs/examples/src/appkit/hooks/jettons#USE_JETTON_WALLET_ADDRESS

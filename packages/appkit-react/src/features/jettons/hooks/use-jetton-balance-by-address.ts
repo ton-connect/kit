@@ -44,6 +44,7 @@ export type UseJettonBalanceByAddressReturnType<selectData = GetJettonBalanceByA
  * React hook reading a jetton balance for a given owner through TanStack Query — derives the owner's jetton-wallet address from the master and formats the balance using the supplied decimals.
  *
  * @param parameters - {@link UseJettonBalanceByAddressParameters} Jetton master, owner address, decimals, optional network override and TanStack Query overrides.
+ * @expand parameters
  * @returns TanStack Query result for the jetton balance read.
  *
  * @sample docs/examples/src/appkit/hooks/jettons#USE_JETTON_BALANCE_BY_ADDRESS

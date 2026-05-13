@@ -39,6 +39,7 @@ export type UseJettonInfoReturnType<selectData = GetJettonInfoData> = UseQueryRe
  * React hook reading jetton-master metadata (name, symbol, decimals, image, description) through TanStack Query.
  *
  * @param parameters - {@link UseJettonInfoParameters} Jetton master address, optional network override and TanStack Query overrides.
+ * @expand parameters
  * @returns TanStack Query result for the jetton info read.
  *
  * @sample docs/examples/src/appkit/hooks/jettons#USE_JETTON_INFO

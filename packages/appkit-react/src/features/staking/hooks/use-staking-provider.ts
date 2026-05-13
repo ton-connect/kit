@@ -13,6 +13,15 @@ import type { GetStakingProviderOptions, GetStakingProviderReturnType } from '@t
 import { useAppKit } from '../../settings/hooks/use-app-kit';
 
 /**
+ * Parameters accepted by {@link useStakingProvider} — optional provider id forwarded to {@link appkit:getStakingProvider}.
+ *
+ * @public
+ * @category Type
+ * @section Staking
+ */
+export type UseStakingProviderParameters = GetStakingProviderOptions;
+
+/**
  * Return type of {@link useStakingProvider} — the matching staking provider, or `undefined` when none resolves (the hook swallows the throw from {@link appkit:getStakingProvider}).
  *
  * @public
@@ -24,16 +33,17 @@ export type UseStakingProviderReturnType = GetStakingProviderReturnType | undefi
 /**
  * React hook returning a registered staking provider. Subscribes to provider-registry changes via {@link appkit:watchStakingProviders} and looks up by `id`, or returns the registered default when no id is given. Returns `undefined` when no provider matches and no default has been registered (where the underlying {@link appkit:getStakingProvider} action would throw).
  *
- * @param options - Optional provider `id`.
+ * @param parameters - {@link UseStakingProviderParameters} Optional provider id.
+ * @expand parameters
  * @returns Matching staking provider instance, or `undefined` when none resolves.
  *
  * @public
  * @category Hook
  * @section Staking
  */
-export const useStakingProvider = (options: GetStakingProviderOptions = {}): UseStakingProviderReturnType => {
+export const useStakingProvider = (parameters: UseStakingProviderParameters = {}): UseStakingProviderReturnType => {
     const appKit = useAppKit();
-    const { id } = options;
+    const { id } = parameters;
 
     const subscribe = useCallback(
         (onChange: () => void) => {

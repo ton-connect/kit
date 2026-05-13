@@ -27,6 +27,7 @@ export type UseWatchJettonsByAddressParameters = Partial<WatchJettonsByAddressOp
  * Subscribe to jetton-balance updates for an arbitrary owner address. Updates flow into the TanStack Query cache so {@link useJettonsByAddress} and {@link useJettonBalanceByAddress} pick up the new data automatically. Requires a streaming provider registered for the network — the hook exits silently with a console warning when none is configured.
  *
  * @param parameters - {@link UseWatchJettonsByAddressParameters} Owner address, update callback and optional network override.
+ * @expand parameters
  *
  * @sample docs/examples/src/appkit/hooks/jettons#USE_WATCH_JETTONS_BY_ADDRESS
  *

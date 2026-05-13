@@ -34,6 +34,7 @@ export type UseJettonsReturnType<selectData = GetJettonsByAddressData> = UseJett
  * React hook listing jettons held by the currently selected wallet through TanStack Query — auto-resolves the wallet address (use {@link useJettonsByAddress} for an arbitrary address).
  *
  * @param parameters - {@link UseJettonsParameters} TanStack Query overrides (`select`, `enabled`, `staleTime`, …), pagination and an optional network override.
+ * @expand parameters
  * @returns TanStack Query result for the jettons list.
  *
  * @sample docs/examples/src/appkit/hooks/jettons#USE_JETTONS

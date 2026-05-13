@@ -45,6 +45,7 @@ export type UseCryptoOnrampQuoteReturnType<selectData = GetCryptoOnrampQuoteData
  * Quote a crypto-to-TON onramp — given a source asset/chain and the target TON asset, returns the rate, expected amount and the provider-specific metadata required to feed {@link useCreateCryptoOnrampDeposit}. `data` is the {@link appkit:CryptoOnrampQuote} payload.
  *
  * @param parameters - {@link UseCryptoOnrampQuoteParameters} Quote inputs and TanStack Query overrides.
+ * @expand parameters
  * @returns TanStack Query result for the quote read.
  *
  * @public

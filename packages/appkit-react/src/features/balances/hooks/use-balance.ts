@@ -34,6 +34,7 @@ export type UseBalanceReturnType<selectData = GetBalanceByAddressData> = UseBala
  * React hook reading the Toncoin balance of the currently selected wallet through TanStack Query — auto-resolves the wallet address (use {@link useBalanceByAddress} for an arbitrary address).
  *
  * @param parameters - {@link UseBalanceParameters} TanStack Query overrides (`select`, `enabled`, `staleTime`, …) and an optional network override.
+ * @expand parameters
  * @returns TanStack Query result for the balance read.
  *
  * @sample docs/examples/src/appkit/hooks/balances#USE_BALANCE

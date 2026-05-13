@@ -45,6 +45,7 @@ export type UseCryptoOnrampStatusReturnType<selectData = GetCryptoOnrampStatusDa
  * Read the current status of a crypto-onramp deposit previously created via {@link useCreateCryptoOnrampDeposit}. Typically polled via `refetchInterval` until `data` reaches a terminal state — `'success'` (delivered to the recipient) or `'failed'` (provider could not complete the deposit).
  *
  * @param parameters - {@link UseCryptoOnrampStatusParameters} Deposit id, originating provider id and TanStack Query overrides.
+ * @expand parameters
  * @returns TanStack Query result for the status read.
  *
  * @public
