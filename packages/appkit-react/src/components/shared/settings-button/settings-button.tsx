@@ -28,6 +28,8 @@ export interface SettingsButtonProps extends ComponentProps<typeof Button> {
 /**
  * Icon-only secondary button with a sliders icon — drop-in trigger for opening settings panels.
  *
+ * @sample docs/examples/src/appkit/components/shared#SETTINGS_BUTTON
+ *
  * @public
  * @category Component
  * @section Shared

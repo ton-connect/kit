@@ -33,6 +33,8 @@ export interface SendTonButtonProps extends Omit<SendProps, 'request'> {
 /**
  * Pre-wired button that builds a TON transfer with {@link appkit:createTransferTonTransaction} and dispatches it through the standard `Send` flow on click — disabled until both `recipientAddress` and `amount` are set.
  *
+ * @sample docs/examples/src/appkit/components/balances#SEND_TON_BUTTON
+ *
  * @public
  * @category Component
  * @section Balances

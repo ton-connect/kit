@@ -29,8 +29,8 @@ export const AppKitProviderExample: FC = () => {
     // SAMPLE_START: APP_KIT_PROVIDER
     return (
         <AppKitProvider appKit={appKit}>
+            <h1>My App</h1>
             {/* Your App Content */}
-            <div>My App</div>
         </AppKitProvider>
     );
     // SAMPLE_END: APP_KIT_PROVIDER

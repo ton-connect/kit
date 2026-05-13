@@ -48,6 +48,8 @@ export interface LowBalanceModalProps {
 /**
  * Modal shown when a transaction would leave insufficient TON to cover fees — adapts its body and buttons to the {@link LowBalanceMode}.
  *
+ * @sample docs/examples/src/appkit/components/shared#LOW_BALANCE_MODAL
+ *
  * @public
  * @category Component
  * @section Shared

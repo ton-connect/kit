@@ -47,6 +47,8 @@ export interface AmountPresetsProps extends ComponentProps<'div'> {
 /**
  * Horizontal row of preset amount buttons — typically used next to an amount input to offer quick fills.
  *
+ * @sample docs/examples/src/appkit/components/shared#AMOUNT_PRESETS
+ *
  * @public
  * @category Component
  * @section Shared

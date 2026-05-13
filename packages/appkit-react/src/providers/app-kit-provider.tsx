@@ -30,6 +30,8 @@ export interface AppKitProviderProps extends PropsWithChildren {
 /**
  * Top-level React provider that wires AppKit, the TonConnect bridge and i18n into the component tree — wrap your app once near the root so descendant hooks ({@link useAppKit}, {@link useBalance}, …) and components can resolve their context.
  *
+ * @sample docs/examples/src/appkit/components/providers#APP_KIT_PROVIDER
+ *
  * @public
  * @category Component
  * @section Providers

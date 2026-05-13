@@ -38,6 +38,8 @@ export interface LogoWithNetworkProps extends ComponentPropsWithoutRef<'span'> {
 /**
  * Token logo with an overlaid network badge — wraps {@link Logo} and renders a smaller secondary logo as a corner badge to indicate which network the asset belongs to.
  *
+ * @sample docs/examples/src/appkit/components/ui#LOGO_WITH_NETWORK
+ *
  * @public
  * @category Component
  * @section UI

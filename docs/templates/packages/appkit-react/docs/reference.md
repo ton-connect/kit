@@ -637,6 +637,10 @@ Pre-wired button that builds a jetton transfer with [`createTransferJettonTransa
 | `onError` | `(error: Error) => void` | Callback when an error occurs |
 | `onSuccess` | <code>(response: <a href="/ecosystem/appkit/reference/appkit#sendtransactionreturntype">SendTransactionReturnType</a>) =&gt; void</code> | Callback when the transaction is successful |
 
+**Example**
+
+%%docs/examples/src/appkit/components/balances#SEND_JETTON_BUTTON%%
+
 #### SendTonButton
 
 Pre-wired button that builds a TON transfer with [`createTransferTonTransaction`](/ecosystem/appkit/reference/appkit#createtransfertontransaction) and dispatches it through the standard `Send` flow on click — disabled until both `recipientAddress` and `amount` are set.
@@ -657,6 +661,10 @@ Pre-wired button that builds a TON transfer with [`createTransferTonTransaction`
 | `onError` | `(error: Error) => void` | Callback when an error occurs |
 | `onSuccess` | <code>(response: <a href="/ecosystem/appkit/reference/appkit#sendtransactionreturntype">SendTransactionReturnType</a>) =&gt; void</code> | Callback when the transaction is successful |
 
+**Example**
+
+%%docs/examples/src/appkit/components/balances#SEND_TON_BUTTON%%
+
 ### Crypto Onramp
 
 #### CryptoOnrampWidget
@@ -673,6 +681,10 @@ Drop-in widget for buying TON-side tokens with a crypto payment from another cha
 | `chains` | <code>Record&lt;string, <a href="#chaininfo">ChainInfo</a>&gt;</code> | Custom CAIP-2 → chain display info overrides. Merged on top of the built-in defaults, so consumers only need to provide what they want to override or add — for example, a single entry keyed by `'eip155:42161'` with a `name` of `'Arbitrum'` and a `logo` URL. |
 | `defaultTokenId` | `string` | ID of the target token pre-selected on mount. |
 | `defaultMethodId` | `string` | ID of the source payment method pre-selected on mount. |
+
+**Example**
+
+%%docs/examples/src/appkit/components/crypto-onramp#CRYPTO_ONRAMP_WIDGET%%
 
 #### CryptoOnrampWidgetProvider
 
@@ -739,6 +751,10 @@ Card-style button rendering an NFT's image, name and collection name with an "On
 | --- | --- | --- |
 | `nft`\* | <code><a href="/ecosystem/appkit/reference/appkit#nft">NFT</a></code> | NFT to render — name, collection name, image and on-sale state are derived via `getFormattedNftInfo`. |
 
+**Example**
+
+%%docs/examples/src/appkit/components/nfts#NFT_ITEM%%
+
 ### Providers
 
 #### AppKitProvider
@@ -749,6 +765,10 @@ Top-level React provider that wires AppKit, the TonConnect bridge and i18n into 
 | --- | --- | --- |
 | `appKit`\* | <code><a href="/ecosystem/appkit/reference/appkit#appkit">AppKit</a></code> | Runtime instance constructed at app startup; shared across every appkit-react hook and component. |
 
+**Example**
+
+%%docs/examples/src/appkit/components/providers#APP_KIT_PROVIDER%%
+
 #### I18nProvider
 
 React provider that mounts the i18n context for [`useI18n`](#usei18n) and child components — already wrapped by [`AppKitProvider`](#appkitprovider), so apps usually only render it directly when they need to override the locale or dictionaries.
@@ -757,6 +777,10 @@ React provider that mounts the i18n context for [`useI18n`](#usei18n) and child 
 | --- | --- | --- |
 | `locale` | `string` | Initial locale code; defaults to the i18n library's default when omitted. |
 | `lngDicts` | `Record<string, Dict>` | Translation dictionaries keyed by locale; loaded into the underlying i18n instance on mount. |
+
+**Example**
+
+%%docs/examples/src/appkit/components/providers#I18N_PROVIDER%%
 
 ### Shared
 
@@ -770,6 +794,10 @@ Horizontal row of preset amount buttons — typically used next to an amount inp
 | `currencySymbol` | `string` | Optional symbol (e.g., `"$"`) prepended to each preset label. |
 | `onPresetSelect`\* | `(value: string) => void` | Called with the selected preset's `amount` unless the preset defines its own `onSelect`. |
 
+**Example**
+
+%%docs/examples/src/appkit/components/shared#AMOUNT_PRESETS%%
+
 #### CopyButton
 
 Icon-only button that copies `value` to the clipboard on click and flips its icon to a checkmark for a short confirmation window.
@@ -778,6 +806,10 @@ Icon-only button that copies `value` to the clipboard on click and flips its ico
 | --- | --- | --- |
 | `value`\* | `string` | Text written to the clipboard when the button is clicked. |
 | `aria-label`\* | `string` | Accessible label for screen readers. |
+
+**Example**
+
+%%docs/examples/src/appkit/components/shared#COPY_BUTTON%%
 
 #### CurrencyItem
 
@@ -824,6 +856,10 @@ Modal shown when a transaction would leave insufficient TON to cover fees — ad
 | `onChange`\* | `() => void` | Called when the user clicks the primary "Change" action (only in `reduce` mode). |
 | `onCancel`\* | `() => void` | Called when the user dismisses the modal (Cancel, Close, or backdrop click). |
 
+**Example**
+
+%%docs/examples/src/appkit/components/shared#LOW_BALANCE_MODAL%%
+
 #### OptionSwitcher
 
 Compact dropdown selector — renders the current option's label and a chevron, opening a [`Select`](#select) popover with the remaining choices. Falls back to the raw `value` or `"—"` when no option matches.
@@ -835,6 +871,10 @@ Compact dropdown selector — renders the current option's label and a chevron, 
 | `onChange`\* | `(value: string) => void` | Called when the user picks an option. |
 | `disabled` | `boolean` | When true, the trigger is non-interactive and dimmed. |
 | `className` | `string` | Extra class applied to the trigger button. |
+
+**Example**
+
+%%docs/examples/src/appkit/components/shared#OPTION_SWITCHER%%
 
 #### SettingsButton
 
@@ -850,6 +890,10 @@ Icon-only secondary button with a sliders icon — drop-in trigger for opening s
 | `fullWidth` | `boolean` | When true, the button stretches to fill its container width. |
 | `icon` | `ReactNode` | Optional leading icon rendered before `children` when not loading. |
 
+**Example**
+
+%%docs/examples/src/appkit/components/shared#SETTINGS_BUTTON%%
+
 #### TokenSelectModal
 
 Ready-made token picker modal — renders a search field and a sectioned list of [`CurrencyItem`](#currencyitem) rows backed by [`CurrencySelect`](#currencyselect). Search matches by symbol, name, or exact address; selecting a row fires `onSelect`, closes the modal, and resets the search.
@@ -863,6 +907,10 @@ Ready-made token picker modal — renders a search field and a sectioned list of
 | `onSelect`\* | `(token: T = AppkitUIToken) => void` | Called with the picked token; the modal closes and resets its search on selection. |
 | `title`\* | `string` | Modal header title. |
 | `searchPlaceholder` | `string` | Placeholder shown inside the search input. |
+
+**Example**
+
+%%docs/examples/src/appkit/components/shared#TOKEN_SELECT_MODAL%%
 
 #### TokenSelector
 
@@ -880,6 +928,10 @@ Compact pill button used as the trigger for a token picker — shows the token i
 | `variant` | `ButtonVariant` | Visual variant. Use `'unstyled'` to opt out of all built-in styling — the consumer is fully responsible for visuals via `className`. The Button still provides ref forwarding, `disabled`/`loading` plumbing, and `icon`/`children` rendering. |
 | `loading` | `boolean` | When true, renders a spinner instead of `icon`/`children` and disables the button. |
 | `fullWidth` | `boolean` | When true, the button stretches to fill its container width. |
+
+**Example**
+
+%%docs/examples/src/appkit/components/shared#TOKEN_SELECTOR%%
 
 ### Staking
 
@@ -942,6 +994,10 @@ High-level staking widget that wires the full stake/unstake flow: pick a provide
 | --- | --- | --- |
 | `children` | <code>(props: <a href="#stakingwidgetrenderprops">StakingWidgetRenderProps</a>) =&gt; ReactNode</code> | Optional render-prop. When provided, the default [`StakingWidgetUI`](#stakingwidgetui) is bypassed and this function is called with the full [`StakingWidgetRenderProps`](#stakingwidgetrenderprops) (context state + forwarded `<div>` props), letting consumers build a custom UI on top of the widget's internal logic. |
 | `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network used for quote fetching, balance reads, and transactions. Falls back to the connected wallet's network when omitted. |
+
+**Example**
+
+%%docs/examples/src/appkit/components/staking#STAKING_WIDGET%%
 
 #### StakingWidgetProvider
 
@@ -1050,6 +1106,10 @@ Drop-in swap UI that walks the user through picking the source/target tokens, en
 | `defaultToSymbol` | `string` | Symbol of the token pre-selected as the target on first mount. |
 | `fiatSymbol` | `string` | Fiat currency symbol displayed next to converted amounts. Defaults to `"$"`. |
 | `defaultSlippage` | `number` | Initial slippage tolerance in basis points (`100` = 1%). Defaults to `100`. |
+
+**Example**
+
+%%docs/examples/src/appkit/components/swap#SWAP_WIDGET%%
 
 #### SwapWidgetProvider
 
@@ -1254,6 +1314,10 @@ Square logo / avatar primitive — renders an `<img>` when `src` loads successfu
 | `alt` | `string` | Alt text passed to the underlying `<img>`. When `fallback` is not provided, its first character is shown as the fallback; if both are missing, no fallback is rendered. |
 | `fallback` | `string` | Text shown in place of the image when `src` fails or is missing (defaults to the first character of `alt`). |
 
+**Example**
+
+%%docs/examples/src/appkit/components/ui#LOGO%%
+
 #### LogoWithNetwork
 
 Token logo with an overlaid network badge — wraps [`Logo`](#logo) and renders a smaller secondary logo as a corner badge to indicate which network the asset belongs to.
@@ -1267,6 +1331,10 @@ Token logo with an overlaid network badge — wraps [`Logo`](#logo) and renders 
 | `networkSrc` | `string` | Image source for the network badge overlay. When omitted, the badge is not rendered. |
 | `networkAlt` | `string` | Alt text for the network badge. |
 
+**Example**
+
+%%docs/examples/src/appkit/components/ui#LOGO_WITH_NETWORK%%
+
 #### Modal
 
 Centered modal dialog with a header (optional title + close button) and a scrollable body. Clicking the overlay closes the modal; clicks on the content do not bubble through.
@@ -1279,6 +1347,10 @@ Centered modal dialog with a header (optional title + close button) and a scroll
 | `children` | `ReactNode` | Modal body content. |
 | `className` | `string` | Additional class name applied to the content container. |
 | `bodyClassName` | `string` | Additional class name applied to the body container. |
+
+**Example**
+
+%%docs/examples/src/appkit/components/ui#MODAL%%
 
 #### SearchIcon
 

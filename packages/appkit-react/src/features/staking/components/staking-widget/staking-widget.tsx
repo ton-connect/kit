@@ -43,6 +43,8 @@ const StakingWidgetContent: FC<
 /**
  * High-level staking widget that wires the full stake/unstake flow: pick a provider, enter an amount (with optional reverse input on supported providers), review the quote (APY, exchange rate, "you get"), then submit the transaction. Internally wraps {@link StakingWidgetProvider} around {@link StakingWidgetUI}; consumers can replace the UI by passing a render-prop `children` while keeping the widget's state, quoting, balance checks, and submission logic.
  *
+ * @sample docs/examples/src/appkit/components/staking#STAKING_WIDGET
+ *
  * @public
  * @category Component
  * @section Staking

@@ -38,6 +38,8 @@ export interface TokenSelectorProps extends ButtonProps {
 /**
  * Compact pill button used as the trigger for a token picker — shows the token icon (optionally with a network badge), its symbol, and a chevron unless `readOnly` is set.
  *
+ * @sample docs/examples/src/appkit/components/shared#TOKEN_SELECTOR
+ *
  * @public
  * @category Component
  * @section Shared

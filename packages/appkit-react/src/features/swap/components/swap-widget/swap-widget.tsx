@@ -40,6 +40,8 @@ const SwapWidgetContent: FC<
 /**
  * Drop-in swap UI that walks the user through picking the source/target tokens, entering an amount, reviewing the quote (rate, min-received, slippage, provider), and confirming the swap — which builds the transaction via {@link useBuildSwapTransaction} and dispatches it through the standard send flow. Internally mounts a {@link SwapWidgetProvider} so the rendered UI (default {@link SwapWidgetUI} or a custom `children` render-prop) can read state through {@link useSwapContext}.
  *
+ * @sample docs/examples/src/appkit/components/swap#SWAP_WIDGET
+ *
  * @public
  * @category Component
  * @section Swap

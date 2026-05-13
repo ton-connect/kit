@@ -45,6 +45,8 @@ const CryptoOnrampWidgetContent: FC<{ children?: (props: CryptoOnrampWidgetRende
 /**
  * Drop-in widget for buying TON-side tokens with a crypto payment from another chain — wraps {@link CryptoOnrampWidgetProvider} (which drives token/method selection, quote fetching, deposit creation and status polling) around {@link CryptoOnrampWidgetUI}. Pass a `children` render function to swap in a fully custom UI while keeping the same provider state.
  *
+ * @sample docs/examples/src/appkit/components/crypto-onramp#CRYPTO_ONRAMP_WIDGET
+ *
  * @public
  * @category Component
  * @section Crypto Onramp

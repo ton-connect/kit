@@ -41,6 +41,8 @@ const BalanceSymbol: FC<ComponentProps<'span'> & { symbol: string }> = ({ classN
 /**
  * Compound component for rendering a token balance pill (icon + amount + symbol). Sub-components forward extra props to the underlying DOM element so callers can layer custom classes, click handlers, etc.
  *
+ * @sample docs/examples/src/appkit/components/balances#BALANCE_BADGE
+ *
  * @public
  * @category Component
  * @section Balances

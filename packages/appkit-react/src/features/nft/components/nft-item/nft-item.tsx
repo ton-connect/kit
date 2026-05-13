@@ -31,6 +31,8 @@ export interface NftItemProps extends ComponentProps<'button'> {
 /**
  * Card-style button rendering an NFT's image, name and collection name with an "On Sale" badge when applicable — falls back to a placeholder icon when the image is missing or fails to load.
  *
+ * @sample docs/examples/src/appkit/components/nfts#NFT_ITEM
+ *
  * @public
  * @category Component
  * @section NFTs

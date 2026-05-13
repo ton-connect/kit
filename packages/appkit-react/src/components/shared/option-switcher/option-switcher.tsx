@@ -50,6 +50,8 @@ export interface OptionSwitcherProps {
 /**
  * Compact dropdown selector — renders the current option's label and a chevron, opening a {@link Select} popover with the remaining choices. Falls back to the raw `value` or `"—"` when no option matches.
  *
+ * @sample docs/examples/src/appkit/components/shared#OPTION_SWITCHER
+ *
  * @public
  * @category Component
  * @section Shared

@@ -90,6 +90,8 @@ export interface TokenSelectModalProps<T extends TokenBase = AppkitUIToken> {
 /**
  * Ready-made token picker modal — renders a search field and a sectioned list of {@link CurrencyItem} rows backed by {@link CurrencySelect}. Search matches by symbol, name, or exact address; selecting a row fires `onSelect`, closes the modal, and resets the search.
  *
+ * @sample docs/examples/src/appkit/components/shared#TOKEN_SELECT_MODAL
+ *
  * @public
  * @category Component
  * @section Shared

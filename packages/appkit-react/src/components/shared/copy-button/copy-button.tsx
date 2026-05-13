@@ -30,6 +30,8 @@ export interface CopyButtonProps extends Omit<ComponentProps<'button'>, 'value' 
 /**
  * Icon-only button that copies `value` to the clipboard on click and flips its icon to a checkmark for a short confirmation window.
  *
+ * @sample docs/examples/src/appkit/components/shared#COPY_BUTTON
+ *
  * @public
  * @category Component
  * @section Shared

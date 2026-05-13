@@ -17,8 +17,8 @@ Source template: docs/templates/packages/appkit-react/docs/components.md
  ```tsx
 return (
     <AppKitProvider appKit={appKit}>
+        <h1>My App</h1>
         {/* Your App Content */}
-        <div>My App</div>
     </AppKitProvider>
 );
 ```

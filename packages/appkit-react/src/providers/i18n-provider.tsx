@@ -49,6 +49,8 @@ export interface I18nProviderProps extends PropsWithChildren {
 /**
  * React provider that mounts the i18n context for {@link useI18n} and child components — already wrapped by {@link AppKitProvider}, so apps usually only render it directly when they need to override the locale or dictionaries.
  *
+ * @sample docs/examples/src/appkit/components/providers#I18N_PROVIDER
+ *
  * @public
  * @category Component
  * @section Providers

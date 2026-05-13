@@ -107,6 +107,8 @@ export interface LogoProps extends ComponentPropsWithoutRef<'span'> {
 /**
  * Square logo / avatar primitive — renders an `<img>` when `src` loads successfully, otherwise shows a text fallback (after a brief delay to avoid flicker). Useful for token icons, wallet avatars, and project logos.
  *
+ * @sample docs/examples/src/appkit/components/ui#LOGO
+ *
  * @public
  * @category Component
  * @section UI
