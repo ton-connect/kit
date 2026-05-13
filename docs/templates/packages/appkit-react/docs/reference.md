@@ -602,24 +602,6 @@ Returns: <code><a href="#useselectedwalletreturntype">UseSelectedWalletReturnTyp
 
 ### Balances
 
-#### BalanceBadge
-
-Compound component for rendering a token balance pill (icon + amount + symbol). Sub-components forward extra props to the underlying DOM element so callers can layer custom classes, click handlers, etc.
-
-**Members**
-
-| Member | Description |
-| --- | --- |
-| `BalanceBadge.Container` | Pill wrapper — renders a horizontal [`Block`](#block) that hosts the icon and balance block. |
-| `BalanceBadge.Icon` | Token icon — re-exported [`Logo`](#logo) that draws the asset's image. |
-| `BalanceBadge.BalanceBlock` | Block holding the balance amount and ticker symbol side by side. |
-| `BalanceBadge.Symbol` | Ticker symbol cell rendered next to the amount (e.g., `TON`, `USDT`). |
-| `BalanceBadge.Balance` | Formatted balance number; takes a raw `balance` and `decimals` and renders the human-readable amount. |
-
-**Example**
-
-%%docs/examples/src/appkit/components/balances#BALANCE_BADGE%%
-
 #### SendJettonButton
 
 Pre-wired button that builds a jetton transfer with [`createTransferJettonTransaction`](/ecosystem/appkit/reference/appkit#createtransferjettontransaction) and dispatches it through the standard `Send` flow on click — disabled until `recipientAddress`, `amount`, `jetton.address` and a non-zero `jetton.decimals` are all set; throws inside the click handler when `jetton.address` is missing or `jetton.decimals` is falsy. (A `0`-decimal jetton must be passed as a truthy value to avoid being treated as missing.)
