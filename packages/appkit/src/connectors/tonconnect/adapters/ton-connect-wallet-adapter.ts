@@ -36,7 +36,7 @@ export interface TonConnectWalletAdapterConfig {
 }
 
 /**
- * {@link WalletInterface} implementation backed by a TonConnect wallet. Built for you by {@link createTonConnectConnector} — apps interact with it through standard AppKit actions ({@link sendTransaction}, {@link signText}/{@link signBinary}/{@link signCell}). Reads (balance, jettons, NFTs) go through AppKit actions using `appKit.networkManager`, not this adapter.
+ * {@link WalletInterface} implementation backed by a TonConnect wallet. Built for you by {@link createTonConnectConnector} — apps interact with it through standard AppKit actions ({@link sendTransaction}, {@link signText}/{@link signBinary}/{@link signCell}). On-chain reads (balance, jettons, NFTs) live on separate actions ({@link getBalance}, {@link getJettons}, {@link getNfts}) and don't go through this adapter.
  *
  * @public
  * @category Class
@@ -47,7 +47,10 @@ export class TonConnectWalletAdapter implements WalletInterface {
     public readonly tonConnectUI: TonConnectUI;
     public readonly connectorId: string;
 
-    /** @param config - {@link TonConnectWalletAdapterConfig} TonConnect wallet + UI instance and the id of the connector that produced them. */
+    /**
+     * @param config - {@link TonConnectWalletAdapterConfig} TonConnect wallet + UI instance and the id of the connector that produced them.
+     * @expand config
+     */
     constructor(config: TonConnectWalletAdapterConfig) {
         this.tonConnectWallet = config.tonConnectWallet;
         this.tonConnectUI = config.tonConnectUI;

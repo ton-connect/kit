@@ -261,13 +261,16 @@ Constructor: `new SwapProvider()`
 
 #### TonConnectWalletAdapter
 
-[`WalletInterface`](#walletinterface) implementation backed by a TonConnect wallet. Built for you by [`createTonConnectConnector`](#createtonconnectconnector) — apps interact with it through standard AppKit actions ([`sendTransaction`](#sendtransaction), [`signText`](#signtext)/[`signBinary`](#signbinary)/[`signCell`](#signcell)). Reads (balance, jettons, NFTs) go through AppKit actions using `appKit.networkManager`, not this adapter.
+[`WalletInterface`](#walletinterface) implementation backed by a TonConnect wallet. Built for you by [`createTonConnectConnector`](#createtonconnectconnector) — apps interact with it through standard AppKit actions ([`sendTransaction`](#sendtransaction), [`signText`](#signtext)/[`signBinary`](#signbinary)/[`signCell`](#signcell)). On-chain reads (balance, jettons, NFTs) live on separate actions ([`getBalance`](#getbalance), [`getJettons`](#getjettons), [`getNfts`](#getnfts)) and don't go through this adapter.
 
 Constructor: `new TonConnectWalletAdapter(config)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `config`\* | [`TonConnectWalletAdapterConfig`](#tonconnectwalletadapterconfig) | TonConnect wallet + UI instance and the id of the connector that produced them. |
+| `config.connectorId`\* | `string` | ID of the connector that produced this wallet — surfaced as `WalletInterface.connectorId`. |
+| `config.tonConnectWallet`\* | `TonConnectWallet` | Underlying TonConnect wallet object. |
+| `config.tonConnectUI`\* | `TonConnectUI` | TonConnect UI instance used to drive `sendTransaction` and `signData` calls. |
 
 ## Action
 
