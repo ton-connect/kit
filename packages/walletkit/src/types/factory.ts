@@ -19,8 +19,6 @@ export interface ProviderFactoryContext<Events extends SharedKitEvents = SharedK
     networkManager: NetworkManager;
     /** Event emitter the provider should publish its events to. */
     eventEmitter: EventEmitter<Events>;
-    /** `true` when the provider is constructed during server-side rendering — factories may skip browser-only setup. */
-    ssr?: boolean;
 }
 
 /** Factory function that creates a provider from context */

@@ -127,9 +127,6 @@ export interface AppKitConfig {
 
     /** Defi/onramp providers registered at startup. */
     providers?: ProviderInput[];
-
-    /** Set to `true` to enable server-side rendering support. */
-    ssr?: boolean;
 }
 ```
 

@@ -25,7 +25,7 @@ export type Provider = SwapProviderInterface | StakingProviderInterface;
 export type { ProviderInput } from '@ton/walletkit';
 
 /**
- * Context that AppKit's DeFi managers inject into a {@link ProviderInput} factory at registration time — gives the provider access to AppKit's network manager and event emitter, plus an `ssr` flag for server-side initialisation.
+ * Context that AppKit's DeFi managers inject into a {@link ProviderInput} factory at registration time — gives the provider access to AppKit's network manager and event emitter.
  *
  * @extract
  * @public

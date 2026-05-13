@@ -1326,7 +1326,6 @@ Constructor: `new AppKit(config)`
 | `config.connectors` | <code><a href="#connectorinput">ConnectorInput</a>[]</code> | Wallet connectors registered at startup. |
 | `config.defaultNetwork` | <code><a href="#network">Network</a></code> | Default network. |
 | `config.providers` | <code><a href="#providerinput">ProviderInput</a>[]</code> | Providers registered at startup. |
-| `config.ssr` | `boolean` | Set to `true` to enable server-side rendering support. |
 
 **Example**
 
@@ -1824,7 +1823,6 @@ Context that AppKit injects into a [`ConnectorFactory`](#connectorfactory) when 
 | --- | --- | --- |
 | `networkManager`\* | <code><a href="#appkitnetworkmanager">AppKitNetworkManager</a></code> | Network manager the connector should use for client lookups and default-network reads. |
 | `eventEmitter`\* | <code><a href="#appkitemitter">AppKitEmitter</a></code> | Event emitter the connector should publish wallet/connection events to. |
-| `ssr` | `boolean` | `true` when the connector is constructed during server-side rendering — connectors may skip browser-only setup. |
 
 #### ConnectorInput
 
@@ -1954,7 +1952,6 @@ Constructor options for [`AppKit`](#appkit) — networks, connectors, providers 
 | `connectors` | <code><a href="#connectorinput">ConnectorInput</a>[]</code> | Wallet connectors registered at startup. |
 | `defaultNetwork` | <code><a href="#network">Network</a></code> | Default network. |
 | `providers` | <code><a href="#providerinput">ProviderInput</a>[]</code> | Providers registered at startup. |
-| `ssr` | `boolean` | Set to `true` to enable server-side rendering support. |
 
 #### AppKitEmitter
 
@@ -2366,13 +2363,12 @@ type DefiProviderType = 'swap' | 'staking' | 'onramp' | 'crypto-onramp';
 
 #### ProviderFactoryContext
 
-Context that AppKit's DeFi managers inject into a [`ProviderInput`](#providerinput) factory at registration time — gives the provider access to AppKit's network manager and event emitter, plus an `ssr` flag for server-side initialisation.
+Context that AppKit's DeFi managers inject into a [`ProviderInput`](#providerinput) factory at registration time — gives the provider access to AppKit's network manager and event emitter.
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `networkManager`\* | `NetworkManager` | Network manager the provider should use for client lookups and default-network reads. |
 | `eventEmitter`\* | <code><a href="#eventemitter">EventEmitter</a>&lt;Events = <a href="#sharedkitevents">SharedKitEvents</a>&gt;</code> | Event emitter the provider should publish its events to. |
-| `ssr` | `boolean` | `true` when the provider is constructed during server-side rendering — factories may skip browser-only setup. |
 
 #### ProviderInput
 

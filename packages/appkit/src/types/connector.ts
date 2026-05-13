@@ -67,8 +67,6 @@ export interface ConnectorFactoryContext {
     networkManager: AppKitNetworkManager;
     /** Event emitter the connector should publish wallet/connection events to. */
     eventEmitter: AppKitEmitter;
-    /** `true` when the connector is constructed during server-side rendering — connectors may skip browser-only setup. */
-    ssr?: boolean;
 }
 
 /**
