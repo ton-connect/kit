@@ -75,6 +75,10 @@ class ProxyWalletAdapter implements WalletAdapter {
         return result as Base64String;
     }
 
+    async getSignedSignMessage(): Promise<Base64String> {
+        throw new Error('Sign message signing is not supported by the Android proxy wallet adapter.');
+    }
+
     async getSignedSignData(input: PreparedSignData, options?: { fakeSignature: boolean }): Promise<Hex> {
         const result = await bridgeRequest('adapterSignData', {
             adapterId: this.adapterId,

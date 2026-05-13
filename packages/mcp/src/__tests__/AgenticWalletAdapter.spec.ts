@@ -10,6 +10,8 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import { Address, Cell, loadMessageRelaxed } from '@ton/core';
+import type { CommonMessageInfoInternal } from '@ton/core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Network } from '@ton/walletkit';
 import type { ApiClient, Hex, WalletSigner } from '@ton/walletkit';
@@ -128,6 +130,59 @@ describe('AgenticWalletAdapter wallet NFT index caching', () => {
         });
 
         await expect(adapter.getStateInit()).rejects.toThrow(/Agentic wallet init is not configured/i);
+    });
+});
+
+describe('AgenticWalletAdapter v5-style signing', () => {
+    it('creates a relaxed internal sign message for relaying', async () => {
+        const runGetMethod = vi.fn().mockResolvedValue({
+            exitCode: 0,
+            stack: [{ type: 'num', value: '0' }],
+        });
+        const adapter = await AgenticWalletAdapter.create(createSignerStub(), {
+            client: createClientStub(runGetMethod),
+            network: Network.mainnet(),
+            walletAddress: agentAddress,
+            walletNftIndex: 42n,
+        });
+
+        const boc = await adapter.getSignedSignMessage(
+            {
+                messages: [
+                    {
+                        address: agentAddress,
+                        amount: '1',
+                    },
+                ],
+            },
+            { fakeSignature: true },
+        );
+
+        const message = loadMessageRelaxed(Cell.fromBase64(boc).asSlice());
+        const info = message.info as CommonMessageInfoInternal;
+        const body = message.body.beginParse();
+
+        expect(info.type).toBe('internal');
+        expect(info.dest.toString()).toBe(Address.parse(agentAddress).toString());
+        expect(body.loadUint(32)).toBe(0xbf235204);
+        expect(body.loadUintBig(256)).toBe(42n);
+    });
+
+    it('advertises v5-style transaction features', async () => {
+        const adapter = await AgenticWalletAdapter.create(createSignerStub(), {
+            client: createClientStub(vi.fn()),
+            network: Network.mainnet(),
+            walletAddress: agentAddress,
+            walletNftIndex: 42n,
+        });
+
+        expect(adapter.getSupportedFeatures()).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({ name: 'SendTransaction', maxMessages: 255 }),
+                expect.objectContaining({ name: 'SignMessage', maxMessages: 255 }),
+                expect.objectContaining({ name: 'EmbeddedRequest' }),
+            ]),
+        );
     });
 });
 

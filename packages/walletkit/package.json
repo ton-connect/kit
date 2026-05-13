@@ -88,7 +88,7 @@
 
     "test:coverage": "vitest run --coverage",
     "test:mutation": "stryker run stryker.config.js",
-    "quality": "pnpm test:coverage",
+    "quality": "pnpm test",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --max-warnings 0 --fix",
     "clean": "git clean -xdf dist node_modules .turbo coverage",

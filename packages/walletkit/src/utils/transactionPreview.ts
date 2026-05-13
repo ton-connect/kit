@@ -28,16 +28,16 @@ const SIGN_MODE_EMULATION_VALUE = 2_000_000_000n;
 export async function createTransactionPreview(
     client: ApiClient,
     request: TransactionRequest,
-    wallet?: Wallet,
+    wallet: Wallet,
     options: TransactionPreviewOptions = {},
 ): Promise<TransactionEmulatedPreview> {
     const mode: TransactionPreviewMode = options.mode ?? 'send';
     const isSignMode = mode === 'sign';
 
-    // const txData = await wallet?.getSignedSendTransaction(request, { fakeSignature: true, internal: isSignMode });
-    const signedBoc = await wallet?.getSignedSendTransaction(request, {
+    const getSignedTransaction = isSignMode ? wallet?.getSignedSignMessage : wallet?.getSignedSendTransaction;
+
+    const signedBoc = await getSignedTransaction(request, {
         fakeSignature: true,
-        internal: isSignMode,
     });
 
     if (!signedBoc) {
@@ -98,7 +98,7 @@ export async function createTransactionPreviewIfPossible(
     config: TonWalletKitOptions,
     client: ApiClient,
     request: TransactionRequest,
-    wallet?: Wallet,
+    wallet: Wallet,
     options: TransactionPreviewOptions = {},
 ): Promise<TransactionEmulatedPreview | undefined> {
     if (config.eventProcessor?.disableTransactionEmulation) {

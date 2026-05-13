@@ -52,6 +52,12 @@ import type { Feature } from '../../types/jsBridge';
 const log = globalLogger.createChild('WalletV5R1Adapter');
 
 export const defaultWalletIdV5R1 = 2147483409;
+type WalletV5AuthType = 'external' | 'internal';
+
+interface CreateBodyV5Options extends SignedSendTransactionOptions {
+    validUntil: number | undefined;
+    authType: WalletV5AuthType;
+}
 
 /**
  * Configuration for creating a WalletV5R1 adapter
@@ -173,118 +179,39 @@ export class WalletV5R1Adapter implements WalletAdapter {
         input: TransactionRequest,
         options?: SignedSendTransactionOptions,
     ): Promise<Base64String> {
-        const actions = packActionsList(
-            input.messages.map((m) => {
-                let bounce = true;
-                try {
-                    const parsedAddress = Address.parseFriendly(m.address);
-                    if (parsedAddress.isBounceable === false) {
-                        bounce = false;
-                    }
-                } catch {
-                    // raw address — no bounceable flag, keep default true
-                }
-
-                const msg = internal({
-                    to: m.address,
-                    value: BigInt(m.amount),
-                    bounce: bounce,
-                    extracurrency: m.extraCurrency
-                        ? Object.fromEntries(Object.entries(m.extraCurrency).map(([k, v]) => [Number(k), BigInt(v)]))
-                        : undefined,
-                });
-
-                if (m.payload) {
-                    try {
-                        msg.body = Cell.fromBase64(m.payload);
-                    } catch (error) {
-                        log.warn('Failed to load payload', { error });
-                        throw WalletKitError.fromError(
-                            ERROR_CODES.CONTRACT_VALIDATION_FAILED,
-                            'Failed to parse transaction payload',
-                            error,
-                        );
-                    }
-                }
-
-                if (m.stateInit) {
-                    try {
-                        msg.init = loadStateInit(Cell.fromBase64(m.stateInit).asSlice());
-                    } catch (error) {
-                        log.warn('Failed to load state init', { error });
-                        throw WalletKitError.fromError(
-                            ERROR_CODES.CONTRACT_VALIDATION_FAILED,
-                            'Failed to parse state init',
-                            error,
-                        );
-                    }
-                }
-                return new ActionSendMsg(SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS, msg);
-            }),
-        );
-
-        const createBodyOptions: { validUntil: number | undefined; fakeSignature?: boolean; internal?: boolean } = {
-            ...options,
-            validUntil: undefined,
-        };
-        // add valid untill
-        if (input.validUntil) {
-            const now = Math.floor(Date.now() / 1000);
-            const maxValidUntil = now + 600;
-            if (input.validUntil < now) {
-                throw new WalletKitError(
-                    ERROR_CODES.VALIDATION_ERROR,
-                    'Transaction validUntil timestamp is in the past',
-                    undefined,
-                    { validUntil: input.validUntil, currentTime: now },
-                );
-            } else if (input.validUntil > maxValidUntil) {
-                createBodyOptions.validUntil = maxValidUntil;
-            } else {
-                createBodyOptions.validUntil = input.validUntil;
-            }
-        }
-
-        let seqno = 0;
-        try {
-            seqno = await CallForSuccess(async () => this.getSeqno(), 5, 1000);
-        } catch (_) {
-            //
-        }
-        const walletId = (await this.walletContract.walletId).serialized;
-        if (!walletId) {
-            throw new Error('Failed to get seqno or walletId');
-        }
-
-        const transfer = await this.createBodyV5(seqno, walletId, actions, createBodyOptions);
-
-        if (options?.internal) {
-            // For gasless relaying, the signed body (auth_signed_internal opcode) must be
-            // delivered to the wallet via an internal message from a relayer contract.
-            const msg = internal({
-                to: this.walletContract.address,
-                value: 0n,
-                body: transfer,
-                bounce: false,
-            });
-            msg.info = msg.info as CommonMessageInfoInternal;
-            msg.info.createdLt = 0n;
-            msg.info.createdAt = 0;
-            msg.info.ihrFee = 0n;
-            msg.info.forwardFee = 0n;
-            msg.info.ihrDisabled = false;
-            msg.info.bounce = false;
-            msg.info.bounced = false;
-            msg.info.src = new Address(0, Buffer.alloc(32));
-            return beginCell().store(storeMessageRelaxed(msg)).endCell().toBoc().toString('base64') as Base64String;
-        }
-
+        const transfer = await this.createSignedTransferBody(input, options, 'external');
         const ext = external({
             to: this.walletContract.address,
             init: this.walletContract.init,
             body: transfer,
         });
         return beginCell().store(storeMessage(ext)).endCell().toBoc().toString('base64') as Base64String;
+    }
+
+    async getSignedSignMessage(
+        input: TransactionRequest,
+        options?: SignedSendTransactionOptions,
+    ): Promise<Base64String> {
+        const transfer = await this.createSignedTransferBody(input, options, 'internal');
+
+        // For gasless relaying, the signed body (auth_signed_internal opcode) must be
+        // delivered to the wallet via an internal message from a relayer contract.
+        const msg = internal({
+            to: this.walletContract.address,
+            value: 0n,
+            body: transfer,
+            bounce: false,
+        });
+        msg.info = msg.info as CommonMessageInfoInternal;
+        msg.info.createdLt = 0n;
+        msg.info.createdAt = 0;
+        msg.info.ihrFee = 0n;
+        msg.info.forwardFee = 0n;
+        msg.info.ihrDisabled = false;
+        msg.info.bounce = false;
+        msg.info.bounced = false;
+        msg.info.src = new Address(0, Buffer.alloc(32));
+        return beginCell().store(storeMessageRelaxed(msg)).endCell().toBoc().toString('base64') as Base64String;
     }
 
     /**
@@ -348,12 +275,102 @@ export class WalletV5R1Adapter implements WalletAdapter {
         }
     }
 
-    async createBodyV5(
-        seqno: number,
-        walletId: bigint,
-        actionsList: Cell,
-        options: { validUntil: number | undefined; fakeSignature?: boolean; internal?: boolean },
-    ) {
+    private async createSignedTransferBody(
+        input: TransactionRequest,
+        options: SignedSendTransactionOptions | undefined,
+        authType: WalletV5AuthType,
+    ): Promise<Cell> {
+        const actions = packActionsList(input.messages.map((message) => this.createTransferAction(message)));
+
+        let seqno = 0;
+        try {
+            seqno = await CallForSuccess(async () => this.getSeqno(), 5, 1000);
+        } catch (_) {
+            //
+        }
+
+        const walletId = (await this.walletContract.walletId).serialized;
+        if (!walletId) {
+            throw new Error('Failed to get seqno or walletId');
+        }
+
+        return this.createBodyV5(seqno, walletId, actions, {
+            ...options,
+            authType,
+            validUntil: this.resolveValidUntil(input.validUntil),
+        });
+    }
+
+    private createTransferAction(message: TransactionRequest['messages'][number]): ActionSendMsg {
+        let bounce = true;
+        try {
+            const parsedAddress = Address.parseFriendly(message.address);
+            if (parsedAddress.isBounceable === false) {
+                bounce = false;
+            }
+        } catch {
+            // raw address — no bounceable flag, keep default true
+        }
+
+        const msg = internal({
+            to: message.address,
+            value: BigInt(message.amount),
+            bounce,
+            extracurrency: message.extraCurrency
+                ? Object.fromEntries(Object.entries(message.extraCurrency).map(([k, v]) => [Number(k), BigInt(v)]))
+                : undefined,
+        });
+
+        if (message.payload) {
+            try {
+                msg.body = Cell.fromBase64(message.payload);
+            } catch (error) {
+                log.warn('Failed to load payload', { error });
+                throw WalletKitError.fromError(
+                    ERROR_CODES.CONTRACT_VALIDATION_FAILED,
+                    'Failed to parse transaction payload',
+                    error,
+                );
+            }
+        }
+
+        if (message.stateInit) {
+            try {
+                msg.init = loadStateInit(Cell.fromBase64(message.stateInit).asSlice());
+            } catch (error) {
+                log.warn('Failed to load state init', { error });
+                throw WalletKitError.fromError(
+                    ERROR_CODES.CONTRACT_VALIDATION_FAILED,
+                    'Failed to parse state init',
+                    error,
+                );
+            }
+        }
+
+        return new ActionSendMsg(SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS, msg);
+    }
+
+    private resolveValidUntil(validUntil: number | undefined): number | undefined {
+        if (!validUntil) {
+            return undefined;
+        }
+
+        const now = Math.floor(Date.now() / 1000);
+        const maxValidUntil = now + 600;
+
+        if (validUntil < now) {
+            throw new WalletKitError(
+                ERROR_CODES.VALIDATION_ERROR,
+                'Transaction validUntil timestamp is in the past',
+                undefined,
+                { validUntil, currentTime: now },
+            );
+        }
+
+        return validUntil > maxValidUntil ? maxValidUntil : validUntil;
+    }
+
+    async createBodyV5(seqno: number, walletId: bigint, actionsList: Cell, options: CreateBodyV5Options) {
         // Opcodes defined in the WalletV5R1 contract spec, confirmed in @ton/ton WalletContractV5R1.js
         const Opcodes = {
             auth_signed: 0x7369676e, // external auth ("sign")
@@ -361,9 +378,9 @@ export class WalletV5R1Adapter implements WalletAdapter {
         };
 
         // Use internal opcode for gasless relaying (signOnly / signMsg intent)
-        const opcode = options.internal ? Opcodes.auth_signed_internal : Opcodes.auth_signed;
+        const opcode = options.authType === 'internal' ? Opcodes.auth_signed_internal : Opcodes.auth_signed;
         log.debug('createBodyV5 signing with opcode', {
-            internal: options.internal,
+            authType: options.authType,
             opcode: `0x${opcode.toString(16)}`,
         });
 
