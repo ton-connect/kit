@@ -708,7 +708,13 @@ function readPropsFromType(type: Type, contextNode: Node): ParamRow[] {
 
         const propType = prop.getTypeAtLocation(contextNode);
         const optional = (prop.getFlags() & 16777216) !== 0; // ts.SymbolFlags.Optional
-        const description = readPropertyJsDoc(valueDecl);
+        const rawDescription = readPropertyJsDoc(valueDecl);
+        // A leading `{@link X}` in the property description swaps the rendered Type cell for `X` —
+        // same convention as `@param` descriptions. Useful when the inferred type is a noisy
+        // generic alias that already has its own documented short name.
+        const { typeOverride, description } = rawDescription
+            ? splitLeadingLink(rawDescription)
+            : { typeOverride: null, description: null };
         const rawSyntactic =
             Node.isPropertySignature(valueDecl) || Node.isPropertyDeclaration(valueDecl)
                 ? valueDecl.getTypeNode()?.getText()
@@ -719,7 +725,7 @@ function readPropsFromType(type: Type, contextNode: Node): ParamRow[] {
         rows.push({
             name: prop.getName(),
             typeText: syntacticType,
-            typeOverride: null,
+            typeOverride,
             required: !optional,
             description,
         });

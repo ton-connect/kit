@@ -10,15 +10,36 @@ import type * as Query from '@tanstack/query-core';
 
 import type { Compute, LooseOmit, RequiredBy, UnionLooseOmit } from './utils.js';
 
+/**
+ * TanStack Query `useMutation` options forwarded by AppKit's `use*Mutation` hooks via `parameters.mutation` — `mutationFn`, `mutationKey` and `throwOnError` are managed by the wrapper and stripped from this shape.
+ *
+ * @public
+ * @category Type
+ * @section Primitives
+ */
+export type MutationOptionsOverride<data = unknown, error = Error, variables = void, context = unknown> = LooseOmit<
+    Query.MutationOptions<data, error, Compute<variables>, context>,
+    'mutationFn' | 'mutationKey' | 'throwOnError'
+>;
+
 export type MutationParameter<data = unknown, error = Error, variables = void, context = unknown> = {
-    /** TanStack Query mutation options forwarded to `useMutation` (`onSuccess`, `onError`, `onMutate`, `retry`, …). `mutationFn`, `mutationKey` and `throwOnError` are managed by the wrapper. */
-    mutation?:
-        | LooseOmit<
-              Query.MutationOptions<data, error, Compute<variables>, context>,
-              'mutationFn' | 'mutationKey' | 'throwOnError'
-          >
-        | undefined;
+    /** {@link MutationOptionsOverride} TanStack Query mutation options forwarded to `useMutation` (`onSuccess`, `onError`, `onMutate`, `retry`, …). `mutationFn`, `mutationKey` and `throwOnError` are managed by the wrapper. */
+    mutation?: MutationOptionsOverride<data, error, variables, context> | undefined;
 };
+
+/**
+ * TanStack Query `useQuery` options forwarded by AppKit's `use*Query` hooks via `parameters.query` — `queryKey` and `queryFn` are managed by the wrapper and stripped from this shape.
+ *
+ * @public
+ * @category Type
+ * @section Primitives
+ */
+export type QueryOptionsOverride<
+    queryFnData = unknown,
+    error = Query.DefaultError,
+    data = queryFnData,
+    queryKey extends Query.QueryKey = Query.QueryKey,
+> = UnionLooseOmit<QueryOptions<queryFnData, error, data, queryKey>, 'queryKey' | 'queryFn'>;
 
 export type QueryParameter<
     queryFnData = unknown,
@@ -26,8 +47,8 @@ export type QueryParameter<
     data = queryFnData,
     queryKey extends Query.QueryKey = Query.QueryKey,
 > = {
-    /** TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. */
-    query?: UnionLooseOmit<QueryOptions<queryFnData, error, data, queryKey>, 'queryKey' | 'queryFn'> | undefined;
+    /** {@link QueryOptionsOverride} TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. */
+    query?: QueryOptionsOverride<queryFnData, error, data, queryKey> | undefined;
 };
 
 export type QueryOptions<

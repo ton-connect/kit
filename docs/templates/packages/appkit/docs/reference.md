@@ -1958,7 +1958,7 @@ Payload of `connector:added` events — the connector that was just registered.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `connector`\* | <code><a href="#connector">Connector</a></code> | [`Connector`](#connector) just registered with AppKit. |
+| `connector`\* | [`Connector`](#connector) | just registered with AppKit. |
 
 #### ConnectorRemovedPayload
 
@@ -1966,7 +1966,7 @@ Payload of `connector:removed` events — the connector that was just unregister
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `connector`\* | <code><a href="#connector">Connector</a></code> | [`Connector`](#connector) just unregistered from AppKit (already torn down via `destroy()`). |
+| `connector`\* | [`Connector`](#connector) | just unregistered from AppKit (already torn down via `destroy()`). |
 
 #### ConnectorWalletsUpdatedPayload
 
@@ -2900,6 +2900,25 @@ type ExtraCurrencies = {
 type Hex = `0x${string}` & {
     readonly [hashBrand]: never;
 };
+```
+
+#### MutationOptionsOverride
+
+TanStack Query `useMutation` options forwarded by AppKit's `use*Mutation` hooks via `parameters.mutation` — `mutationFn`, `mutationKey` and `throwOnError` are managed by the wrapper and stripped from this shape.
+
+```ts
+type MutationOptionsOverride = LooseOmit<
+    Query.MutationOptions<data, error, Compute<variables>, context>,
+    'mutationFn' | 'mutationKey' | 'throwOnError'
+>;
+```
+
+#### QueryOptionsOverride
+
+TanStack Query `useQuery` options forwarded by AppKit's `use*Query` hooks via `parameters.query` — `queryKey` and `queryFn` are managed by the wrapper and stripped from this shape.
+
+```ts
+type QueryOptionsOverride = UnionLooseOmit<QueryOptions<queryFnData, error, data, queryKey>, 'queryKey' | 'queryFn'>;
 ```
 
 #### TokenAmount
