@@ -79,6 +79,8 @@ export interface SwiftWalletKit {
 
     removeEventListeners(): void;
 
+    createMnemonic(): Promise<string[]>;
+
     createSignerFromMnemonic(mnemonic: string): Promise<WalletSigner>;
 
     createSignerFromPrivateKey(privateKey: string): Promise<WalletSigner>;
