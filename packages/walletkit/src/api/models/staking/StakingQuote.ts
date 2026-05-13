@@ -51,7 +51,7 @@ export interface StakingQuote {
     providerId: string;
 
     /**
-     * Mode of unstaking (if applicable)
+     * Unstake-timing mode the quote was produced for. Only meaningful when `direction === 'unstake'` — for `'stake'` it is ignored.
      */
     unstakeMode?: UnstakeModes;
 

@@ -36,7 +36,7 @@ export interface StakingQuoteParams<TProviderOptions = unknown> {
     network?: Network;
 
     /**
-     * Requested mode of unstaking
+     * Unstake-timing mode the quote should target — see {@link UnstakeMode} for the supported flavours (`'INSTANT'`, `'WHEN_AVAILABLE'`, `'ROUND_END'`). Only meaningful when `direction === 'unstake'` and the provider lists the mode in `supportedUnstakeModes`.
      */
     unstakeMode?: UnstakeModes;
 

@@ -1231,7 +1231,7 @@ Quote a stake or unstake — given the amount, direction and target asset, retur
 | `options.amount`\* | `string` | Amount of tokens to stake or unstake |
 | `options.userAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user |
 | `options.network` | <code><a href="#network">Network</a></code> | Network on which the staking will be executed |
-| `options.unstakeMode` | <code><a href="#unstakemodes">UnstakeModes</a></code> | Requested mode of unstaking |
+| `options.unstakeMode` | <code><a href="#unstakemodes">UnstakeModes</a></code> | Unstake-timing mode the quote should target — see [`UnstakeMode`](#unstakemode) for the supported flavours (`'INSTANT'`, `'WHEN_AVAILABLE'`, `'ROUND_END'`). Only meaningful when `direction === 'unstake'` and the provider lists the mode in `supportedUnstakeModes`. |
 | `options.isReversed` | `boolean` | If true, for unstake requests the amount is specified in the staking coin (e.g. TON) instead of the Liquid Staking Token (e.g. tsTON). |
 | `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
 | `options.providerId` | `string` | Provider to quote against. Defaults to the registered default staking provider. |
@@ -1703,7 +1703,7 @@ Constructor: `new ApiClientTonApi(config)`
 | `config.apiKey` | `string` | API key forwarded to the indexer for higher rate limits. |
 | `config.timeout` | `number` | Per-request timeout in milliseconds. Defaults to a provider-specific value. |
 | `config.fetchApi` | `typeof fetch` | Custom `fetch` implementation. Defaults to the global `fetch`. |
-| `config.network` | [`Network`](#network) | The network the client should target. Determines the default `endpoint` when one isn't supplied. |
+| `config.network` | <code><a href="#network">Network</a></code> | [`Network`](#network) the client should target. Determines the default `endpoint` when one isn't supplied. |
 | `config.disableNetworkSend` | `boolean` | When `true`, swallow `sendBoc` calls instead of broadcasting them — useful for local development and tests. |
 
 #### ApiClientToncenter
@@ -1720,7 +1720,7 @@ Constructor: `new ApiClientToncenter(config)`
 | `config.apiKey` | `string` | API key forwarded to the indexer for higher rate limits. |
 | `config.timeout` | `number` | Per-request timeout in milliseconds. Defaults to a provider-specific value. |
 | `config.fetchApi` | `typeof fetch` | Custom `fetch` implementation. Defaults to the global `fetch`. |
-| `config.network` | [`Network`](#network) | The network the client should target. Determines the default `endpoint` when one isn't supplied. |
+| `config.network` | <code><a href="#network">Network</a></code> | [`Network`](#network) the client should target. Determines the default `endpoint` when one isn't supplied. |
 | `config.disableNetworkSend` | `boolean` | When `true`, swallow `sendBoc` calls instead of broadcasting them — useful for local development and tests. |
 
 ### Core
@@ -2126,7 +2126,7 @@ Single entry inside an [`AddressBook`](#addressbook) — pairs the user-friendly
 
 #### ApiClient
 
-Indexer/RPC client interface used by AppKit to read on-chain state — balance, jettons, NFTs, masterchain seqno, etc. Each [`Network`](#network) resolves to its own `ApiClient` via [`AppKitNetworkManager`](#appkitnetworkmanager). Apps usually pull one through [`getApiClient`](#getapiclient) rather than constructing it directly.
+Indexer/RPC client interface used by AppKit to read on-chain state — balance, jettons, NFTs, etc. Each [`Network`](#network) resolves to its own `ApiClient` via [`AppKitNetworkManager`](#appkitnetworkmanager). Apps usually pull one through [`getApiClient`](#getapiclient) rather than constructing it directly.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -2169,7 +2169,7 @@ Configuration accepted by [`ApiClientToncenter`](#apiclienttoncenter) — endpoi
 | `apiKey` | `string` | API key forwarded to the indexer for higher rate limits. |
 | `timeout` | `number` | Per-request timeout in milliseconds. Defaults to a provider-specific value. |
 | `fetchApi` | `typeof fetch` | Custom `fetch` implementation. Defaults to the global `fetch`. |
-| `network` | [`Network`](#network) | The network the client should target. Determines the default `endpoint` when one isn't supplied. |
+| `network` | <code><a href="#network">Network</a></code> | [`Network`](#network) the client should target. Determines the default `endpoint` when one isn't supplied. |
 | `disableNetworkSend` | `boolean` | When `true`, swallow `sendBoc` calls instead of broadcasting them — useful for local development and tests. |
 
 #### BaseApiClientConfig
@@ -2182,7 +2182,7 @@ Configuration shared by every [`ApiClient`](#apiclient) subclass — endpoint, A
 | `apiKey` | `string` | API key forwarded to the indexer for higher rate limits. |
 | `timeout` | `number` | Per-request timeout in milliseconds. Defaults to a provider-specific value. |
 | `fetchApi` | `typeof fetch` | Custom `fetch` implementation. Defaults to the global `fetch`. |
-| `network` | [`Network`](#network) | The network the client should target. Determines the default `endpoint` when one isn't supplied. |
+| `network` | <code><a href="#network">Network</a></code> | [`Network`](#network) the client should target. Determines the default `endpoint` when one isn't supplied. |
 | `disableNetworkSend` | `boolean` | When `true`, swallow `sendBoc` calls instead of broadcasting them — useful for local development and tests. |
 
 #### GetApiClientOptions
@@ -2442,8 +2442,8 @@ Payload of `provider:registered` and `provider:default-changed` events — carri
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `providerId`\* | `string` | _TODO: describe_ |
-| `type`\* | `string` | _TODO: describe_ |
+| `providerId`\* | `string` | Stable id of the affected provider — same as the `providerId` it was registered with. |
+| `type`\* | `string` | Provider-kind discriminator (e.g., `'swap'`, `'staking'`, `'onramp'`, `'crypto-onramp'`) — same as the provider's `type`. |
 
 #### ConnectorAddedPayload
 
@@ -2451,7 +2451,7 @@ Payload of `connector:added` events — the connector that was just registered.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `connector`\* | [`Connector`](#connector) | just registered with AppKit. |
+| `connector`\* | <code><a href="#connector">Connector</a></code> | The [`Connector`](#connector) that was just registered with AppKit. |
 
 #### ConnectorRemovedPayload
 
@@ -2459,7 +2459,7 @@ Payload of `connector:removed` events — the connector that was just unregister
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `connector`\* | [`Connector`](#connector) | just unregistered from AppKit (already torn down via `destroy()`). |
+| `connector`\* | <code><a href="#connector">Connector</a></code> | The [`Connector`](#connector) that was just unregistered from AppKit (already torn down via `destroy()`). |
 
 #### ConnectorWalletsUpdatedPayload
 
@@ -3656,7 +3656,7 @@ Options for [`getStakingQuote`](#getstakingquote) — extends [`StakingQuotePara
 | `amount`\* | `string` | Amount of tokens to stake or unstake |
 | `userAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user |
 | `network` | <code><a href="#network">Network</a></code> | Network on which the staking will be executed |
-| `unstakeMode` | <code><a href="#unstakemodes">UnstakeModes</a></code> | Requested mode of unstaking |
+| `unstakeMode` | <code><a href="#unstakemodes">UnstakeModes</a></code> | Unstake-timing mode the quote should target — see [`UnstakeMode`](#unstakemode) for the supported flavours (`'INSTANT'`, `'WHEN_AVAILABLE'`, `'ROUND_END'`). Only meaningful when `direction === 'unstake'` and the provider lists the mode in `supportedUnstakeModes`. |
 | `isReversed` | `boolean` | If true, for unstake requests the amount is specified in the staking coin (e.g. TON) instead of the Liquid Staking Token (e.g. tsTON). |
 | `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
 | `providerId` | `string` | Provider to quote against. Defaults to the registered default staking provider. |
@@ -3763,7 +3763,7 @@ Staking quote response with pricing information
 | `amountOut`\* | `string` | Formatted estimated amount of tokens to be received |
 | `network`\* | <code><a href="#network">Network</a></code> | Network on which the staking will be executed |
 | `providerId`\* | `string` | Identifier of the staking provider |
-| `unstakeMode` | <code><a href="#unstakemodes">UnstakeModes</a></code> | Mode of unstaking (if applicable) |
+| `unstakeMode` | <code><a href="#unstakemodes">UnstakeModes</a></code> | Unstake-timing mode the quote was produced for. Only meaningful when `direction === 'unstake'` — for `'stake'` it is ignored. |
 | `metadata` | `unknown` | Provider-specific metadata for the quote |
 
 #### StakingQuoteDirection
@@ -3784,7 +3784,7 @@ Parameters for getting a staking quote
 | `amount`\* | `string` | Amount of tokens to stake or unstake |
 | `userAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user |
 | `network` | <code><a href="#network">Network</a></code> | Network on which the staking will be executed |
-| `unstakeMode` | <code><a href="#unstakemodes">UnstakeModes</a></code> | Requested mode of unstaking |
+| `unstakeMode` | <code><a href="#unstakemodes">UnstakeModes</a></code> | Unstake-timing mode the quote should target — see [`UnstakeMode`](#unstakemode) for the supported flavours (`'INSTANT'`, `'WHEN_AVAILABLE'`, `'ROUND_END'`). Only meaningful when `direction === 'unstake'` and the provider lists the mode in `supportedUnstakeModes`. |
 | `isReversed` | `boolean` | If true, for unstake requests the amount is specified in the staking coin (e.g. TON) instead of the Liquid Staking Token (e.g. tsTON). |
 | `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
 
@@ -3798,15 +3798,28 @@ Display metadata for a staking-pool token — `ticker`, `decimals` and `address`
 | `decimals`\* | `number` | Number of decimal places used to format raw amounts. |
 | `address`\* | `string` | `'ton'` for native TON, otherwise the token contract address in user-friendly format. |
 
+#### TonStakersChainConfig
+
+Per-chain Tonstakers config — optional TonAPI key for APY reads and an optional staking-provider metadata override.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `tonApiToken` | `string` | TonAPI key used for APY reads. Optional — APY still works without it, but providing one is recommended when you already use TonAPI elsewhere. |
+| `metadata` | `StakingProviderMetadataOverride` | Optional override of the provider metadata surfaced via `getStakingProviderMetadata`. |
+
 #### TonStakersProviderConfig
 
-Configuration accepted by [`createTonstakersProvider`](#createtonstakersprovider).
+Configuration accepted by [`createTonstakersProvider`](#createtonstakersprovider) — map of chain ID (e.g. `Network.mainnet().chainId`) to its per-chain [`TonStakersChainConfig`](#tonstakerschainconfig).
 
-_Empty type._
+```ts
+type TonStakersProviderConfig = {
+    [chainId: string]: TonStakersChainConfig;
+};
+```
 
 #### UnstakeModes
 
-Mode of unstaking
+Union of [`UnstakeMode`](#unstakemode) values. Carried on [`StakingQuoteParams`](#stakingquoteparams)'s `unstakeMode` and on [`StakingProviderMetadata`](#stakingprovidermetadata)'s `supportedUnstakeModes` to discriminate `'INSTANT'` / `'WHEN_AVAILABLE'` / `'ROUND_END'` flows.
 
 ```ts
 type UnstakeModes = (typeof UnstakeMode)[keyof typeof UnstakeMode];

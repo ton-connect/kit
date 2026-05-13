@@ -27,7 +27,7 @@ export { TonStakersStakingProvider } from '@ton/walletkit/staking/tonstakers';
 export { createTonstakersProvider } from '@ton/walletkit/staking/tonstakers';
 
 /**
- * Configuration accepted by {@link createTonstakersProvider}.
+ * Configuration accepted by {@link createTonstakersProvider} — map of chain ID (e.g. `Network.mainnet().chainId`) to its per-chain {@link TonStakersChainConfig}.
  *
  * @extract
  * @public
@@ -35,3 +35,13 @@ export { createTonstakersProvider } from '@ton/walletkit/staking/tonstakers';
  * @section Staking
  */
 export type { TonStakersProviderConfig } from '@ton/walletkit/staking/tonstakers';
+
+/**
+ * Per-chain Tonstakers config — optional TonAPI key for APY reads and an optional staking-provider metadata override.
+ *
+ * @extract
+ * @public
+ * @category Type
+ * @section Staking
+ */
+export type { TonStakersChainConfig } from '@ton/walletkit/staking/tonstakers';

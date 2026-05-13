@@ -18,7 +18,7 @@ export interface BaseApiClientConfig {
     timeout?: number;
     /** Custom `fetch` implementation. Defaults to the global `fetch`. */
     fetchApi?: typeof fetch;
-    /** {@link Network} The network the client should target. Determines the default `endpoint` when one isn't supplied. */
+    /** {@link Network} the client should target. Determines the default `endpoint` when one isn't supplied. */
     network?: Network;
     /** When `true`, swallow `sendBoc` calls instead of broadcasting them — useful for local development and tests. */
     disableNetworkSend?: boolean;

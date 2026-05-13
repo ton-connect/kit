@@ -708,13 +708,11 @@ function readPropsFromType(type: Type, contextNode: Node): ParamRow[] {
 
         const propType = prop.getTypeAtLocation(contextNode);
         const optional = (prop.getFlags() & 16777216) !== 0; // ts.SymbolFlags.Optional
-        const rawDescription = readPropertyJsDoc(valueDecl);
-        // A leading `{@link X}` in the property description swaps the rendered Type cell for `X` —
-        // same convention as `@param` descriptions. Useful when the inferred type is a noisy
-        // generic alias that already has its own documented short name.
-        const { typeOverride, description } = rawDescription
-            ? splitLeadingLink(rawDescription)
-            : { typeOverride: null, description: null };
+        const description = readPropertyJsDoc(valueDecl);
+        // Opt-in property-level type override: `@typeAs Name` on the field's JSDoc swaps the rendered
+        // Type cell for a chip pointing at `Name`. Useful when the inferred type is a noisy generic
+        // alias that already has its own short documented name (e.g. `QueryOptionsOverride`).
+        const typeOverride = readPropertyTypeAs(valueDecl);
         const rawSyntactic =
             Node.isPropertySignature(valueDecl) || Node.isPropertyDeclaration(valueDecl)
                 ? valueDecl.getTypeNode()?.getText()
@@ -731,6 +729,18 @@ function readPropsFromType(type: Type, contextNode: Node): ParamRow[] {
         });
     }
     return rows;
+}
+
+function readPropertyTypeAs(node: Node): string | null {
+    if (!Node.isJSDocable(node)) return null;
+    for (const doc of node.getJsDocs()) {
+        for (const tag of doc.getTags()) {
+            if (tag.getTagName() !== 'typeAs') continue;
+            const text = tag.getCommentText()?.trim();
+            if (text) return text;
+        }
+    }
+    return null;
 }
 
 /**

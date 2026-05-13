@@ -9,19 +9,15 @@
 import type { StakingProviderMetadataOverride } from '../../../../api/models';
 
 export interface TonStakersChainConfig {
-    /**
-     * optional TonAPI key for APY requests only. If not provided, APY will be available, but if you're using TonAPI, it's recommended to provide the key.
-     */
+    /** TonAPI key used for APY reads. Optional — APY still works without it, but providing one is recommended when you already use TonAPI elsewhere. */
     tonApiToken?: string;
-    /**
-     * optional override to customize provider metadata.
-     */
+    /** Optional override of the provider metadata surfaced via `getStakingProviderMetadata`. */
     metadata?: StakingProviderMetadataOverride;
 }
 
 /**
- * Configuration for TonStakersStakingProvider
+ * Configuration for TonStakersStakingProvider — map of chain ID to per-chain {@link TonStakersChainConfig}.
  */
-export interface TonStakersProviderConfig {
+export type TonStakersProviderConfig = {
     [chainId: string]: TonStakersChainConfig;
-}
+};

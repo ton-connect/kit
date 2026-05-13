@@ -17,7 +17,9 @@ export interface BaseProvider {
 }
 
 export interface BaseProviderUpdate {
+    /** Stable id of the affected provider — same as the `providerId` it was registered with. */
     providerId: string;
+    /** Provider-kind discriminator (e.g., `'swap'`, `'staking'`, `'onramp'`, `'crypto-onramp'`) — same as the provider's `type`. */
     type: string;
 }
 

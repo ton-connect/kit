@@ -17,6 +17,6 @@ export const UnstakeMode = {
 } as const;
 
 /**
- * Mode of unstaking
+ * Union of {@link UnstakeMode} values. Carried on {@link StakingQuoteParams}'s `unstakeMode` and on {@link StakingProviderMetadata}'s `supportedUnstakeModes` to discriminate `'INSTANT'` / `'WHEN_AVAILABLE'` / `'ROUND_END'` flows.
  */
 export type UnstakeModes = (typeof UnstakeMode)[keyof typeof UnstakeMode];

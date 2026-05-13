@@ -20,7 +20,7 @@
 export { KitNetworkManager } from '@ton/walletkit';
 
 /**
- * Indexer/RPC client interface used by AppKit to read on-chain state — balance, jettons, NFTs, masterchain seqno, etc. Each {@link Network} resolves to its own `ApiClient` via {@link AppKitNetworkManager}. Apps usually pull one through {@link getApiClient} rather than constructing it directly.
+ * Indexer/RPC client interface used by AppKit to read on-chain state — balance, jettons, NFTs, etc. Each {@link Network} resolves to its own `ApiClient` via {@link AppKitNetworkManager}. Apps usually pull one through {@link getApiClient} rather than constructing it directly.
  *
  * @extract
  * @public

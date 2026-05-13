@@ -21,7 +21,7 @@ import type { WalletInterface } from '../../../types/wallet';
  * @section Core
  */
 export interface ConnectorAddedPayload {
-    /** {@link Connector} just registered with AppKit. */
+    /** The {@link Connector} that was just registered with AppKit. */
     connector: Connector;
 }
 
@@ -33,7 +33,7 @@ export interface ConnectorAddedPayload {
  * @section Core
  */
 export interface ConnectorRemovedPayload {
-    /** {@link Connector} just unregistered from AppKit (already torn down via `destroy()`). */
+    /** The {@link Connector} that was just unregistered from AppKit (already torn down via `destroy()`). */
     connector: Connector;
 }
 

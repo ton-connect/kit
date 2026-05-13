@@ -542,7 +542,7 @@ Quote a stake or unstake — given an amount, direction (`'stake'` / `'unstake'`
 | `parameters.amount` | `string` | Amount of tokens to stake or unstake |
 | `parameters.userAddress` | <code><a href="/ecosystem/appkit/reference/appkit#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user |
 | `parameters.network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network on which the staking will be executed |
-| `parameters.unstakeMode` | <code><a href="/ecosystem/appkit/reference/appkit#unstakemodes">UnstakeModes</a></code> | Requested mode of unstaking |
+| `parameters.unstakeMode` | <code><a href="/ecosystem/appkit/reference/appkit#unstakemodes">UnstakeModes</a></code> | Unstake-timing mode the quote should target — see [`UnstakeMode`](/ecosystem/appkit/reference/appkit#unstakemode) for the supported flavours (`'INSTANT'`, `'WHEN_AVAILABLE'`, `'ROUND_END'`). Only meaningful when `direction === 'unstake'` and the provider lists the mode in `supportedUnstakeModes`. |
 | `parameters.isReversed` | `boolean` | If true, for unstake requests the amount is specified in the staking coin (e.g. TON) instead of the Liquid Staking Token (e.g. tsTON). |
 | `parameters.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
 | `parameters.providerId` | `string` | Provider to quote against. Defaults to the registered default staking provider. |
@@ -2386,7 +2386,7 @@ Configuration that maps token `id`s to a named section in [`TokenSelectModal`](#
 | Field | Type | Description |
 | --- | --- | --- |
 | `title`\* | `string` | Section header label. |
-| `ids`\* | `TokenBase.id` | values to include in this section, in render order. |
+| `ids`\* | `string[]` | [`TokenBase.id`](#tokenbase) values to include in this section, in render order. |
 
 #### TokenSelectModalProps
 
@@ -2738,7 +2738,7 @@ Parameters accepted by [`useStakingQuote`](#usestakingquote) — TanStack Query 
 | `amount` | `string` | Amount of tokens to stake or unstake |
 | `userAddress` | <code><a href="/ecosystem/appkit/reference/appkit#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user |
 | `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network on which the staking will be executed |
-| `unstakeMode` | <code><a href="/ecosystem/appkit/reference/appkit#unstakemodes">UnstakeModes</a></code> | Requested mode of unstaking |
+| `unstakeMode` | <code><a href="/ecosystem/appkit/reference/appkit#unstakemodes">UnstakeModes</a></code> | Unstake-timing mode the quote should target — see [`UnstakeMode`](/ecosystem/appkit/reference/appkit#unstakemode) for the supported flavours (`'INSTANT'`, `'WHEN_AVAILABLE'`, `'ROUND_END'`). Only meaningful when `direction === 'unstake'` and the provider lists the mode in `supportedUnstakeModes`. |
 | `isReversed` | `boolean` | If true, for unstake requests the amount is specified in the staking coin (e.g. TON) instead of the Liquid Staking Token (e.g. tsTON). |
 | `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
 | `providerId` | `string` | Provider to quote against. Defaults to the registered default staking provider. |

@@ -23,7 +23,10 @@ export type MutationOptionsOverride<data = unknown, error = Error, variables = v
 >;
 
 export type MutationParameter<data = unknown, error = Error, variables = void, context = unknown> = {
-    /** {@link MutationOptionsOverride} TanStack Query mutation options forwarded to `useMutation` (`onSuccess`, `onError`, `onMutate`, `retry`, …). `mutationFn`, `mutationKey` and `throwOnError` are managed by the wrapper. */
+    /**
+     * TanStack Query mutation options forwarded to `useMutation` (`onSuccess`, `onError`, `onMutate`, `retry`, …). `mutationFn`, `mutationKey` and `throwOnError` are managed by the wrapper.
+     * @typeAs MutationOptionsOverride
+     */
     mutation?: MutationOptionsOverride<data, error, variables, context> | undefined;
 };
 
@@ -47,7 +50,10 @@ export type QueryParameter<
     data = queryFnData,
     queryKey extends Query.QueryKey = Query.QueryKey,
 > = {
-    /** {@link QueryOptionsOverride} TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. */
+    /**
+     * TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper.
+     * @typeAs QueryOptionsOverride
+     */
     query?: QueryOptionsOverride<queryFnData, error, data, queryKey> | undefined;
 };
 
