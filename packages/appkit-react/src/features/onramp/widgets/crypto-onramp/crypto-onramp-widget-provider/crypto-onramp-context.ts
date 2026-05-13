@@ -161,8 +161,7 @@ const defaultContext: CryptoOnrampContextType = {
 };
 
 /**
- * React context carrying the {@link CryptoOnrampContextType} value populated by {@link CryptoOnrampWidgetProvider}. Prefer reading it via {@link useCryptoOnrampContext}; direct access is an escape hatch (e.g. `Context.Consumer`).
- */
+ * React context carrying the {@link CryptoOnrampContextType} value populated by {@link CryptoOnrampWidgetProvider}. Prefer reading it via {@link useCryptoOnrampContext}. Direct access is an escape hatch (e.g. `Context.Consumer`). */
 export const CryptoOnrampContext = createContext<CryptoOnrampContextType>(defaultContext);
 
 /**

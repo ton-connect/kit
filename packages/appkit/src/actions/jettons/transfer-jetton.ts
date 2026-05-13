@@ -33,7 +33,7 @@ export type TransferJettonReturnType = SendTransactionResponse;
 export type TransferJettonErrorType = Error;
 
 /**
- * Build and send a jetton transfer from the selected wallet in one step (use {@link createTransferJettonTransaction} + {@link sendTransaction} if you need to inspect the transaction first); throws `Error('Wallet not connected')` if no wallet is currently selected.
+ * Build and send a jetton transfer from the selected wallet in one step (use {@link createTransferJettonTransaction} + {@link sendTransaction} if you need to inspect the transaction first). Throws `Error('Wallet not connected')` if no wallet is currently selected.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param parameters - {@link TransferJettonParameters} Jetton, recipient, amount, decimals and optional comment.

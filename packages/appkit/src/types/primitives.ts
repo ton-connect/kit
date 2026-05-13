@@ -37,7 +37,7 @@ export type { Base64String } from '@ton/walletkit';
 export type { Hex } from '@ton/walletkit';
 
 /**
- * Decimal string carrying a token amount; preserves precision and avoids floating-point rounding (e.g., `"1.5"` TON, or raw nano units depending on the API).
+ * Decimal string carrying a token amount. Preserves precision and avoids floating-point rounding (e.g., `"1.5"` TON, or raw nano units depending on the API).
  *
  * @extract
  * @public

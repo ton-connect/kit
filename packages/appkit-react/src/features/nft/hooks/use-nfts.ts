@@ -13,7 +13,7 @@ import { useNftsByAddress } from './use-nfts-by-address';
 import type { UseNFTsByAddressParameters, UseNFTsByAddressReturnType } from './use-nfts-by-address';
 
 /**
- * Parameters accepted by {@link useNfts} — same shape as {@link UseNFTsByAddressParameters}; the hook resolves `address` from the selected wallet and overrides any value supplied here.
+ * Parameters accepted by {@link useNfts} — same shape as {@link UseNFTsByAddressParameters}. The hook resolves `address` from the selected wallet and overrides any value supplied here.
  *
  * @public
  * @category Type

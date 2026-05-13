@@ -19,7 +19,7 @@ export interface KitEvent<T> {
     type: string;
     /** Event-specific payload — typed via the emitter's event-name → payload map. */
     payload: T;
-    /** Identifier of the component that emitted the event (connector id, manager name, etc.); useful for filtering listeners. */
+    /** Identifier of the component that emitted the event (connector id, manager name, etc.). Useful for filtering listeners. */
     source?: string;
     /** Wall-clock timestamp in milliseconds when the event was emitted. */
     timestamp: number;

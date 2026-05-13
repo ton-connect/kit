@@ -7,7 +7,7 @@
  */
 
 /**
- * Strongly-typed event emitter built on a string event name → payload type map; backs {@link AppKit}'s `emitter` and any custom emitters apps create. `appKit.emitter.on(name, handler)` returns an unsubscribe function.
+ * Strongly-typed event emitter built on a string event name → payload type map. Backs {@link AppKit}'s `emitter` and any custom emitters apps create. `appKit.emitter.on(name, handler)` returns an unsubscribe function.
  *
  * @extract
  * @public
@@ -47,7 +47,7 @@ export type { KitEvent } from '@ton/walletkit';
 export type { EventListener } from '@ton/walletkit';
 
 /**
- * Event-name → payload map shared between AppKit and walletkit; AppKit extends it with its own connector, wallet and network events to type {@link AppKitEmitter}.
+ * Event-name → payload map shared between AppKit and walletkit. AppKit extends it with its own connector, wallet and network events to type {@link AppKitEmitter}.
  *
  * @extract
  * @public

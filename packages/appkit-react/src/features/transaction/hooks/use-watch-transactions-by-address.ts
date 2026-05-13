@@ -22,7 +22,7 @@ import { useAppKit } from '../../settings';
 export type UseWatchTransactionsByAddressParameters = Partial<WatchTransactionsByAddressOptions>;
 
 /**
- * Subscribe to incoming-transaction events for an arbitrary address (use {@link useWatchTransactions} for the selected wallet); logs a warning and exits when no streaming provider is configured for the resolved network or no `onChange` callback was provided.
+ * Subscribe to incoming-transaction events for an arbitrary address (use {@link useWatchTransactions} for the selected wallet). Logs a warning and exits when no streaming provider is configured for the resolved network or no `onChange` callback was provided.
  *
  * @param parameters - {@link UseWatchTransactionsByAddressParameters} Address, update callback and optional network override.
  *

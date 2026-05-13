@@ -23,7 +23,7 @@ import styles from './currency-item.module.css';
 export interface CurrencyItemProps extends ComponentProps<'button'> {
     /** Token symbol (e.g., `"TON"`) — also used as the icon fallback and rendered in the secondary line. */
     ticker?: string;
-    /** Human-readable token name shown as the primary line; falls back to `ticker` when absent. */
+    /** Human-readable token name shown as the primary line. Falls back to `ticker` when absent. */
     name?: string;
     /** Main balance value shown on the right side (already-formatted string). */
     balance?: string;

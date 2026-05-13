@@ -9,7 +9,7 @@
 // `DefiError` is shared by swap and staking; it is exported via `./swap` to keep a single declaration.
 
 /**
- * Abstract base class implemented by staking providers (Tonstakers, custom integrations, …); apps don't use it directly — they consume providers through {@link StakingManager} and the `getStaking*` / `buildStakeTransaction` actions.
+ * Abstract base class implemented by staking providers (Tonstakers, custom integrations, …). Apps don't use it directly — they consume providers through {@link StakingManager} and the `getStaking*` / `buildStakeTransaction` actions.
  *
  * @extract
  * @public
@@ -29,7 +29,7 @@ export { StakingProvider } from '@ton/walletkit';
 export { StakingError } from '@ton/walletkit';
 
 /**
- * Runtime that owns registered {@link StakingProvider}s and dispatches quote/stake/balance calls. Exposed as {@link AppKit}'s `stakingManager`; usually accessed through the higher-level actions ({@link getStakingQuote}, {@link buildStakeTransaction}, {@link getStakedBalance}).
+ * Runtime that owns registered {@link StakingProvider}s and dispatches quote/stake/balance calls. Exposed as {@link AppKit}'s `stakingManager`. Usually accessed through the higher-level actions ({@link getStakingQuote}, {@link buildStakeTransaction}, {@link getStakedBalance}).
  *
  * @extract
  * @public
@@ -77,7 +77,7 @@ export type {
 } from '@ton/walletkit';
 
 /**
- * Display metadata for a staking-pool token — `ticker`, `decimals` and `address` (or `'ton'` for native TON); carried on {@link StakingProviderMetadata}'s `stakeToken` and `receiveToken` so the UI can render the pool's input/output assets.
+ * Display metadata for a staking-pool token — `ticker`, `decimals` and `address` (or `'ton'` for native TON). Carried on {@link StakingProviderMetadata}'s `stakeToken` and `receiveToken` so the UI can render the pool's input/output assets.
  *
  * @extract
  * @public

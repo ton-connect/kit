@@ -35,11 +35,11 @@ export interface SwapSettingsModalProps {
     open: boolean;
     /** Called when the user dismisses the modal (close icon, overlay click, or after pressing "save"). */
     onClose: () => void;
-    /** Current slippage tolerance in basis points (`100` = 1%); seeds the staged value when the modal opens. */
+    /** Current slippage tolerance in basis points (`100` = 1%). Seeds the staged value when the modal opens. */
     slippage: number;
     /** Called with the newly selected slippage in basis points when the user presses "save". */
     onSlippageChange: (bps: number) => void;
-    /** Currently active swap provider; its `providerId` seeds the staged selection. */
+    /** Currently active swap provider. Its `providerId` seeds the staged selection. */
     provider: SwapProvider | undefined;
     /** All swap providers available for selection — each gets a switcher option. */
     providers: SwapProvider[];
@@ -48,7 +48,7 @@ export interface SwapSettingsModalProps {
 }
 
 /**
- * Modal that exposes per-swap settings: the {@link appkit:SwapProvider} and a slippage preset. Selections are staged locally and committed via `onSlippageChange` / `onProviderChange` only when the user presses "save"; closing without saving discards them.
+ * Modal that exposes per-swap settings: the {@link appkit:SwapProvider} and a slippage preset. Selections are staged locally and committed via `onSlippageChange` / `onProviderChange` only when the user presses "save". Closing without saving discards them.
  *
  * @public
  * @category Component

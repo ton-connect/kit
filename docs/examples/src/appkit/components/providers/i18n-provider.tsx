@@ -11,7 +11,7 @@ import type { FC } from 'react';
 
 export const I18nProviderExample: FC = () => {
     // SAMPLE_START: I18N_PROVIDER
-    // Override the locale; pass `lngDicts` with your own translations when you need them.
+    // Override the locale. Pass `lngDicts` with your own translations when you need them.
     return (
         <I18nProvider locale="en">
             <div>My App</div>

@@ -19,9 +19,9 @@ import { resolveNetwork } from '../../utils';
  * @section Staking
  */
 export type GetStakingProviderInfoOptions = {
-    /** Network whose staking pool should be inspected. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
+    /** Network whose staking pool should be inspected. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
     network?: Network;
-    /** Provider to query; defaults to the registered default staking provider. */
+    /** Provider to query. Defaults to the registered default staking provider. */
     providerId?: string;
 };
 

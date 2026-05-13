@@ -44,7 +44,7 @@ export type UseBuildSwapTransactionReturnType<context = unknown> = UseMutationRe
 >;
 
 /**
- * Build a swap {@link appkit:TransactionRequest} from a {@link appkit:SwapQuote} (obtained via {@link useSwapQuote}) without sending it — lets the UI inspect, batch, or pass the request to {@link useSendTransaction} separately. Call `mutate(params)` where `params` matches {@link appkit:BuildSwapTransactionOptions} (quote, user address, optional slippage/deadline overrides); the resulting `TransactionRequest` is in `data` once the mutation resolves.
+ * Build a swap {@link appkit:TransactionRequest} from a {@link appkit:SwapQuote} (obtained via {@link useSwapQuote}) without sending it — lets the UI inspect, batch, or pass the request to {@link useSendTransaction} separately. Call `mutate(params)` where `params` matches {@link appkit:BuildSwapTransactionOptions} (quote, user address, optional slippage/deadline overrides). The resulting `TransactionRequest` is in `data` once the mutation resolves.
  *
  * @param parameters - {@link UseBuildSwapTransactionParameters} TanStack Query mutation overrides.
  * @returns Mutation result for the build call.

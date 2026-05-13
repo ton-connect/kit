@@ -42,7 +42,7 @@ export type UseStakingProviderInfoReturnType<selectData = GetStakingProviderInfo
 >;
 
 /**
- * React hook reading live staking-pool info for a provider through TanStack Query — APY, instant-unstake liquidity and (for liquid staking) the current exchange rate. Use {@link useStakingProviderMetadata} for static metadata (name, stake/receive tokens, supported unstake modes). Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
+ * React hook reading live staking-pool info for a provider through TanStack Query — APY, instant-unstake liquidity and (for liquid staking) the current exchange rate. Use {@link useStakingProviderMetadata} for static metadata (name, stake/receive tokens, supported unstake modes). Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
  *
  * @param parameters - {@link UseStakingProviderInfoParameters} Optional `providerId`, network override, and TanStack Query overrides.
  * @returns TanStack Query result for the live provider info.

@@ -24,7 +24,7 @@ export interface CreateTransferNftTransactionParameters {
     nftAddress: UserFriendlyAddress;
     /** New owner address. */
     recipientAddress: UserFriendlyAddress;
-    /** Amount of TON to attach to the transfer for gas; defaults to AppKit's NFT gas-fee constant when omitted. */
+    /** Amount of TON to attach to the transfer for gas. Defaults to AppKit's NFT gas-fee constant when omitted. */
     amount?: string;
     /** Optional human-readable comment attached to the transfer. */
     comment?: string;
@@ -40,7 +40,7 @@ export interface CreateTransferNftTransactionParameters {
 export type CreateTransferNftTransactionReturnType = TransactionRequest;
 
 /**
- * Build an NFT transfer {@link TransactionRequest} for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing; throws `Error('Wallet not connected')` if no wallet is currently selected.
+ * Build an NFT transfer {@link TransactionRequest} for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing. Throws `Error('Wallet not connected')` if no wallet is currently selected.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param parameters - {@link CreateTransferNftTransactionParameters} NFT, recipient, optional gas amount and comment.

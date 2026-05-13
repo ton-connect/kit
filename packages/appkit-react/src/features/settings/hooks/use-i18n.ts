@@ -11,7 +11,7 @@ import { useContext } from 'react';
 import { I18nContext } from '../../../providers/i18n-provider';
 
 /**
- * Read the i18n context published by {@link I18nProvider} (or the wrapping {@link AppKitProvider}); returns the active locale, translation function and helpers to switch locales or merge dictionaries. Throws when rendered outside the provider tree.
+ * Read the i18n context published by {@link I18nProvider} (or the wrapping {@link AppKitProvider}). Returns the active locale, translation function and helpers to switch locales or merge dictionaries. Throws when rendered outside the provider tree.
  *
  * @returns The i18n context ({@link I18nContextType}) with `activeLocale`, `t`, `locale` and `addDict`.
  *

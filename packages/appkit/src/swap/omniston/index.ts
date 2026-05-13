@@ -7,7 +7,7 @@
  */
 
 /**
- * {@link SwapProvider} implementation backed by Omniston. Use {@link createOmnistonProvider} to register it on AppKit; quote and swap calls go through {@link getSwapQuote} / {@link buildSwapTransaction} like any other swap provider.
+ * {@link SwapProvider} implementation backed by Omniston. Use {@link createOmnistonProvider} to register it on AppKit. Quote and swap calls go through {@link getSwapQuote} / {@link buildSwapTransaction} like any other swap provider.
  *
  * @extract
  * @public
@@ -17,7 +17,7 @@
 export { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
 
 /**
- * Build an Omniston-backed {@link SwapProvider} for AppKit; pass the result to {@link AppKitConfig}'s `providers` or {@link registerProvider}.
+ * Build an Omniston-backed {@link SwapProvider} for AppKit. Pass the result to {@link AppKitConfig}'s `providers` or {@link registerProvider}.
  *
  * @extract
  * @public

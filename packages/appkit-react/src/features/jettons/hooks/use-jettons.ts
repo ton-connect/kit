@@ -13,7 +13,7 @@ import { useJettonsByAddress } from './use-jettons-by-address';
 import type { UseJettonsByAddressParameters, UseJettonsByAddressReturnType } from './use-jettons-by-address';
 
 /**
- * Parameters accepted by {@link useJettons} — same shape as {@link UseJettonsByAddressParameters}; the hook resolves `address` from the selected wallet and overrides any value supplied here.
+ * Parameters accepted by {@link useJettons} — same shape as {@link UseJettonsByAddressParameters}. The hook resolves `address` from the selected wallet and overrides any value supplied here.
  *
  * @public
  * @category Type

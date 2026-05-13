@@ -25,7 +25,7 @@ import { resolveNetwork } from '../../utils/network/resolve-network';
 export interface GetJettonsByAddressOptions {
     /** Owner address — pass a {@link UserFriendlyAddress} string or an `Address` instance from `@ton/core`. */
     address: UserFriendlyAddress | Address;
-    /** Network to read the jettons from. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
+    /** Network to read the jettons from. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
     network?: Network;
     /** Maximum number of jettons to return. */
     limit?: number;
@@ -43,7 +43,7 @@ export interface GetJettonsByAddressOptions {
 export type GetJettonsByAddressReturnType = JettonsResponse;
 
 /**
- * List jettons held by an arbitrary address — useful for inspecting wallets that aren't selected in AppKit (use {@link getJettons} for the selected wallet); raw balances are formatted with each jetton's declared decimals, and entries without decimals are dropped.
+ * List jettons held by an arbitrary address — useful for inspecting wallets that aren't selected in AppKit (use {@link getJettons} for the selected wallet). Raw balances are formatted with each jetton's declared decimals, and entries without decimals are dropped.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param options - {@link GetJettonsByAddressOptions} Owner address, optional network override and pagination.

@@ -17,7 +17,7 @@ import { useNetwork } from '../../network';
 /**
  * Parameters accepted by {@link useNft} — TanStack Query options (`select`, `enabled`, `staleTime`, …) plus the NFT contract address and optional network override.
  *
- * The `network` field defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
+ * The `network` field defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
  *
  * @public
  * @category Type
@@ -35,7 +35,7 @@ export type UseNftParameters<selectData = GetNftData> = GetNftQueryConfig<select
 export type UseNftReturnType<selectData = GetNftData> = UseQueryReturnType<selectData, GetNftErrorType>;
 
 /**
- * React hook reading metadata and ownership for a single NFT through TanStack Query, keyed by its contract address; `data` is `null` when the indexer has no record.
+ * React hook reading metadata and ownership for a single NFT through TanStack Query, keyed by its contract address. `data` is `null` when the indexer has no record.
  *
  * @param parameters - {@link UseNftParameters} NFT address, optional network override, and TanStack Query overrides.
  * @returns TanStack Query result for the NFT read.

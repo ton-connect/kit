@@ -511,7 +511,7 @@ export class TonStakersStakingProvider extends StakingProvider {
  * Returns an AppKit / `ProviderInput` factory: pass to `providers: [createTonstakersProvider(config)]`.
  * At kit init, the factory receives context and builds the provider using `ctx.networkManager` for RPC.
  *
- * @param config - Optional {@link TonStakersProviderConfig}; defaults are filled in for any field left undefined.
+ * @param config - Optional {@link TonStakersProviderConfig}. Defaults are filled in for any field left undefined.
  */
 export const createTonstakersProvider = (
     config: TonStakersProviderConfig = {},

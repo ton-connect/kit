@@ -22,7 +22,7 @@ import { useAppKit } from '../../settings';
 export type UseConnectedWalletsReturnType = GetConnectedWalletsReturnType;
 
 /**
- * Read the list of currently connected wallets across all registered connectors; re-renders when a wallet connects or disconnects.
+ * Read the list of currently connected wallets across all registered connectors. Re-renders when a wallet connects or disconnects.
  *
  * @returns Read-only array of {@link appkit:WalletInterface}s.
  *

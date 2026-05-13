@@ -47,7 +47,7 @@ const getProviderName = (provider: StakingProvider, network?: Network): string =
 };
 
 /**
- * Modal that lets the user pick the active staking provider. The selection is staged locally and only committed via `onProviderChange` when the user presses `Save`; closing the modal otherwise discards the change. Each option is labeled with the provider's metadata `name`, falling back to its `providerId` if metadata is unavailable on the given network.
+ * Modal that lets the user pick the active staking provider. The selection is staged locally and only committed via `onProviderChange` when the user presses `Save`. Closing the modal otherwise discards the change. Each option is labeled with the provider's metadata `name`, falling back to its `providerId` if metadata is unavailable on the given network.
  *
  * @sample docs/examples/src/appkit/components/staking#STAKING_SETTINGS_MODAL
  *

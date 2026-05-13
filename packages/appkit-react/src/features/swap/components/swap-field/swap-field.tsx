@@ -26,17 +26,17 @@ import styles from './swap-field.module.css';
  * @section Swap
  */
 export interface SwapFieldProps extends Omit<ComponentProps<typeof Input.Container>, 'children'> {
-    /** `pay` renders the editable source row with a "max" shortcut; `receive` renders the read-only target row. */
+    /** `pay` renders the editable source row with a "max" shortcut. `receive` renders the read-only target row. */
     type: 'pay' | 'receive';
     /** Current amount shown in the input as a human-readable decimal string. */
     amount: string;
     /** Fiat currency symbol displayed in front of the converted value. Defaults to `"$"`. */
     fiatSymbol?: string;
-    /** Currently selected token; controls the token selector label, balance formatting and fiat conversion. */
+    /** Currently selected token. Controls the token selector label, balance formatting and fiat conversion. */
     token?: AppkitUIToken;
     /** Called with the raw input value when the user edits the amount. Only fired for `type: "pay"`. */
     onAmountChange?: (value: string) => void;
-    /** Formatted balance of `token` for the active wallet, as a human-readable decimal string; rendered in the balance line beneath the input. */
+    /** Formatted balance of `token` for the active wallet, as a human-readable decimal string. Rendered in the balance line beneath the input. */
     balance?: string;
     /** When true, the balance area renders a skeleton placeholder instead of the value. */
     isBalanceLoading?: boolean;
@@ -51,7 +51,7 @@ export interface SwapFieldProps extends Omit<ComponentProps<typeof Input.Contain
 }
 
 /**
- * One row of the swap form. Renders the amount input, fiat conversion, balance line, and a token-selector chip. The `pay` variant is editable and exposes a "max" shortcut; the `receive` variant is read-only and shows the quote result.
+ * One row of the swap form. Renders the amount input, fiat conversion, balance line, and a token-selector chip. The `pay` variant is editable and exposes a "max" shortcut. The `receive` variant is read-only and shows the quote result.
  *
  * @sample docs/examples/src/appkit/components/swap#SWAP_FIELD
  *

@@ -21,7 +21,7 @@ import type { SwapProviderProps } from '../swap-widget-provider';
  * @section Swap
  */
 export interface SwapWidgetProps extends Omit<SwapProviderProps, 'children'>, Omit<ComponentProps<'div'>, 'children'> {
-    /** Optional render-prop receiving the full swap context plus the forwarded `<div>` props; when supplied it replaces the default {@link SwapWidgetUI}. */
+    /** Optional render-prop receiving the full swap context plus the forwarded `<div>` props. When supplied it replaces the default {@link SwapWidgetUI}. */
     children?: (props: SwapWidgetRenderProps) => ReactNode;
 }
 

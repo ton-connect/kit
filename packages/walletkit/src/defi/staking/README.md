@@ -36,7 +36,7 @@ interface StakingQuoteParams<TProviderOptions = unknown> {
     amount: TokenAmount;
     userAddress?: UserFriendlyAddress;
     network?: Network;
-    unstakeMode?: UnstakeModes; // unstake only; see UnstakeMode in @ton/walletkit
+    unstakeMode?: UnstakeModes; // unstake only. See UnstakeMode in @ton/walletkit
     providerOptions?: TProviderOptions;
 }
 ```

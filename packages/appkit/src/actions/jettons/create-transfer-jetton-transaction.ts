@@ -32,7 +32,7 @@ export interface CreateTransferJettonTransactionParameters {
     recipientAddress: UserFriendlyAddress;
     /** Amount in jetton units as a human-readable decimal string (e.g., `"1.5"`). */
     amount: string;
-    /** Decimals declared by the jetton master; used to convert `amount` into raw smallest units. */
+    /** Decimals declared by the jetton master. Used to convert `amount` into raw smallest units. */
     jettonDecimals: number;
     /** Optional human-readable comment attached to the transfer. */
     comment?: string;
@@ -48,7 +48,7 @@ export interface CreateTransferJettonTransactionParameters {
 export type CreateTransferJettonTransactionReturnType = TransactionRequest;
 
 /**
- * Build a jetton transfer {@link TransactionRequest} for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing; throws `Error('Wallet not connected')` if no wallet is currently selected.
+ * Build a jetton transfer {@link TransactionRequest} for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing. Throws `Error('Wallet not connected')` if no wallet is currently selected.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param parameters - {@link CreateTransferJettonTransactionParameters} Jetton, recipient, amount, decimals and optional comment.

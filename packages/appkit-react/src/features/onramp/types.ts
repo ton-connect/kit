@@ -47,8 +47,7 @@ export interface CurrencySectionConfig {
 }
 
 /**
- * Which side the amount input is denominated in — `token` (crypto) vs `currency` (fiat). Internal: fiat onramp is not part of the public API yet; the crypto onramp widget uses `CryptoAmountInputMode` instead.
- */
+ * Which side the amount input is denominated in — `token` (crypto) vs `currency` (fiat). Internal: fiat onramp is not part of the public API yet. The crypto onramp widget uses `CryptoAmountInputMode` instead. */
 export type AmountInputMode = 'token' | 'currency';
 
 /**

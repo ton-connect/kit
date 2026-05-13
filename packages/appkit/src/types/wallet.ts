@@ -12,7 +12,7 @@ import type { SignDataRequest, SignDataResponse } from './signing';
 import type { Network } from './network';
 
 /**
- * Wallet contract surfaced by every {@link Connector} — covers identity (address, public key, network) and signing operations; reads (balance, jettons, NFTs) go through AppKit actions instead.
+ * Wallet contract surfaced by every {@link Connector} — covers identity (address, public key, network) and signing operations. Reads (balance, jettons, NFTs) go through AppKit actions instead.
  *
  * @public
  * @category Type

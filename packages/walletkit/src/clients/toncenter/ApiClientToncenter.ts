@@ -70,7 +70,7 @@ export interface ApiClientConfig extends BaseApiClientConfig {
 }
 
 export class ApiClientToncenter extends BaseApiClient implements ApiClient {
-    /** @param config - Toncenter client config — endpoint URL, API key and optional DNS resolver override; defaults to mainnet/testnet Toncenter URLs based on `config.network`. */
+    /** @param config - Toncenter client config — endpoint URL, API key and optional DNS resolver override. Defaults to mainnet/testnet Toncenter URLs based on `config.network`. */
     constructor(config: ApiClientConfig = {}) {
         const defaultEndpoint =
             config.network?.chainId === Network.mainnet().chainId

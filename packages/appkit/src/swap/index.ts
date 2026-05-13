@@ -27,7 +27,7 @@ export { DefiError } from '@ton/walletkit';
 export { SwapError } from '@ton/walletkit';
 
 /**
- * Abstract base class implemented by swap providers (DeDust, Omniston, custom integrations); apps don't use it directly — they consume providers through {@link SwapManager} and the `getSwap*` / `buildSwapTransaction` actions.
+ * Abstract base class implemented by swap providers (DeDust, Omniston, custom integrations). Apps don't use it directly — they consume providers through {@link SwapManager} and the `getSwap*` / `buildSwapTransaction` actions.
  *
  * @extract
  * @public
@@ -37,7 +37,7 @@ export { SwapError } from '@ton/walletkit';
 export { SwapProvider } from '@ton/walletkit';
 
 /**
- * Runtime that owns registered {@link SwapProvider}s and dispatches quote/swap calls. Exposed as {@link AppKit}'s `swapManager`; usually accessed through the higher-level actions ({@link getSwapQuote}, {@link buildSwapTransaction}).
+ * Runtime that owns registered {@link SwapProvider}s and dispatches quote/swap calls. Exposed as {@link AppKit}'s `swapManager`. Usually accessed through the higher-level actions ({@link getSwapQuote}, {@link buildSwapTransaction}).
  *
  * @extract
  * @public
@@ -47,7 +47,7 @@ export { SwapProvider } from '@ton/walletkit';
 export { SwapManager } from '@ton/walletkit';
 
 /**
- * Shape every DeFi domain manager (swap, staking, onramp, crypto-onramp) satisfies — provider registration, default-provider selection and lookups; mostly relevant when authoring a new domain manager.
+ * Shape every DeFi domain manager (swap, staking, onramp, crypto-onramp) satisfies — provider registration, default-provider selection and lookups. Mostly relevant when authoring a new domain manager.
  *
  * @extract
  * @public
@@ -67,7 +67,7 @@ export type { DefiManagerAPI } from '@ton/walletkit';
 export type { DefiProvider } from '@ton/walletkit';
 
 /**
- * Discriminator that tags every {@link DefiProvider} with its kind — `'swap'`, `'staking'`, `'onramp'`, or `'crypto-onramp'`; used by {@link registerProvider} to dispatch to the right manager.
+ * Discriminator that tags every {@link DefiProvider} with its kind — `'swap'`, `'staking'`, `'onramp'`, or `'crypto-onramp'`. Used by {@link registerProvider} to dispatch to the right manager.
  *
  * @extract
  * @public

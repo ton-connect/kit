@@ -37,7 +37,7 @@ export type CryptoOnrampWidgetRenderProps = CryptoOnrampContextType &
     Omit<ComponentProps<'div'>, keyof CryptoOnrampContextType>;
 
 /**
- * Presentational UI for the crypto-to-TON onramp widget — renders the from/to selectors, amount input with presets, continue button, info block (you-get / balance / provider) and the token-pick / method-pick / refund-address / deposit modals. All state and actions come from props ({@link CryptoOnrampWidgetRenderProps}); typically rendered inside {@link CryptoOnrampWidgetProvider} via {@link CryptoOnrampWidget}.
+ * Presentational UI for the crypto-to-TON onramp widget — renders the from/to selectors, amount input with presets, continue button, info block (you-get / balance / provider) and the token-pick / method-pick / refund-address / deposit modals. All state and actions come from props ({@link CryptoOnrampWidgetRenderProps}). Typically rendered inside {@link CryptoOnrampWidgetProvider} via {@link CryptoOnrampWidget}.
  *
  * @public
  * @category Component

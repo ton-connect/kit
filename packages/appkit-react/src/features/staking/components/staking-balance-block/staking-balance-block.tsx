@@ -30,7 +30,7 @@ import { useJettonInfo } from '../../../jettons';
 export interface StakingBalanceBlockProps extends ComponentProps<'div'> {
     /** Provider metadata — supplies the stake/receive tokens (address, ticker, decimals). */
     providerMetadata: StakingProviderMetadata | undefined;
-    /** Operation direction; selects which token and balance to render. */
+    /** Operation direction. Selects which token and balance to render. */
     direction: StakingQuoteDirection;
     /** User's currently staked amount, used when `direction === 'unstake'`. */
     stakedBalance?: string;

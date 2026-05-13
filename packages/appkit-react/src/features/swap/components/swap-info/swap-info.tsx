@@ -22,13 +22,13 @@ import { getDisplayAmount } from '../../utils/get-display-amount';
  * @section Swap
  */
 export interface SwapInfoProps extends ComponentProps<typeof InfoBlock.Container> {
-    /** Target token the user is receiving; used to format `minReceived` with the right decimals and symbol. */
+    /** Target token the user is receiving. Used to format `minReceived` with the right decimals and symbol. */
     toToken: AppkitUIToken | null;
     /** Slippage tolerance in basis points (`100` = 1%). Rendered as a percentage. */
     slippage: number;
-    /** Current {@link appkit:SwapProvider}; its display name is shown in the provider row. */
+    /** Current {@link appkit:SwapProvider}. Its display name is shown in the provider row. */
     provider?: SwapProvider;
-    /** Quote whose `minReceived` value is displayed; when undefined the value falls back to `0` (still suffixed with the token symbol). */
+    /** Quote whose `minReceived` value is displayed. When undefined the value falls back to `0` (still suffixed with the token symbol). */
     quote?: SwapQuote;
     /** When true, the minimum-received value renders a skeleton placeholder instead of the formatted number. */
     isQuoteLoading?: boolean;

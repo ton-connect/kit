@@ -59,7 +59,7 @@ export interface SwapsXyzQuoteOptions {
  * CryptoOnrampDeposit without an extra network round-trip.
  */
 export interface SwapsXyzQuoteMetadata {
-    /** EVM sender address swaps.xyz was quoted for; required when later calling `createDeposit`. */
+    /** EVM sender address swaps.xyz was quoted for. Required when later calling `createDeposit`. */
     sender: string;
     /** Raw `getAction` response cached at quote time so `createDeposit` doesn't need an extra round-trip. */
     response: SwapsXyzGetActionResponse;

@@ -18,7 +18,7 @@ import { resolveNetwork } from '../../utils';
  * @section Staking
  */
 export type GetStakingQuoteOptions = StakingQuoteParams & {
-    /** Provider to quote against; defaults to the registered default staking provider. */
+    /** Provider to quote against. Defaults to the registered default staking provider. */
     providerId?: string;
 };
 

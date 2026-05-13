@@ -25,9 +25,9 @@ export interface GetJettonBalanceOptions {
     jettonAddress: UserFriendlyAddress;
     /** Owner of the jetton wallet — typically the connected user's address. */
     ownerAddress: UserFriendlyAddress;
-    /** Decimals declared by the jetton master; used to format the raw balance into a human-readable string. */
+    /** Decimals declared by the jetton master. Used to format the raw balance into a human-readable string. */
     jettonDecimals: number;
-    /** Network to read the balance from. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
+    /** Network to read the balance from. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
     network?: Network;
 }
 

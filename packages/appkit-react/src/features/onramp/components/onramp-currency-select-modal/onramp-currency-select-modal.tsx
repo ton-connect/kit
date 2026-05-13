@@ -26,7 +26,7 @@ export interface OnrampCurrencySelectModalProps {
     onClose: () => void;
     /** Full list of fiat currencies the user can pick from. */
     currencies: OnrampCurrency[];
-    /** Optional section configs grouping `currencies` by id; ungrouped currencies fall under an "Other" section. */
+    /** Optional section configs grouping `currencies` by id. Ungrouped currencies fall under an "Other" section. */
     currencySections?: CurrencySectionConfig[];
     /** Called with the picked currency before the modal closes. */
     onSelect: (currency: OnrampCurrency) => void;

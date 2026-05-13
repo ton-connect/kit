@@ -7,7 +7,7 @@
  */
 
 /**
- * {@link StakingProvider} implementation backed by Tonstakers. The constructor is private — use {@link createTonstakersProvider} to register it on AppKit; quote and stake calls then go through {@link getStakingQuote} / {@link buildStakeTransaction} like any other staking provider.
+ * {@link StakingProvider} implementation backed by Tonstakers. The constructor is private — use {@link createTonstakersProvider} to register it on AppKit. Quote and stake calls then go through {@link getStakingQuote} / {@link buildStakeTransaction} like any other staking provider.
  *
  * @extract
  * @public
@@ -17,7 +17,7 @@
 export { TonStakersStakingProvider } from '@ton/walletkit/staking/tonstakers';
 
 /**
- * Build a Tonstakers-backed {@link StakingProvider} for AppKit; pass the result to {@link AppKitConfig}'s `providers` or {@link registerProvider}.
+ * Build a Tonstakers-backed {@link StakingProvider} for AppKit. Pass the result to {@link AppKitConfig}'s `providers` or {@link registerProvider}.
  *
  * @extract
  * @public

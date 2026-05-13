@@ -17,7 +17,7 @@ import type { AppKit } from '../../core/app-kit';
  * @section Crypto Onramp
  */
 export type GetCryptoOnrampStatusOptions = CryptoOnrampStatusParams & {
-    /** Provider that issued the deposit; defaults to the registered default provider. */
+    /** Provider that issued the deposit. Defaults to the registered default provider. */
     providerId?: string;
 };
 

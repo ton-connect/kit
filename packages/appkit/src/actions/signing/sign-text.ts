@@ -22,7 +22,7 @@ import { getDefaultNetwork } from '../network/get-default-network';
 export interface SignTextParameters {
     /** UTF-8 text the user is asked to sign. */
     text: string;
-    /** Network to issue the sign request against. Defaults to AppKit's configured default network; when none is set, the wallet falls back to its current network. */
+    /** Network to issue the sign request against. Defaults to AppKit's configured default network. When none is set, the wallet falls back to its current network. */
     network?: Network;
 }
 
@@ -36,7 +36,7 @@ export interface SignTextParameters {
 export type SignTextReturnType = SignDataResponse;
 
 /**
- * Ask the selected wallet to sign a plain text message; throws `Error('Wallet not connected')` if no wallet is currently selected.
+ * Ask the selected wallet to sign a plain text message. Throws `Error('Wallet not connected')` if no wallet is currently selected.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param parameters - {@link SignTextParameters} Text to sign and optional network override.

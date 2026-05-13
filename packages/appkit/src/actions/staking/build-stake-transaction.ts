@@ -18,7 +18,7 @@ import type { TransactionRequest } from '../../types/transaction';
  * @section Staking
  */
 export type BuildStakeTransactionOptions = StakeParams & {
-    /** Provider to stake/unstake through; defaults to the registered default staking provider. */
+    /** Provider to stake/unstake through. Defaults to the registered default staking provider. */
     providerId?: string;
 };
 

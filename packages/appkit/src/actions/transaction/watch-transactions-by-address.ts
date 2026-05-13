@@ -26,7 +26,7 @@ export interface WatchTransactionsByAddressOptions {
     address: UserFriendlyAddress | Address;
     /** Callback fired on every transactions update from the streaming provider. */
     onChange: (update: TransactionsUpdate) => void;
-    /** Network to watch on. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
+    /** Network to watch on. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
     network?: Network;
 }
 

@@ -17,7 +17,7 @@ import type { AppKit } from '../../core/app-kit';
  * @section Crypto Onramp
  */
 export type CreateCryptoOnrampDepositOptions<T = unknown> = CryptoOnrampDepositParams<T> & {
-    /** Provider to create the deposit through; defaults to `quote.providerId`, then to the default provider. */
+    /** Provider to create the deposit through. Defaults to `quote.providerId`, then to the default provider. */
     providerId?: string;
 };
 

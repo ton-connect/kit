@@ -68,7 +68,7 @@ return <div>Balance: {balance}</div>;
 
 #### useWatchBalance
 
-Subscribe to Toncoin balance updates for the currently selected wallet; updates flow into the TanStack Query cache so [`useBalance`](#usebalance) re-renders automatically (use [`useWatchBalanceByAddress`](#usewatchbalancebyaddress) for a fixed address).
+Subscribe to Toncoin balance updates for the currently selected wallet. Updates flow into the TanStack Query cache so [`useBalance`](#usebalance) re-renders automatically (use [`useWatchBalanceByAddress`](#usewatchbalancebyaddress) for a fixed address).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -122,7 +122,7 @@ Returns: <code><a href="/ecosystem/appkit/reference/appkit#connector">Connector<
 
 #### useConnectors
 
-Read the list of connectors registered on this AppKit instance; re-renders when a connector is registered or unregistered (use [`useConnectedWallets`](#useconnectedwallets) to react to wallet connect/disconnect events).
+Read the list of connectors registered on this AppKit instance. Re-renders when a connector is registered or unregistered (use [`useConnectedWallets`](#useconnectedwallets) to react to wallet connect/disconnect events).
 
 Returns: <code><a href="#useconnectorsreturntype">UseConnectorsReturnType</a></code> — Read-only array of registered [`Connector`](/ecosystem/appkit/reference/appkit#connector)s.
 
@@ -130,7 +130,7 @@ Returns: <code><a href="#useconnectorsreturntype">UseConnectorsReturnType</a></c
 
 #### useCreateCryptoOnrampDeposit
 
-Create a crypto-onramp deposit from a quote previously obtained via [`useCryptoOnrampQuote`](#usecryptoonrampquote). Call `mutate(options)` where `options` matches [`CreateCryptoOnrampDepositOptions`](/ecosystem/appkit/reference/appkit#createcryptoonrampdepositoptions) (quote, refund address, optional provider override); on success, `data` is the [`CryptoOnrampDeposit`](/ecosystem/appkit/reference/appkit#cryptoonrampdeposit) carrying the address and amount the user must send on the source chain to complete the onramp. Pair with [`useCryptoOnrampStatus`](#usecryptoonrampstatus) to poll the deposit until it settles.
+Create a crypto-onramp deposit from a quote previously obtained via [`useCryptoOnrampQuote`](#usecryptoonrampquote). Call `mutate(options)` where `options` matches [`CreateCryptoOnrampDepositOptions`](/ecosystem/appkit/reference/appkit#createcryptoonrampdepositoptions) (quote, refund address, optional provider override). On success, `data` is the [`CryptoOnrampDeposit`](/ecosystem/appkit/reference/appkit#cryptoonrampdeposit) carrying the address and amount the user must send on the source chain to complete the onramp. Pair with [`useCryptoOnrampStatus`](#usecryptoonrampstatus) to poll the deposit until it settles.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -156,7 +156,7 @@ Returns: <code><a href="#usecryptoonrampproviderreturntype">UseCryptoOnrampProvi
 
 #### useCryptoOnrampProviders
 
-List every crypto-onramp provider registered on the AppKit instance (both those passed via [`AppKitConfig`](/ecosystem/appkit/reference/appkit#appkitconfig)'s `providers` and those added later through [`registerProvider`](/ecosystem/appkit/reference/appkit#registerprovider)); subscribes to [`watchCryptoOnrampProviders`](/ecosystem/appkit/reference/appkit#watchcryptoonrampproviders) and re-reads via [`getCryptoOnrampProviders`](/ecosystem/appkit/reference/appkit#getcryptoonrampproviders) so the array stays in sync.
+List every crypto-onramp provider registered on the AppKit instance (both those passed via [`AppKitConfig`](/ecosystem/appkit/reference/appkit#appkitconfig)'s `providers` and those added later through [`registerProvider`](/ecosystem/appkit/reference/appkit#registerprovider)). Subscribes to [`watchCryptoOnrampProviders`](/ecosystem/appkit/reference/appkit#watchcryptoonrampproviders) and re-reads via [`getCryptoOnrampProviders`](/ecosystem/appkit/reference/appkit#getcryptoonrampproviders) so the array stays in sync.
 
 Returns: <code><a href="#usecryptoonrampprovidersreturntype">UseCryptoOnrampProvidersReturnType</a></code> — Array of registered crypto-onramp providers.
 
@@ -403,7 +403,7 @@ return (
 
 #### useWatchJettons
 
-Subscribe to jetton-balance updates for the currently selected wallet; updates flow into the TanStack Query cache so [`useJettons`](#usejettons) re-renders automatically (use [`useWatchJettonsByAddress`](#usewatchjettonsbyaddress) for a fixed address).
+Subscribe to jetton-balance updates for the currently selected wallet. Updates flow into the TanStack Query cache so [`useJettons`](#usejettons) re-renders automatically (use [`useWatchJettonsByAddress`](#usewatchjettonsbyaddress) for a fixed address).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -434,7 +434,7 @@ return (
 
 #### useWatchJettonsByAddress
 
-Subscribe to jetton-balance updates for an arbitrary owner address; updates flow into the TanStack Query cache so [`useJettonsByAddress`](#usejettonsbyaddress) and [`useJettonBalanceByAddress`](#usejettonbalancebyaddress) re-render automatically. Logs a warning and exits when no streaming provider is configured for the resolved network.
+Subscribe to jetton-balance updates for an arbitrary owner address. Updates flow into the TanStack Query cache so [`useJettonsByAddress`](#usejettonsbyaddress) and [`useJettonBalanceByAddress`](#usejettonbalancebyaddress) re-render automatically. Logs a warning and exits when no streaming provider is configured for the resolved network.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -468,7 +468,7 @@ return (
 
 #### useNft
 
-React hook reading metadata and ownership for a single NFT through TanStack Query, keyed by its contract address; `data` is `null` when the indexer has no record.
+React hook reading metadata and ownership for a single NFT through TanStack Query, keyed by its contract address. `data` is `null` when the indexer has no record.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -639,19 +639,19 @@ Returns: <code><a href="#useblocknumberreturntype">UseBlockNumberReturnType</a>&
 
 #### useDefaultNetwork
 
-Read and write AppKit's default network — the network connectors use for new wallet connections. Returns a `useState`-style tuple; the read side re-renders when the default changes through any source (this hook, [`setDefaultNetwork`](/ecosystem/appkit/reference/appkit#setdefaultnetwork), manager events).
+Read and write AppKit's default network — the network connectors use for new wallet connections. Returns a `useState`-style tuple. The read side re-renders when the default changes through any source (this hook, [`setDefaultNetwork`](/ecosystem/appkit/reference/appkit#setdefaultnetwork), manager events).
 
 Returns: <code><a href="#usedefaultnetworkreturntype">UseDefaultNetworkReturnType</a></code> — Tuple `[network, setNetwork]`.
 
 #### useNetwork
 
-Read the [`Network`](/ecosystem/appkit/reference/appkit#network) the selected wallet is connected to; re-renders when the wallet's network changes (e.g. user switches mainnet/testnet inside the wallet).
+Read the [`Network`](/ecosystem/appkit/reference/appkit#network) the selected wallet is connected to. Re-renders when the wallet's network changes (e.g. user switches mainnet/testnet inside the wallet).
 
 Returns: <code><a href="#usenetworkreturntype">UseNetworkReturnType</a></code> — Selected wallet's network, or `undefined` when no wallet is selected.
 
 #### useNetworks
 
-Read the list of networks configured on AppKit; re-renders when [`AppKitNetworkManager`](/ecosystem/appkit/reference/appkit#appkitnetworkmanager) adds, replaces or drops a network.
+Read the list of networks configured on AppKit. Re-renders when [`AppKitNetworkManager`](/ecosystem/appkit/reference/appkit#appkitnetworkmanager) adds, replaces or drops a network.
 
 Returns: <code><a href="#usenetworksreturntype">UseNetworksReturnType</a></code> — Array of configured [`Network`](/ecosystem/appkit/reference/appkit#network)s.
 
@@ -659,7 +659,7 @@ Returns: <code><a href="#usenetworksreturntype">UseNetworksReturnType</a></code>
 
 #### useAppKit
 
-Read the [`AppKit`](/ecosystem/appkit/reference/appkit#appkit) instance hosted by [`AppKitProvider`](#appkitprovider); throws when the hook is rendered outside the provider tree.
+Read the [`AppKit`](/ecosystem/appkit/reference/appkit#appkit) instance hosted by [`AppKitProvider`](#appkitprovider). Throws when the hook is rendered outside the provider tree.
 
 Returns: <code><a href="/ecosystem/appkit/reference/appkit#appkit">AppKit</a></code> — The AppKit instance shared with descendant hooks/components.
 
@@ -671,7 +671,7 @@ Returns: `readonly [string, Dispatch<SetStateAction<string>>]` — Tuple `[theme
 
 #### useI18n
 
-Read the i18n context published by [`I18nProvider`](#i18nprovider) (or the wrapping [`AppKitProvider`](#appkitprovider)); returns the active locale, translation function and helpers to switch locales or merge dictionaries. Throws when rendered outside the provider tree.
+Read the i18n context published by [`I18nProvider`](#i18nprovider) (or the wrapping [`AppKitProvider`](#appkitprovider)). Returns the active locale, translation function and helpers to switch locales or merge dictionaries. Throws when rendered outside the provider tree.
 
 Returns: <code><a href="#i18ncontexttype">I18nContextType</a></code> — The i18n context ([`I18nContextType`](#i18ncontexttype)) with `activeLocale`, `t`, `locale` and `addDict`.
 
@@ -679,7 +679,7 @@ Returns: <code><a href="#i18ncontexttype">I18nContextType</a></code> — The i18
 
 #### useSignBinary
 
-Ask the selected wallet to sign an opaque binary blob (Base64-encoded), without on-chain structure. Call `mutate` from an event handler with the `bytes` to sign and an optional `network` override; on success, `data` carries the signature plus the signer address, timestamp and dApp domain the wallet bound to the signature. Throws `Error('Wallet not connected')` if no wallet is currently selected — TanStack Query surfaces it via the mutation's `error`.
+Ask the selected wallet to sign an opaque binary blob (Base64-encoded), without on-chain structure. Call `mutate` from an event handler with the `bytes` to sign and an optional `network` override. On success, `data` carries the signature plus the signer address, timestamp and dApp domain the wallet bound to the signature. Throws `Error('Wallet not connected')` if no wallet is currently selected — TanStack Query surfaces it via the mutation's `error`.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -699,7 +699,7 @@ Returns: <code><a href="#usesigncellreturntype">UseSignCellReturnType</a>&lt;con
 
 #### useSignText
 
-Ask the selected wallet to sign a plain-text message — useful for off-chain login proofs and signed challenges. Call `mutate` from an event handler with the `text` to sign and an optional `network` override; on success, `data` carries the signature plus the canonicalized signer address, timestamp and dApp domain the wallet bound to the signature. Throws `Error('Wallet not connected')` if no wallet is currently selected — TanStack Query surfaces it via the mutation's `error`.
+Ask the selected wallet to sign a plain-text message — useful for off-chain login proofs and signed challenges. Call `mutate` from an event handler with the `text` to sign and an optional `network` override. On success, `data` carries the signature plus the canonicalized signer address, timestamp and dApp domain the wallet bound to the signature. Throws `Error('Wallet not connected')` if no wallet is currently selected — TanStack Query surfaces it via the mutation's `error`.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -711,13 +711,13 @@ Returns: <code><a href="#usesigntextreturntype">UseSignTextReturnType</a>&lt;con
 
 #### useBuildStakeTransaction
 
-Build a stake/unstake [`TransactionRequest`](/ecosystem/appkit/reference/appkit#transactionrequest) from a [`StakingQuote`](/ecosystem/appkit/reference/appkit#stakingquote) (obtained via [`useStakingQuote`](#usestakingquote)) without sending it — lets the UI inspect, batch, or pass the request to [`useSendTransaction`](#usesendtransaction) separately. Call `mutate(params)` where `params` matches [`BuildStakeTransactionOptions`](/ecosystem/appkit/reference/appkit#buildstaketransactionoptions) (quote + user address, optional provider override); the resulting `TransactionRequest` is in `data` once the mutation resolves.
+Build a stake/unstake [`TransactionRequest`](/ecosystem/appkit/reference/appkit#transactionrequest) from a [`StakingQuote`](/ecosystem/appkit/reference/appkit#stakingquote) (obtained via [`useStakingQuote`](#usestakingquote)) without sending it — lets the UI inspect, batch, or pass the request to [`useSendTransaction`](#usesendtransaction) separately. Call `mutate(params)` where `params` matches [`BuildStakeTransactionOptions`](/ecosystem/appkit/reference/appkit#buildstaketransactionoptions) (quote + user address, optional provider override). The resulting `TransactionRequest` is in `data` once the mutation resolves.
 
 Returns: <code><a href="#usebuildstaketransactionreturntype">UseBuildStakeTransactionReturnType</a>&lt;context = unknown&gt;</code> — Mutation result for the build call.
 
 #### useStakedBalance
 
-React hook reading a user's staked balance from a staking provider through TanStack Query — total staked plus, depending on the provider, any instant-unstake balance available right now. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
+React hook reading a user's staked balance from a staking provider through TanStack Query — total staked plus, depending on the provider, any instant-unstake balance available right now. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -733,7 +733,7 @@ Returns: <code><a href="#stakingcontexttype">StakingContextType</a></code>.
 
 #### useStakingProvider
 
-React hook returning a registered staking provider; subscribes to provider-registry changes via [`watchStakingProviders`](/ecosystem/appkit/reference/appkit#watchstakingproviders) and looks up by `id`, or returns the registered default when no id is given. Returns `undefined` when no provider matches and no default has been registered (where the underlying [`getStakingProvider`](/ecosystem/appkit/reference/appkit#getstakingprovider) action would throw).
+React hook returning a registered staking provider. Subscribes to provider-registry changes via [`watchStakingProviders`](/ecosystem/appkit/reference/appkit#watchstakingproviders) and looks up by `id`, or returns the registered default when no id is given. Returns `undefined` when no provider matches and no default has been registered (where the underlying [`getStakingProvider`](/ecosystem/appkit/reference/appkit#getstakingprovider) action would throw).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -743,7 +743,7 @@ Returns: <code><a href="#usestakingproviderreturntype">UseStakingProviderReturnT
 
 #### useStakingProviderInfo
 
-React hook reading live staking-pool info for a provider through TanStack Query — APY, instant-unstake liquidity and (for liquid staking) the current exchange rate. Use [`useStakingProviderMetadata`](#usestakingprovidermetadata) for static metadata (name, stake/receive tokens, supported unstake modes). Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
+React hook reading live staking-pool info for a provider through TanStack Query — APY, instant-unstake liquidity and (for liquid staking) the current exchange rate. Use [`useStakingProviderMetadata`](#usestakingprovidermetadata) for static metadata (name, stake/receive tokens, supported unstake modes). Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -753,7 +753,7 @@ Returns: <code><a href="#usestakingproviderinforeturntype">UseStakingProviderInf
 
 #### useStakingProviderMetadata
 
-Read static metadata for a staking provider — display name, stake/receive tokens, supported unstake modes and contract address. Returns `undefined` when no provider matches and no default is registered. Use [`useStakingProviderInfo`](#usestakingproviderinfo) for live values (APY, instant-unstake liquidity, exchange rate). Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
+Read static metadata for a staking provider — display name, stake/receive tokens, supported unstake modes and contract address. Returns `undefined` when no provider matches and no default is registered. Use [`useStakingProviderInfo`](#usestakingproviderinfo) for live values (APY, instant-unstake liquidity, exchange rate). Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -763,13 +763,13 @@ Returns: <code><a href="/ecosystem/appkit/reference/appkit#stakingprovidermetada
 
 #### useStakingProviders
 
-React hook returning every staking provider registered on the AppKit instance (both those passed via config and those added later); subscribes to provider-registry changes via [`watchStakingProviders`](/ecosystem/appkit/reference/appkit#watchstakingproviders).
+React hook returning every staking provider registered on the AppKit instance (both those passed via config and those added later). Subscribes to provider-registry changes via [`watchStakingProviders`](/ecosystem/appkit/reference/appkit#watchstakingproviders).
 
 Returns: <code><a href="#usestakingprovidersreturntype">UseStakingProvidersReturnType</a></code> — Array of registered staking providers.
 
 #### useStakingQuote
 
-Quote a stake or unstake — given an amount, direction (`'stake'` / `'unstake'`) and the target asset, returns the rate, expected output and the provider-specific metadata required to feed [`useBuildStakeTransaction`](#usebuildstaketransaction). `data` is the [`StakingQuote`](/ecosystem/appkit/reference/appkit#stakingquote) payload. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
+Quote a stake or unstake — given an amount, direction (`'stake'` / `'unstake'`) and the target asset, returns the rate, expected output and the provider-specific metadata required to feed [`useBuildStakeTransaction`](#usebuildstaketransaction). `data` is the [`StakingQuote`](/ecosystem/appkit/reference/appkit#stakingquote) payload. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -781,7 +781,7 @@ Returns: <code><a href="#usestakingquotereturntype">UseStakingQuoteReturnType</a
 
 #### useBuildSwapTransaction
 
-Build a swap [`TransactionRequest`](/ecosystem/appkit/reference/appkit#transactionrequest) from a [`SwapQuote`](/ecosystem/appkit/reference/appkit#swapquote) (obtained via [`useSwapQuote`](#useswapquote)) without sending it — lets the UI inspect, batch, or pass the request to [`useSendTransaction`](#usesendtransaction) separately. Call `mutate(params)` where `params` matches [`BuildSwapTransactionOptions`](/ecosystem/appkit/reference/appkit#buildswaptransactionoptions) (quote, user address, optional slippage/deadline overrides); the resulting `TransactionRequest` is in `data` once the mutation resolves.
+Build a swap [`TransactionRequest`](/ecosystem/appkit/reference/appkit#transactionrequest) from a [`SwapQuote`](/ecosystem/appkit/reference/appkit#swapquote) (obtained via [`useSwapQuote`](#useswapquote)) without sending it — lets the UI inspect, batch, or pass the request to [`useSendTransaction`](#usesendtransaction) separately. Call `mutate(params)` where `params` matches [`BuildSwapTransactionOptions`](/ecosystem/appkit/reference/appkit#buildswaptransactionoptions) (quote, user address, optional slippage/deadline overrides). The resulting `TransactionRequest` is in `data` once the mutation resolves.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -797,19 +797,19 @@ Returns: <code><a href="#swapcontexttype">SwapContextType</a></code>.
 
 #### useSwapProvider
 
-Read and switch the default swap provider — subscribes to [`watchSwapProviders`](/ecosystem/appkit/reference/appkit#watchswapproviders) and re-reads via [`getSwapProvider`](/ecosystem/appkit/reference/appkit#getswapprovider). Returns a `useState`-style tuple; the read swallows the throw from [`getSwapProvider`](/ecosystem/appkit/reference/appkit#getswapprovider) (which throws when no provider matches — or when no id is passed and no default has been registered) and yields `undefined` instead.
+Read and switch the default swap provider — subscribes to [`watchSwapProviders`](/ecosystem/appkit/reference/appkit#watchswapproviders) and re-reads via [`getSwapProvider`](/ecosystem/appkit/reference/appkit#getswapprovider). Returns a `useState`-style tuple. The read swallows the throw from [`getSwapProvider`](/ecosystem/appkit/reference/appkit#getswapprovider) (which throws when no provider matches — or when no id is passed and no default has been registered) and yields `undefined` instead.
 
 Returns: <code><a href="#useswapproviderreturntype">UseSwapProviderReturnType</a></code> — Tuple `[provider, setProviderId]`.
 
 #### useSwapProviders
 
-List every swap provider registered on the AppKit instance (both those passed via [`AppKitConfig`](/ecosystem/appkit/reference/appkit#appkitconfig)'s `providers` and those added later through [`registerProvider`](/ecosystem/appkit/reference/appkit#registerprovider)); subscribes to [`watchSwapProviders`](/ecosystem/appkit/reference/appkit#watchswapproviders) and re-reads via [`getSwapProviders`](/ecosystem/appkit/reference/appkit#getswapproviders) so the array stays in sync.
+List every swap provider registered on the AppKit instance (both those passed via [`AppKitConfig`](/ecosystem/appkit/reference/appkit#appkitconfig)'s `providers` and those added later through [`registerProvider`](/ecosystem/appkit/reference/appkit#registerprovider)). Subscribes to [`watchSwapProviders`](/ecosystem/appkit/reference/appkit#watchswapproviders) and re-reads via [`getSwapProviders`](/ecosystem/appkit/reference/appkit#getswapproviders) so the array stays in sync.
 
 Returns: <code><a href="#useswapprovidersreturntype">UseSwapProvidersReturnType</a></code> — Array of registered swap providers.
 
 #### useSwapQuote
 
-Quote a swap — given source/target tokens and an amount, returns the rate, expected output and the provider-specific metadata required to feed [`useBuildSwapTransaction`](#usebuildswaptransaction). `data` is the [`SwapQuote`](/ecosystem/appkit/reference/appkit#swapquote) payload. The `network` field defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
+Quote a swap — given source/target tokens and an amount, returns the rate, expected output and the provider-specific metadata required to feed [`useBuildSwapTransaction`](#usebuildswaptransaction). `data` is the [`SwapQuote`](/ecosystem/appkit/reference/appkit#swapquote) payload. The `network` field defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -821,7 +821,7 @@ Returns: <code><a href="#useswapquotereturntype">UseSwapQuoteReturnType</a>&lt;s
 
 #### useSendTransaction
 
-Hand a pre-built [`TransactionRequest`](/ecosystem/appkit/reference/appkit#transactionrequest) to the selected wallet for signing and broadcast — typically the second step after a `buildX` / `createX` action (e.g. [`useBuildSwapTransaction`](#usebuildswaptransaction), [`useBuildStakeTransaction`](#usebuildstaketransaction)) produces the request. Call `mutate(request)`; on success, `data` carries the BoC and normalized hash of the broadcast transaction. Throws `Error('Wallet not connected')` if no wallet is currently selected — TanStack Query surfaces it via the mutation's `error`.
+Hand a pre-built [`TransactionRequest`](/ecosystem/appkit/reference/appkit#transactionrequest) to the selected wallet for signing and broadcast — typically the second step after a `buildX` / `createX` action (e.g. [`useBuildSwapTransaction`](#usebuildswaptransaction), [`useBuildStakeTransaction`](#usebuildstaketransaction)) produces the request. Call `mutate(request)`. On success, `data` carries the BoC and normalized hash of the broadcast transaction. Throws `Error('Wallet not connected')` if no wallet is currently selected — TanStack Query surfaces it via the mutation's `error`.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -831,7 +831,7 @@ Returns: <code><a href="#usesendtransactionreturntype">UseSendTransactionReturnT
 
 #### useTransactionStatus
 
-Poll the status of a sent transaction by its BoC or normalized hash. In TON a single external message triggers a tree of internal messages, so the transaction is `'completed'` only once the entire trace finishes — pair with `refetchInterval` to keep polling until `data.status` is `'completed'` or `'failed'`. Pass either `boc` or `normalizedHash` (not both); the underlying action throws `Error('Either boc or normalizedHash must be provided')` when neither is supplied — TanStack Query surfaces it via the query's `error`.
+Poll the status of a sent transaction by its BoC or normalized hash. In TON a single external message triggers a tree of internal messages, so the transaction is `'completed'` only once the entire trace finishes — pair with `refetchInterval` to keep polling until `data.status` is `'completed'` or `'failed'`. Pass either `boc` or `normalizedHash` (not both). The underlying action throws `Error('Either boc or normalizedHash must be provided')` when neither is supplied — TanStack Query surfaces it via the query's `error`.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -851,7 +851,7 @@ Returns: <code><a href="#usetransfertonreturntype">UseTransferTonReturnType</a>&
 
 #### useWatchTransactions
 
-Subscribe to incoming-transaction events for the currently selected wallet (use [`useWatchTransactionsByAddress`](#usewatchtransactionsbyaddress) for a fixed address); auto-rebinds when the user connects, switches or disconnects.
+Subscribe to incoming-transaction events for the currently selected wallet (use [`useWatchTransactionsByAddress`](#usewatchtransactionsbyaddress) for a fixed address). Auto-rebinds when the user connects, switches or disconnects.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -887,7 +887,7 @@ return (
 
 #### useWatchTransactionsByAddress
 
-Subscribe to incoming-transaction events for an arbitrary address (use [`useWatchTransactions`](#usewatchtransactions) for the selected wallet); logs a warning and exits when no streaming provider is configured for the resolved network or no `onChange` callback was provided.
+Subscribe to incoming-transaction events for an arbitrary address (use [`useWatchTransactions`](#usewatchtransactions) for the selected wallet). Logs a warning and exits when no streaming provider is configured for the resolved network or no `onChange` callback was provided.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -927,13 +927,13 @@ return (
 
 #### useAddress
 
-Read the user-friendly address of the currently selected wallet; re-renders when the selection changes.
+Read the user-friendly address of the currently selected wallet. Re-renders when the selection changes.
 
 Returns: <code><a href="#useaddressreturntype">UseAddressReturnType</a></code> — Selected wallet's address, or `undefined` when none is selected.
 
 #### useConnect
 
-Open a registered connector's connection flow (e.g., the TonConnect modal) and await its completion. Call `mutate` from a Connect button with the `connectorId` of the connector to drive; once the user finishes the flow the new wallet becomes available via [`useSelectedWallet`](#useselectedwallet) / [`useConnectedWallets`](#useconnectedwallets). Throws `Error('Connector with id "<id>" not found')` when no connector with that id is registered — TanStack Query surfaces it via the mutation's `error`.
+Open a registered connector's connection flow (e.g., the TonConnect modal) and await its completion. Call `mutate` from a Connect button with the `connectorId` of the connector to drive. Once the user finishes the flow the new wallet becomes available via [`useSelectedWallet`](#useselectedwallet) / [`useConnectedWallets`](#useconnectedwallets). Throws `Error('Connector with id "<id>" not found')` when no connector with that id is registered — TanStack Query surfaces it via the mutation's `error`.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -943,13 +943,13 @@ Returns: <code><a href="#useconnectreturntype">UseConnectReturnType</a>&lt;conte
 
 #### useConnectedWallets
 
-Read the list of currently connected wallets across all registered connectors; re-renders when a wallet connects or disconnects.
+Read the list of currently connected wallets across all registered connectors. Re-renders when a wallet connects or disconnects.
 
 Returns: <code><a href="#useconnectedwalletsreturntype">UseConnectedWalletsReturnType</a></code> — Read-only array of [`WalletInterface`](/ecosystem/appkit/reference/appkit#walletinterface)s.
 
 #### useDisconnect
 
-Tear down the session on a registered connector, disconnecting whichever wallet it currently holds. Call `mutate` from a Log out / Disconnect button with the `connectorId` of the connector to tear down; once it resolves the wallet drops out of [`useSelectedWallet`](#useselectedwallet) / [`useConnectedWallets`](#useconnectedwallets). Throws `Error('Connector with id "<id>" not found')` when no connector with that id is registered — TanStack Query surfaces it via the mutation's `error`.
+Tear down the session on a registered connector, disconnecting whichever wallet it currently holds. Call `mutate` from a Log out / Disconnect button with the `connectorId` of the connector to tear down. Once it resolves the wallet drops out of [`useSelectedWallet`](#useselectedwallet) / [`useConnectedWallets`](#useconnectedwallets). Throws `Error('Connector with id "<id>" not found')` when no connector with that id is registered — TanStack Query surfaces it via the mutation's `error`.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -969,17 +969,17 @@ Returns: <code><a href="#useselectedwalletreturntype">UseSelectedWalletReturnTyp
 
 #### SendJettonButton
 
-Pre-wired button that builds a jetton transfer with [`createTransferJettonTransaction`](/ecosystem/appkit/reference/appkit#createtransferjettontransaction) and dispatches it through the standard `Send` flow on click — disabled until `recipientAddress`, `amount`, `jetton.address` and a non-zero `jetton.decimals` are all set; throws inside the click handler when `jetton.address` is missing or `jetton.decimals` is falsy. (A `0`-decimal jetton must be passed as a truthy value to avoid being treated as missing.)
+Pre-wired button that builds a jetton transfer with [`createTransferJettonTransaction`](/ecosystem/appkit/reference/appkit#createtransferjettontransaction) and dispatches it through the standard `Send` flow on click — disabled until `recipientAddress`, `amount`, `jetton.address` and a non-zero `jetton.decimals` are all set. Throws inside the click handler when `jetton.address` is missing or `jetton.decimals` is falsy. (A `0`-decimal jetton must be passed as a truthy value to avoid being treated as missing.)
 
 | Prop | Type | Description |
 | --- | --- | --- |
 | `recipientAddress`\* | `string` | Recipient address. |
-| `amount`\* | `string` | Amount in jetton units as a human-readable decimal string; converted to raw smallest units via `jetton.decimals`. |
+| `amount`\* | `string` | Amount in jetton units as a human-readable decimal string. Converted to raw smallest units via `jetton.decimals`. |
 | `jetton`\* | `{         address: string;         symbol: string;         decimals: number;     }` | Jetton master metadata — `address` (master contract), `symbol` (rendered in the button label) and `decimals` (used to format `amount`). |
 | `comment` | `string` | Optional human-readable comment attached to the transfer. |
 | `text` | `ReactNode` | Custom button text |
 | `size` | `ButtonSize` | Size class applied to the button. Pass `'unset'` to skip the size class entirely (no padding, no typography) — useful with `variant="unstyled"`. |
-| `borderRadius` | `ButtonBorderRadius` | Border radius token; defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
+| `borderRadius` | `ButtonBorderRadius` | Border radius token. Defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
 | `variant` | `ButtonVariant` | Visual variant. Use `'unstyled'` to opt out of all built-in styling — the consumer is fully responsible for visuals via `className`. The Button still provides ref forwarding, `disabled`/`loading` plumbing, and `icon`/`children` rendering. |
 | `loading` | `boolean` | When true, renders a spinner instead of `icon`/`children` and disables the button. |
 | `fullWidth` | `boolean` | When true, the button stretches to fill its container width. |
@@ -1014,11 +1014,11 @@ Pre-wired button that builds a TON transfer with [`createTransferTonTransaction`
 | Prop | Type | Description |
 | --- | --- | --- |
 | `recipientAddress`\* | `string` | Recipient address. |
-| `amount`\* | `string` | Amount in TON as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. |
+| `amount`\* | `string` | Amount in TON as a human-readable decimal string (e.g., `"1.5"`). Converted to nano-TON internally. |
 | `comment` | `string` | Optional human-readable comment attached to the transfer. |
 | `text` | `ReactNode` | Custom button text |
 | `size` | `ButtonSize` | Size class applied to the button. Pass `'unset'` to skip the size class entirely (no padding, no typography) — useful with `variant="unstyled"`. |
-| `borderRadius` | `ButtonBorderRadius` | Border radius token; defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
+| `borderRadius` | `ButtonBorderRadius` | Border radius token. Defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
 | `variant` | `ButtonVariant` | Visual variant. Use `'unstyled'` to opt out of all built-in styling — the consumer is fully responsible for visuals via `className`. The Button still provides ref forwarding, `disabled`/`loading` plumbing, and `icon`/`children` rendering. |
 | `loading` | `boolean` | When true, renders a spinner instead of `icon`/`children` and disables the button. |
 | `fullWidth` | `boolean` | When true, the button stretches to fill its container width. |
@@ -1082,7 +1082,7 @@ Context provider that powers the crypto-to-TON onramp widget — wires together 
 
 #### CryptoOnrampWidgetUI
 
-Presentational UI for the crypto-to-TON onramp widget — renders the from/to selectors, amount input with presets, continue button, info block (you-get / balance / provider) and the token-pick / method-pick / refund-address / deposit modals. All state and actions come from props ([`CryptoOnrampWidgetRenderProps`](#cryptoonrampwidgetrenderprops)); typically rendered inside [`CryptoOnrampWidgetProvider`](#cryptoonrampwidgetprovider) via [`CryptoOnrampWidget`](#cryptoonrampwidget).
+Presentational UI for the crypto-to-TON onramp widget — renders the from/to selectors, amount input with presets, continue button, info block (you-get / balance / provider) and the token-pick / method-pick / refund-address / deposit modals. All state and actions come from props ([`CryptoOnrampWidgetRenderProps`](#cryptoonrampwidgetrenderprops)). Typically rendered inside [`CryptoOnrampWidgetProvider`](#cryptoonrampwidgetprovider) via [`CryptoOnrampWidget`](#cryptoonrampwidget).
 
 | Prop | Type | Description |
 | --- | --- | --- |
@@ -1145,7 +1145,7 @@ Top-level React provider that wires AppKit, the TonConnect bridge and i18n into 
 
 | Prop | Type | Description |
 | --- | --- | --- |
-| `appKit`\* | <code><a href="/ecosystem/appkit/reference/appkit#appkit">AppKit</a></code> | Runtime instance constructed at app startup; shared across every appkit-react hook and component. |
+| `appKit`\* | <code><a href="/ecosystem/appkit/reference/appkit#appkit">AppKit</a></code> | Runtime instance constructed at app startup. Shared across every appkit-react hook and component. |
 
 **Example**
 
@@ -1164,13 +1164,13 @@ React provider that mounts the i18n context for [`useI18n`](#usei18n) and child 
 
 | Prop | Type | Description |
 | --- | --- | --- |
-| `locale` | `string` | Initial locale code; defaults to the i18n library's default when omitted. |
-| `lngDicts` | `Record<string, Dict>` | Translation dictionaries keyed by locale; loaded into the underlying i18n instance on mount. |
+| `locale` | `string` | Initial locale code. Defaults to the i18n library's default when omitted. |
+| `lngDicts` | `Record<string, Dict>` | Translation dictionaries keyed by locale. Loaded into the underlying i18n instance on mount. |
 
 **Example**
 
 ```tsx
-// Override the locale; pass `lngDicts` with your own translations when you need them.
+// Override the locale. Pass `lngDicts` with your own translations when you need them.
 return (
     <I18nProvider locale="en">
         <div>My App</div>
@@ -1321,7 +1321,7 @@ Icon-only secondary button with a sliders icon — drop-in trigger for opening s
 | --- | --- | --- |
 | `onClick` | `() => void` | Click handler — typically used to open a settings modal. |
 | `size` | `ButtonSize` | Size class applied to the button. Pass `'unset'` to skip the size class entirely (no padding, no typography) — useful with `variant="unstyled"`. |
-| `borderRadius` | `ButtonBorderRadius` | Border radius token; defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
+| `borderRadius` | `ButtonBorderRadius` | Border radius token. Defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
 | `variant` | `ButtonVariant` | Visual variant. Use `'unstyled'` to opt out of all built-in styling — the consumer is fully responsible for visuals via `className`. The Button still provides ref forwarding, `disabled`/`loading` plumbing, and `icon`/`children` rendering. |
 | `loading` | `boolean` | When true, renders a spinner instead of `icon`/`children` and disables the button. |
 | `fullWidth` | `boolean` | When true, the button stretches to fill its container width. |
@@ -1335,15 +1335,15 @@ return <SettingsButton onClick={() => console.log('Open settings')} />;
 
 #### TokenSelectModal
 
-Ready-made token picker modal — renders a search field and a sectioned list of [`CurrencyItem`](#currencyitem) rows backed by [`CurrencySelect`](#currencyselect). Search matches by symbol, name, or exact address; selecting a row fires `onSelect`, closes the modal, and resets the search.
+Ready-made token picker modal — renders a search field and a sectioned list of [`CurrencyItem`](#currencyitem) rows backed by [`CurrencySelect`](#currencyselect). Search matches by symbol, name, or exact address. Selecting a row fires `onSelect`, closes the modal, and resets the search.
 
 | Prop | Type | Description |
 | --- | --- | --- |
 | `open`\* | `boolean` | Controls modal visibility. |
 | `onClose`\* | `() => void` | Called when the modal is dismissed (selection, backdrop click, or escape). |
 | `tokens`\* | `T = AppkitUIToken[]` | Full set of tokens available for selection and search. |
-| `tokenSections` | <code><a href="#tokensectionconfig">TokenSectionConfig</a>[]</code> | Optional sectioning rules; when omitted, all tokens render as a single untitled section. |
-| `onSelect`\* | `(token: T = AppkitUIToken) => void` | Called with the picked token; the modal closes and resets its search on selection. |
+| `tokenSections` | <code><a href="#tokensectionconfig">TokenSectionConfig</a>[]</code> | Optional sectioning rules. When omitted, all tokens render as a single untitled section. |
+| `onSelect`\* | `(token: T = AppkitUIToken) => void` | Called with the picked token. The modal closes and resets its search on selection. |
 | `title`\* | `string` | Modal header title. |
 | `searchPlaceholder` | `string` | Placeholder shown inside the search input. |
 
@@ -1373,11 +1373,11 @@ Compact pill button used as the trigger for a token picker — shows the token i
 | --- | --- | --- |
 | `title`\* | `string` | Label shown next to the icon — typically the token symbol. |
 | `icon` | `string` | Token logo URL. |
-| `iconFallback` | `string` | Single-character fallback used when `icon` fails to load; defaults to the first character of `title`. |
+| `iconFallback` | `string` | Single-character fallback used when `icon` fails to load. Defaults to the first character of `title`. |
 | `networkIcon` | `string` | When provided, renders a network badge overlay on the icon. |
 | `readOnly` | `boolean` | Hide chevron and suppress click handling — use when there's nothing to pick. |
 | `size` | `ButtonSize` | Size class applied to the button. Pass `'unset'` to skip the size class entirely (no padding, no typography) — useful with `variant="unstyled"`. |
-| `borderRadius` | `ButtonBorderRadius` | Border radius token; defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
+| `borderRadius` | `ButtonBorderRadius` | Border radius token. Defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
 | `variant` | `ButtonVariant` | Visual variant. Use `'unstyled'` to opt out of all built-in styling — the consumer is fully responsible for visuals via `className`. The Button still provides ref forwarding, `disabled`/`loading` plumbing, and `icon`/`children` rendering. |
 | `loading` | `boolean` | When true, renders a spinner instead of `icon`/`children` and disables the button. |
 | `fullWidth` | `boolean` | When true, the button stretches to fill its container width. |
@@ -1428,7 +1428,7 @@ Row showing the user's relevant balance for the current direction: wallet balanc
 | Prop | Type | Description |
 | --- | --- | --- |
 | `providerMetadata`\* | <code><a href="/ecosystem/appkit/reference/appkit#stakingprovidermetadata">StakingProviderMetadata</a> \| undefined</code> | Provider metadata — supplies the stake/receive tokens (address, ticker, decimals). |
-| `direction`\* | <code><a href="/ecosystem/appkit/reference/appkit#stakingquotedirection">StakingQuoteDirection</a></code> | Operation direction; selects which token and balance to render. |
+| `direction`\* | <code><a href="/ecosystem/appkit/reference/appkit#stakingquotedirection">StakingQuoteDirection</a></code> | Operation direction. Selects which token and balance to render. |
 | `stakedBalance` | `string` | User's currently staked amount, used when `direction === 'unstake'`. |
 | `isStakedBalanceLoading` | `boolean` | True while the staked balance is being fetched. |
 | `balance` | `string` | User's wallet balance of the stake token, used when `direction === 'stake'`. |
@@ -1455,7 +1455,7 @@ Summary block rendered below the staking input. Shows the amount the user will r
 | Prop | Type | Description |
 | --- | --- | --- |
 | `quote`\* | <code><a href="/ecosystem/appkit/reference/appkit#stakingquote">StakingQuote</a> \| undefined</code> | Current staking quote — its `amountOut` is rendered in the "You get" row. |
-| `isQuoteLoading`\* | `boolean` | True while the quote is being fetched; swaps the "You get" value for a skeleton. |
+| `isQuoteLoading`\* | `boolean` | True while the quote is being fetched. Swaps the "You get" value for a skeleton. |
 | `providerInfo`\* | <code><a href="/ecosystem/appkit/reference/appkit#stakingproviderinfo">StakingProviderInfo</a> \| undefined</code> | Dynamic provider info — supplies APY and exchange rate. |
 | `providerMetadata`\* | <code><a href="/ecosystem/appkit/reference/appkit#stakingprovidermetadata">StakingProviderMetadata</a> \| undefined</code> | Static provider metadata — supplies token tickers/decimals and the provider name. |
 | `isProviderInfoLoading`\* | `boolean` | True while provider info is being fetched. |
@@ -1463,7 +1463,7 @@ Summary block rendered below the staking input. Shows the amount the user will r
 
 #### StakingSettingsModal
 
-Modal that lets the user pick the active staking provider. The selection is staged locally and only committed via `onProviderChange` when the user presses `Save`; closing the modal otherwise discards the change. Each option is labeled with the provider's metadata `name`, falling back to its `providerId` if metadata is unavailable on the given network.
+Modal that lets the user pick the active staking provider. The selection is staged locally and only committed via `onProviderChange` when the user presses `Save`. Closing the modal otherwise discards the change. Each option is labeled with the provider's metadata `name`, falling back to its `providerId` if metadata is unavailable on the given network.
 
 | Prop | Type | Description |
 | --- | --- | --- |
@@ -1496,7 +1496,7 @@ return (
 
 #### StakingWidget
 
-High-level staking widget that wires the full stake/unstake flow: pick a provider, enter an amount (with optional reverse input on supported providers), review the quote (APY, exchange rate, "you get"), then submit the transaction. Internally wraps [`StakingWidgetProvider`](#stakingwidgetprovider) around [`StakingWidgetUI`](#stakingwidgetui); consumers can replace the UI by passing a render-prop `children` while keeping the widget's state, quoting, balance checks, and submission logic.
+High-level staking widget that wires the full stake/unstake flow: pick a provider, enter an amount (with optional reverse input on supported providers), review the quote (APY, exchange rate, "you get"), then submit the transaction. Internally wraps [`StakingWidgetProvider`](#stakingwidgetprovider) around [`StakingWidgetUI`](#stakingwidgetui). Consumers can replace the UI by passing a render-prop `children` while keeping the widget's state, quoting, balance checks, and submission logic.
 
 | Prop | Type | Description |
 | --- | --- | --- |
@@ -1513,7 +1513,7 @@ return <StakingWidget />;
 
 #### StakingWidgetProvider
 
-Headless provider that owns all staking-widget state. Tracks the input amount, direction (stake/unstake), unstake mode, and reverse-input toggle; resolves the selected provider via [`useStakingProvider`](#usestakingprovider) and its info/metadata via [`useStakingProviderInfo`](#usestakingproviderinfo) and [`useStakingProviderMetadata`](#usestakingprovidermetadata); reads the user's wallet balance (native TON or jetton) and staked balance; debounces inputs into [`useStakingQuote`](#usestakingquote); and submits via [`useBuildStakeTransaction`](#usebuildstaketransaction) + `useSendTransaction`, gating on a TON-shortfall check to surface a low-balance warning. Validation flags (`error`, `canSubmit`) come from `useStakingValidation`. Exposes everything through `StakingContext` for [`useStakingContext`](#usestakingcontext) consumers.
+Headless provider that owns all staking-widget state. Tracks the input amount, direction (stake/unstake), unstake mode, and reverse-input toggle. Resolves the selected provider via [`useStakingProvider`](#usestakingprovider) and its info/metadata via [`useStakingProviderInfo`](#usestakingproviderinfo) and [`useStakingProviderMetadata`](#usestakingprovidermetadata). Reads the user's wallet balance (native TON or jetton) and staked balance. Debounces inputs into [`useStakingQuote`](#usestakingquote). And submits via [`useBuildStakeTransaction`](#usebuildstaketransaction) + `useSendTransaction`, gating on a TON-shortfall check to surface a low-balance warning. Validation flags (`error`, `canSubmit`) come from `useStakingValidation`. Exposes everything through `StakingContext` for [`useStakingContext`](#usestakingcontext) consumers.
 
 | Prop | Type | Description |
 | --- | --- | --- |
@@ -1521,7 +1521,7 @@ Headless provider that owns all staking-widget state. Tracks the input amount, d
 
 #### StakingWidgetUI
 
-Default staking-widget UI. Renders a stake/unstake tabbed layout: a centered amount input with optional reversed input, a [`StakingBalanceBlock`](#stakingbalanceblock) for the relevant balance, the submit button (wired through `ButtonWithConnect` so a disconnected user is prompted to connect first), a settings button that opens [`StakingSettingsModal`](#stakingsettingsmodal), the unstake-mode picker ([`SelectUnstakeMode`](#selectunstakemode), unstake tab only), and a [`StakingInfo`](#stakinginfo) summary. A [`LowBalanceModal`](#lowbalancemodal) surfaces when the built transaction would exceed the user's TON balance. All state is consumed from props (typically supplied by [`StakingWidgetProvider`](#stakingwidgetprovider)); this component owns only the local `settings modal open` flag.
+Default staking-widget UI. Renders a stake/unstake tabbed layout: a centered amount input with optional reversed input, a [`StakingBalanceBlock`](#stakingbalanceblock) for the relevant balance, the submit button (wired through `ButtonWithConnect` so a disconnected user is prompted to connect first), a settings button that opens [`StakingSettingsModal`](#stakingsettingsmodal), the unstake-mode picker ([`SelectUnstakeMode`](#selectunstakemode), unstake tab only), and a [`StakingInfo`](#stakinginfo) summary. A [`LowBalanceModal`](#lowbalancemodal) surfaces when the built transaction would exceed the user's TON balance. All state is consumed from props (typically supplied by [`StakingWidgetProvider`](#stakingwidgetprovider)). This component owns only the local `settings modal open` flag.
 
 | Prop | Type | Description |
 | --- | --- | --- |
@@ -1562,23 +1562,23 @@ Default staking-widget UI. Renders a stake/unstake tabbed layout: a centered amo
 
 #### SwapField
 
-One row of the swap form. Renders the amount input, fiat conversion, balance line, and a token-selector chip. The `pay` variant is editable and exposes a "max" shortcut; the `receive` variant is read-only and shows the quote result.
+One row of the swap form. Renders the amount input, fiat conversion, balance line, and a token-selector chip. The `pay` variant is editable and exposes a "max" shortcut. The `receive` variant is read-only and shows the quote result.
 
 | Prop | Type | Description |
 | --- | --- | --- |
-| `type`\* | `'pay' \| 'receive'` | `pay` renders the editable source row with a "max" shortcut; `receive` renders the read-only target row. |
+| `type`\* | `'pay' \| 'receive'` | `pay` renders the editable source row with a "max" shortcut. `receive` renders the read-only target row. |
 | `amount`\* | `string` | Current amount shown in the input as a human-readable decimal string. |
 | `fiatSymbol` | `string` | Fiat currency symbol displayed in front of the converted value. Defaults to `"$"`. |
-| `token` | `AppkitUIToken` | Currently selected token; controls the token selector label, balance formatting and fiat conversion. |
+| `token` | `AppkitUIToken` | Currently selected token. Controls the token selector label, balance formatting and fiat conversion. |
 | `onAmountChange` | `(value: string) => void` | Called with the raw input value when the user edits the amount. Only fired for `type: "pay"`. |
-| `balance` | `string` | Formatted balance of `token` for the active wallet, as a human-readable decimal string; rendered in the balance line beneath the input. |
+| `balance` | `string` | Formatted balance of `token` for the active wallet, as a human-readable decimal string. Rendered in the balance line beneath the input. |
 | `isBalanceLoading` | `boolean` | When true, the balance area renders a skeleton placeholder instead of the value. |
 | `loading` | `boolean` | When true, the underlying input renders its loading state — used while a fresh quote is in flight. |
 | `onMaxClick` | `() => void` | Called when the user clicks the "max" shortcut to fill the maximum spendable amount. |
 | `onTokenSelectorClick` | `() => void` | Called when the user clicks the token selector chip — typically opens a `SwapTokenSelectModal`. |
 | `isWalletConnected` | `boolean` | Reserved flag indicating whether a wallet is connected — currently accepted for API symmetry. |
 | `size` | `InputSize` | Size token applied to the input control(s) inside: `'s' | 'm' | 'l'`. Defaults to `'m'`. |
-| `variant` | `InputVariant` | Visual variant: `'default'` paints a filled field; `'unstyled'` drops the chrome. |
+| `variant` | `InputVariant` | Visual variant: `'default'` paints a filled field. `'unstyled'` drops the chrome. |
 | `disabled` | `boolean` | When true, descendant input controls are disabled. |
 | `error` | `boolean` | When true, the field renders in error styling and [`Input.Caption`](#input) switches to error text. |
 | `resizable` | `boolean` | When true, [`Input.Input`](#input) scales its font down to fit the available width as the user types. |
@@ -1601,7 +1601,7 @@ return (
 
 #### SwapFlipButton
 
-Round button rendered between the source and target [`SwapField`](#swapfield) rows. Clicking it flips the selected tokens; visual rotation is driven by `rotated`.
+Round button rendered between the source and target [`SwapField`](#swapfield) rows. Clicking it flips the selected tokens. Visual rotation is driven by `rotated`.
 
 | Prop | Type | Description |
 | --- | --- | --- |
@@ -1611,7 +1611,7 @@ Round button rendered between the source and target [`SwapField`](#swapfield) ro
 **Example**
 
 ```tsx
-// Drop it between the source and target `SwapField` rows; wire `onClick` to your token-flip handler.
+// Drop it between the source and target `SwapField` rows. Wire `onClick` to your token-flip handler.
 return <SwapFlipButton rotated={rotated} onClick={() => setRotated((prev) => !prev)} />;
 ```
 
@@ -1621,10 +1621,10 @@ Summary block rendered under the swap form. Shows the minimum amount the user is
 
 | Prop | Type | Description |
 | --- | --- | --- |
-| `toToken`\* | `AppkitUIToken \| null` | Target token the user is receiving; used to format `minReceived` with the right decimals and symbol. |
+| `toToken`\* | `AppkitUIToken \| null` | Target token the user is receiving. Used to format `minReceived` with the right decimals and symbol. |
 | `slippage`\* | `number` | Slippage tolerance in basis points (`100` = 1%). Rendered as a percentage. |
-| `provider` | <code><a href="/ecosystem/appkit/reference/appkit#swapprovider">SwapProvider</a></code> | Current [`SwapProvider`](/ecosystem/appkit/reference/appkit#swapprovider); its display name is shown in the provider row. |
-| `quote` | <code><a href="/ecosystem/appkit/reference/appkit#swapquote">SwapQuote</a></code> | Quote whose `minReceived` value is displayed; when undefined the value falls back to `0` (still suffixed with the token symbol). |
+| `provider` | <code><a href="/ecosystem/appkit/reference/appkit#swapprovider">SwapProvider</a></code> | Current [`SwapProvider`](/ecosystem/appkit/reference/appkit#swapprovider). Its display name is shown in the provider row. |
+| `quote` | <code><a href="/ecosystem/appkit/reference/appkit#swapquote">SwapQuote</a></code> | Quote whose `minReceived` value is displayed. When undefined the value falls back to `0` (still suffixed with the token symbol). |
 | `isQuoteLoading` | `boolean` | When true, the minimum-received value renders a skeleton placeholder instead of the formatted number. |
 
 **Example**
@@ -1642,7 +1642,7 @@ Drop-in swap UI that walks the user through picking the source/target tokens, en
 
 | Prop | Type | Description |
 | --- | --- | --- |
-| `children` | <code>(props: <a href="#swapwidgetrenderprops">SwapWidgetRenderProps</a>) =&gt; ReactNode</code> | Optional render-prop receiving the full swap context plus the forwarded `<div>` props; when supplied it replaces the default [`SwapWidgetUI`](#swapwidgetui). |
+| `children` | <code>(props: <a href="#swapwidgetrenderprops">SwapWidgetRenderProps</a>) =&gt; ReactNode</code> | Optional render-prop receiving the full swap context plus the forwarded `<div>` props. When supplied it replaces the default [`SwapWidgetUI`](#swapwidgetui). |
 | `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network used for quote fetching and balance reads. When omitted, falls back to the selected wallet's network via [`useNetwork`](#usenetwork). |
 | `tokens`\* | `AppkitUIToken[]` | Full list of tokens available for swapping in the UI. Filtered to the active network internally. |
 | `tokenSections` | <code><a href="#tokensectionconfig">TokenSectionConfig</a>[]</code> | Optional section configs for grouping tokens inside the `SwapTokenSelectModal`. |
@@ -1739,7 +1739,7 @@ Themed `<button>` with size, border-radius, and variant tokens. Renders an optio
 | Prop | Type | Description |
 | --- | --- | --- |
 | `size` | `ButtonSize` | Size class applied to the button. Pass `'unset'` to skip the size class entirely (no padding, no typography) — useful with `variant="unstyled"`. |
-| `borderRadius` | `ButtonBorderRadius` | Border radius token; defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
+| `borderRadius` | `ButtonBorderRadius` | Border radius token. Defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
 | `variant` | `ButtonVariant` | Visual variant. Use `'unstyled'` to opt out of all built-in styling — the consumer is fully responsible for visuals via `className`. The Button still provides ref forwarding, `disabled`/`loading` plumbing, and `icon`/`children` rendering. |
 | `loading` | `boolean` | When true, renders a spinner instead of `icon`/`children` and disables the button. |
 | `fullWidth` | `boolean` | When true, the button stretches to fill its container width. |
@@ -1780,7 +1780,7 @@ Animated collapsible container — transitions its height between `0` and the co
 
 | Prop | Type | Description |
 | --- | --- | --- |
-| `open`\* | `boolean` | When true, the content is expanded; when false, it is collapsed to zero height. |
+| `open`\* | `boolean` | When true, the content is expanded. When false, it is collapsed to zero height. |
 
 **Example**
 
@@ -1840,8 +1840,8 @@ Compound text-input component. Use the default export as the outer wrapper (it i
 | `Input.Title` | Title text shown inside [`Input.Header`](#input). |
 | `Input.Field` | Horizontal row that holds slots and the input control. |
 | `Input.Slot` | Side-anchored slot used for adornments such as icons or buttons. |
-| `Input.Input` | The actual `<input>` control; respects context flags and reads its size/variant from [`Input.Container`](#input). |
-| `Input.Caption` | Caption / helper text below the field; switches to error styling when the container has `error` set. |
+| `Input.Input` | The actual `<input>` control. Respects context flags and reads its size/variant from [`Input.Container`](#input). |
+| `Input.Caption` | Caption / helper text below the field. Switches to error styling when the container has `error` set. |
 
 **Example**
 
@@ -1867,7 +1867,7 @@ Square logo / avatar primitive — renders an `<img>` when `src` loads successfu
 | --- | --- | --- |
 | `size` | `number` | Square size in pixels for the rendered logo. Defaults to `30`. |
 | `src` | `string` | Image URL to render. While loading or on failure, the fallback is shown. |
-| `alt` | `string` | Alt text passed to the underlying `<img>`. When `fallback` is not provided, its first character is shown as the fallback; if both are missing, no fallback is rendered. |
+| `alt` | `string` | Alt text passed to the underlying `<img>`. When `fallback` is not provided, its first character is shown as the fallback. If both are missing, no fallback is rendered. |
 | `fallback` | `string` | Text shown in place of the image when `src` fails or is missing (defaults to the first character of `alt`). |
 
 **Example**
@@ -1906,7 +1906,7 @@ return (
 
 #### Modal
 
-Centered modal dialog with a header (optional title + close button) and a scrollable body. Clicking the overlay closes the modal; clicks on the content do not bubble through.
+Centered modal dialog with a header (optional title + close button) and a scrollable body. Clicking the overlay closes the modal. Clicks on the content do not bubble through.
 
 | Prop | Type | Description |
 | --- | --- | --- |
@@ -1932,7 +1932,7 @@ return (
 
 #### Select
 
-Compound select / dropdown component with controlled or uncontrolled state. The content is portaled to `document.body` and positioned relative to the trigger; closes on outside click, `Escape`, or item selection.
+Compound select / dropdown component with controlled or uncontrolled state. The content is portaled to `document.body` and positioned relative to the trigger. Closes on outside click, `Escape`, or item selection.
 
 **Members**
 
@@ -1940,8 +1940,8 @@ Compound select / dropdown component with controlled or uncontrolled state. The 
 | --- | --- |
 | `Select.Root` | Provider that owns the selected value and open state, controlled or uncontrolled. |
 | `Select.Trigger` | [`Button`](#button)-based trigger that toggles the popover and exposes `aria-expanded`. |
-| `Select.Content` | Portaled popover that renders the list of items; positioned under the trigger with optional `sideOffset`. |
-| `Select.Item` | Selectable option row; commits its `value` to the root on click. |
+| `Select.Content` | Portaled popover that renders the list of items. Positioned under the trigger with optional `sideOffset`. |
+| `Select.Item` | Selectable option row. Commits its `value` to the root on click. |
 
 **Example**
 
@@ -2055,12 +2055,12 @@ Props accepted by [`SendJettonButton`](#sendjettonbutton) — extends the base `
 | Field | Type | Description |
 | --- | --- | --- |
 | `recipientAddress`\* | `string` | Recipient address. |
-| `amount`\* | `string` | Amount in jetton units as a human-readable decimal string; converted to raw smallest units via `jetton.decimals`. |
+| `amount`\* | `string` | Amount in jetton units as a human-readable decimal string. Converted to raw smallest units via `jetton.decimals`. |
 | `jetton`\* | `{         address: string;         symbol: string;         decimals: number;     }` | Jetton master metadata — `address` (master contract), `symbol` (rendered in the button label) and `decimals` (used to format `amount`). |
 | `comment` | `string` | Optional human-readable comment attached to the transfer. |
 | `text` | `ReactNode` | Custom button text |
 | `size` | `ButtonSize` | Size class applied to the button. Pass `'unset'` to skip the size class entirely (no padding, no typography) — useful with `variant="unstyled"`. |
-| `borderRadius` | `ButtonBorderRadius` | Border radius token; defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
+| `borderRadius` | `ButtonBorderRadius` | Border radius token. Defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
 | `variant` | `ButtonVariant` | Visual variant. Use `'unstyled'` to opt out of all built-in styling — the consumer is fully responsible for visuals via `className`. The Button still provides ref forwarding, `disabled`/`loading` plumbing, and `icon`/`children` rendering. |
 | `loading` | `boolean` | When true, renders a spinner instead of `icon`/`children` and disables the button. |
 | `fullWidth` | `boolean` | When true, the button stretches to fill its container width. |
@@ -2076,11 +2076,11 @@ Props accepted by [`SendTonButton`](#sendtonbutton) — extends the base `Send` 
 | Field | Type | Description |
 | --- | --- | --- |
 | `recipientAddress`\* | `string` | Recipient address. |
-| `amount`\* | `string` | Amount in TON as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. |
+| `amount`\* | `string` | Amount in TON as a human-readable decimal string (e.g., `"1.5"`). Converted to nano-TON internally. |
 | `comment` | `string` | Optional human-readable comment attached to the transfer. |
 | `text` | `ReactNode` | Custom button text |
 | `size` | `ButtonSize` | Size class applied to the button. Pass `'unset'` to skip the size class entirely (no padding, no typography) — useful with `variant="unstyled"`. |
-| `borderRadius` | `ButtonBorderRadius` | Border radius token; defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
+| `borderRadius` | `ButtonBorderRadius` | Border radius token. Defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
 | `variant` | `ButtonVariant` | Visual variant. Use `'unstyled'` to opt out of all built-in styling — the consumer is fully responsible for visuals via `className`. The Button still provides ref forwarding, `disabled`/`loading` plumbing, and `icon`/`children` rendering. |
 | `loading` | `boolean` | When true, renders a spinner instead of `icon`/`children` and disables the button. |
 | `fullWidth` | `boolean` | When true, the button stretches to fill its container width. |
@@ -2096,8 +2096,8 @@ Parameters accepted by [`useBalanceByAddress`](#usebalancebyaddress) — TanStac
 | Field | Type | Description |
 | --- | --- | --- |
 | `address` | <code><a href="/ecosystem/appkit/reference/appkit#userfriendlyaddress">UserFriendlyAddress</a> \| Address</code> | Wallet address — pass a [`UserFriendlyAddress`](/ecosystem/appkit/reference/appkit#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
-| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to read the balance from. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
-| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …); `queryKey` and `queryFn` are managed by the wrapper. |
+| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to read the balance from. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
 #### UseBalanceByAddressReturnType
 
@@ -2112,13 +2112,13 @@ type UseBalanceByAddressReturnType = UseQueryReturnType<
 
 #### UseBalanceParameters
 
-Parameters accepted by [`useBalance`](#usebalance) — same shape as [`UseBalanceByAddressParameters`](#usebalancebyaddressparameters); the hook resolves `address` from the selected wallet and overrides any value supplied here.
+Parameters accepted by [`useBalance`](#usebalance) — same shape as [`UseBalanceByAddressParameters`](#usebalancebyaddressparameters). The hook resolves `address` from the selected wallet and overrides any value supplied here.
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `address` | <code><a href="/ecosystem/appkit/reference/appkit#userfriendlyaddress">UserFriendlyAddress</a> \| Address</code> | Wallet address — pass a [`UserFriendlyAddress`](/ecosystem/appkit/reference/appkit#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
-| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to read the balance from. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
-| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …); `queryKey` and `queryFn` are managed by the wrapper. |
+| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to read the balance from. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
 #### UseBalanceReturnType
 
@@ -2389,8 +2389,8 @@ Parameters accepted by [`useCryptoOnrampQuote`](#usecryptoonrampquote) — TanSt
 | `refundAddress` | `string` | Refund address for the source crypto |
 | `isSourceAmount` | `boolean` | If true, `amount` is the source amount to spend. If false, `amount` is the target amount to receive. Defaults to true when omitted. |
 | `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
-| `providerId` | `string` | Provider to quote against; defaults to the registered default provider. |
-| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …); `queryKey` and `queryFn` are managed by the wrapper. |
+| `providerId` | `string` | Provider to quote against. Defaults to the registered default provider. |
+| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
 #### UseCryptoOnrampQuoteReturnType
 
@@ -2411,7 +2411,7 @@ Parameters accepted by [`useCryptoOnrampStatus`](#usecryptoonrampstatus) — Tan
 | --- | --- | --- |
 | `depositId` | `string` | Deposit id |
 | `providerId` | `string` | Identifier of the provider that issued this deposit |
-| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …); `queryKey` and `queryFn` are managed by the wrapper. |
+| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
 #### UseCryptoOnrampStatusReturnType
 
@@ -2434,9 +2434,9 @@ Parameters accepted by [`useJettonBalanceByAddress`](#usejettonbalancebyaddress)
 | --- | --- | --- |
 | `jettonAddress` | <code><a href="/ecosystem/appkit/reference/appkit#userfriendlyaddress">UserFriendlyAddress</a></code> | Jetton master contract address (the token, not the user's wallet for it). |
 | `ownerAddress` | <code><a href="/ecosystem/appkit/reference/appkit#userfriendlyaddress">UserFriendlyAddress</a></code> | Owner of the jetton wallet — typically the connected user's address. |
-| `jettonDecimals` | `number` | Decimals declared by the jetton master; used to format the raw balance into a human-readable string. |
-| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to read the balance from. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
-| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …); `queryKey` and `queryFn` are managed by the wrapper. |
+| `jettonDecimals` | `number` | Decimals declared by the jetton master. Used to format the raw balance into a human-readable string. |
+| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to read the balance from. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
 #### UseJettonBalanceByAddressReturnType
 
@@ -2456,12 +2456,12 @@ Parameters accepted by [`useJettonInfo`](#usejettoninfo) — TanStack Query opti
 | Field | Type | Description |
 | --- | --- | --- |
 | `address` | <code><a href="/ecosystem/appkit/reference/appkit#userfriendlyaddress">UserFriendlyAddress</a></code> | Jetton master contract address whose metadata is being fetched. |
-| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to query. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
-| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …); `queryKey` and `queryFn` are managed by the wrapper. |
+| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to query. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
 #### UseJettonInfoReturnType
 
-Return type of [`useJettonInfo`](#usejettoninfo) — TanStack Query result carrying `data`, `isLoading`, `error` and the standard companions; `data` is `null` when the indexer has no record for that master address.
+Return type of [`useJettonInfo`](#usejettoninfo) — TanStack Query result carrying `data`, `isLoading`, `error` and the standard companions. `data` is `null` when the indexer has no record for that master address.
 
 ```ts
 type UseJettonInfoReturnType = UseQueryReturnType<
@@ -2478,8 +2478,8 @@ Parameters accepted by [`useJettonWalletAddress`](#usejettonwalletaddress) — T
 | --- | --- | --- |
 | `jettonAddress` | <code><a href="/ecosystem/appkit/reference/appkit#userfriendlyaddress">UserFriendlyAddress</a></code> | Jetton master contract address. |
 | `ownerAddress` | <code><a href="/ecosystem/appkit/reference/appkit#userfriendlyaddress">UserFriendlyAddress</a></code> | Owner whose jetton wallet should be derived. |
-| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to query. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
-| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …); `queryKey` and `queryFn` are managed by the wrapper. |
+| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to query. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
 #### UseJettonWalletAddressReturnType
 
@@ -2499,10 +2499,10 @@ Parameters accepted by [`useJettonsByAddress`](#usejettonsbyaddress) — TanStac
 | Field | Type | Description |
 | --- | --- | --- |
 | `address` | <code><a href="/ecosystem/appkit/reference/appkit#userfriendlyaddress">UserFriendlyAddress</a> \| Address</code> | Owner address — pass a [`UserFriendlyAddress`](/ecosystem/appkit/reference/appkit#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
-| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to read the jettons from. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to read the jettons from. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 | `limit` | `number` | Maximum number of jettons to return. |
 | `offset` | `number` | Number of jettons to skip before returning results — used for pagination. |
-| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …); `queryKey` and `queryFn` are managed by the wrapper. |
+| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
 #### UseJettonsByAddressReturnType
 
@@ -2517,15 +2517,15 @@ type UseJettonsByAddressReturnType = UseQueryReturnType<
 
 #### UseJettonsParameters
 
-Parameters accepted by [`useJettons`](#usejettons) — same shape as [`UseJettonsByAddressParameters`](#usejettonsbyaddressparameters); the hook resolves `address` from the selected wallet and overrides any value supplied here.
+Parameters accepted by [`useJettons`](#usejettons) — same shape as [`UseJettonsByAddressParameters`](#usejettonsbyaddressparameters). The hook resolves `address` from the selected wallet and overrides any value supplied here.
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `address` | <code><a href="/ecosystem/appkit/reference/appkit#userfriendlyaddress">UserFriendlyAddress</a> \| Address</code> | Owner address — pass a [`UserFriendlyAddress`](/ecosystem/appkit/reference/appkit#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
-| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to read the jettons from. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to read the jettons from. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 | `limit` | `number` | Maximum number of jettons to return. |
 | `offset` | `number` | Number of jettons to skip before returning results — used for pagination. |
-| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …); `queryKey` and `queryFn` are managed by the wrapper. |
+| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
 #### UseJettonsReturnType
 
@@ -2571,7 +2571,7 @@ type UseWatchJettonsByAddressParameters = Partial<WatchJettonsByAddressOptions>;
 
 #### UseWatchJettonsParameters
 
-Parameters accepted by [`useWatchJettons`](#usewatchjettons) — update callback and optional network override; the hook resolves the address from the selected wallet.
+Parameters accepted by [`useWatchJettons`](#usewatchjettons) — update callback and optional network override. The hook resolves the address from the selected wallet.
 
 ```ts
 type UseWatchJettonsParameters = Partial<WatchJettonsOptions>;
@@ -2591,15 +2591,15 @@ Props accepted by [`NftItem`](#nftitem) — extends the native `<button>` props 
 
 Parameters accepted by [`useNftsByAddress`](#usenftsbyaddress) — TanStack Query options (`select`, `enabled`, `staleTime`, …) plus the owner address, optional pagination (`limit`, `offset`) and network override.
 
-The `network` field defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
+The `network` field defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `address` | <code><a href="/ecosystem/appkit/reference/appkit#userfriendlyaddress">UserFriendlyAddress</a> \| Address</code> | Owner address — pass a [`UserFriendlyAddress`](/ecosystem/appkit/reference/appkit#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
-| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to read NFTs from. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to read NFTs from. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 | `limit` | `number` | Maximum number of NFTs to return. |
 | `offset` | `number` | Number of NFTs to skip before returning results — used for pagination. |
-| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …); `queryKey` and `queryFn` are managed by the wrapper. |
+| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
 #### UseNFTsByAddressReturnType
 
@@ -2611,15 +2611,15 @@ type UseNFTsByAddressReturnType = UseQueryReturnType<selectData, GetNFTsErrorTyp
 
 #### UseNFTsParameters
 
-Parameters accepted by [`useNfts`](#usenfts) — same shape as [`UseNFTsByAddressParameters`](#usenftsbyaddressparameters); the hook resolves `address` from the selected wallet and overrides any value supplied here.
+Parameters accepted by [`useNfts`](#usenfts) — same shape as [`UseNFTsByAddressParameters`](#usenftsbyaddressparameters). The hook resolves `address` from the selected wallet and overrides any value supplied here.
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `address` | <code><a href="/ecosystem/appkit/reference/appkit#userfriendlyaddress">UserFriendlyAddress</a> \| Address</code> | Owner address — pass a [`UserFriendlyAddress`](/ecosystem/appkit/reference/appkit#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
-| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to read NFTs from. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to read NFTs from. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 | `limit` | `number` | Maximum number of NFTs to return. |
 | `offset` | `number` | Number of NFTs to skip before returning results — used for pagination. |
-| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …); `queryKey` and `queryFn` are managed by the wrapper. |
+| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
 #### UseNFTsReturnType
 
@@ -2633,13 +2633,13 @@ type UseNFTsReturnType = UseNFTsByAddressReturnType<selectData>;
 
 Parameters accepted by [`useNft`](#usenft) — TanStack Query options (`select`, `enabled`, `staleTime`, …) plus the NFT contract address and optional network override.
 
-The `network` field defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
+The `network` field defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `address` | <code><a href="/ecosystem/appkit/reference/appkit#userfriendlyaddress">UserFriendlyAddress</a> \| Address</code> | NFT contract address — pass a [`UserFriendlyAddress`](/ecosystem/appkit/reference/appkit#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
-| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to query. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
-| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …); `queryKey` and `queryFn` are managed by the wrapper. |
+| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to query. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
 #### UseNftReturnType
 
@@ -2679,12 +2679,12 @@ type UseTransferNftReturnType = UseMutationReturnType<
 
 #### UseBlockNumberParameters
 
-Parameters accepted by [`useBlockNumber`](#useblocknumber) — TanStack Query options plus an optional network override. Defaults to the selected wallet's network; if no wallet is selected, falls back to mainnet.
+Parameters accepted by [`useBlockNumber`](#useblocknumber) — TanStack Query options plus an optional network override. Defaults to the selected wallet's network. If no wallet is selected, falls back to mainnet.
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to query. Defaults to mainnet when omitted. |
-| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …); `queryKey` and `queryFn` are managed by the wrapper. |
+| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
 #### UseBlockNumberReturnType
 
@@ -2699,7 +2699,7 @@ type UseBlockNumberReturnType = UseQueryReturnType<
 
 #### UseDefaultNetworkReturnType
 
-Return type of [`useDefaultNetwork`](#usedefaultnetwork) — `[network, setNetwork]` tuple. `network` is the current default (or `undefined`); `setNetwork` calls [`setDefaultNetwork`](/ecosystem/appkit/reference/appkit#setdefaultnetwork) and emits `networks:default-changed`.
+Return type of [`useDefaultNetwork`](#usedefaultnetwork) — `[network, setNetwork]` tuple. `network` is the current default (or `undefined`). `setNetwork` calls [`setDefaultNetwork`](/ecosystem/appkit/reference/appkit#setdefaultnetwork) and emits `networks:default-changed`.
 
 ```ts
 type UseDefaultNetworkReturnType = [
@@ -2734,7 +2734,7 @@ Shape returned by [`useI18n`](#usei18n) — current locale, translation function
 | --- | --- | --- |
 | `activeLocale`\* | `string` | Currently active locale code (e.g., `"en"`, `"ru"`). |
 | `t`\* | `I18n['t']` | Translation function — accepts a key plus interpolation values and returns the localized string. |
-| `locale`\* | `(lang: string, dict?: Dict) => void` | Switch to a new locale; pass an optional `dict` to install translations alongside the switch. |
+| `locale`\* | `(lang: string, dict?: Dict) => void` | Switch to a new locale. Pass an optional `dict` to install translations alongside the switch. |
 | `addDict`\* | `(lang: string, dict: Dict) => void` | Merge a translation dictionary for `lang` without changing the active locale. |
 
 #### I18nProviderProps
@@ -2743,8 +2743,8 @@ Props accepted by [`I18nProvider`](#i18nprovider).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `locale` | `string` | Initial locale code; defaults to the i18n library's default when omitted. |
-| `lngDicts` | `Record<string, Dict>` | Translation dictionaries keyed by locale; loaded into the underlying i18n instance on mount. |
+| `locale` | `string` | Initial locale code. Defaults to the i18n library's default when omitted. |
+| `lngDicts` | `Record<string, Dict>` | Translation dictionaries keyed by locale. Loaded into the underlying i18n instance on mount. |
 
 ### Settings
 
@@ -2794,7 +2794,7 @@ Props accepted by [`CurrencyItem`](#currencyitem) when used as a single-shot but
 | Field | Type | Description |
 | --- | --- | --- |
 | `ticker` | `string` | Token symbol (e.g., `"TON"`) — also used as the icon fallback and rendered in the secondary line. |
-| `name` | `string` | Human-readable token name shown as the primary line; falls back to `ticker` when absent. |
+| `name` | `string` | Human-readable token name shown as the primary line. Falls back to `ticker` when absent. |
 | `balance` | `string` | Main balance value shown on the right side (already-formatted string). |
 | `underBalance` | `string` | Optional secondary value (e.g., fiat equivalent) shown beneath the main balance. |
 | `icon` | `string` | URL of the token logo. |
@@ -2818,7 +2818,7 @@ Props accepted by [`CurrencySelect.Search`](#currencyselect).
 | `onSearchChange`\* | `(value: string) => void` | Called whenever the user types in the search input. |
 | `placeholder` | `string` | Placeholder text shown when the input is empty. |
 | `size` | `InputSize` | Size token applied to the input control(s) inside: `'s' | 'm' | 'l'`. Defaults to `'m'`. |
-| `variant` | `InputVariant` | Visual variant: `'default'` paints a filled field; `'unstyled'` drops the chrome. |
+| `variant` | `InputVariant` | Visual variant: `'default'` paints a filled field. `'unstyled'` drops the chrome. |
 | `loading` | `boolean` | When true, [`Input.Input`](#input) renders a skeleton placeholder instead of an `<input>`. |
 | `disabled` | `boolean` | When true, descendant input controls are disabled. |
 | `error` | `boolean` | When true, the field renders in error styling and [`Input.Caption`](#input) switches to error text. |
@@ -2873,7 +2873,7 @@ Props accepted by [`SettingsButton`](#settingsbutton) — extends the base [`But
 | --- | --- | --- |
 | `onClick` | `() => void` | Click handler — typically used to open a settings modal. |
 | `size` | `ButtonSize` | Size class applied to the button. Pass `'unset'` to skip the size class entirely (no padding, no typography) — useful with `variant="unstyled"`. |
-| `borderRadius` | `ButtonBorderRadius` | Border radius token; defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
+| `borderRadius` | `ButtonBorderRadius` | Border radius token. Defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
 | `variant` | `ButtonVariant` | Visual variant. Use `'unstyled'` to opt out of all built-in styling — the consumer is fully responsible for visuals via `className`. The Button still provides ref forwarding, `disabled`/`loading` plumbing, and `icon`/`children` rendering. |
 | `loading` | `boolean` | When true, renders a spinner instead of `icon`/`children` and disables the button. |
 | `fullWidth` | `boolean` | When true, the button stretches to fill its container width. |
@@ -2893,7 +2893,7 @@ Minimal shape every token in [`TokenSelectModal`](#tokenselectmodal) must satisf
 
 #### TokenSectionConfig
 
-Configuration that maps token `id`s to a named section in [`TokenSelectModal`](#tokenselectmodal); tokens not covered are placed in an "Other tokens" trailing section.
+Configuration that maps token `id`s to a named section in [`TokenSelectModal`](#tokenselectmodal). Tokens not covered are placed in an "Other tokens" trailing section.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -2909,8 +2909,8 @@ Props accepted by [`TokenSelectModal`](#tokenselectmodal).
 | `open`\* | `boolean` | Controls modal visibility. |
 | `onClose`\* | `() => void` | Called when the modal is dismissed (selection, backdrop click, or escape). |
 | `tokens`\* | `T = AppkitUIToken[]` | Full set of tokens available for selection and search. |
-| `tokenSections` | <code><a href="#tokensectionconfig">TokenSectionConfig</a>[]</code> | Optional sectioning rules; when omitted, all tokens render as a single untitled section. |
-| `onSelect`\* | `(token: T = AppkitUIToken) => void` | Called with the picked token; the modal closes and resets its search on selection. |
+| `tokenSections` | <code><a href="#tokensectionconfig">TokenSectionConfig</a>[]</code> | Optional sectioning rules. When omitted, all tokens render as a single untitled section. |
+| `onSelect`\* | `(token: T = AppkitUIToken) => void` | Called with the picked token. The modal closes and resets its search on selection. |
 | `title`\* | `string` | Modal header title. |
 | `searchPlaceholder` | `string` | Placeholder shown inside the search input. |
 
@@ -2922,11 +2922,11 @@ Props accepted by [`TokenSelector`](#tokenselector) — extends the base [`Butto
 | --- | --- | --- |
 | `title`\* | `string` | Label shown next to the icon — typically the token symbol. |
 | `icon` | `string` | Token logo URL. |
-| `iconFallback` | `string` | Single-character fallback used when `icon` fails to load; defaults to the first character of `title`. |
+| `iconFallback` | `string` | Single-character fallback used when `icon` fails to load. Defaults to the first character of `title`. |
 | `networkIcon` | `string` | When provided, renders a network badge overlay on the icon. |
 | `readOnly` | `boolean` | Hide chevron and suppress click handling — use when there's nothing to pick. |
 | `size` | `ButtonSize` | Size class applied to the button. Pass `'unset'` to skip the size class entirely (no padding, no typography) — useful with `variant="unstyled"`. |
-| `borderRadius` | `ButtonBorderRadius` | Border radius token; defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
+| `borderRadius` | `ButtonBorderRadius` | Border radius token. Defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
 | `variant` | `ButtonVariant` | Visual variant. Use `'unstyled'` to opt out of all built-in styling — the consumer is fully responsible for visuals via `className`. The Button still provides ref forwarding, `disabled`/`loading` plumbing, and `icon`/`children` rendering. |
 | `loading` | `boolean` | When true, renders a spinner instead of `icon`/`children` and disables the button. |
 | `fullWidth` | `boolean` | When true, the button stretches to fill its container width. |
@@ -3016,7 +3016,7 @@ Props accepted by [`StakingBalanceBlock`](#stakingbalanceblock).
 | Field | Type | Description |
 | --- | --- | --- |
 | `providerMetadata`\* | <code><a href="/ecosystem/appkit/reference/appkit#stakingprovidermetadata">StakingProviderMetadata</a> \| undefined</code> | Provider metadata — supplies the stake/receive tokens (address, ticker, decimals). |
-| `direction`\* | <code><a href="/ecosystem/appkit/reference/appkit#stakingquotedirection">StakingQuoteDirection</a></code> | Operation direction; selects which token and balance to render. |
+| `direction`\* | <code><a href="/ecosystem/appkit/reference/appkit#stakingquotedirection">StakingQuoteDirection</a></code> | Operation direction. Selects which token and balance to render. |
 | `stakedBalance` | `string` | User's currently staked amount, used when `direction === 'unstake'`. |
 | `isStakedBalanceLoading` | `boolean` | True while the staked balance is being fetched. |
 | `balance` | `string` | User's wallet balance of the stake token, used when `direction === 'stake'`. |
@@ -3069,7 +3069,7 @@ Props accepted by [`StakingInfo`](#stakinginfo).
 | Field | Type | Description |
 | --- | --- | --- |
 | `quote`\* | <code><a href="/ecosystem/appkit/reference/appkit#stakingquote">StakingQuote</a> \| undefined</code> | Current staking quote — its `amountOut` is rendered in the "You get" row. |
-| `isQuoteLoading`\* | `boolean` | True while the quote is being fetched; swaps the "You get" value for a skeleton. |
+| `isQuoteLoading`\* | `boolean` | True while the quote is being fetched. Swaps the "You get" value for a skeleton. |
 | `providerInfo`\* | <code><a href="/ecosystem/appkit/reference/appkit#stakingproviderinfo">StakingProviderInfo</a> \| undefined</code> | Dynamic provider info — supplies APY and exchange rate. |
 | `providerMetadata`\* | <code><a href="/ecosystem/appkit/reference/appkit#stakingprovidermetadata">StakingProviderMetadata</a> \| undefined</code> | Static provider metadata — supplies token tickers/decimals and the provider name. |
 | `isProviderInfoLoading`\* | `boolean` | True while provider info is being fetched. |
@@ -3164,9 +3164,9 @@ Parameters accepted by [`useStakedBalance`](#usestakedbalance) — TanStack Quer
 | Field | Type | Description |
 | --- | --- | --- |
 | `userAddress` | <code><a href="/ecosystem/appkit/reference/appkit#userfriendlyaddress">UserFriendlyAddress</a></code> | Owner whose staked balance should be read. |
-| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to query. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
-| `providerId` | `string` | Provider to query; defaults to the registered default staking provider. |
-| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …); `queryKey` and `queryFn` are managed by the wrapper. |
+| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network to query. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `providerId` | `string` | Provider to query. Defaults to the registered default staking provider. |
+| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
 #### UseStakedBalanceReturnType
 
@@ -3185,9 +3185,9 @@ Parameters accepted by [`useStakingProviderInfo`](#usestakingproviderinfo) — T
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network whose staking pool should be inspected. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
-| `providerId` | `string` | Provider to query; defaults to the registered default staking provider. |
-| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …); `queryKey` and `queryFn` are managed by the wrapper. |
+| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network whose staking pool should be inspected. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `providerId` | `string` | Provider to query. Defaults to the registered default staking provider. |
+| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
 #### UseStakingProviderInfoReturnType
 
@@ -3245,8 +3245,8 @@ Parameters accepted by [`useStakingQuote`](#usestakingquote) — TanStack Query 
 | `unstakeMode` | <code><a href="/ecosystem/appkit/reference/appkit#unstakemodes">UnstakeModes</a></code> | Requested mode of unstaking |
 | `isReversed` | `boolean` | If true, for unstake requests the amount is specified in the staking coin (e.g. TON) instead of the Liquid Staking Token (e.g. tsTON). |
 | `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
-| `providerId` | `string` | Provider to quote against; defaults to the registered default staking provider. |
-| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …); `queryKey` and `queryFn` are managed by the wrapper. |
+| `providerId` | `string` | Provider to quote against. Defaults to the registered default staking provider. |
+| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
 #### UseStakingQuoteReturnType
 
@@ -3306,19 +3306,19 @@ Props accepted by [`SwapField`](#swapfield) — a single source/target row insid
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `type`\* | `'pay' \| 'receive'` | `pay` renders the editable source row with a "max" shortcut; `receive` renders the read-only target row. |
+| `type`\* | `'pay' \| 'receive'` | `pay` renders the editable source row with a "max" shortcut. `receive` renders the read-only target row. |
 | `amount`\* | `string` | Current amount shown in the input as a human-readable decimal string. |
 | `fiatSymbol` | `string` | Fiat currency symbol displayed in front of the converted value. Defaults to `"$"`. |
-| `token` | `AppkitUIToken` | Currently selected token; controls the token selector label, balance formatting and fiat conversion. |
+| `token` | `AppkitUIToken` | Currently selected token. Controls the token selector label, balance formatting and fiat conversion. |
 | `onAmountChange` | `(value: string) => void` | Called with the raw input value when the user edits the amount. Only fired for `type: "pay"`. |
-| `balance` | `string` | Formatted balance of `token` for the active wallet, as a human-readable decimal string; rendered in the balance line beneath the input. |
+| `balance` | `string` | Formatted balance of `token` for the active wallet, as a human-readable decimal string. Rendered in the balance line beneath the input. |
 | `isBalanceLoading` | `boolean` | When true, the balance area renders a skeleton placeholder instead of the value. |
 | `loading` | `boolean` | When true, the underlying input renders its loading state — used while a fresh quote is in flight. |
 | `onMaxClick` | `() => void` | Called when the user clicks the "max" shortcut to fill the maximum spendable amount. |
 | `onTokenSelectorClick` | `() => void` | Called when the user clicks the token selector chip — typically opens a `SwapTokenSelectModal`. |
 | `isWalletConnected` | `boolean` | Reserved flag indicating whether a wallet is connected — currently accepted for API symmetry. |
 | `size` | `InputSize` | Size token applied to the input control(s) inside: `'s' | 'm' | 'l'`. Defaults to `'m'`. |
-| `variant` | `InputVariant` | Visual variant: `'default'` paints a filled field; `'unstyled'` drops the chrome. |
+| `variant` | `InputVariant` | Visual variant: `'default'` paints a filled field. `'unstyled'` drops the chrome. |
 | `disabled` | `boolean` | When true, descendant input controls are disabled. |
 | `error` | `boolean` | When true, the field renders in error styling and [`Input.Caption`](#input) switches to error text. |
 | `resizable` | `boolean` | When true, [`Input.Input`](#input) scales its font down to fit the available width as the user types. |
@@ -3338,10 +3338,10 @@ Props accepted by [`SwapInfo`](#swapinfo) — the summary block under the swap f
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `toToken`\* | `AppkitUIToken \| null` | Target token the user is receiving; used to format `minReceived` with the right decimals and symbol. |
+| `toToken`\* | `AppkitUIToken \| null` | Target token the user is receiving. Used to format `minReceived` with the right decimals and symbol. |
 | `slippage`\* | `number` | Slippage tolerance in basis points (`100` = 1%). Rendered as a percentage. |
-| `provider` | <code><a href="/ecosystem/appkit/reference/appkit#swapprovider">SwapProvider</a></code> | Current [`SwapProvider`](/ecosystem/appkit/reference/appkit#swapprovider); its display name is shown in the provider row. |
-| `quote` | <code><a href="/ecosystem/appkit/reference/appkit#swapquote">SwapQuote</a></code> | Quote whose `minReceived` value is displayed; when undefined the value falls back to `0` (still suffixed with the token symbol). |
+| `provider` | <code><a href="/ecosystem/appkit/reference/appkit#swapprovider">SwapProvider</a></code> | Current [`SwapProvider`](/ecosystem/appkit/reference/appkit#swapprovider). Its display name is shown in the provider row. |
+| `quote` | <code><a href="/ecosystem/appkit/reference/appkit#swapquote">SwapQuote</a></code> | Quote whose `minReceived` value is displayed. When undefined the value falls back to `0` (still suffixed with the token symbol). |
 | `isQuoteLoading` | `boolean` | When true, the minimum-received value renders a skeleton placeholder instead of the formatted number. |
 
 #### SwapProviderProps
@@ -3364,7 +3364,7 @@ Props accepted by [`SwapWidget`](#swapwidget) — extend [`SwapProviderProps`](#
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `children` | <code>(props: <a href="#swapwidgetrenderprops">SwapWidgetRenderProps</a>) =&gt; ReactNode</code> | Optional render-prop receiving the full swap context plus the forwarded `<div>` props; when supplied it replaces the default [`SwapWidgetUI`](#swapwidgetui). |
+| `children` | <code>(props: <a href="#swapwidgetrenderprops">SwapWidgetRenderProps</a>) =&gt; ReactNode</code> | Optional render-prop receiving the full swap context plus the forwarded `<div>` props. When supplied it replaces the default [`SwapWidgetUI`](#swapwidgetui). |
 | `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network used for quote fetching and balance reads. When omitted, falls back to the selected wallet's network via [`useNetwork`](#usenetwork). |
 | `tokens`\* | `AppkitUIToken[]` | Full list of tokens available for swapping in the UI. Filtered to the active network internally. |
 | `tokenSections` | <code><a href="#tokensectionconfig">TokenSectionConfig</a>[]</code> | Optional section configs for grouping tokens inside the `SwapTokenSelectModal`. |
@@ -3435,7 +3435,7 @@ type UseBuildSwapTransactionReturnType = UseMutationResult<
 
 #### UseSwapProviderReturnType
 
-Return type of [`useSwapProvider`](#useswapprovider) — `[provider, setProviderId]` tuple. `provider` is the default `SwapProviderInterface` (or `undefined` when none is registered); `setProviderId` calls [`setDefaultSwapProvider`](/ecosystem/appkit/reference/appkit#setdefaultswapprovider) and emits `provider:default-changed`, which [`watchSwapProviders`](/ecosystem/appkit/reference/appkit#watchswapproviders) picks up.
+Return type of [`useSwapProvider`](#useswapprovider) — `[provider, setProviderId]` tuple. `provider` is the default `SwapProviderInterface` (or `undefined` when none is registered). `setProviderId` calls [`setDefaultSwapProvider`](/ecosystem/appkit/reference/appkit#setdefaultswapprovider) and emits `provider:default-changed`, which [`watchSwapProviders`](/ecosystem/appkit/reference/appkit#watchswapproviders) picks up.
 
 ```ts
 type UseSwapProviderReturnType = readonly [GetSwapProviderReturnType | undefined, (providerId: string) => void];
@@ -3463,8 +3463,8 @@ Parameters accepted by [`useSwapQuote`](#useswapquote) — TanStack Query option
 | `maxOutgoingMessages` | `number` | Maximum number of outgoing messages |
 | `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
 | `isReverseSwap` | `boolean` | If true, amount is the amount to receive (buy). If false, amount is the amount to spend (sell). |
-| `providerId` | `string` | Provider to quote against; defaults to the registered default swap provider. |
-| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …); `queryKey` and `queryFn` are managed by the wrapper. |
+| `providerId` | `string` | Provider to quote against. Defaults to the registered default swap provider. |
+| `query` | `UnionLooseOmit<QueryOptions<queryFnData = unknown, error = Query.DefaultError, data = queryFnData, queryKey = Query.QueryKey>, 'queryKey = Query.QueryKey' \| 'queryFn'> \| undefined` | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
 #### UseSwapQuoteReturnType
 
@@ -3507,7 +3507,7 @@ type UseSendTransactionReturnType = UseMutationReturnType<
 
 #### UseTransactionStatusParameters
 
-Parameters accepted by [`useTransactionStatus`](#usetransactionstatus) — `boc` xor `normalizedHash` plus optional network and TanStack Query overrides; pair with `query.refetchInterval` to poll until the transaction completes.
+Parameters accepted by [`useTransactionStatus`](#usetransactionstatus) — `boc` xor `normalizedHash` plus optional network and TanStack Query overrides. Pair with `query.refetchInterval` to poll until the transaction completes.
 
 ```ts
 type UseTransactionStatusParameters = GetTransactionStatusParameters &
@@ -3584,7 +3584,7 @@ Props accepted by [`Button`](#button).
 | Field | Type | Description |
 | --- | --- | --- |
 | `size` | `ButtonSize` | Size class applied to the button. Pass `'unset'` to skip the size class entirely (no padding, no typography) — useful with `variant="unstyled"`. |
-| `borderRadius` | `ButtonBorderRadius` | Border radius token; defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
+| `borderRadius` | `ButtonBorderRadius` | Border radius token. Defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
 | `variant` | `ButtonVariant` | Visual variant. Use `'unstyled'` to opt out of all built-in styling — the consumer is fully responsible for visuals via `className`. The Button still provides ref forwarding, `disabled`/`loading` plumbing, and `icon`/`children` rendering. |
 | `loading` | `boolean` | When true, renders a spinner instead of `icon`/`children` and disables the button. |
 | `fullWidth` | `boolean` | When true, the button stretches to fill its container width. |
@@ -3609,7 +3609,7 @@ Props accepted by [`Collapsible`](#collapsible).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `open`\* | `boolean` | When true, the content is expanded; when false, it is collapsed to zero height. |
+| `open`\* | `boolean` | When true, the content is expanded. When false, it is collapsed to zero height. |
 
 #### IconProps
 
@@ -3629,7 +3629,7 @@ Props accepted by [`Input.Container`](#input) (also used by [`Input`](#input) it
 | Field | Type | Description |
 | --- | --- | --- |
 | `size` | `InputSize` | Size token applied to the input control(s) inside: `'s' | 'm' | 'l'`. Defaults to `'m'`. |
-| `variant` | `InputVariant` | Visual variant: `'default'` paints a filled field; `'unstyled'` drops the chrome. |
+| `variant` | `InputVariant` | Visual variant: `'default'` paints a filled field. `'unstyled'` drops the chrome. |
 | `disabled` | `boolean` | When true, descendant input controls are disabled. |
 | `error` | `boolean` | When true, the field renders in error styling and [`Input.Caption`](#input) switches to error text. |
 | `loading` | `boolean` | When true, [`Input.Input`](#input) renders a skeleton placeholder instead of an `<input>`. |
@@ -3676,7 +3676,7 @@ Props accepted by [`Logo`](#logo).
 | --- | --- | --- |
 | `size` | `number` | Square size in pixels for the rendered logo. Defaults to `30`. |
 | `src` | `string` | Image URL to render. While loading or on failure, the fallback is shown. |
-| `alt` | `string` | Alt text passed to the underlying `<img>`. When `fallback` is not provided, its first character is shown as the fallback; if both are missing, no fallback is rendered. |
+| `alt` | `string` | Alt text passed to the underlying `<img>`. When `fallback` is not provided, its first character is shown as the fallback. If both are missing, no fallback is rendered. |
 | `fallback` | `string` | Text shown in place of the image when `src` fails or is missing (defaults to the first character of `alt`). |
 
 #### LogoWithNetworkProps
@@ -3864,7 +3864,7 @@ type UseDisconnectReturnType = UseMutationReturnType<
 
 #### UseSelectedWalletReturnType
 
-Return type of [`useSelectedWallet`](#useselectedwallet) — `[wallet, setWalletId]` tuple. `wallet` is the active [`WalletInterface`](/ecosystem/appkit/reference/appkit#walletinterface) (or `null`); `setWalletId` calls [`setSelectedWalletId`](/ecosystem/appkit/reference/appkit#setselectedwalletid) and emits `wallets:selection-changed`.
+Return type of [`useSelectedWallet`](#useselectedwallet) — `[wallet, setWalletId]` tuple. `wallet` is the active [`WalletInterface`](/ecosystem/appkit/reference/appkit#walletinterface) (or `null`). `setWalletId` calls [`setSelectedWalletId`](/ecosystem/appkit/reference/appkit#setselectedwalletid) and emits `wallets:selection-changed`.
 
 ```ts
 type UseSelectedWalletReturnType = readonly [GetSelectedWalletReturnType, (walletId: string | null) => void];

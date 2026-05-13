@@ -48,7 +48,7 @@ export const DEFAULT_CHAINS: Record<string, ChainInfo> = {
  * Resolves display info for a CAIP-2 chain. Falls back to a synthetic info object whose `name` is the reference portion of the CAIP-2 string (e.g. `eip155:9999` → `9999`), or the raw value if it does not look like a CAIP-2 identifier.
  *
  * @param chain - CAIP-2 chain identifier to look up (e.g. `'eip155:1'`).
- * @param chains - Map of CAIP-2 ids to {@link ChainInfo} to consult first; pass {@link DEFAULT_CHAINS} unless you need overrides.
+ * @param chains - Map of CAIP-2 ids to {@link ChainInfo} to consult first. Pass {@link DEFAULT_CHAINS} unless you need overrides.
  */
 export const getChainInfo = (chain: string, chains: Record<string, ChainInfo>): ChainInfo => {
     const direct = chains[chain];

@@ -7,7 +7,7 @@
  */
 
 /**
- * {@link SwapProvider} implementation backed by DeDust. Use {@link createDeDustProvider} to register it on AppKit; quote and swap calls go through {@link getSwapQuote} / {@link buildSwapTransaction} like any other swap provider.
+ * {@link SwapProvider} implementation backed by DeDust. Use {@link createDeDustProvider} to register it on AppKit. Quote and swap calls go through {@link getSwapQuote} / {@link buildSwapTransaction} like any other swap provider.
  *
  * @extract
  * @public
@@ -17,7 +17,7 @@
 export { DeDustSwapProvider } from '@ton/walletkit/swap/dedust';
 
 /**
- * Build a DeDust-backed {@link SwapProvider} for AppKit; pass the result to {@link AppKitConfig}'s `providers` or {@link registerProvider}.
+ * Build a DeDust-backed {@link SwapProvider} for AppKit. Pass the result to {@link AppKitConfig}'s `providers` or {@link registerProvider}.
  *
  * @extract
  * @public

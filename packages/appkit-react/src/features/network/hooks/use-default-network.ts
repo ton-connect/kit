@@ -13,7 +13,7 @@ import type { GetDefaultNetworkReturnType, Network } from '@ton/appkit';
 import { useAppKit } from '../../settings';
 
 /**
- * Return type of {@link useDefaultNetwork} — `[network, setNetwork]` tuple. `network` is the current default (or `undefined`); `setNetwork` calls {@link appkit:setDefaultNetwork} and emits `networks:default-changed`.
+ * Return type of {@link useDefaultNetwork} — `[network, setNetwork]` tuple. `network` is the current default (or `undefined`). `setNetwork` calls {@link appkit:setDefaultNetwork} and emits `networks:default-changed`.
  *
  * @public
  * @category Type
@@ -25,7 +25,7 @@ export type UseDefaultNetworkReturnType = [
 ];
 
 /**
- * Read and write AppKit's default network — the network connectors use for new wallet connections. Returns a `useState`-style tuple; the read side re-renders when the default changes through any source (this hook, {@link appkit:setDefaultNetwork}, manager events).
+ * Read and write AppKit's default network — the network connectors use for new wallet connections. Returns a `useState`-style tuple. The read side re-renders when the default changes through any source (this hook, {@link appkit:setDefaultNetwork}, manager events).
  *
  * @returns Tuple `[network, setNetwork]`.
  *

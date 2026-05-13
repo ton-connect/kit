@@ -98,7 +98,7 @@ export interface LogoProps extends ComponentPropsWithoutRef<'span'> {
     size?: number;
     /** Image URL to render. While loading or on failure, the fallback is shown. */
     src?: string;
-    /** Alt text passed to the underlying `<img>`. When `fallback` is not provided, its first character is shown as the fallback; if both are missing, no fallback is rendered. */
+    /** Alt text passed to the underlying `<img>`. When `fallback` is not provided, its first character is shown as the fallback. If both are missing, no fallback is rendered. */
     alt?: string;
     /** Text shown in place of the image when `src` fails or is missing (defaults to the first character of `alt`). */
     fallback?: string;

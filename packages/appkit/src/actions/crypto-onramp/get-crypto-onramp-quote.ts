@@ -17,7 +17,7 @@ import type { AppKit } from '../../core/app-kit';
  * @section Crypto Onramp
  */
 export type GetCryptoOnrampQuoteOptions<T = unknown> = CryptoOnrampQuoteParams<T> & {
-    /** Provider to quote against; defaults to the registered default provider. */
+    /** Provider to quote against. Defaults to the registered default provider. */
     providerId?: string;
 };
 

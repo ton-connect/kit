@@ -43,14 +43,14 @@ export interface TokenBase {
  * @section Shared
  */
 export interface TokenSection<T extends TokenBase = AppkitUIToken> {
-    /** Header label rendered above the section; falsy values hide the header. */
+    /** Header label rendered above the section. Falsy values hide the header. */
     title: string;
     /** Tokens belonging to this section, in render order. */
     tokens: T[];
 }
 
 /**
- * Configuration that maps token `id`s to a named section in {@link TokenSelectModal}; tokens not covered are placed in an "Other tokens" trailing section.
+ * Configuration that maps token `id`s to a named section in {@link TokenSelectModal}. Tokens not covered are placed in an "Other tokens" trailing section.
  *
  * @public
  * @category Type
@@ -77,9 +77,9 @@ export interface TokenSelectModalProps<T extends TokenBase = AppkitUIToken> {
     onClose: () => void;
     /** Full set of tokens available for selection and search. */
     tokens: T[];
-    /** Optional sectioning rules; when omitted, all tokens render as a single untitled section. */
+    /** Optional sectioning rules. When omitted, all tokens render as a single untitled section. */
     tokenSections?: TokenSectionConfig[];
-    /** Called with the picked token; the modal closes and resets its search on selection. */
+    /** Called with the picked token. The modal closes and resets its search on selection. */
     onSelect: (token: T) => void;
     /** Modal header title. */
     title: string;
@@ -88,7 +88,7 @@ export interface TokenSelectModalProps<T extends TokenBase = AppkitUIToken> {
 }
 
 /**
- * Ready-made token picker modal — renders a search field and a sectioned list of {@link CurrencyItem} rows backed by {@link CurrencySelect}. Search matches by symbol, name, or exact address; selecting a row fires `onSelect`, closes the modal, and resets the search.
+ * Ready-made token picker modal — renders a search field and a sectioned list of {@link CurrencyItem} rows backed by {@link CurrencySelect}. Search matches by symbol, name, or exact address. Selecting a row fires `onSelect`, closes the modal, and resets the search.
  *
  * @sample docs/examples/src/appkit/components/shared#TOKEN_SELECT_MODAL
  *

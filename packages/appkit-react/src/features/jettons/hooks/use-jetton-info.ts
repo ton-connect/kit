@@ -24,7 +24,7 @@ import { useNetwork } from '../../network';
 export type UseJettonInfoParameters<selectData = GetJettonInfoData> = GetJettonInfoQueryConfig<selectData>;
 
 /**
- * Return type of {@link useJettonInfo} — TanStack Query result carrying `data`, `isLoading`, `error` and the standard companions; `data` is `null` when the indexer has no record for that master address.
+ * Return type of {@link useJettonInfo} — TanStack Query result carrying `data`, `isLoading`, `error` and the standard companions. `data` is `null` when the indexer has no record for that master address.
  *
  * @public
  * @category Type

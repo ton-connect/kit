@@ -32,7 +32,7 @@ export type UseBuildStakeTransactionReturnType<context = unknown> = UseMutationR
 >;
 
 /**
- * Build a stake/unstake {@link appkit:TransactionRequest} from a {@link appkit:StakingQuote} (obtained via {@link useStakingQuote}) without sending it — lets the UI inspect, batch, or pass the request to {@link useSendTransaction} separately. Call `mutate(params)` where `params` matches {@link appkit:BuildStakeTransactionOptions} (quote + user address, optional provider override); the resulting `TransactionRequest` is in `data` once the mutation resolves.
+ * Build a stake/unstake {@link appkit:TransactionRequest} from a {@link appkit:StakingQuote} (obtained via {@link useStakingQuote}) without sending it — lets the UI inspect, batch, or pass the request to {@link useSendTransaction} separately. Call `mutate(params)` where `params` matches {@link appkit:BuildStakeTransactionOptions} (quote + user address, optional provider override). The resulting `TransactionRequest` is in `data` once the mutation resolves.
  *
  * @returns Mutation result for the build call.
  *

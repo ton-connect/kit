@@ -33,7 +33,7 @@ export type TransferTonReturnType = SendTransactionResponse;
 export type TransferTonErrorType = Error;
 
 /**
- * Build and send a TON transfer from the selected wallet in one step (use {@link createTransferTonTransaction} + {@link sendTransaction} if you need to inspect the transaction first); throws `Error('Wallet not connected')` if no wallet is currently selected.
+ * Build and send a TON transfer from the selected wallet in one step (use {@link createTransferTonTransaction} + {@link sendTransaction} if you need to inspect the transaction first). Throws `Error('Wallet not connected')` if no wallet is currently selected.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param parameters - {@link TransferTonParameters} Recipient, amount and optional payload/comment/stateInit.

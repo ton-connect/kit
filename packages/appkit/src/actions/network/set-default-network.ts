@@ -17,7 +17,7 @@ import type { AppKit } from '../../core/app-kit';
  * @section Networks
  */
 export type SetDefaultNetworkParameters = {
-    /** Network to enforce on new wallet connections; pass `undefined` to allow any registered network. */
+    /** Network to enforce on new wallet connections. Pass `undefined` to allow any registered network. */
     network: Network | undefined;
 };
 
@@ -31,7 +31,7 @@ export type SetDefaultNetworkParameters = {
 export type SetDefaultNetworkReturnType = void;
 
 /**
- * Set or clear the default network — connectors enforce it on new wallet connections; emits `NETWORKS_EVENTS.DEFAULT_CHANGED` so {@link watchDefaultNetwork} subscribers fire. Pass `undefined` to remove the constraint and allow any registered network.
+ * Set or clear the default network — connectors enforce it on new wallet connections. Emits `NETWORKS_EVENTS.DEFAULT_CHANGED` so {@link watchDefaultNetwork} subscribers fire. Pass `undefined` to remove the constraint and allow any registered network.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param parameters - {@link SetDefaultNetworkParameters} Network to enforce, or `undefined` to clear.

@@ -25,7 +25,7 @@ import { resolveNetwork } from '../../utils/network/resolve-network';
 export interface GetNftsByAddressOptions {
     /** Owner address — pass a {@link UserFriendlyAddress} string or an `Address` instance from `@ton/core`. */
     address: UserFriendlyAddress | Address;
-    /** Network to read NFTs from. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
+    /** Network to read NFTs from. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
     network?: Network;
     /** Maximum number of NFTs to return. */
     limit?: number;

@@ -36,7 +36,7 @@ export interface ModalProps {
 }
 
 /**
- * Centered modal dialog with a header (optional title + close button) and a scrollable body. Clicking the overlay closes the modal; clicks on the content do not bubble through.
+ * Centered modal dialog with a header (optional title + close button) and a scrollable body. Clicking the overlay closes the modal. Clicks on the content do not bubble through.
  *
  * @sample docs/examples/src/appkit/components/ui#MODAL
  *

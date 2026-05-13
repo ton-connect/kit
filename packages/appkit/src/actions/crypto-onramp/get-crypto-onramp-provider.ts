@@ -17,7 +17,7 @@ import type { CryptoOnrampProviderInterface } from '../../crypto-onramp';
  * @section Crypto Onramp
  */
 export interface GetCryptoOnrampProviderOptions {
-    /** Provider ID to look up; when omitted, returns the registered default provider. */
+    /** Provider ID to look up. When omitted, returns the registered default provider. */
     id?: string;
 }
 
@@ -31,7 +31,7 @@ export interface GetCryptoOnrampProviderOptions {
 export type GetCryptoOnrampProviderReturnType = CryptoOnrampProviderInterface;
 
 /**
- * Get a registered crypto-onramp provider by id, or the default provider when no id is given; throws when no provider matches — or when no id is passed and no default has been registered.
+ * Get a registered crypto-onramp provider by id, or the default provider when no id is given. Throws when no provider matches — or when no id is passed and no default has been registered.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param options - {@link GetCryptoOnrampProviderOptions} Optional provider id.

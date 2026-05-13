@@ -22,9 +22,9 @@ import { getSelectedWallet } from '../wallets/get-selected-wallet';
 export interface CreateTransferTonTransactionParameters {
     /** Recipient address. */
     recipientAddress: UserFriendlyAddress;
-    /** Amount in TON as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. */
+    /** Amount in TON as a human-readable decimal string (e.g., `"1.5"`). Converted to nano-TON internally. */
     amount: string;
-    /** Human-readable text comment; converted to a Base64 payload when no `payload` is supplied. */
+    /** Human-readable text comment. Converted to a Base64 payload when no `payload` is supplied. */
     comment?: string;
     /** Raw Base64 message payload — wins over `comment` when both are set. */
     payload?: Base64String;
@@ -42,7 +42,7 @@ export interface CreateTransferTonTransactionParameters {
 export type CreateTransferTonTransactionReturnType = TransactionRequest;
 
 /**
- * Build a TON transfer {@link TransactionRequest} for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing; throws `Error('Wallet not connected')` if no wallet is currently selected.
+ * Build a TON transfer {@link TransactionRequest} for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing. Throws `Error('Wallet not connected')` if no wallet is currently selected.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param parameters - {@link CreateTransferTonTransactionParameters} Recipient, amount and optional payload/comment/stateInit.

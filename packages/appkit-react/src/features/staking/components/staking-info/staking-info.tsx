@@ -24,7 +24,7 @@ import { formatAmount } from './utils';
 export interface StakingInfoProps extends ComponentProps<typeof InfoBlock.Container> {
     /** Current staking quote — its `amountOut` is rendered in the "You get" row. */
     quote: StakingQuote | undefined;
-    /** True while the quote is being fetched; swaps the "You get" value for a skeleton. */
+    /** True while the quote is being fetched. Swaps the "You get" value for a skeleton. */
     isQuoteLoading: boolean;
     /** Dynamic provider info — supplies APY and exchange rate. */
     providerInfo: StakingProviderInfo | undefined;

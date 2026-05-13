@@ -19,7 +19,7 @@ import styles from './collapsible.module.css';
  * @section UI
  */
 export interface CollapsibleProps extends ComponentProps<'div'> {
-    /** When true, the content is expanded; when false, it is collapsed to zero height. */
+    /** When true, the content is expanded. When false, it is collapsed to zero height. */
     open: boolean;
 }
 

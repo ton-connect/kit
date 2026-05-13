@@ -20,7 +20,7 @@ import { useSelectedWallet } from './use-selected-wallet';
 export type UseAddressReturnType = string | undefined;
 
 /**
- * Read the user-friendly address of the currently selected wallet; re-renders when the selection changes.
+ * Read the user-friendly address of the currently selected wallet. Re-renders when the selection changes.
  *
  * @returns Selected wallet's address, or `undefined` when none is selected.
  *

@@ -22,7 +22,7 @@ import { useAppKit } from '../../settings';
 export type UseStakingProvidersReturnType = GetStakingProvidersReturnType;
 
 /**
- * React hook returning every staking provider registered on the AppKit instance (both those passed via config and those added later); subscribes to provider-registry changes via {@link appkit:watchStakingProviders}.
+ * React hook returning every staking provider registered on the AppKit instance (both those passed via config and those added later). Subscribes to provider-registry changes via {@link appkit:watchStakingProviders}.
  *
  * @returns Array of registered staking providers.
  *

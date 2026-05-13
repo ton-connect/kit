@@ -52,7 +52,7 @@ export interface ButtonProps extends ComponentProps<'button'> {
      * entirely (no padding, no typography) — useful with `variant="unstyled"`.
      */
     size?: ButtonSize;
-    /** Border radius token; defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). */
+    /** Border radius token. Defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). */
     borderRadius?: ButtonBorderRadius;
     /**
      * Visual variant. Use `'unstyled'` to opt out of all built-in styling —

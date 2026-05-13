@@ -72,7 +72,7 @@ export interface ConnectorFactoryContext {
 }
 
 /**
- * Factory that builds a {@link Connector} from {@link ConnectorFactoryContext}; AppKit calls it at registration time.
+ * Factory that builds a {@link Connector} from {@link ConnectorFactoryContext}. AppKit calls it at registration time.
  *
  * @public
  * @category Type

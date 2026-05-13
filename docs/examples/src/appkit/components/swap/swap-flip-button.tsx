@@ -12,7 +12,7 @@ import { SwapFlipButton } from '@ton/appkit-react';
 export const SwapFlipButtonExample = () => {
     const [rotated, setRotated] = useState(false);
     // SAMPLE_START: SWAP_FLIP_BUTTON
-    // Drop it between the source and target `SwapField` rows; wire `onClick` to your token-flip handler.
+    // Drop it between the source and target `SwapField` rows. Wire `onClick` to your token-flip handler.
     return <SwapFlipButton rotated={rotated} onClick={() => setRotated((prev) => !prev)} />;
     // SAMPLE_END: SWAP_FLIP_BUTTON
 };

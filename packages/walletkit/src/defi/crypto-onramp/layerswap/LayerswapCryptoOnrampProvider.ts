@@ -53,8 +53,7 @@ export interface LayerswapProviderConfig {
  * Metadata stored on the CryptoOnrampQuote returned by this provider.
  *
  * The swap is created at quote time, so we cache the swap id and deposit
- * action here; `createDeposit` just reads them out.
- */
+ * action here. `createDeposit` just reads them out. */
 export interface LayerswapQuoteMetadata {
     /** Layerswap swap id created at quote time and reused by `createDeposit` / `getStatus`. */
     swapId: string;
@@ -86,7 +85,7 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<undefine
     private readonly apiKey: string | undefined;
     private readonly apiUrl: string;
 
-    /** @param config - Optional {@link LayerswapProviderConfig}; defaults are filled in for any field left undefined. */
+    /** @param config - Optional {@link LayerswapProviderConfig}. Defaults are filled in for any field left undefined. */
     constructor(config: LayerswapProviderConfig = {}) {
         super();
         this.apiKey = config.apiKey;
@@ -262,7 +261,7 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<undefine
  * Returns a `ProviderFactory` for `LayerswapCryptoOnrampProvider`.
  * Pass to `providers: [createLayerswapProvider(config)]`.
  *
- * @param config - Optional {@link LayerswapProviderConfig}; defaults are filled in for any field left undefined.
+ * @param config - Optional {@link LayerswapProviderConfig}. Defaults are filled in for any field left undefined.
  */
 export const createLayerswapProvider = (config: LayerswapProviderConfig = {}) =>
     createProvider(() => new LayerswapCryptoOnrampProvider(config));

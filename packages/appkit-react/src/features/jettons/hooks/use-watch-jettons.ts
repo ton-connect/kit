@@ -13,7 +13,7 @@ import { useNetwork } from '../../network/hooks/use-network';
 import { useWatchJettonsByAddress } from './use-watch-jettons-by-address';
 
 /**
- * Parameters accepted by {@link useWatchJettons} — update callback and optional network override; the hook resolves the address from the selected wallet.
+ * Parameters accepted by {@link useWatchJettons} — update callback and optional network override. The hook resolves the address from the selected wallet.
  *
  * @public
  * @category Type
@@ -22,7 +22,7 @@ import { useWatchJettonsByAddress } from './use-watch-jettons-by-address';
 export type UseWatchJettonsParameters = Partial<WatchJettonsOptions>;
 
 /**
- * Subscribe to jetton-balance updates for the currently selected wallet; updates flow into the TanStack Query cache so {@link useJettons} re-renders automatically (use {@link useWatchJettonsByAddress} for a fixed address).
+ * Subscribe to jetton-balance updates for the currently selected wallet. Updates flow into the TanStack Query cache so {@link useJettons} re-renders automatically (use {@link useWatchJettonsByAddress} for a fixed address).
  *
  * @param parameters - {@link UseWatchJettonsParameters} Update callback and optional network override.
  *

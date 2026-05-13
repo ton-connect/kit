@@ -77,7 +77,7 @@ export interface CurrencySelectListContainerProps extends ComponentProps<'div'> 
 }
 
 /**
- * Scrollable list area for {@link CurrencySelect.Modal} content; swaps `children` for a built-in empty state when `isEmpty` is true.
+ * Scrollable list area for {@link CurrencySelect.Modal} content. Swaps `children` for a built-in empty state when `isEmpty` is true.
  *
  * @public
  * @category Component

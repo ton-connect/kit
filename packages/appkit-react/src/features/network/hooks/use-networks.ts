@@ -22,7 +22,7 @@ import { useAppKit } from '../../settings';
 export type UseNetworksReturnType = GetNetworksReturnType;
 
 /**
- * Read the list of networks configured on AppKit; re-renders when {@link appkit:AppKitNetworkManager} adds, replaces or drops a network.
+ * Read the list of networks configured on AppKit. Re-renders when {@link appkit:AppKitNetworkManager} adds, replaces or drops a network.
  *
  * @returns Array of configured {@link appkit:Network}s.
  *

@@ -298,7 +298,7 @@ const SelectItem = forwardRef<ComponentRef<'div'>, SelectItemProps>(
 SelectItem.displayName = 'SelectItem';
 
 /**
- * Compound select / dropdown component with controlled or uncontrolled state. The content is portaled to `document.body` and positioned relative to the trigger; closes on outside click, `Escape`, or item selection.
+ * Compound select / dropdown component with controlled or uncontrolled state. The content is portaled to `document.body` and positioned relative to the trigger. Closes on outside click, `Escape`, or item selection.
  *
  * @sample docs/examples/src/appkit/components/ui#SELECT
  *
@@ -311,8 +311,8 @@ export const Select = {
     Root: SelectRoot,
     /** {@link Button}-based trigger that toggles the popover and exposes `aria-expanded`. */
     Trigger: SelectTrigger,
-    /** Portaled popover that renders the list of items; positioned under the trigger with optional `sideOffset`. */
+    /** Portaled popover that renders the list of items. Positioned under the trigger with optional `sideOffset`. */
     Content: SelectContent,
-    /** Selectable option row; commits its `value` to the root on click. */
+    /** Selectable option row. Commits its `value` to the root on click. */
     Item: SelectItem,
 };

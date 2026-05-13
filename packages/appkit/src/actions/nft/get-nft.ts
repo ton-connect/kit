@@ -25,7 +25,7 @@ import { resolveNetwork } from '../../utils/network/resolve-network';
 export interface GetNftOptions {
     /** NFT contract address — pass a {@link UserFriendlyAddress} string or an `Address` instance from `@ton/core`. */
     address: UserFriendlyAddress | Address;
-    /** Network to query. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
+    /** Network to query. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
     network?: Network;
 }
 
@@ -39,7 +39,7 @@ export interface GetNftOptions {
 export type GetNftReturnType = NFT | null;
 
 /**
- * Fetch metadata and ownership for a single NFT by its contract address; returns `null` when the indexer has no record.
+ * Fetch metadata and ownership for a single NFT by its contract address. Returns `null` when the indexer has no record.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param options - {@link GetNftOptions} NFT address and optional network override.

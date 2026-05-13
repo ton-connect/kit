@@ -46,7 +46,7 @@ const useInputContext = () => {
 export interface InputContainerProps extends ComponentProps<'div'> {
     /** Size token applied to the input control(s) inside: `'s' | 'm' | 'l'`. Defaults to `'m'`. */
     size?: InputSize;
-    /** Visual variant: `'default'` paints a filled field; `'unstyled'` drops the chrome. */
+    /** Visual variant: `'default'` paints a filled field. `'unstyled'` drops the chrome. */
     variant?: InputVariant;
     /** When true, descendant input controls are disabled. */
     disabled?: boolean;
@@ -248,8 +248,8 @@ export const Input = Object.assign(Container, {
     Field,
     /** Side-anchored slot used for adornments such as icons or buttons. */
     Slot,
-    /** The actual `<input>` control; respects context flags and reads its size/variant from {@link Input.Container}. */
+    /** The actual `<input>` control. Respects context flags and reads its size/variant from {@link Input.Container}. */
     Input: InputControl,
-    /** Caption / helper text below the field; switches to error styling when the container has `error` set. */
+    /** Caption / helper text below the field. Switches to error styling when the container has `error` set. */
     Caption,
 });

@@ -16,7 +16,7 @@ import type { AppKit } from '../../core/app-kit';
  * @section Wallets
  */
 export interface SetSelectedWalletIdParameters {
-    /** Wallet ID (as returned by {@link WalletInterface}'s `getWalletId()`) to select; pass `null` to clear the selection. */
+    /** Wallet ID (as returned by {@link WalletInterface}'s `getWalletId()`) to select. Pass `null` to clear the selection. */
     walletId: string | null;
 }
 

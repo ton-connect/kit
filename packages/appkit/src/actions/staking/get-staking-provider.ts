@@ -17,7 +17,7 @@ import type { StakingProviderInterface } from '../../staking';
  * @section Staking
  */
 export type GetStakingProviderOptions = {
-    /** Provider ID to look up; when omitted, returns the registered default staking provider. */
+    /** Provider ID to look up. When omitted, returns the registered default staking provider. */
     id?: string;
 };
 
@@ -31,7 +31,7 @@ export type GetStakingProviderOptions = {
 export type GetStakingProviderReturnType = StakingProviderInterface;
 
 /**
- * Get a registered staking provider by id, or the default staking provider when no id is given; throws when no provider matches — or when no id is passed and no default has been registered.
+ * Get a registered staking provider by id, or the default staking provider when no id is given. Throws when no provider matches — or when no id is passed and no default has been registered.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param options - {@link GetStakingProviderOptions} Optional provider id.

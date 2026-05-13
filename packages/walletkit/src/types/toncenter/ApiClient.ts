@@ -97,9 +97,9 @@ export interface GetEventsResponse {
 export interface ApiClient {
     /** Look up specific NFT items by address. */
     nftItemsByAddress(request: NFTsRequest): Promise<NFTsResponse>;
-    /** List NFT items held by an owner; supports pagination. */
+    /** List NFT items held by an owner. Supports pagination. */
     nftItemsByOwner(request: UserNFTsRequest): Promise<NFTsResponse>;
-    /** Run an emulation pass on a Base64-encoded BoC; returns the predicted account-state changes and emitted events without sending the message. */
+    /** Run an emulation pass on a Base64-encoded BoC. Returns the predicted account-state changes and emitted events without sending the message. */
     fetchEmulation(messageBoc: Base64String, ignoreSignature?: boolean): Promise<ToncenterEmulationResult>;
     /** Broadcast a signed BoC to the network and return the message hash. */
     sendBoc(boc: Base64String): Promise<string>;
@@ -115,12 +115,12 @@ export interface ApiClient {
     /** Read the TON balance of an address in raw nanotons. */
     getBalance(address: UserFriendlyAddress, seqno?: number): Promise<TokenAmount>;
 
-    /** List transactions for an address; ordered newest-first, paginated via `LimitRequest`. */
+    /** List transactions for an address. Ordered newest-first, paginated via `LimitRequest`. */
     getAccountTransactions(request: TransactionsByAddressRequest): Promise<TransactionsResponse>;
     /** Fetch a transaction by its message or body hash. */
     getTransactionsByHash(request: GetTransactionByHashRequest): Promise<TransactionsResponse>;
 
-    /** List pending (unconfirmed) transactions by accounts or trace ids; useful for "in-flight" UIs. */
+    /** List pending (unconfirmed) transactions by accounts or trace ids. Useful for "in-flight" UIs. */
     getPendingTransactions(request: GetPendingTransactionsRequest): Promise<TransactionsResponse>;
 
     /** Fetch a confirmed trace (the tree of internal messages spawned by an external one). */
@@ -128,9 +128,9 @@ export interface ApiClient {
     /** Fetch a pending trace by external-message hash, while it's still in flight. */
     getPendingTrace(request: GetPendingTraceRequest): Promise<ToncenterTracesResponse>;
 
-    /** Resolve a TON DNS domain to the wallet address it points at; `null` when unset. */
+    /** Resolve a TON DNS domain to the wallet address it points at. `null` when unset. */
     resolveDnsWallet(domain: string): Promise<string | null>;
-    /** Reverse-resolve a wallet address to a TON DNS domain that points at it; `null` when none. */
+    /** Reverse-resolve a wallet address to a TON DNS domain that points at it. `null` when none. */
     backResolveDnsWallet(address: UserFriendlyAddress): Promise<string | null>;
 
     /** Look up jetton masters by address — returns indexer metadata for the requested jettons. */

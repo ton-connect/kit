@@ -15,8 +15,7 @@ import { useAppKit } from '../../settings/hooks/use-app-kit';
 export type UseOnrampProviderReturnType = GetOnrampProviderReturnType | undefined;
 
 /**
- * React hook that reads a registered onramp provider by id, or the default provider when no id is given. Subscribes via `watchOnrampProviders`; returns `undefined` instead of throwing when no provider matches. Internal: not part of the public API yet (fiat onramp is WIP).
- */
+ * React hook that reads a registered onramp provider by id, or the default provider when no id is given. Subscribes via `watchOnrampProviders`. Returns `undefined` instead of throwing when no provider matches. Internal: not part of the public API yet (fiat onramp is WIP). */
 export const useOnrampProvider = (options: GetOnrampProviderOptions = {}): UseOnrampProviderReturnType => {
     const appKit = useAppKit();
     const { id } = options;

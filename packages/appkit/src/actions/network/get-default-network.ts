@@ -19,7 +19,7 @@ import type { AppKit } from '../../core/app-kit';
 export type GetDefaultNetworkReturnType = Network | undefined;
 
 /**
- * Read AppKit's currently configured default network — the one connectors enforce on new wallet connections; `undefined` means any registered network is allowed.
+ * Read AppKit's currently configured default network — the one connectors enforce on new wallet connections. `undefined` means any registered network is allowed.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @returns The default {@link Network}, or `undefined` if none is set.

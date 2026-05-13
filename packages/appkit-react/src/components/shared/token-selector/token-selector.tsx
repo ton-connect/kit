@@ -27,7 +27,7 @@ export interface TokenSelectorProps extends ButtonProps {
     title: string;
     /** Token logo URL. */
     icon?: string;
-    /** Single-character fallback used when `icon` fails to load; defaults to the first character of `title`. */
+    /** Single-character fallback used when `icon` fails to load. Defaults to the first character of `title`. */
     iconFallback?: string;
     /** When provided, renders a network badge overlay on the icon. */
     networkIcon?: string;

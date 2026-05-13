@@ -7,8 +7,7 @@
  */
 
 /**
- * TonConnect entry point. Import from `@ton/appkit/tonconnect`; it's kept as a separate
- * entry so apps that don't use TonConnect can tree-shake it out.
+ * TonConnect entry point. Import from `@ton/appkit/tonconnect`. It's kept as a separate * entry so apps that don't use TonConnect can tree-shake it out.
  *
  * @example
  * ```ts

@@ -7,7 +7,7 @@
  */
 
 /**
- * Display metadata for a token (TON, jetton, or NFT) — name, symbol, image and animation as reported by the indexer; surfaced as {@link Jetton}'s `info` and {@link NFT}'s `info`.
+ * Display metadata for a token (TON, jetton, or NFT) — name, symbol, image and animation as reported by the indexer. Surfaced as {@link Jetton}'s `info` and {@link NFT}'s `info`.
  *
  * @extract
  * @public

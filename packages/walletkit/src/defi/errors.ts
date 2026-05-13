@@ -7,8 +7,7 @@
  */
 
 /**
- * Base error thrown by DeFi managers (swap, staking, onramp) when a provider call fails; subclassed by {@link SwapError} / {@link StakingError} and discriminated at runtime via the `code` field.
- */
+ * Base error thrown by DeFi managers (swap, staking, onramp) when a provider call fails. Subclassed by {@link SwapError} / {@link StakingError} and discriminated at runtime via the `code` field. */
 export class DefiError extends Error {
     /** Provider with the requested id is not registered with the manager. */
     static readonly PROVIDER_NOT_FOUND = 'PROVIDER_NOT_FOUND';
@@ -23,9 +22,9 @@ export class DefiError extends Error {
     /** Provider failed its own internal validation and cannot be used. */
     static readonly INVALID_PROVIDER = 'INVALID_PROVIDER';
 
-    /** Stable error code for branching logic; one of the static `DefiError.*` constants. */
+    /** Stable error code for branching logic. One of the static `DefiError.*` constants. */
     public readonly code: string;
-    /** Provider-specific extra context (request payload, upstream error, etc.); shape is not stable. */
+    /** Provider-specific extra context (request payload, upstream error, etc.). Shape is not stable. */
     public readonly details?: unknown;
 
     /**

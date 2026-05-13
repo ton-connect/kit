@@ -36,7 +36,7 @@ export interface TonConnectWalletAdapterConfig {
 }
 
 /**
- * {@link WalletInterface} implementation backed by a TonConnect wallet. Built for you by {@link createTonConnectConnector} — apps interact with it through standard AppKit actions ({@link sendTransaction}, {@link signText}/{@link signBinary}/{@link signCell}); reads (balance, jettons, NFTs) go through AppKit actions using `appKit.networkManager`, not this adapter.
+ * {@link WalletInterface} implementation backed by a TonConnect wallet. Built for you by {@link createTonConnectConnector} — apps interact with it through standard AppKit actions ({@link sendTransaction}, {@link signText}/{@link signBinary}/{@link signCell}). Reads (balance, jettons, NFTs) go through AppKit actions using `appKit.networkManager`, not this adapter.
  *
  * @public
  * @category Class

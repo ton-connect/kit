@@ -18,7 +18,7 @@ import { resolveNetwork } from '../../utils';
  * @section Swap
  */
 export type GetSwapQuoteOptions<T = unknown> = SwapQuoteParams<T> & {
-    /** Provider to quote against; defaults to the registered default swap provider. */
+    /** Provider to quote against. Defaults to the registered default swap provider. */
     providerId?: string;
 };
 

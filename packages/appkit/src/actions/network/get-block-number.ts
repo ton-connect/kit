@@ -31,7 +31,7 @@ export interface GetBlockNumberOptions {
 export type GetBlockNumberReturnType = number;
 
 /**
- * Read the latest masterchain seqno (block number) for a network — useful for pagination cursors and freshness checks; defaults to mainnet when no network is given.
+ * Read the latest masterchain seqno (block number) for a network — useful for pagination cursors and freshness checks. Defaults to mainnet when no network is given.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param options - {@link GetBlockNumberOptions} Optional network override.

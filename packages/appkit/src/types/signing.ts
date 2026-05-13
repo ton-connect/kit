@@ -12,7 +12,7 @@ import type { Base64String } from './primitives';
 // SignData types for wallet adapter
 
 /**
- * Payload the user is asked to sign — discriminated union over `'text'`, `'binary'`, and `'cell'`; nested under {@link SignDataRequest}'s `data`.
+ * Payload the user is asked to sign — discriminated union over `'text'`, `'binary'`, and `'cell'`. Nested under {@link SignDataRequest}'s `data`.
  *
  * @public
  * @category Type
@@ -69,9 +69,9 @@ export interface SignDataText {
  * @section Signing
  */
 export interface SignDataRequest {
-    /** Network to issue the sign request against; defaults to the wallet's current network. */
+    /** Network to issue the sign request against. Defaults to the wallet's current network. */
     network?: Network;
-    /** Sender address in raw format; usually omitted, the wallet fills it in. */
+    /** Sender address in raw format. Usually omitted, the wallet fills it in. */
     from?: string;
     /** Payload the user is asked to sign. */
     data: SignData;

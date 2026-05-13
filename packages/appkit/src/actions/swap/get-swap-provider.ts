@@ -17,7 +17,7 @@ import type { SwapProviderInterface } from '../../swap';
  * @section Swap
  */
 export interface GetSwapProviderOptions {
-    /** Provider ID to look up; when omitted, returns the registered default swap provider. */
+    /** Provider ID to look up. When omitted, returns the registered default swap provider. */
     id?: string;
 }
 
@@ -31,7 +31,7 @@ export interface GetSwapProviderOptions {
 export type GetSwapProviderReturnType = SwapProviderInterface;
 
 /**
- * Get a registered swap provider by id, or the default swap provider when no id is given; throws when no provider matches — or when no id is passed and no default has been registered.
+ * Get a registered swap provider by id, or the default swap provider when no id is given. Throws when no provider matches — or when no id is passed and no default has been registered.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param options - {@link GetSwapProviderOptions} Optional provider id.

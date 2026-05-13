@@ -16,7 +16,7 @@ Constructor: `new ApiClientTonApi(config)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config` | `BaseApiClientConfig` | TonAPI client config — endpoint URL and API key; defaults to TonAPI mainnet/testnet URLs based on `config.network`. |
+| `config` | `BaseApiClientConfig` | TonAPI client config — endpoint URL and API key. Defaults to TonAPI mainnet/testnet URLs based on `config.network`. |
 
 #### ApiClientToncenter
 
@@ -26,20 +26,20 @@ Constructor: `new ApiClientToncenter(config)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config` | <code><a href="#apiclientconfig">ApiClientConfig</a></code> | Toncenter client config — endpoint URL, API key and optional DNS resolver override; defaults to mainnet/testnet Toncenter URLs based on `config.network`. |
+| `config` | <code><a href="#apiclientconfig">ApiClientConfig</a></code> | Toncenter client config — endpoint URL, API key and optional DNS resolver override. Defaults to mainnet/testnet Toncenter URLs based on `config.network`. |
 
 ### Core
 
 #### AppKit
 
-Runtime that wires connectors, networks, providers and the event emitter for a TON dApp; construct once at startup and reuse for the app's lifetime.
+Runtime that wires connectors, networks, providers and the event emitter for a TON dApp. Construct once at startup and reuse for the app's lifetime.
 
 Constructor: `new AppKit(config)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `config`\* | [`AppKitConfig`](#appkitconfig) | Networks, connectors, providers and runtime flags. |
-| `config.networks` | <code><a href="#networkadapters">NetworkAdapters</a></code> | Map of chain ID to [`NetworkConfig`](#networkconfig) (which holds the api-client setup); if omitted, AppKit defaults to mainnet only. |
+| `config.networks` | <code><a href="#networkadapters">NetworkAdapters</a></code> | Map of chain ID to [`NetworkConfig`](#networkconfig) (which holds the api-client setup). If omitted, AppKit defaults to mainnet only. |
 | `config.connectors` | <code><a href="#connectorinput">ConnectorInput</a>[]</code> | Wallet connectors registered at startup. |
 | `config.defaultNetwork` | <code><a href="#network">Network</a></code> | Default network. |
 | `config.providers` | <code><a href="#providerinput">ProviderInput</a>[]</code> | Providers registered at startup. |
@@ -77,7 +77,7 @@ const appKit = new AppKit({
 
 #### EventEmitter
 
-Strongly-typed event emitter built on a string event name → payload type map; backs [`AppKit`](#appkit)'s `emitter` and any custom emitters apps create. `appKit.emitter.on(name, handler)` returns an unsubscribe function.
+Strongly-typed event emitter built on a string event name → payload type map. Backs [`AppKit`](#appkit)'s `emitter` and any custom emitters apps create. `appKit.emitter.on(name, handler)` returns an unsubscribe function.
 
 Constructor: `new EventEmitter()`
 
@@ -97,29 +97,29 @@ Constructor: `new CryptoOnrampError(message, code, details)`
 
 #### CryptoOnrampManager
 
-Runtime that owns registered [`CryptoOnrampProvider`](#cryptoonrampprovider)s and dispatches quote/deposit/status calls. Exposed as [`AppKit`](#appkit)'s `cryptoOnrampManager`; usually accessed through the higher-level actions ([`getCryptoOnrampQuote`](#getcryptoonrampquote), [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit), [`getCryptoOnrampStatus`](#getcryptoonrampstatus)).
+Runtime that owns registered [`CryptoOnrampProvider`](#cryptoonrampprovider)s and dispatches quote/deposit/status calls. Exposed as [`AppKit`](#appkit)'s `cryptoOnrampManager`. Usually accessed through the higher-level actions ([`getCryptoOnrampQuote`](#getcryptoonrampquote), [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit), [`getCryptoOnrampStatus`](#getcryptoonrampstatus)).
 
 Constructor: `new CryptoOnrampManager()`
 
 #### CryptoOnrampProvider
 
-Abstract base class implemented by crypto-onramp providers (Layerswap, swaps.xyz, custom integrations); apps don't use it directly — they consume providers through [`CryptoOnrampManager`](#cryptoonrampmanager) and the `getCryptoOnramp*` / [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit) actions.
+Abstract base class implemented by crypto-onramp providers (Layerswap, swaps.xyz, custom integrations). Apps don't use it directly — they consume providers through [`CryptoOnrampManager`](#cryptoonrampmanager) and the `getCryptoOnramp*` / [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit) actions.
 
 Constructor: `new CryptoOnrampProvider()`
 
 #### LayerswapCryptoOnrampProvider
 
-[`CryptoOnrampProvider`](#cryptoonrampprovider) implementation backed by Layerswap. Use [`createLayerswapProvider`](#createlayerswapprovider) to register it on AppKit; quote, deposit and status calls go through [`getCryptoOnrampQuote`](#getcryptoonrampquote) / [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit) / [`getCryptoOnrampStatus`](#getcryptoonrampstatus) like any other crypto-onramp provider.
+[`CryptoOnrampProvider`](#cryptoonrampprovider) implementation backed by Layerswap. Use [`createLayerswapProvider`](#createlayerswapprovider) to register it on AppKit. Quote, deposit and status calls go through [`getCryptoOnrampQuote`](#getcryptoonrampquote) / [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit) / [`getCryptoOnrampStatus`](#getcryptoonrampstatus) like any other crypto-onramp provider.
 
 Constructor: `new LayerswapCryptoOnrampProvider(config)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config` | <code><a href="#layerswapproviderconfig">LayerswapProviderConfig</a></code> | Optional [`LayerswapProviderConfig`](#layerswapproviderconfig); defaults are filled in for any field left undefined. |
+| `config` | <code><a href="#layerswapproviderconfig">LayerswapProviderConfig</a></code> | Optional [`LayerswapProviderConfig`](#layerswapproviderconfig). Defaults are filled in for any field left undefined. |
 
 #### SwapsXyzCryptoOnrampProvider
 
-[`CryptoOnrampProvider`](#cryptoonrampprovider) implementation backed by swaps.xyz. Use [`createSwapsXyzProvider`](#createswapsxyzprovider) to register it on AppKit; quote, deposit and status calls go through [`getCryptoOnrampQuote`](#getcryptoonrampquote) / [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit) / [`getCryptoOnrampStatus`](#getcryptoonrampstatus) like any other crypto-onramp provider.
+[`CryptoOnrampProvider`](#cryptoonrampprovider) implementation backed by swaps.xyz. Use [`createSwapsXyzProvider`](#createswapsxyzprovider) to register it on AppKit. Quote, deposit and status calls go through [`getCryptoOnrampQuote`](#getcryptoonrampquote) / [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit) / [`getCryptoOnrampStatus`](#getcryptoonrampstatus) like any other crypto-onramp provider.
 
 Constructor: `new SwapsXyzCryptoOnrampProvider(config)`
 
@@ -162,7 +162,7 @@ Constructor: `new KitNetworkManager(options)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `options`\* | [`TonWalletKitOptions`](#tonwalletkitoptions) | Configuration carrying the `networks` map keyed by chain ID; at least one network must be configured. |
+| `options`\* | [`TonWalletKitOptions`](#tonwalletkitoptions) | Configuration carrying the `networks` map keyed by chain ID. At least one network must be configured. |
 
 ### Staking
 
@@ -180,7 +180,7 @@ Constructor: `new StakingError(message, code, details)`
 
 #### StakingManager
 
-Runtime that owns registered [`StakingProvider`](#stakingprovider)s and dispatches quote/stake/balance calls. Exposed as [`AppKit`](#appkit)'s `stakingManager`; usually accessed through the higher-level actions ([`getStakingQuote`](#getstakingquote), [`buildStakeTransaction`](#buildstaketransaction), [`getStakedBalance`](#getstakedbalance)).
+Runtime that owns registered [`StakingProvider`](#stakingprovider)s and dispatches quote/stake/balance calls. Exposed as [`AppKit`](#appkit)'s `stakingManager`. Usually accessed through the higher-level actions ([`getStakingQuote`](#getstakingquote), [`buildStakeTransaction`](#buildstaketransaction), [`getStakedBalance`](#getstakedbalance)).
 
 Constructor: `new StakingManager(createFactoryContext)`
 
@@ -190,7 +190,7 @@ Constructor: `new StakingManager(createFactoryContext)`
 
 #### StakingProvider
 
-Abstract base class implemented by staking providers (Tonstakers, custom integrations, …); apps don't use it directly — they consume providers through [`StakingManager`](#stakingmanager) and the `getStaking*` / `buildStakeTransaction` actions.
+Abstract base class implemented by staking providers (Tonstakers, custom integrations, …). Apps don't use it directly — they consume providers through [`StakingManager`](#stakingmanager) and the `getStaking*` / `buildStakeTransaction` actions.
 
 Constructor: `new StakingProvider(providerId)`
 
@@ -200,7 +200,7 @@ Constructor: `new StakingProvider(providerId)`
 
 #### TonStakersStakingProvider
 
-[`StakingProvider`](#stakingprovider) implementation backed by Tonstakers. The constructor is private — use [`createTonstakersProvider`](#createtonstakersprovider) to register it on AppKit; quote and stake calls then go through [`getStakingQuote`](#getstakingquote) / [`buildStakeTransaction`](#buildstaketransaction) like any other staking provider.
+[`StakingProvider`](#stakingprovider) implementation backed by Tonstakers. The constructor is private — use [`createTonstakersProvider`](#createtonstakersprovider) to register it on AppKit. Quote and stake calls then go through [`getStakingQuote`](#getstakingquote) / [`buildStakeTransaction`](#buildstaketransaction) like any other staking provider.
 
 Constructor: `new TonStakersStakingProvider()`
 
@@ -208,13 +208,13 @@ Constructor: `new TonStakersStakingProvider()`
 
 #### DeDustSwapProvider
 
-[`SwapProvider`](#swapprovider) implementation backed by DeDust. Use [`createDeDustProvider`](#creatededustprovider) to register it on AppKit; quote and swap calls go through [`getSwapQuote`](#getswapquote) / [`buildSwapTransaction`](#buildswaptransaction) like any other swap provider.
+[`SwapProvider`](#swapprovider) implementation backed by DeDust. Use [`createDeDustProvider`](#creatededustprovider) to register it on AppKit. Quote and swap calls go through [`getSwapQuote`](#getswapquote) / [`buildSwapTransaction`](#buildswaptransaction) like any other swap provider.
 
 Constructor: `new DeDustSwapProvider(config)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config` | <code><a href="#dedustswapproviderconfig">DeDustSwapProviderConfig</a></code> | Optional [`DeDustSwapProviderConfig`](#dedustswapproviderconfig); defaults are filled in for any field left undefined. |
+| `config` | <code><a href="#dedustswapproviderconfig">DeDustSwapProviderConfig</a></code> | Optional [`DeDustSwapProviderConfig`](#dedustswapproviderconfig). Defaults are filled in for any field left undefined. |
 
 **Example**
 
@@ -230,13 +230,13 @@ kit.registerProvider(
 
 #### OmnistonSwapProvider
 
-[`SwapProvider`](#swapprovider) implementation backed by Omniston. Use [`createOmnistonProvider`](#createomnistonprovider) to register it on AppKit; quote and swap calls go through [`getSwapQuote`](#getswapquote) / [`buildSwapTransaction`](#buildswaptransaction) like any other swap provider.
+[`SwapProvider`](#swapprovider) implementation backed by Omniston. Use [`createOmnistonProvider`](#createomnistonprovider) to register it on AppKit. Quote and swap calls go through [`getSwapQuote`](#getswapquote) / [`buildSwapTransaction`](#buildswaptransaction) like any other swap provider.
 
 Constructor: `new OmnistonSwapProvider(config)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config` | <code><a href="#omnistonswapproviderconfig">OmnistonSwapProviderConfig</a></code> | Optional [`OmnistonSwapProviderConfig`](#omnistonswapproviderconfig); defaults are filled in for any field left undefined. |
+| `config` | <code><a href="#omnistonswapproviderconfig">OmnistonSwapProviderConfig</a></code> | Optional [`OmnistonSwapProviderConfig`](#omnistonswapproviderconfig). Defaults are filled in for any field left undefined. |
 
 **Example**
 
@@ -263,7 +263,7 @@ Constructor: `new SwapError(message, code, details)`
 
 #### SwapManager
 
-Runtime that owns registered [`SwapProvider`](#swapprovider)s and dispatches quote/swap calls. Exposed as [`AppKit`](#appkit)'s `swapManager`; usually accessed through the higher-level actions ([`getSwapQuote`](#getswapquote), [`buildSwapTransaction`](#buildswaptransaction)).
+Runtime that owns registered [`SwapProvider`](#swapprovider)s and dispatches quote/swap calls. Exposed as [`AppKit`](#appkit)'s `swapManager`. Usually accessed through the higher-level actions ([`getSwapQuote`](#getswapquote), [`buildSwapTransaction`](#buildswaptransaction)).
 
 Constructor: `new SwapManager(createFactoryContext)`
 
@@ -273,7 +273,7 @@ Constructor: `new SwapManager(createFactoryContext)`
 
 #### SwapProvider
 
-Abstract base class implemented by swap providers (DeDust, Omniston, custom integrations); apps don't use it directly — they consume providers through [`SwapManager`](#swapmanager) and the `getSwap*` / `buildSwapTransaction` actions.
+Abstract base class implemented by swap providers (DeDust, Omniston, custom integrations). Apps don't use it directly — they consume providers through [`SwapManager`](#swapmanager) and the `getSwap*` / `buildSwapTransaction` actions.
 
 Constructor: `new SwapProvider()`
 
@@ -281,7 +281,7 @@ Constructor: `new SwapProvider()`
 
 #### TonConnectWalletAdapter
 
-[`WalletInterface`](#walletinterface) implementation backed by a TonConnect wallet. Built for you by [`createTonConnectConnector`](#createtonconnectconnector) — apps interact with it through standard AppKit actions ([`sendTransaction`](#sendtransaction), [`signText`](#signtext)/[`signBinary`](#signbinary)/[`signCell`](#signcell)); reads (balance, jettons, NFTs) go through AppKit actions using `appKit.networkManager`, not this adapter.
+[`WalletInterface`](#walletinterface) implementation backed by a TonConnect wallet. Built for you by [`createTonConnectConnector`](#createtonconnectconnector) — apps interact with it through standard AppKit actions ([`sendTransaction`](#sendtransaction), [`signText`](#signtext)/[`signBinary`](#signbinary)/[`signCell`](#signcell)). Reads (balance, jettons, NFTs) go through AppKit actions using `appKit.networkManager`, not this adapter.
 
 Constructor: `new TonConnectWalletAdapter(config)`
 
@@ -323,7 +323,7 @@ Read the Toncoin balance of an arbitrary address — useful for wallets that are
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options`\* | [`GetBalanceByAddressOptions`](#getbalancebyaddressoptions) | Target address and optional network. |
 | `options.address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a> \| Address</code> | Wallet address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
-| `options.network` | <code><a href="#network">Network</a></code> | Network to read the balance from. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `options.network` | <code><a href="#network">Network</a></code> | Network to read the balance from. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 
 Returns: <code>Promise&lt;<a href="#getbalancebyaddressreturntype">GetBalanceByAddressReturnType</a>&gt;</code> — Balance in TON as a human-readable decimal string.
 
@@ -370,7 +370,7 @@ Subscribe to Toncoin balance updates for an arbitrary address — useful for mon
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options`\* | [`WatchBalanceByAddressOptions`](#watchbalancebyaddressoptions) | Target address, update callback and optional network override. |
 | `options.address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a> \| Address</code> | Wallet address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
-| `options.network` | <code><a href="#network">Network</a></code> | Network to watch on. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `options.network` | <code><a href="#network">Network</a></code> | Network to watch on. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 | `options.onChange`\* | <code>(update: <a href="#balanceupdate">BalanceUpdate</a>) =&gt; void</code> | Callback fired on every balance update from the streaming provider. |
 
 Returns: <code><a href="#watchbalancebyaddressreturntype">WatchBalanceByAddressReturnType</a></code> — Unsubscribe function — call it to stop receiving updates.
@@ -442,7 +442,7 @@ const unregister = addConnector(
 
 #### connect
 
-Trigger the connection flow on a registered connector by id — drives it against AppKit's default network (set via [`setDefaultNetwork`](#setdefaultnetwork)); throws when no connector with that id exists.
+Trigger the connection flow on a registered connector by id — drives it against AppKit's default network (set via [`setDefaultNetwork`](#setdefaultnetwork)). Throws when no connector with that id exists.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -450,7 +450,7 @@ Trigger the connection flow on a registered connector by id — drives it agains
 | `parameters`\* | [`ConnectParameters`](#connectparameters) | Connector to connect through. |
 | `parameters.connectorId`\* | `string` | ID of the registered connector to drive the connection through (e.g., `'tonconnect'`). |
 
-Returns: <code>Promise&lt;<a href="#connectreturntype">ConnectReturnType</a>&gt;</code> — Resolves once the connector's connect flow completes; if a wallet was successfully connected, it becomes available via [`getSelectedWallet`](#getselectedwallet).
+Returns: <code>Promise&lt;<a href="#connectreturntype">ConnectReturnType</a>&gt;</code> — Resolves once the connector's connect flow completes. If a wallet was successfully connected, it becomes available via [`getSelectedWallet`](#getselectedwallet).
 
 **Example**
 
@@ -472,7 +472,7 @@ Returns: <code><a href="#connectorfactory">ConnectorFactory</a></code> — The s
 
 #### createTonConnectConnector
 
-Build a TonConnect-backed [`Connector`](#connector) for AppKit; pass the result to [`AppKitConfig`](#appkitconfig)'s `connectors` or [`addConnector`](#addconnector).
+Build a TonConnect-backed [`Connector`](#connector) for AppKit. Pass the result to [`AppKitConfig`](#appkitconfig)'s `connectors` or [`addConnector`](#addconnector).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -504,7 +504,7 @@ const appKit = new AppKit({
 
 #### disconnect
 
-Tear down the session on a registered connector — disconnects the wallet currently connected through it, if any; throws when no connector with that id exists.
+Tear down the session on a registered connector — disconnects the wallet currently connected through it, if any. Throws when no connector with that id exists.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -628,23 +628,23 @@ Create a crypto-onramp deposit from a quote previously obtained via [`getCryptoO
 | `options.quote`\* | <code><a href="#cryptoonrampquote">CryptoOnrampQuote</a>&lt;TQuoteMetadata = unknown&gt;</code> | Quote to execute the deposit against (contains recipientAddress and provider metadata) |
 | `options.refundAddress`\* | `string` | Address to refund the crypto to in case of failure |
 | `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
-| `options.providerId` | `string` | Provider to create the deposit through; defaults to `quote.providerId`, then to the default provider. |
+| `options.providerId` | `string` | Provider to create the deposit through. Defaults to `quote.providerId`, then to the default provider. |
 
 Returns: <code><a href="#createcryptoonrampdepositreturntype">CreateCryptoOnrampDepositReturnType</a></code> — Deposit details the UI should show to the user (address, amount, optional `memo`/`expiresAt`).
 
 #### createLayerswapProvider
 
-Build a Layerswap-backed [`CryptoOnrampProvider`](#cryptoonrampprovider) for AppKit; pass the result to [`AppKitConfig`](#appkitconfig)'s `providers` or [`registerProvider`](#registerprovider).
+Build a Layerswap-backed [`CryptoOnrampProvider`](#cryptoonrampprovider) for AppKit. Pass the result to [`AppKitConfig`](#appkitconfig)'s `providers` or [`registerProvider`](#registerprovider).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config` | <code><a href="#layerswapproviderconfig">LayerswapProviderConfig</a></code> | Optional [`LayerswapProviderConfig`](#layerswapproviderconfig); defaults are filled in for any field left undefined. |
+| `config` | <code><a href="#layerswapproviderconfig">LayerswapProviderConfig</a></code> | Optional [`LayerswapProviderConfig`](#layerswapproviderconfig). Defaults are filled in for any field left undefined. |
 
 Returns: <code>ProviderFactory&lt;<a href="#layerswapcryptoonrampprovider">LayerswapCryptoOnrampProvider</a>&gt;</code>.
 
 #### createSwapsXyzProvider
 
-Build a swaps.xyz-backed [`CryptoOnrampProvider`](#cryptoonrampprovider) for AppKit; pass the result to [`AppKitConfig`](#appkitconfig)'s `providers` or [`registerProvider`](#registerprovider).
+Build a swaps.xyz-backed [`CryptoOnrampProvider`](#cryptoonrampprovider) for AppKit. Pass the result to [`AppKitConfig`](#appkitconfig)'s `providers` or [`registerProvider`](#registerprovider).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -654,13 +654,13 @@ Returns: <code>ProviderFactory&lt;<a href="#swapsxyzcryptoonrampprovider">SwapsX
 
 #### getCryptoOnrampProvider
 
-Get a registered crypto-onramp provider by id, or the default provider when no id is given; throws when no provider matches — or when no id is passed and no default has been registered.
+Get a registered crypto-onramp provider by id, or the default provider when no id is given. Throws when no provider matches — or when no id is passed and no default has been registered.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options` | [`GetCryptoOnrampProviderOptions`](#getcryptoonrampprovideroptions) | Optional provider id. |
-| `options.id` | `string` | Provider ID to look up; when omitted, returns the registered default provider. |
+| `options.id` | `string` | Provider ID to look up. When omitted, returns the registered default provider. |
 
 Returns: <code><a href="#getcryptoonrampproviderreturntype">GetCryptoOnrampProviderReturnType</a></code> — The matching [`CryptoOnrampProviderInterface`](#cryptoonrampproviderinterface).
 
@@ -707,7 +707,7 @@ Quote a crypto-to-TON onramp — given a source asset/chain and target TON asset
 | `options.refundAddress` | `string` | Refund address for the source crypto |
 | `options.isSourceAmount` | `boolean` | If true, `amount` is the source amount to spend. If false, `amount` is the target amount to receive. Defaults to true when omitted. |
 | `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
-| `options.providerId` | `string` | Provider to quote against; defaults to the registered default provider. |
+| `options.providerId` | `string` | Provider to quote against. Defaults to the registered default provider. |
 
 Returns: <code><a href="#getcryptoonrampquotereturntype">GetCryptoOnrampQuoteReturnType</a></code> — Quote with pricing details and the provider metadata required to create a deposit.
 
@@ -764,7 +764,7 @@ registerProvider(
 
 #### createTransferJettonTransaction
 
-Build a jetton transfer [`TransactionRequest`](#transactionrequest) for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing; throws `Error('Wallet not connected')` if no wallet is currently selected.
+Build a jetton transfer [`TransactionRequest`](#transactionrequest) for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing. Throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -773,7 +773,7 @@ Build a jetton transfer [`TransactionRequest`](#transactionrequest) for the sele
 | `parameters.jettonAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Jetton master contract address being transferred. |
 | `parameters.recipientAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Recipient who should receive the jettons. |
 | `parameters.amount`\* | `string` | Amount in jetton units as a human-readable decimal string (e.g., `"1.5"`). |
-| `parameters.jettonDecimals`\* | `number` | Decimals declared by the jetton master; used to convert `amount` into raw smallest units. |
+| `parameters.jettonDecimals`\* | `number` | Decimals declared by the jetton master. Used to convert `amount` into raw smallest units. |
 | `parameters.comment` | `string` | Optional human-readable comment attached to the transfer. |
 
 Returns: <code>Promise&lt;<a href="#createtransferjettontransactionreturntype">CreateTransferJettonTransactionReturnType</a>&gt;</code> — Transaction request ready to pass to `sendTransaction`.
@@ -801,8 +801,8 @@ Read a jetton balance for a given owner — derives the owner's jetton-wallet ad
 | `options`\* | [`GetJettonBalanceOptions`](#getjettonbalanceoptions) | Jetton master, owner address, decimals and optional network override. |
 | `options.jettonAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Jetton master contract address (the token, not the user's wallet for it). |
 | `options.ownerAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Owner of the jetton wallet — typically the connected user's address. |
-| `options.jettonDecimals`\* | `number` | Decimals declared by the jetton master; used to format the raw balance into a human-readable string. |
-| `options.network` | <code><a href="#network">Network</a></code> | Network to read the balance from. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `options.jettonDecimals`\* | `number` | Decimals declared by the jetton master. Used to format the raw balance into a human-readable string. |
+| `options.network` | <code><a href="#network">Network</a></code> | Network to read the balance from. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 
 Returns: <code>Promise&lt;<a href="#getjettonbalancereturntype">GetJettonBalanceReturnType</a>&gt;</code> — Balance as a human-readable decimal string in the jetton's units.
 
@@ -825,14 +825,14 @@ console.log('Jetton Balance:', balance);
 
 #### getJettonInfo
 
-Fetch token metadata for a jetton master — name, symbol, decimals, image and description as reported by the indexer; returns `null` when the indexer has no record for that master address.
+Fetch token metadata for a jetton master — name, symbol, decimals, image and description as reported by the indexer. Returns `null` when the indexer has no record for that master address.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options`\* | [`GetJettonInfoOptions`](#getjettoninfooptions) | Jetton master address and optional network override. |
 | `options.address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Jetton master contract address whose metadata is being fetched. |
-| `options.network` | <code><a href="#network">Network</a></code> | Network to query. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `options.network` | <code><a href="#network">Network</a></code> | Network to query. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 
 Returns: <code>Promise&lt;<a href="#getjettoninforeturntype">GetJettonInfoReturnType</a>&gt;</code> — Jetton metadata, or `null` if the indexer has no record.
 
@@ -855,7 +855,7 @@ Derive the jetton-wallet address for a given owner — the per-owner contract th
 | `options`\* | [`GetJettonWalletAddressOptions`](#getjettonwalletaddressoptions) | Jetton master, owner address and optional network override. |
 | `options.jettonAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Jetton master contract address. |
 | `options.ownerAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Owner whose jetton wallet should be derived. |
-| `options.network` | <code><a href="#network">Network</a></code> | Network to query. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `options.network` | <code><a href="#network">Network</a></code> | Network to query. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 
 Returns: <code>Promise&lt;<a href="#getjettonwalletaddressreturntype">GetJettonWalletAddressReturnType</a>&gt;</code> — User-friendly address of the owner's jetton wallet.
 
@@ -903,14 +903,14 @@ response.jettons.forEach((j) => console.log(`- ${j.info.name}: ${j.balance}`));
 
 #### getJettonsByAddress
 
-List jettons held by an arbitrary address — useful for inspecting wallets that aren't selected in AppKit (use [`getJettons`](#getjettons) for the selected wallet); raw balances are formatted with each jetton's declared decimals, and entries without decimals are dropped.
+List jettons held by an arbitrary address — useful for inspecting wallets that aren't selected in AppKit (use [`getJettons`](#getjettons) for the selected wallet). Raw balances are formatted with each jetton's declared decimals, and entries without decimals are dropped.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options`\* | [`GetJettonsByAddressOptions`](#getjettonsbyaddressoptions) | Owner address, optional network override and pagination. |
 | `options.address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a> \| Address</code> | Owner address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
-| `options.network` | <code><a href="#network">Network</a></code> | Network to read the jettons from. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `options.network` | <code><a href="#network">Network</a></code> | Network to read the jettons from. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 | `options.limit` | `number` | Maximum number of jettons to return. |
 | `options.offset` | `number` | Number of jettons to skip before returning results — used for pagination. |
 
@@ -934,7 +934,7 @@ response.jettons.forEach((j) => console.log(`- ${j.info.name}: ${j.balance}`));
 
 #### transferJetton
 
-Build and send a jetton transfer from the selected wallet in one step (use [`createTransferJettonTransaction`](#createtransferjettontransaction) + [`sendTransaction`](#sendtransaction) if you need to inspect the transaction first); throws `Error('Wallet not connected')` if no wallet is currently selected.
+Build and send a jetton transfer from the selected wallet in one step (use [`createTransferJettonTransaction`](#createtransferjettontransaction) + [`sendTransaction`](#sendtransaction) if you need to inspect the transaction first). Throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -943,7 +943,7 @@ Build and send a jetton transfer from the selected wallet in one step (use [`cre
 | `parameters.jettonAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Jetton master contract address being transferred. |
 | `parameters.recipientAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Recipient who should receive the jettons. |
 | `parameters.amount`\* | `string` | Amount in jetton units as a human-readable decimal string (e.g., `"1.5"`). |
-| `parameters.jettonDecimals`\* | `number` | Decimals declared by the jetton master; used to convert `amount` into raw smallest units. |
+| `parameters.jettonDecimals`\* | `number` | Decimals declared by the jetton master. Used to convert `amount` into raw smallest units. |
 | `parameters.comment` | `string` | Optional human-readable comment attached to the transfer. |
 
 Returns: <code>Promise&lt;<a href="#transferjettonreturntype">TransferJettonReturnType</a>&gt;</code> — Wallet response carrying the BoC of the sent transaction.
@@ -983,7 +983,7 @@ Subscribe to jetton-balance updates for an arbitrary owner address (use [`watchJ
 | `options`\* | [`WatchJettonsByAddressOptions`](#watchjettonsbyaddressoptions) | Owner address, update callback and optional network override. |
 | `options.address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a> \| Address</code> | Owner address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
 | `options.onChange`\* | <code>(update: <a href="#jettonupdate">JettonUpdate</a>) =&gt; void</code> | Callback fired on every jetton-balance update from the streaming provider. |
-| `options.network` | <code><a href="#network">Network</a></code> | Network to watch on. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `options.network` | <code><a href="#network">Network</a></code> | Network to watch on. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 
 Returns: <code><a href="#watchjettonsbyaddressreturntype">WatchJettonsByAddressReturnType</a></code> — Unsubscribe function — call it to stop receiving updates.
 
@@ -991,7 +991,7 @@ Returns: <code><a href="#watchjettonsbyaddressreturntype">WatchJettonsByAddressR
 
 #### createTransferNftTransaction
 
-Build an NFT transfer [`TransactionRequest`](#transactionrequest) for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing; throws `Error('Wallet not connected')` if no wallet is currently selected.
+Build an NFT transfer [`TransactionRequest`](#transactionrequest) for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing. Throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -999,7 +999,7 @@ Build an NFT transfer [`TransactionRequest`](#transactionrequest) for the select
 | `parameters`\* | [`CreateTransferNftTransactionParameters`](#createtransfernfttransactionparameters) | NFT, recipient, optional gas amount and comment. |
 | `parameters.nftAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | NFT contract address to transfer. |
 | `parameters.recipientAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | New owner address. |
-| `parameters.amount` | `string` | Amount of TON to attach to the transfer for gas; defaults to AppKit's NFT gas-fee constant when omitted. |
+| `parameters.amount` | `string` | Amount of TON to attach to the transfer for gas. Defaults to AppKit's NFT gas-fee constant when omitted. |
 | `parameters.comment` | `string` | Optional human-readable comment attached to the transfer. |
 
 Returns: <code>Promise&lt;<a href="#createtransfernfttransactionreturntype">CreateTransferNftTransactionReturnType</a>&gt;</code> — Transaction request ready to pass to `sendTransaction`.
@@ -1018,14 +1018,14 @@ console.log('NFT Transfer Transaction:', tx);
 
 #### getNft
 
-Fetch metadata and ownership for a single NFT by its contract address; returns `null` when the indexer has no record.
+Fetch metadata and ownership for a single NFT by its contract address. Returns `null` when the indexer has no record.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options`\* | [`GetNftOptions`](#getnftoptions) | NFT address and optional network override. |
 | `options.address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a> \| Address</code> | NFT contract address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
-| `options.network` | <code><a href="#network">Network</a></code> | Network to query. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `options.network` | <code><a href="#network">Network</a></code> | Network to query. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 
 Returns: <code>Promise&lt;<a href="#getnftreturntype">GetNftReturnType</a>&gt;</code> — NFT data, or `null` if the indexer has no record.
 
@@ -1076,7 +1076,7 @@ List NFTs held by an arbitrary address — useful for inspecting wallets that ar
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options`\* | [`GetNftsByAddressOptions`](#getnftsbyaddressoptions) | Owner address, optional network override and pagination. |
 | `options.address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a> \| Address</code> | Owner address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
-| `options.network` | <code><a href="#network">Network</a></code> | Network to read NFTs from. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `options.network` | <code><a href="#network">Network</a></code> | Network to read NFTs from. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 | `options.limit` | `number` | Maximum number of NFTs to return. |
 | `options.offset` | `number` | Number of NFTs to skip before returning results — used for pagination. |
 
@@ -1094,7 +1094,7 @@ console.log('NFTs by address:', response.nfts.length);
 
 #### transferNft
 
-Build and send an NFT transfer from the selected wallet in one step (use [`createTransferNftTransaction`](#createtransfernfttransaction) + [`sendTransaction`](#sendtransaction) if you need to inspect the transaction first); throws `Error('Wallet not connected')` if no wallet is currently selected.
+Build and send an NFT transfer from the selected wallet in one step (use [`createTransferNftTransaction`](#createtransfernfttransaction) + [`sendTransaction`](#sendtransaction) if you need to inspect the transaction first). Throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -1102,7 +1102,7 @@ Build and send an NFT transfer from the selected wallet in one step (use [`creat
 | `parameters`\* | [`TransferNftParameters`](#transfernftparameters) | NFT, recipient, optional gas amount and comment. |
 | `parameters.nftAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | NFT contract address to transfer. |
 | `parameters.recipientAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | New owner address. |
-| `parameters.amount` | `string` | Amount of TON to attach to the transfer for gas; defaults to AppKit's NFT gas-fee constant when omitted. |
+| `parameters.amount` | `string` | Amount of TON to attach to the transfer for gas. Defaults to AppKit's NFT gas-fee constant when omitted. |
 | `parameters.comment` | `string` | Optional human-readable comment attached to the transfer. |
 
 Returns: <code>Promise&lt;<a href="#transfernftreturntype">TransferNftReturnType</a>&gt;</code> — Wallet response carrying the BoC of the sent transaction.
@@ -1122,7 +1122,7 @@ console.log('NFT Transfer Result:', result);
 
 #### getBlockNumber
 
-Read the latest masterchain seqno (block number) for a network — useful for pagination cursors and freshness checks; defaults to mainnet when no network is given.
+Read the latest masterchain seqno (block number) for a network — useful for pagination cursors and freshness checks. Defaults to mainnet when no network is given.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -1142,7 +1142,7 @@ console.log('Current block number:', blockNumber);
 
 #### getDefaultNetwork
 
-Read AppKit's currently configured default network — the one connectors enforce on new wallet connections; `undefined` means any registered network is allowed.
+Read AppKit's currently configured default network — the one connectors enforce on new wallet connections. `undefined` means any registered network is allowed.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -1215,13 +1215,13 @@ console.log('Mainnet streaming support:', isSupported);
 
 #### setDefaultNetwork
 
-Set or clear the default network — connectors enforce it on new wallet connections; emits `NETWORKS_EVENTS.DEFAULT_CHANGED` so [`watchDefaultNetwork`](#watchdefaultnetwork) subscribers fire. Pass `undefined` to remove the constraint and allow any registered network.
+Set or clear the default network — connectors enforce it on new wallet connections. Emits `NETWORKS_EVENTS.DEFAULT_CHANGED` so [`watchDefaultNetwork`](#watchdefaultnetwork) subscribers fire. Pass `undefined` to remove the constraint and allow any registered network.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `parameters`\* | [`SetDefaultNetworkParameters`](#setdefaultnetworkparameters) | Network to enforce, or `undefined` to clear. |
-| `parameters.network`\* | <code><a href="#network">Network</a> \| undefined</code> | Network to enforce on new wallet connections; pass `undefined` to allow any registered network. |
+| `parameters.network`\* | <code><a href="#network">Network</a> \| undefined</code> | Network to enforce on new wallet connections. Pass `undefined` to allow any registered network. |
 
 Returns: <code><a href="#setdefaultnetworkreturntype">SetDefaultNetworkReturnType</a></code>.
 
@@ -1287,14 +1287,14 @@ const unsubscribe = watchNetworks(appKit, {
 
 #### signBinary
 
-Ask the selected wallet to sign a binary blob; throws `Error('Wallet not connected')` if no wallet is currently selected.
+Ask the selected wallet to sign a binary blob. Throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `parameters`\* | [`SignBinaryParameters`](#signbinaryparameters) | Binary content and optional network override. |
 | `parameters.bytes`\* | <code><a href="#base64string">Base64String</a></code> | Binary blob the user is asked to sign, encoded as Base64. |
-| `parameters.network` | <code><a href="#network">Network</a></code> | Network to issue the sign request against. Defaults to AppKit's configured default network; when none is set, the wallet falls back to its current network. |
+| `parameters.network` | <code><a href="#network">Network</a></code> | Network to issue the sign request against. Defaults to AppKit's configured default network. When none is set, the wallet falls back to its current network. |
 
 Returns: <code>Promise&lt;<a href="#signbinaryreturntype">SignBinaryReturnType</a>&gt;</code> — Signature and signed payload, as returned by the wallet.
 
@@ -1311,7 +1311,7 @@ console.log('Binary Signature:', result.signature);
 
 #### signCell
 
-Ask the selected wallet to sign a TON cell — typically used so the signature can later be verified on-chain; throws `Error('Wallet not connected')` if no wallet is currently selected.
+Ask the selected wallet to sign a TON cell — typically used so the signature can later be verified on-chain. Throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -1319,7 +1319,7 @@ Ask the selected wallet to sign a TON cell — typically used so the signature c
 | `parameters`\* | [`SignCellParameters`](#signcellparameters) | Cell content, TL-B schema and optional network override. |
 | `parameters.cell`\* | <code><a href="#base64string">Base64String</a></code> | TON cell content encoded as Base64 (BoC). |
 | `parameters.schema`\* | `string` | TL-B-style schema describing the cell layout so the wallet can render the payload to the user. |
-| `parameters.network` | <code><a href="#network">Network</a></code> | Network to issue the sign request against. Defaults to AppKit's configured default network; when none is set, the wallet falls back to its current network. |
+| `parameters.network` | <code><a href="#network">Network</a></code> | Network to issue the sign request against. Defaults to AppKit's configured default network. When none is set, the wallet falls back to its current network. |
 
 Returns: <code>Promise&lt;<a href="#signcellreturntype">SignCellReturnType</a>&gt;</code> — Signature and signed payload, as returned by the wallet.
 
@@ -1336,14 +1336,14 @@ console.log('Cell Signature:', result.signature);
 
 #### signText
 
-Ask the selected wallet to sign a plain text message; throws `Error('Wallet not connected')` if no wallet is currently selected.
+Ask the selected wallet to sign a plain text message. Throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `parameters`\* | [`SignTextParameters`](#signtextparameters) | Text to sign and optional network override. |
 | `parameters.text`\* | `string` | UTF-8 text the user is asked to sign. |
-| `parameters.network` | <code><a href="#network">Network</a></code> | Network to issue the sign request against. Defaults to AppKit's configured default network; when none is set, the wallet falls back to its current network. |
+| `parameters.network` | <code><a href="#network">Network</a></code> | Network to issue the sign request against. Defaults to AppKit's configured default network. When none is set, the wallet falls back to its current network. |
 
 Returns: <code>Promise&lt;<a href="#signtextreturntype">SignTextReturnType</a>&gt;</code> — Signature and signed payload, as returned by the wallet.
 
@@ -1370,7 +1370,7 @@ Build a [`TransactionRequest`](#transactionrequest) that executes a stake or uns
 | `options.quote`\* | <code><a href="#stakingquote">StakingQuote</a></code> | The staking quote based on which the transaction is built |
 | `options.userAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user performing the staking |
 | `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
-| `options.providerId` | `string` | Provider to stake/unstake through; defaults to the registered default staking provider. |
+| `options.providerId` | `string` | Provider to stake/unstake through. Defaults to the registered default staking provider. |
 
 Returns: <code><a href="#buildstaketransactionreturntype">BuildStakeTransactionReturnType</a></code> — Transaction request ready to pass to `sendTransaction`.
 
@@ -1386,11 +1386,11 @@ console.log('Stake Transaction:', txRequest);
 
 #### createTonstakersProvider
 
-Build a Tonstakers-backed [`StakingProvider`](#stakingprovider) for AppKit; pass the result to [`AppKitConfig`](#appkitconfig)'s `providers` or [`registerProvider`](#registerprovider).
+Build a Tonstakers-backed [`StakingProvider`](#stakingprovider) for AppKit. Pass the result to [`AppKitConfig`](#appkitconfig)'s `providers` or [`registerProvider`](#registerprovider).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config` | <code><a href="#tonstakersproviderconfig">TonStakersProviderConfig</a></code> | Optional [`TonStakersProviderConfig`](#tonstakersproviderconfig); defaults are filled in for any field left undefined. |
+| `config` | <code><a href="#tonstakersproviderconfig">TonStakersProviderConfig</a></code> | Optional [`TonStakersProviderConfig`](#tonstakersproviderconfig). Defaults are filled in for any field left undefined. |
 
 Returns: <code>(ctx: <a href="#providerfactorycontext">ProviderFactoryContext</a>) =&gt; <a href="#tonstakersstakingprovider">TonStakersStakingProvider</a></code>.
 
@@ -1403,8 +1403,8 @@ Read a user's staked balance from a staking provider — total staked plus, depe
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options`\* | [`GetStakedBalanceOptions`](#getstakedbalanceoptions) | Owner address and optional network/provider override. |
 | `options.userAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Owner whose staked balance should be read. |
-| `options.network` | <code><a href="#network">Network</a></code> | Network to query. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
-| `options.providerId` | `string` | Provider to query; defaults to the registered default staking provider. |
+| `options.network` | <code><a href="#network">Network</a></code> | Network to query. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `options.providerId` | `string` | Provider to query. Defaults to the registered default staking provider. |
 
 Returns: <code><a href="#getstakedbalancereturntype">GetStakedBalanceReturnType</a></code> — Staked-balance breakdown ([`StakingBalance`](#stakingbalance)) for the user on the resolved network/provider.
 
@@ -1429,13 +1429,13 @@ Returns: <code><a href="#getstakingmanagerreturntype">GetStakingManagerReturnTyp
 
 #### getStakingProvider
 
-Get a registered staking provider by id, or the default staking provider when no id is given; throws when no provider matches — or when no id is passed and no default has been registered.
+Get a registered staking provider by id, or the default staking provider when no id is given. Throws when no provider matches — or when no id is passed and no default has been registered.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options` | [`GetStakingProviderOptions`](#getstakingprovideroptions) | Optional provider id. |
-| `options.id` | `string` | Provider ID to look up; when omitted, returns the registered default staking provider. |
+| `options.id` | `string` | Provider ID to look up. When omitted, returns the registered default staking provider. |
 
 Returns: <code><a href="#getstakingproviderreturntype">GetStakingProviderReturnType</a></code> — The matching staking provider instance.
 
@@ -1447,8 +1447,8 @@ Read live staking-pool info for a provider — APY, instant-unstake liquidity an
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options` | [`GetStakingProviderInfoOptions`](#getstakingproviderinfooptions) | Optional network and provider override. |
-| `options.network` | <code><a href="#network">Network</a></code> | Network whose staking pool should be inspected. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
-| `options.providerId` | `string` | Provider to query; defaults to the registered default staking provider. |
+| `options.network` | <code><a href="#network">Network</a></code> | Network whose staking pool should be inspected. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `options.providerId` | `string` | Provider to query. Defaults to the registered default staking provider. |
 
 Returns: <code><a href="#getstakingproviderinforeturntype">GetStakingProviderInfoReturnType</a></code> — Live staking-provider info for the resolved network.
 
@@ -1469,8 +1469,8 @@ Read static metadata for a staking provider — display name, stake/receive toke
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options` | [`GetStakingProviderMetadataOptions`](#getstakingprovidermetadataoptions) | Optional network and provider override. |
-| `options.network` | <code><a href="#network">Network</a></code> | Network whose provider metadata should be read. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
-| `options.providerId` | `string` | Provider to query; defaults to the registered default staking provider. |
+| `options.network` | <code><a href="#network">Network</a></code> | Network whose provider metadata should be read. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `options.providerId` | `string` | Provider to query. Defaults to the registered default staking provider. |
 
 Returns: <code><a href="#getstakingprovidermetadatareturntype">GetStakingProviderMetadataReturnType</a></code> — Static [`StakingProviderMetadata`](#stakingprovidermetadata) for the resolved provider.
 
@@ -1515,7 +1515,7 @@ Quote a stake or unstake — given the amount, direction and target asset, retur
 | `options.unstakeMode` | <code><a href="#unstakemodes">UnstakeModes</a></code> | Requested mode of unstaking |
 | `options.isReversed` | `boolean` | If true, for unstake requests the amount is specified in the staking coin (e.g. TON) instead of the Liquid Staking Token (e.g. tsTON). |
 | `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
-| `options.providerId` | `string` | Provider to quote against; defaults to the registered default staking provider. |
+| `options.providerId` | `string` | Provider to quote against. Defaults to the registered default staking provider. |
 
 Returns: <code><a href="#getstakingquotereturntype">GetStakingQuoteReturnType</a></code> — Quote with pricing details and provider metadata.
 
@@ -1586,21 +1586,21 @@ console.log('Swap Transaction:', transactionResponse);
 
 #### createDeDustProvider
 
-Build a DeDust-backed [`SwapProvider`](#swapprovider) for AppKit; pass the result to [`AppKitConfig`](#appkitconfig)'s `providers` or [`registerProvider`](#registerprovider).
+Build a DeDust-backed [`SwapProvider`](#swapprovider) for AppKit. Pass the result to [`AppKitConfig`](#appkitconfig)'s `providers` or [`registerProvider`](#registerprovider).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config` | <code><a href="#dedustswapproviderconfig">DeDustSwapProviderConfig</a></code> | Optional [`DeDustSwapProviderConfig`](#dedustswapproviderconfig); defaults are filled in for any field left undefined. |
+| `config` | <code><a href="#dedustswapproviderconfig">DeDustSwapProviderConfig</a></code> | Optional [`DeDustSwapProviderConfig`](#dedustswapproviderconfig). Defaults are filled in for any field left undefined. |
 
 Returns: <code>(ctx: <a href="#providerfactorycontext">ProviderFactoryContext</a>) =&gt; <a href="#dedustswapprovider">DeDustSwapProvider</a></code>.
 
 #### createOmnistonProvider
 
-Build an Omniston-backed [`SwapProvider`](#swapprovider) for AppKit; pass the result to [`AppKitConfig`](#appkitconfig)'s `providers` or [`registerProvider`](#registerprovider).
+Build an Omniston-backed [`SwapProvider`](#swapprovider) for AppKit. Pass the result to [`AppKitConfig`](#appkitconfig)'s `providers` or [`registerProvider`](#registerprovider).
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config` | <code><a href="#omnistonswapproviderconfig">OmnistonSwapProviderConfig</a></code> | Optional [`OmnistonSwapProviderConfig`](#omnistonswapproviderconfig); defaults are filled in for any field left undefined. |
+| `config` | <code><a href="#omnistonswapproviderconfig">OmnistonSwapProviderConfig</a></code> | Optional [`OmnistonSwapProviderConfig`](#omnistonswapproviderconfig). Defaults are filled in for any field left undefined. |
 
 Returns: <code>(ctx: <a href="#providerfactorycontext">ProviderFactoryContext</a>) =&gt; <a href="#omnistonswapprovider">OmnistonSwapProvider</a></code>.
 
@@ -1622,13 +1622,13 @@ const swapManager = getSwapManager(appKit);
 
 #### getSwapProvider
 
-Get a registered swap provider by id, or the default swap provider when no id is given; throws when no provider matches — or when no id is passed and no default has been registered.
+Get a registered swap provider by id, or the default swap provider when no id is given. Throws when no provider matches — or when no id is passed and no default has been registered.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options` | [`GetSwapProviderOptions`](#getswapprovideroptions) | Optional provider id. |
-| `options.id` | `string` | Provider ID to look up; when omitted, returns the registered default swap provider. |
+| `options.id` | `string` | Provider ID to look up. When omitted, returns the registered default swap provider. |
 
 Returns: <code><a href="#getswapproviderreturntype">GetSwapProviderReturnType</a></code> — The matching swap provider instance.
 
@@ -1674,7 +1674,7 @@ Quote a swap — given source/target tokens and an amount, returns the rate, exp
 | `options.maxOutgoingMessages` | `number` | Maximum number of outgoing messages |
 | `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
 | `options.isReverseSwap` | `boolean` | If true, amount is the amount to receive (buy). If false, amount is the amount to spend (sell). |
-| `options.providerId` | `string` | Provider to quote against; defaults to the registered default swap provider. |
+| `options.providerId` | `string` | Provider to quote against. Defaults to the registered default swap provider. |
 
 Returns: <code><a href="#getswapquotereturntype">GetSwapQuoteReturnType</a></code> — Quote with pricing details and the provider metadata required to build a transaction.
 
@@ -1736,15 +1736,15 @@ unsubscribe();
 
 #### createTransferTonTransaction
 
-Build a TON transfer [`TransactionRequest`](#transactionrequest) for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing; throws `Error('Wallet not connected')` if no wallet is currently selected.
+Build a TON transfer [`TransactionRequest`](#transactionrequest) for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing. Throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `parameters`\* | [`CreateTransferTonTransactionParameters`](#createtransfertontransactionparameters) | Recipient, amount and optional payload/comment/stateInit. |
 | `parameters.recipientAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Recipient address. |
-| `parameters.amount`\* | `string` | Amount in TON as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. |
-| `parameters.comment` | `string` | Human-readable text comment; converted to a Base64 payload when no `payload` is supplied. |
+| `parameters.amount`\* | `string` | Amount in TON as a human-readable decimal string (e.g., `"1.5"`). Converted to nano-TON internally. |
+| `parameters.comment` | `string` | Human-readable text comment. Converted to a Base64 payload when no `payload` is supplied. |
 | `parameters.payload` | <code><a href="#base64string">Base64String</a></code> | Raw Base64 message payload — wins over `comment` when both are set. |
 | `parameters.stateInit` | <code><a href="#base64string">Base64String</a></code> | Initial state for deploying a new contract, encoded as Base64. |
 
@@ -1764,7 +1764,7 @@ console.log('Transaction Request:', tx);
 
 #### getTransactionStatus
 
-Read the status of a sent transaction by its BoC or normalized hash. In TON a single external message triggers a tree of internal messages — the transaction is `'completed'` only when the entire trace finishes; until then it stays `'pending'`. Throws when neither `boc` nor `normalizedHash` is provided.
+Read the status of a sent transaction by its BoC or normalized hash. In TON a single external message triggers a tree of internal messages — the transaction is `'completed'` only when the entire trace finishes. Until then it stays `'pending'`. Throws when neither `boc` nor `normalizedHash` is provided.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -1775,7 +1775,7 @@ Returns: <code>Promise&lt;<a href="#gettransactionstatusreturntype">GetTransacti
 
 #### sendTransaction
 
-Hand a pre-built [`TransactionRequest`](#transactionrequest) to the selected wallet for signing and broadcast — usually the second step after [`createTransferTonTransaction`](#createtransfertontransaction), [`buildSwapTransaction`](#buildswaptransaction) or [`buildStakeTransaction`](#buildstaketransaction); throws `Error('Wallet not connected')` if no wallet is currently selected.
+Hand a pre-built [`TransactionRequest`](#transactionrequest) to the selected wallet for signing and broadcast — usually the second step after [`createTransferTonTransaction`](#createtransfertontransaction), [`buildSwapTransaction`](#buildswaptransaction) or [`buildStakeTransaction`](#buildstaketransaction). Throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -1801,15 +1801,15 @@ console.log('Transaction Result:', result);
 
 #### transferTon
 
-Build and send a TON transfer from the selected wallet in one step (use [`createTransferTonTransaction`](#createtransfertontransaction) + [`sendTransaction`](#sendtransaction) if you need to inspect the transaction first); throws `Error('Wallet not connected')` if no wallet is currently selected.
+Build and send a TON transfer from the selected wallet in one step (use [`createTransferTonTransaction`](#createtransfertontransaction) + [`sendTransaction`](#sendtransaction) if you need to inspect the transaction first). Throws `Error('Wallet not connected')` if no wallet is currently selected.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `parameters`\* | [`TransferTonParameters`](#transfertonparameters) | Recipient, amount and optional payload/comment/stateInit. |
 | `parameters.recipientAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Recipient address. |
-| `parameters.amount`\* | `string` | Amount in TON as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. |
-| `parameters.comment` | `string` | Human-readable text comment; converted to a Base64 payload when no `payload` is supplied. |
+| `parameters.amount`\* | `string` | Amount in TON as a human-readable decimal string (e.g., `"1.5"`). Converted to nano-TON internally. |
+| `parameters.comment` | `string` | Human-readable text comment. Converted to a Base64 payload when no `payload` is supplied. |
 | `parameters.payload` | <code><a href="#base64string">Base64String</a></code> | Raw Base64 message payload — wins over `comment` when both are set. |
 | `parameters.stateInit` | <code><a href="#base64string">Base64String</a></code> | Initial state for deploying a new contract, encoded as Base64. |
 
@@ -1850,7 +1850,7 @@ Subscribe to incoming-transaction events for an arbitrary address (use [`watchTr
 | `options`\* | [`WatchTransactionsByAddressOptions`](#watchtransactionsbyaddressoptions) | Address, update callback and optional network override. |
 | `options.address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a> \| Address</code> | Address to watch — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
 | `options.onChange`\* | <code>(update: <a href="#transactionsupdate">TransactionsUpdate</a>) =&gt; void</code> | Callback fired on every transactions update from the streaming provider. |
-| `options.network` | <code><a href="#network">Network</a></code> | Network to watch on. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `options.network` | <code><a href="#network">Network</a></code> | Network to watch on. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 
 Returns: <code><a href="#watchtransactionsbyaddressreturntype">WatchTransactionsByAddressReturnType</a></code> — Unsubscribe function — call it to stop receiving updates.
 
@@ -1903,7 +1903,7 @@ Switch which connected wallet AppKit treats as selected — emits `WALLETS_EVENT
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `parameters`\* | [`SetSelectedWalletIdParameters`](#setselectedwalletidparameters) | Wallet ID to select, or `null` to clear. |
-| `parameters.walletId`\* | `string \| null` | Wallet ID (as returned by [`WalletInterface`](#walletinterface)'s `getWalletId()`) to select; pass `null` to clear the selection. |
+| `parameters.walletId`\* | `string \| null` | Wallet ID (as returned by [`WalletInterface`](#walletinterface)'s `getWalletId()`) to select. Pass `null` to clear the selection. |
 
 Returns: <code><a href="#setselectedwalletidreturntype">SetSelectedWalletIdReturnType</a></code>.
 
@@ -1990,7 +1990,7 @@ Options for [`getBalanceByAddress`](#getbalancebyaddress).
 | Field | Type | Description |
 | --- | --- | --- |
 | `address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a> \| Address</code> | Wallet address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
-| `network` | <code><a href="#network">Network</a></code> | Network to read the balance from. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `network` | <code><a href="#network">Network</a></code> | Network to read the balance from. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 
 #### GetBalanceByAddressReturnType
 
@@ -2031,7 +2031,7 @@ Options for [`watchBalanceByAddress`](#watchbalancebyaddress).
 | Field | Type | Description |
 | --- | --- | --- |
 | `address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a> \| Address</code> | Wallet address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
-| `network` | <code><a href="#network">Network</a></code> | Network to watch on. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `network` | <code><a href="#network">Network</a></code> | Network to watch on. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 | `onChange`\* | <code>(update: <a href="#balanceupdate">BalanceUpdate</a>) =&gt; void</code> | Callback fired on every balance update from the streaming provider. |
 
 #### WatchBalanceByAddressReturnType
@@ -2083,24 +2083,24 @@ Single entry inside an [`AddressBook`](#addressbook) — pairs the user-friendly
 
 #### ApiClient
 
-Indexer/RPC client interface used by AppKit to read on-chain state — balance, jettons, NFTs, masterchain seqno, etc. Each [`Network`](#network) resolves to its own `ApiClient` via [`AppKitNetworkManager`](#appkitnetworkmanager); apps usually pull one through [`getApiClient`](#getapiclient) rather than constructing it directly.
+Indexer/RPC client interface used by AppKit to read on-chain state — balance, jettons, NFTs, masterchain seqno, etc. Each [`Network`](#network) resolves to its own `ApiClient` via [`AppKitNetworkManager`](#appkitnetworkmanager). Apps usually pull one through [`getApiClient`](#getapiclient) rather than constructing it directly.
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `nftItemsByAddress`\* | <code>(request: NFTsRequest) =&gt; Promise&lt;<a href="#nftsresponse">NFTsResponse</a>&gt;</code> | Look up specific NFT items by address. |
-| `nftItemsByOwner`\* | <code>(request: UserNFTsRequest) =&gt; Promise&lt;<a href="#nftsresponse">NFTsResponse</a>&gt;</code> | List NFT items held by an owner; supports pagination. |
-| `fetchEmulation`\* | <code>(messageBoc: <a href="#base64string">Base64String</a>, ignoreSignature?: boolean) =&gt; Promise&lt;ToncenterEmulationResult&gt;</code> | Run an emulation pass on a Base64-encoded BoC; returns the predicted account-state changes and emitted events without sending the message. |
+| `nftItemsByOwner`\* | <code>(request: UserNFTsRequest) =&gt; Promise&lt;<a href="#nftsresponse">NFTsResponse</a>&gt;</code> | List NFT items held by an owner. Supports pagination. |
+| `fetchEmulation`\* | <code>(messageBoc: <a href="#base64string">Base64String</a>, ignoreSignature?: boolean) =&gt; Promise&lt;ToncenterEmulationResult&gt;</code> | Run an emulation pass on a Base64-encoded BoC. Returns the predicted account-state changes and emitted events without sending the message. |
 | `sendBoc`\* | <code>(boc: <a href="#base64string">Base64String</a>) =&gt; Promise&lt;string&gt;</code> | Broadcast a signed BoC to the network and return the message hash. |
 | `runGetMethod`\* | <code>(address: <a href="#userfriendlyaddress">UserFriendlyAddress</a>, method: string, stack?: RawStackItem[], seqno?: number) =&gt; Promise&lt;GetMethodResult&gt;</code> | Run an on-chain `get` method against a contract and read its TVM stack output. |
 | `getAccountState`\* | <code>(address: <a href="#userfriendlyaddress">UserFriendlyAddress</a>, seqno?: number) =&gt; Promise&lt;FullAccountState&gt;</code> | Read the full on-chain account state (code, data, status, balance) for an address. |
 | `getBalance`\* | <code>(address: <a href="#userfriendlyaddress">UserFriendlyAddress</a>, seqno?: number) =&gt; Promise&lt;<a href="#tokenamount">TokenAmount</a>&gt;</code> | Read the TON balance of an address in raw nanotons. |
-| `getAccountTransactions`\* | `(request: TransactionsByAddressRequest) => Promise<TransactionsResponse>` | List transactions for an address; ordered newest-first, paginated via `LimitRequest`. |
+| `getAccountTransactions`\* | `(request: TransactionsByAddressRequest) => Promise<TransactionsResponse>` | List transactions for an address. Ordered newest-first, paginated via `LimitRequest`. |
 | `getTransactionsByHash`\* | `(request: GetTransactionByHashRequest) => Promise<TransactionsResponse>` | Fetch a transaction by its message or body hash. |
-| `getPendingTransactions`\* | `(request: GetPendingTransactionsRequest) => Promise<TransactionsResponse>` | List pending (unconfirmed) transactions by accounts or trace ids; useful for "in-flight" UIs. |
+| `getPendingTransactions`\* | `(request: GetPendingTransactionsRequest) => Promise<TransactionsResponse>` | List pending (unconfirmed) transactions by accounts or trace ids. Useful for "in-flight" UIs. |
 | `getTrace`\* | `(request: GetTraceRequest) => Promise<ToncenterTracesResponse>` | Fetch a confirmed trace (the tree of internal messages spawned by an external one). |
 | `getPendingTrace`\* | `(request: GetPendingTraceRequest) => Promise<ToncenterTracesResponse>` | Fetch a pending trace by external-message hash, while it's still in flight. |
-| `resolveDnsWallet`\* | `(domain: string) => Promise<string \| null>` | Resolve a TON DNS domain to the wallet address it points at; `null` when unset. |
-| `backResolveDnsWallet`\* | <code>(address: <a href="#userfriendlyaddress">UserFriendlyAddress</a>) =&gt; Promise&lt;string \| null&gt;</code> | Reverse-resolve a wallet address to a TON DNS domain that points at it; `null` when none. |
+| `resolveDnsWallet`\* | `(domain: string) => Promise<string \| null>` | Resolve a TON DNS domain to the wallet address it points at. `null` when unset. |
+| `backResolveDnsWallet`\* | <code>(address: <a href="#userfriendlyaddress">UserFriendlyAddress</a>) =&gt; Promise&lt;string \| null&gt;</code> | Reverse-resolve a wallet address to a TON DNS domain that points at it. `null` when none. |
 | `jettonsByAddress`\* | `(request: GetJettonsByAddressRequest) => Promise<ToncenterResponseJettonMasters>` | Look up jetton masters by address — returns indexer metadata for the requested jettons. |
 | `jettonsByOwnerAddress`\* | <code>(request: GetJettonsByOwnerRequest) =&gt; Promise&lt;<a href="#jettonsresponse">JettonsResponse</a>&gt;</code> | List jetton holdings owned by an address — returns balances + jetton-master metadata. |
 | `getEvents`\* | `(request: GetEventsRequest) => Promise<GetEventsResponse>` | List parsed account events (jetton transfers, NFT moves, swaps, …) for an address. |
@@ -2133,7 +2133,7 @@ type GetApiClientReturnType = ApiClient;
 
 #### TokenInfo
 
-Display metadata for a token (TON, jetton, or NFT) — name, symbol, image and animation as reported by the indexer; surfaced as [`Jetton`](#jetton)'s `info` and [`NFT`](#nft)'s `info`.
+Display metadata for a token (TON, jetton, or NFT) — name, symbol, image and animation as reported by the indexer. Surfaced as [`Jetton`](#jetton)'s `info` and [`NFT`](#nft)'s `info`.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -2193,7 +2193,7 @@ Wallet connector contract — the protocol-specific bridge (TonConnect, embedded
 
 #### ConnectorFactory
 
-Factory that builds a [`Connector`](#connector) from [`ConnectorFactoryContext`](#connectorfactorycontext); AppKit calls it at registration time.
+Factory that builds a [`Connector`](#connector) from [`ConnectorFactoryContext`](#connectorfactorycontext). AppKit calls it at registration time.
 
 ```ts
 type ConnectorFactory = (ctx: ConnectorFactoryContext) => Connector;
@@ -2287,10 +2287,10 @@ Configuration accepted by [`createTonConnectConnector`](#createtonconnectconnect
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `id` | `string` | Connector ID. Defaults to [`TONCONNECT_DEFAULT_CONNECTOR_ID`](#tonconnect_default_connector_id) (`'tonconnect'`); set this when you need to register multiple TonConnect-flavoured connectors side by side. |
-| `metadata` | <code><a href="#connectormetadata">ConnectorMetadata</a></code> | Display metadata override; merged on top of TonConnect's default name and icon. |
+| `id` | `string` | Connector ID. Defaults to [`TONCONNECT_DEFAULT_CONNECTOR_ID`](#tonconnect_default_connector_id) (`'tonconnect'`). Set this when you need to register multiple TonConnect-flavoured connectors side by side. |
+| `metadata` | <code><a href="#connectormetadata">ConnectorMetadata</a></code> | Display metadata override. Merged on top of TonConnect's default name and icon. |
 | `tonConnectOptions` | `TonConnectUiCreateOptions` | Options forwarded to the underlying `TonConnectUI` constructor (manifest URL, etc.). Ignored when `tonConnectUI` is supplied. |
-| `tonConnectUI` | `TonConnectUI` | Pre-built `TonConnectUI` instance to reuse; when set, the connector skips its own instantiation and `tonConnectOptions` is ignored. |
+| `tonConnectUI` | `TonConnectUI` | Pre-built `TonConnectUI` instance to reuse. When set, the connector skips its own instantiation and `tonConnectOptions` is ignored. |
 
 #### WatchConnectorByIdParameters
 
@@ -2333,7 +2333,7 @@ Constructor options for [`AppKit`](#appkit) — networks, connectors, providers 
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `networks` | <code><a href="#networkadapters">NetworkAdapters</a></code> | Map of chain ID to [`NetworkConfig`](#networkconfig) (which holds the api-client setup); if omitted, AppKit defaults to mainnet only. |
+| `networks` | <code><a href="#networkadapters">NetworkAdapters</a></code> | Map of chain ID to [`NetworkConfig`](#networkconfig) (which holds the api-client setup). If omitted, AppKit defaults to mainnet only. |
 | `connectors` | <code><a href="#connectorinput">ConnectorInput</a>[]</code> | Wallet connectors registered at startup. |
 | `defaultNetwork` | <code><a href="#network">Network</a></code> | Default network. |
 | `providers` | <code><a href="#providerinput">ProviderInput</a>[]</code> | Providers registered at startup. |
@@ -2341,7 +2341,7 @@ Constructor options for [`AppKit`](#appkit) — networks, connectors, providers 
 
 #### AppKitEmitter
 
-Strongly-typed event emitter exposed as [`AppKit`](#appkit)'s `emitter`; `appKit.emitter.on(name, handler)` returns an unsubscribe function.
+Strongly-typed event emitter exposed as [`AppKit`](#appkit)'s `emitter`. `appKit.emitter.on(name, handler)` returns an unsubscribe function.
 
 ```ts
 type AppKitEmitter = EventEmitter<AppKitEvents>;
@@ -2423,12 +2423,12 @@ Envelope every [`EventEmitter`](#eventemitter) listener receives — `type` is t
 | --- | --- | --- |
 | `type`\* | `string` | Event name (e.g., `'connector:wallets-updated'`). |
 | `payload`\* | `T = any` | Event-specific payload — typed via the emitter's event-name → payload map. |
-| `source` | `string` | Identifier of the component that emitted the event (connector id, manager name, etc.); useful for filtering listeners. |
+| `source` | `string` | Identifier of the component that emitted the event (connector id, manager name, etc.). Useful for filtering listeners. |
 | `timestamp`\* | `number` | Wall-clock timestamp in milliseconds when the event was emitted. |
 
 #### SharedKitEvents
 
-Event-name → payload map shared between AppKit and walletkit; AppKit extends it with its own connector, wallet and network events to type [`AppKitEmitter`](#appkitemitter).
+Event-name → payload map shared between AppKit and walletkit. AppKit extends it with its own connector, wallet and network events to type [`AppKitEmitter`](#appkitemitter).
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -2449,7 +2449,7 @@ Options for [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit) — extend
 | `quote`\* | <code><a href="#cryptoonrampquote">CryptoOnrampQuote</a>&lt;TQuoteMetadata = unknown&gt;</code> | Quote to execute the deposit against (contains recipientAddress and provider metadata) |
 | `refundAddress`\* | `string` | Address to refund the crypto to in case of failure |
 | `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
-| `providerId` | `string` | Provider to create the deposit through; defaults to `quote.providerId`, then to the default provider. |
+| `providerId` | `string` | Provider to create the deposit through. Defaults to `quote.providerId`, then to the default provider. |
 
 #### CreateCryptoOnrampDepositReturnType
 
@@ -2464,8 +2464,7 @@ type CreateCryptoOnrampDepositReturnType = Promise<CryptoOnrampDeposit>;
 Deposit details returned by a crypto onramp provider.
 
 The user must send `amount` of `sourceCurrencyAddress` to `address` on `sourceChain`
-to complete the onramp; the provider then delivers the target crypto to the
-user's TON address.
+to complete the onramp. The provider then delivers the target crypto to the * user's TON address.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -2583,7 +2582,7 @@ Options for [`getCryptoOnrampProvider`](#getcryptoonrampprovider).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `id` | `string` | Provider ID to look up; when omitted, returns the registered default provider. |
+| `id` | `string` | Provider ID to look up. When omitted, returns the registered default provider. |
 
 #### GetCryptoOnrampProviderReturnType
 
@@ -2615,7 +2614,7 @@ Options for [`getCryptoOnrampQuote`](#getcryptoonrampquote) — extends [`Crypto
 | `refundAddress` | `string` | Refund address for the source crypto |
 | `isSourceAmount` | `boolean` | If true, `amount` is the source amount to spend. If false, `amount` is the target amount to receive. Defaults to true when omitted. |
 | `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
-| `providerId` | `string` | Provider to quote against; defaults to the registered default provider. |
+| `providerId` | `string` | Provider to quote against. Defaults to the registered default provider. |
 
 #### GetCryptoOnrampQuoteReturnType
 
@@ -2678,7 +2677,7 @@ Provider-specific metadata returned on a [`CryptoOnrampQuote`](#cryptoonrampquot
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `sender`\* | `string` | EVM sender address swaps.xyz was quoted for; required when later calling `createDeposit`. |
+| `sender`\* | `string` | EVM sender address swaps.xyz was quoted for. Required when later calling `createDeposit`. |
 | `response`\* | `SwapsXyzGetActionResponse` | Raw `getAction` response cached at quote time so `createDeposit` doesn't need an extra round-trip. |
 
 #### SwapsXyzQuoteOptions
@@ -2709,7 +2708,7 @@ type WatchCryptoOnrampProvidersReturnType = () => void;
 
 #### DefiManagerAPI
 
-Shape every DeFi domain manager (swap, staking, onramp, crypto-onramp) satisfies — provider registration, default-provider selection and lookups; mostly relevant when authoring a new domain manager.
+Shape every DeFi domain manager (swap, staking, onramp, crypto-onramp) satisfies — provider registration, default-provider selection and lookups. Mostly relevant when authoring a new domain manager.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -2733,7 +2732,7 @@ Base interface implemented by every DeFi provider (swap, staking, onramp, crypto
 
 #### DefiProviderType
 
-Discriminator that tags every [`DefiProvider`](#defiprovider) with its kind — `'swap'`, `'staking'`, `'onramp'`, or `'crypto-onramp'`; used by [`registerProvider`](#registerprovider) to dispatch to the right manager.
+Discriminator that tags every [`DefiProvider`](#defiprovider) with its kind — `'swap'`, `'staking'`, `'onramp'`, or `'crypto-onramp'`. Used by [`registerProvider`](#registerprovider) to dispatch to the right manager.
 
 ```ts
 type DefiProviderType = 'swap' | 'staking' | 'onramp' | 'crypto-onramp';
@@ -2776,7 +2775,7 @@ Parameters accepted by [`createTransferJettonTransaction`](#createtransferjetton
 | `jettonAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Jetton master contract address being transferred. |
 | `recipientAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Recipient who should receive the jettons. |
 | `amount`\* | `string` | Amount in jetton units as a human-readable decimal string (e.g., `"1.5"`). |
-| `jettonDecimals`\* | `number` | Decimals declared by the jetton master; used to convert `amount` into raw smallest units. |
+| `jettonDecimals`\* | `number` | Decimals declared by the jetton master. Used to convert `amount` into raw smallest units. |
 | `comment` | `string` | Optional human-readable comment attached to the transfer. |
 
 #### CreateTransferJettonTransactionReturnType
@@ -2795,8 +2794,8 @@ Options for [`getJettonBalance`](#getjettonbalance).
 | --- | --- | --- |
 | `jettonAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Jetton master contract address (the token, not the user's wallet for it). |
 | `ownerAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Owner of the jetton wallet — typically the connected user's address. |
-| `jettonDecimals`\* | `number` | Decimals declared by the jetton master; used to format the raw balance into a human-readable string. |
-| `network` | <code><a href="#network">Network</a></code> | Network to read the balance from. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `jettonDecimals`\* | `number` | Decimals declared by the jetton master. Used to format the raw balance into a human-readable string. |
+| `network` | <code><a href="#network">Network</a></code> | Network to read the balance from. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 
 #### GetJettonBalanceReturnType
 
@@ -2813,7 +2812,7 @@ Options for [`getJettonInfo`](#getjettoninfo).
 | Field | Type | Description |
 | --- | --- | --- |
 | `address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Jetton master contract address whose metadata is being fetched. |
-| `network` | <code><a href="#network">Network</a></code> | Network to query. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `network` | <code><a href="#network">Network</a></code> | Network to query. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 
 #### GetJettonInfoReturnType
 
@@ -2831,7 +2830,7 @@ Options for [`getJettonWalletAddress`](#getjettonwalletaddress).
 | --- | --- | --- |
 | `jettonAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Jetton master contract address. |
 | `ownerAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Owner whose jetton wallet should be derived. |
-| `network` | <code><a href="#network">Network</a></code> | Network to query. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `network` | <code><a href="#network">Network</a></code> | Network to query. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 
 #### GetJettonWalletAddressReturnType
 
@@ -2848,7 +2847,7 @@ Options for [`getJettonsByAddress`](#getjettonsbyaddress).
 | Field | Type | Description |
 | --- | --- | --- |
 | `address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a> \| Address</code> | Owner address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
-| `network` | <code><a href="#network">Network</a></code> | Network to read the jettons from. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `network` | <code><a href="#network">Network</a></code> | Network to read the jettons from. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 | `limit` | `number` | Maximum number of jettons to return. |
 | `offset` | `number` | Number of jettons to skip before returning results — used for pagination. |
 
@@ -2969,7 +2968,7 @@ Options for [`watchJettonsByAddress`](#watchjettonsbyaddress).
 | --- | --- | --- |
 | `address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a> \| Address</code> | Owner address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
 | `onChange`\* | <code>(update: <a href="#jettonupdate">JettonUpdate</a>) =&gt; void</code> | Callback fired on every jetton-balance update from the streaming provider. |
-| `network` | <code><a href="#network">Network</a></code> | Network to watch on. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `network` | <code><a href="#network">Network</a></code> | Network to watch on. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 
 #### WatchJettonsByAddressReturnType
 
@@ -3006,7 +3005,7 @@ Parameters accepted by [`createTransferNftTransaction`](#createtransfernfttransa
 | --- | --- | --- |
 | `nftAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | NFT contract address to transfer. |
 | `recipientAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | New owner address. |
-| `amount` | `string` | Amount of TON to attach to the transfer for gas; defaults to AppKit's NFT gas-fee constant when omitted. |
+| `amount` | `string` | Amount of TON to attach to the transfer for gas. Defaults to AppKit's NFT gas-fee constant when omitted. |
 | `comment` | `string` | Optional human-readable comment attached to the transfer. |
 
 #### CreateTransferNftTransactionReturnType
@@ -3024,7 +3023,7 @@ Options for [`getNft`](#getnft).
 | Field | Type | Description |
 | --- | --- | --- |
 | `address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a> \| Address</code> | NFT contract address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
-| `network` | <code><a href="#network">Network</a></code> | Network to query. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `network` | <code><a href="#network">Network</a></code> | Network to query. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 
 #### GetNftReturnType
 
@@ -3041,7 +3040,7 @@ Options for [`getNftsByAddress`](#getnftsbyaddress).
 | Field | Type | Description |
 | --- | --- | --- |
 | `address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a> \| Address</code> | Owner address — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
-| `network` | <code><a href="#network">Network</a></code> | Network to read NFTs from. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `network` | <code><a href="#network">Network</a></code> | Network to read NFTs from. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 | `limit` | `number` | Maximum number of NFTs to return. |
 | `offset` | `number` | Number of NFTs to skip before returning results — used for pagination. |
 
@@ -3226,7 +3225,7 @@ Parameters accepted by [`setDefaultNetwork`](#setdefaultnetwork).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `network`\* | <code><a href="#network">Network</a> \| undefined</code> | Network to enforce on new wallet connections; pass `undefined` to allow any registered network. |
+| `network`\* | <code><a href="#network">Network</a> \| undefined</code> | Network to enforce on new wallet connections. Pass `undefined` to allow any registered network. |
 
 #### SetDefaultNetworkReturnType
 
@@ -3242,7 +3241,7 @@ Walletkit-side options shape consumed by [`KitNetworkManager`](#kitnetworkmanage
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `walletManifest` | `WalletInfo` | TonConnect wallet manifest published by the dApp; required for the wallet to recognize the integration. |
+| `walletManifest` | `WalletInfo` | TonConnect wallet manifest published by the dApp. Required for the wallet to recognize the integration. |
 | `deviceInfo` | `DeviceInfo` | Device fingerprint forwarded with TonConnect requests so wallets can recognize the host. |
 | `sessionManager` | `TONConnectSessionManager` | Custom session manager implementation. If not provided, TONConnectStoredSessionManager will be used. |
 | `networks` | <code><a href="#networkadapters">NetworkAdapters</a></code> | Network configuration |
@@ -3250,8 +3249,8 @@ Walletkit-side options shape consumed by [`KitNetworkManager`](#kitnetworkmanage
 | `storage` | `StorageConfig \| StorageAdapter` | Storage settings |
 | `validation` | `{         strictMode?: boolean;         allowUnknownWalletVersions?: boolean;     }` | Validation settings |
 | `eventProcessor` | `EventProcessorConfig` | Event processor settings |
-| `analytics` | `AnalyticsManagerOptions & {         enabled?: boolean;     }` | Analytics manager options merged with an `enabled` toggle; off by default. |
-| `dev` | `{         disableNetworkSend?: boolean;         disableManifestDomainCheck?: boolean;     }` | Diagnostic toggles useful during local development; should not be set in production builds. |
+| `analytics` | `AnalyticsManagerOptions & {         enabled?: boolean;     }` | Analytics manager options merged with an `enabled` toggle. Off by default. |
+| `dev` | `{         disableNetworkSend?: boolean;         disableManifestDomainCheck?: boolean;     }` | Diagnostic toggles useful during local development. Should not be set in production builds. |
 
 #### WatchDefaultNetworkParameters
 
@@ -3319,7 +3318,7 @@ type Hex = `0x${string}` & {
 
 #### TokenAmount
 
-Decimal string carrying a token amount; preserves precision and avoids floating-point rounding (e.g., `"1.5"` TON, or raw nano units depending on the API).
+Decimal string carrying a token amount. Preserves precision and avoids floating-point rounding (e.g., `"1.5"` TON, or raw nano units depending on the API).
 
 ```ts
 type TokenAmount = string;
@@ -3342,7 +3341,7 @@ Parameters accepted by [`signBinary`](#signbinary).
 | Field | Type | Description |
 | --- | --- | --- |
 | `bytes`\* | <code><a href="#base64string">Base64String</a></code> | Binary blob the user is asked to sign, encoded as Base64. |
-| `network` | <code><a href="#network">Network</a></code> | Network to issue the sign request against. Defaults to AppKit's configured default network; when none is set, the wallet falls back to its current network. |
+| `network` | <code><a href="#network">Network</a></code> | Network to issue the sign request against. Defaults to AppKit's configured default network. When none is set, the wallet falls back to its current network. |
 
 #### SignBinaryReturnType
 
@@ -3360,7 +3359,7 @@ Parameters accepted by [`signCell`](#signcell).
 | --- | --- | --- |
 | `cell`\* | <code><a href="#base64string">Base64String</a></code> | TON cell content encoded as Base64 (BoC). |
 | `schema`\* | `string` | TL-B-style schema describing the cell layout so the wallet can render the payload to the user. |
-| `network` | <code><a href="#network">Network</a></code> | Network to issue the sign request against. Defaults to AppKit's configured default network; when none is set, the wallet falls back to its current network. |
+| `network` | <code><a href="#network">Network</a></code> | Network to issue the sign request against. Defaults to AppKit's configured default network. When none is set, the wallet falls back to its current network. |
 
 #### SignCellReturnType
 
@@ -3372,7 +3371,7 @@ type SignCellReturnType = SignDataResponse;
 
 #### SignData
 
-Payload the user is asked to sign — discriminated union over `'text'`, `'binary'`, and `'cell'`; nested under [`SignDataRequest`](#signdatarequest)'s `data`.
+Payload the user is asked to sign — discriminated union over `'text'`, `'binary'`, and `'cell'`. Nested under [`SignDataRequest`](#signdatarequest)'s `data`.
 
 ```ts
 type SignData = | { type: 'text'; value: SignDataText }
@@ -3403,8 +3402,8 @@ Sign-data payload sent to [`WalletInterface`](#walletinterface)'s `signData` —
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `network` | <code><a href="#network">Network</a></code> | Network to issue the sign request against; defaults to the wallet's current network. |
-| `from` | `string` | Sender address in raw format; usually omitted, the wallet fills it in. |
+| `network` | <code><a href="#network">Network</a></code> | Network to issue the sign request against. Defaults to the wallet's current network. |
+| `from` | `string` | Sender address in raw format. Usually omitted, the wallet fills it in. |
 | `data`\* | <code><a href="#signdata">SignData</a></code> | Payload the user is asked to sign. |
 
 #### SignDataResponse
@@ -3434,7 +3433,7 @@ Parameters accepted by [`signText`](#signtext).
 | Field | Type | Description |
 | --- | --- | --- |
 | `text`\* | `string` | UTF-8 text the user is asked to sign. |
-| `network` | <code><a href="#network">Network</a></code> | Network to issue the sign request against. Defaults to AppKit's configured default network; when none is set, the wallet falls back to its current network. |
+| `network` | <code><a href="#network">Network</a></code> | Network to issue the sign request against. Defaults to AppKit's configured default network. When none is set, the wallet falls back to its current network. |
 
 #### SignTextReturnType
 
@@ -3455,7 +3454,7 @@ Options for [`buildStakeTransaction`](#buildstaketransaction) — extends [`Stak
 | `quote`\* | <code><a href="#stakingquote">StakingQuote</a></code> | The staking quote based on which the transaction is built |
 | `userAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user performing the staking |
 | `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
-| `providerId` | `string` | Provider to stake/unstake through; defaults to the registered default staking provider. |
+| `providerId` | `string` | Provider to stake/unstake through. Defaults to the registered default staking provider. |
 
 #### BuildStakeTransactionReturnType
 
@@ -3472,8 +3471,8 @@ Options for [`getStakedBalance`](#getstakedbalance).
 | Field | Type | Description |
 | --- | --- | --- |
 | `userAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Owner whose staked balance should be read. |
-| `network` | <code><a href="#network">Network</a></code> | Network to query. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
-| `providerId` | `string` | Provider to query; defaults to the registered default staking provider. |
+| `network` | <code><a href="#network">Network</a></code> | Network to query. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `providerId` | `string` | Provider to query. Defaults to the registered default staking provider. |
 
 #### GetStakedBalanceReturnType
 
@@ -3497,8 +3496,8 @@ Options for [`getStakingProviderInfo`](#getstakingproviderinfo).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `network` | <code><a href="#network">Network</a></code> | Network whose staking pool should be inspected. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
-| `providerId` | `string` | Provider to query; defaults to the registered default staking provider. |
+| `network` | <code><a href="#network">Network</a></code> | Network whose staking pool should be inspected. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `providerId` | `string` | Provider to query. Defaults to the registered default staking provider. |
 
 #### GetStakingProviderInfoReturnType
 
@@ -3514,8 +3513,8 @@ Options for [`getStakingProviderMetadata`](#getstakingprovidermetadata).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `network` | <code><a href="#network">Network</a></code> | Network whose provider metadata should be read. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
-| `providerId` | `string` | Provider to query; defaults to the registered default staking provider. |
+| `network` | <code><a href="#network">Network</a></code> | Network whose provider metadata should be read. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `providerId` | `string` | Provider to query. Defaults to the registered default staking provider. |
 
 #### GetStakingProviderMetadataReturnType
 
@@ -3531,7 +3530,7 @@ Options for [`getStakingProvider`](#getstakingprovider).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `id` | `string` | Provider ID to look up; when omitted, returns the registered default staking provider. |
+| `id` | `string` | Provider ID to look up. When omitted, returns the registered default staking provider. |
 
 #### GetStakingProviderReturnType
 
@@ -3562,7 +3561,7 @@ Options for [`getStakingQuote`](#getstakingquote) — extends [`StakingQuotePara
 | `unstakeMode` | <code><a href="#unstakemodes">UnstakeModes</a></code> | Requested mode of unstaking |
 | `isReversed` | `boolean` | If true, for unstake requests the amount is specified in the staking coin (e.g. TON) instead of the Liquid Staking Token (e.g. tsTON). |
 | `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
-| `providerId` | `string` | Provider to quote against; defaults to the registered default staking provider. |
+| `providerId` | `string` | Provider to quote against. Defaults to the registered default staking provider. |
 
 #### GetStakingQuoteReturnType
 
@@ -3693,7 +3692,7 @@ Parameters for getting a staking quote
 
 #### StakingTokenInfo
 
-Display metadata for a staking-pool token — `ticker`, `decimals` and `address` (or `'ton'` for native TON); carried on [`StakingProviderMetadata`](#stakingprovidermetadata)'s `stakeToken` and `receiveToken` so the UI can render the pool's input/output assets.
+Display metadata for a staking-pool token — `ticker`, `decimals` and `address` (or `'ton'` for native TON). Carried on [`StakingProviderMetadata`](#stakingprovidermetadata)'s `stakeToken` and `receiveToken` so the UI can render the pool's input/output assets.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -3813,7 +3812,7 @@ Options for [`getSwapProvider`](#getswapprovider).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `id` | `string` | Provider ID to look up; when omitted, returns the registered default swap provider. |
+| `id` | `string` | Provider ID to look up. When omitted, returns the registered default swap provider. |
 
 #### GetSwapProviderReturnType
 
@@ -3845,7 +3844,7 @@ Options for [`getSwapQuote`](#getswapquote) — extends [`SwapQuoteParams`](#swa
 | `maxOutgoingMessages` | `number` | Maximum number of outgoing messages |
 | `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
 | `isReverseSwap` | `boolean` | If true, amount is the amount to receive (buy). If false, amount is the amount to spend (sell). |
-| `providerId` | `string` | Provider to quote against; defaults to the registered default swap provider. |
+| `providerId` | `string` | Provider to quote against. Defaults to the registered default swap provider. |
 
 #### GetSwapQuoteReturnType
 
@@ -3985,7 +3984,7 @@ Token descriptor passed to [`getSwapQuote`](#getswapquote) via [`SwapQuoteParams
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `address`\* | `string` | Token contract address; `'ton'` is used for native TON on the TON chain. |
+| `address`\* | `string` | Token contract address. `'ton'` is used for native TON on the TON chain. |
 | `decimals`\* | `number` | Number of decimal places used to format raw amounts. |
 | `name` | `string` | Display name (e.g., `"Tether USD"`). |
 | `symbol` | `string` | Ticker symbol (e.g., `"USDT"`). |
@@ -4017,8 +4016,8 @@ Parameters accepted by [`createTransferTonTransaction`](#createtransfertontransa
 | Field | Type | Description |
 | --- | --- | --- |
 | `recipientAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Recipient address. |
-| `amount`\* | `string` | Amount in TON as a human-readable decimal string (e.g., `"1.5"`); converted to nano-TON internally. |
-| `comment` | `string` | Human-readable text comment; converted to a Base64 payload when no `payload` is supplied. |
+| `amount`\* | `string` | Amount in TON as a human-readable decimal string (e.g., `"1.5"`). Converted to nano-TON internally. |
+| `comment` | `string` | Human-readable text comment. Converted to a Base64 payload when no `payload` is supplied. |
 | `payload` | <code><a href="#base64string">Base64String</a></code> | Raw Base64 message payload — wins over `comment` when both are set. |
 | `stateInit` | <code><a href="#base64string">Base64String</a></code> | Initial state for deploying a new contract, encoded as Base64. |
 
@@ -4036,7 +4035,7 @@ Parameters accepted by [`getTransactionStatus`](#gettransactionstatus) — must 
 
 ```ts
 type GetTransactionStatusParameters = {
-    /** Network to check the transaction on. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
+    /** Network to check the transaction on. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
     network?: Network;
 } & (
     | {
@@ -4174,7 +4173,7 @@ Options for [`watchTransactionsByAddress`](#watchtransactionsbyaddress).
 | --- | --- | --- |
 | `address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a> \| Address</code> | Address to watch — pass a [`UserFriendlyAddress`](#userfriendlyaddress) string or an `Address` instance from `@ton/core`. |
 | `onChange`\* | <code>(update: <a href="#transactionsupdate">TransactionsUpdate</a>) =&gt; void</code> | Callback fired on every transactions update from the streaming provider. |
-| `network` | <code><a href="#network">Network</a></code> | Network to watch on. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
+| `network` | <code><a href="#network">Network</a></code> | Network to watch on. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. |
 
 #### WatchTransactionsByAddressReturnType
 
@@ -4225,7 +4224,7 @@ Parameters accepted by [`setSelectedWalletId`](#setselectedwalletid).
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `walletId`\* | `string \| null` | Wallet ID (as returned by [`WalletInterface`](#walletinterface)'s `getWalletId()`) to select; pass `null` to clear the selection. |
+| `walletId`\* | `string \| null` | Wallet ID (as returned by [`WalletInterface`](#walletinterface)'s `getWalletId()`) to select. Pass `null` to clear the selection. |
 
 #### SetSelectedWalletIdReturnType
 
@@ -4247,7 +4246,7 @@ Configuration accepted by [`TonConnectWalletAdapter`](#tonconnectwalletadapter) 
 
 #### WalletInterface
 
-Wallet contract surfaced by every [`Connector`](#connector) — covers identity (address, public key, network) and signing operations; reads (balance, jettons, NFTs) go through AppKit actions instead.
+Wallet contract surfaced by every [`Connector`](#connector) — covers identity (address, public key, network) and signing operations. Reads (balance, jettons, NFTs) go through AppKit actions instead.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -4297,7 +4296,7 @@ type WatchSelectedWalletReturnType = () => void;
 
 #### CONNECTOR_EVENTS
 
-Event names AppKit emits for connector-list and connector-wallet changes; payloads are [`ConnectorAddedPayload`](#connectoraddedpayload), [`ConnectorRemovedPayload`](#connectorremovedpayload) and [`ConnectorWalletsUpdatedPayload`](#connectorwalletsupdatedpayload).
+Event names AppKit emits for connector-list and connector-wallet changes. Payloads are [`ConnectorAddedPayload`](#connectoraddedpayload), [`ConnectorRemovedPayload`](#connectorremovedpayload) and [`ConnectorWalletsUpdatedPayload`](#connectorwalletsupdatedpayload).
 
 ```ts
 const CONNECTOR_EVENTS = {
@@ -4312,7 +4311,7 @@ const CONNECTOR_EVENTS = {
 
 #### TONCONNECT_DEFAULT_CONNECTOR_ID
 
-Default id assigned to the TonConnect connector when none is supplied to [`createTonConnectConnector`](#createtonconnectconnector); pass this to [`connect`](#connect) / [`disconnect`](#disconnect) to drive the TonConnect flow without hard-coding the literal.
+Default id assigned to the TonConnect connector when none is supplied to [`createTonConnectConnector`](#createtonconnectconnector). Pass this to [`connect`](#connect) / [`disconnect`](#disconnect) to drive the TonConnect flow without hard-coding the literal.
 
 ```ts
 const TONCONNECT_DEFAULT_CONNECTOR_ID = 'tonconnect';
@@ -4322,7 +4321,7 @@ const TONCONNECT_DEFAULT_CONNECTOR_ID = 'tonconnect';
 
 #### NETWORKS_EVENTS
 
-Event names AppKit emits on network changes; `DEFAULT_CHANGED` carries a [`DefaultNetworkChangedPayload`](#defaultnetworkchangedpayload).
+Event names AppKit emits on network changes. `DEFAULT_CHANGED` carries a [`DefaultNetworkChangedPayload`](#defaultnetworkchangedpayload).
 
 ```ts
 const NETWORKS_EVENTS = {

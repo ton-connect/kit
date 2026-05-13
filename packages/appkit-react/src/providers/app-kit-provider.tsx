@@ -23,7 +23,7 @@ export const AppKitContext = createContext<AppKit | undefined>(undefined);
  * @section Providers
  */
 export interface AppKitProviderProps extends PropsWithChildren {
-    /** Runtime instance constructed at app startup; shared across every appkit-react hook and component. */
+    /** Runtime instance constructed at app startup. Shared across every appkit-react hook and component. */
     appKit: AppKit;
 }
 

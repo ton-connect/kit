@@ -22,7 +22,7 @@ import { resolveNetwork } from '../../utils/network/resolve-network';
 export interface GetJettonInfoOptions {
     /** Jetton master contract address whose metadata is being fetched. */
     address: UserFriendlyAddress;
-    /** Network to query. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
+    /** Network to query. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
     network?: Network;
 }
 
@@ -36,7 +36,7 @@ export interface GetJettonInfoOptions {
 export type GetJettonInfoReturnType = JettonInfo | null;
 
 /**
- * Fetch token metadata for a jetton master — name, symbol, decimals, image and description as reported by the indexer; returns `null` when the indexer has no record for that master address.
+ * Fetch token metadata for a jetton master — name, symbol, decimals, image and description as reported by the indexer. Returns `null` when the indexer has no record for that master address.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param options - {@link GetJettonInfoOptions} Jetton master address and optional network override.

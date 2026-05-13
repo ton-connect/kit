@@ -30,7 +30,7 @@ export type DisconnectParameters = {
 export type DisconnectReturnType = void;
 
 /**
- * Tear down the session on a registered connector — disconnects the wallet currently connected through it, if any; throws when no connector with that id exists.
+ * Tear down the session on a registered connector — disconnects the wallet currently connected through it, if any. Throws when no connector with that id exists.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param parameters - {@link DisconnectParameters} Connector to disconnect.

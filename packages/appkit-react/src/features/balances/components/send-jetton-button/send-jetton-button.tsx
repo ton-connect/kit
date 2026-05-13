@@ -24,7 +24,7 @@ import { Send } from '../../../transaction';
 export interface SendJettonButtonProps extends Omit<SendProps, 'request'> {
     /** Recipient address. */
     recipientAddress: string;
-    /** Amount in jetton units as a human-readable decimal string; converted to raw smallest units via `jetton.decimals`. */
+    /** Amount in jetton units as a human-readable decimal string. Converted to raw smallest units via `jetton.decimals`. */
     amount: string;
     /** Jetton master metadata — `address` (master contract), `symbol` (rendered in the button label) and `decimals` (used to format `amount`). */
     jetton: {
@@ -37,7 +37,7 @@ export interface SendJettonButtonProps extends Omit<SendProps, 'request'> {
 }
 
 /**
- * Pre-wired button that builds a jetton transfer with {@link appkit:createTransferJettonTransaction} and dispatches it through the standard `Send` flow on click — disabled until `recipientAddress`, `amount`, `jetton.address` and a non-zero `jetton.decimals` are all set; throws inside the click handler when `jetton.address` is missing or `jetton.decimals` is falsy. (A `0`-decimal jetton must be passed as a truthy value to avoid being treated as missing.)
+ * Pre-wired button that builds a jetton transfer with {@link appkit:createTransferJettonTransaction} and dispatches it through the standard `Send` flow on click — disabled until `recipientAddress`, `amount`, `jetton.address` and a non-zero `jetton.decimals` are all set. Throws inside the click handler when `jetton.address` is missing or `jetton.decimals` is falsy. (A `0`-decimal jetton must be passed as a truthy value to avoid being treated as missing.)
  *
  * @sample docs/examples/src/appkit/components/balances#SEND_JETTON_BUTTON
  *

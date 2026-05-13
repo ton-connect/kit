@@ -35,7 +35,7 @@ interface OmnistonSwapProviderConfig {
 }
 ```
 
-**Omniston-specific quote options:** `maxOutgoingMessages` (max messages per tx; default 1). Extract from wallet features via `getMaxOutgoingMessages()`. See [Swap README](../README.md) for base parameters.
+**Omniston-specific quote options:** `maxOutgoingMessages` (max messages per tx, default 1). Extract from wallet features via `getMaxOutgoingMessages()`. See [Swap README](../README.md) for base parameters.
 
 ### Usage Example
 

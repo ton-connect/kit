@@ -27,7 +27,7 @@ import type { AppKitEmitter, AppKitEvents } from '../types/events';
 import type { AppKitConfig } from '../types/config';
 
 /**
- * Runtime that wires connectors, networks, providers and the event emitter for a TON dApp; construct once at startup and reuse for the app's lifetime.
+ * Runtime that wires connectors, networks, providers and the event emitter for a TON dApp. Construct once at startup and reuse for the app's lifetime.
  *
  * @sample docs/examples/src/appkit#APPKIT_INIT
  *

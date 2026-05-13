@@ -7,7 +7,7 @@
  */
 
 /**
- * Default id assigned to the TonConnect connector when none is supplied to {@link createTonConnectConnector}; pass this to {@link connect} / {@link disconnect} to drive the TonConnect flow without hard-coding the literal.
+ * Default id assigned to the TonConnect connector when none is supplied to {@link createTonConnectConnector}. Pass this to {@link connect} / {@link disconnect} to drive the TonConnect flow without hard-coding the literal.
  *
  * @public
  * @category Constants

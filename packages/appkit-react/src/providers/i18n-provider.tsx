@@ -24,7 +24,7 @@ export interface I18nContextType {
     activeLocale: string;
     /** Translation function — accepts a key plus interpolation values and returns the localized string. */
     t: I18n['t'];
-    /** Switch to a new locale; pass an optional `dict` to install translations alongside the switch. */
+    /** Switch to a new locale. Pass an optional `dict` to install translations alongside the switch. */
     locale: (lang: string, dict?: Dict) => void;
     /** Merge a translation dictionary for `lang` without changing the active locale. */
     addDict: (lang: string, dict: Dict) => void;
@@ -40,9 +40,9 @@ export const I18nContext = createContext<I18nContextType | null>(null);
  * @section Providers
  */
 export interface I18nProviderProps extends PropsWithChildren {
-    /** Initial locale code; defaults to the i18n library's default when omitted. */
+    /** Initial locale code. Defaults to the i18n library's default when omitted. */
     locale?: string;
-    /** Translation dictionaries keyed by locale; loaded into the underlying i18n instance on mount. */
+    /** Translation dictionaries keyed by locale. Loaded into the underlying i18n instance on mount. */
     lngDicts?: Record<string, Dict>;
 }
 

@@ -7,7 +7,7 @@
  */
 
 /**
- * Event names AppKit emits for connector-list and connector-wallet changes; payloads are {@link ConnectorAddedPayload}, {@link ConnectorRemovedPayload} and {@link ConnectorWalletsUpdatedPayload}.
+ * Event names AppKit emits for connector-list and connector-wallet changes. Payloads are {@link ConnectorAddedPayload}, {@link ConnectorRemovedPayload} and {@link ConnectorWalletsUpdatedPayload}.
  *
  * @public
  * @category Constants
@@ -35,7 +35,7 @@ export const WALLETS_EVENTS = {
 } as const;
 
 /**
- * Event names AppKit emits on network changes; `DEFAULT_CHANGED` carries a {@link DefaultNetworkChangedPayload}.
+ * Event names AppKit emits on network changes. `DEFAULT_CHANGED` carries a {@link DefaultNetworkChangedPayload}.
  *
  * @public
  * @category Constants

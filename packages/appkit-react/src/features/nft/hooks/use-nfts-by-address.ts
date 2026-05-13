@@ -17,7 +17,7 @@ import { useNetwork } from '../../network';
 /**
  * Parameters accepted by {@link useNftsByAddress} — TanStack Query options (`select`, `enabled`, `staleTime`, …) plus the owner address, optional pagination (`limit`, `offset`) and network override.
  *
- * The `network` field defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
+ * The `network` field defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
  *
  * @public
  * @category Type

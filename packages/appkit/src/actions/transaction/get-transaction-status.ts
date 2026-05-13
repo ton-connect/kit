@@ -20,7 +20,7 @@ import { resolveNetwork } from '../../utils/network/resolve-network';
  * @section Transactions
  */
 export type GetTransactionStatusParameters = {
-    /** Network to check the transaction on. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
+    /** Network to check the transaction on. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
     network?: Network;
 } & (
     | {
@@ -47,7 +47,7 @@ export type GetTransactionStatusReturnType = TransactionStatusResponse;
 export type GetTransactionStatusErrorType = Error;
 
 /**
- * Read the status of a sent transaction by its BoC or normalized hash. In TON a single external message triggers a tree of internal messages — the transaction is `'completed'` only when the entire trace finishes; until then it stays `'pending'`. Throws when neither `boc` nor `normalizedHash` is provided.
+ * Read the status of a sent transaction by its BoC or normalized hash. In TON a single external message triggers a tree of internal messages — the transaction is `'completed'` only when the entire trace finishes. Until then it stays `'pending'`. Throws when neither `boc` nor `normalizedHash` is provided.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param parameters - {@link GetTransactionStatusParameters} `boc` xor `normalizedHash` and optional network override.

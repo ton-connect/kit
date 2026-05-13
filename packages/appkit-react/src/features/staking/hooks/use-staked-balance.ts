@@ -36,7 +36,7 @@ export type UseStakedBalanceReturnType<selectData = GetStakedBalanceData> = UseQ
 >;
 
 /**
- * React hook reading a user's staked balance from a staking provider through TanStack Query — total staked plus, depending on the provider, any instant-unstake balance available right now. Defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
+ * React hook reading a user's staked balance from a staking provider through TanStack Query — total staked plus, depending on the provider, any instant-unstake balance available right now. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
  *
  * @param parameters - {@link UseStakedBalanceParameters} Owner address, optional `providerId`, optional network override, and TanStack Query overrides.
  * @returns TanStack Query result for the staked-balance read.

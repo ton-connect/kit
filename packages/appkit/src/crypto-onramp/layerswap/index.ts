@@ -7,7 +7,7 @@
  */
 
 /**
- * {@link CryptoOnrampProvider} implementation backed by Layerswap. Use {@link createLayerswapProvider} to register it on AppKit; quote, deposit and status calls go through {@link getCryptoOnrampQuote} / {@link createCryptoOnrampDeposit} / {@link getCryptoOnrampStatus} like any other crypto-onramp provider.
+ * {@link CryptoOnrampProvider} implementation backed by Layerswap. Use {@link createLayerswapProvider} to register it on AppKit. Quote, deposit and status calls go through {@link getCryptoOnrampQuote} / {@link createCryptoOnrampDeposit} / {@link getCryptoOnrampStatus} like any other crypto-onramp provider.
  *
  * @extract
  * @public
@@ -17,7 +17,7 @@
 export { LayerswapCryptoOnrampProvider } from '@ton/walletkit/crypto-onramp/layerswap';
 
 /**
- * Build a Layerswap-backed {@link CryptoOnrampProvider} for AppKit; pass the result to {@link AppKitConfig}'s `providers` or {@link registerProvider}.
+ * Build a Layerswap-backed {@link CryptoOnrampProvider} for AppKit. Pass the result to {@link AppKitConfig}'s `providers` or {@link registerProvider}.
  *
  * @extract
  * @public
