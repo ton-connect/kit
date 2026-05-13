@@ -53,7 +53,7 @@ export interface EmbeddedSendTransactionRequestEvent extends SendTransactionRequ
     type: 'sendTransaction';
 
     /**
-     * @frozen
+     * @format frozen
      */
     connectionResult: EmbeddedConnectionResult;
 }
@@ -62,7 +62,7 @@ export interface EmbeddedSignMessageRequestEvent extends SignMessageRequestEvent
     type: 'signMessage';
 
     /**
-     * @frozen
+     * @format frozen
      */
     connectionResult: EmbeddedConnectionResult;
 }
@@ -71,7 +71,7 @@ export interface EmbeddedSignDataRequestEvent extends SignDataRequestEvent {
     type: 'signData';
 
     /**
-     * @frozen
+     * @format frozen
      */
     connectionResult: EmbeddedConnectionResult;
 }

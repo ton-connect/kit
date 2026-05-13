@@ -154,26 +154,6 @@ export class JettonsManager implements JettonsAPI {
         }
     }
 
-    // async getJettonMasterAddress(jettonWalletAddress: string, network: Network): Promise<UserFriendlyAddress | null> {
-    //     const targetNetwork = network;
-
-    //     if (isTonAddress(jettonWalletAddress)) {
-    //         return null;
-    //     }
-
-    //     try {
-    //         const cacheKey = this.normalizedCacheKey(targetNetwork, jettonWalletAddress);
-    //         const cachedInfo = this.cache.get(cacheKey);
-
-    //         if (cachedInfo) {
-    //             return cachedInfo.address;
-    //         }
-    //     } catch (error) {
-    //         log.error('Error getting jetton master address', { error, jettonWalletAddress, network: targetNetwork });
-    //         return null;
-    //     }
-    // }
-
     /**
      * Get jettons for a specific address on a specific network
      * @param userAddress - The user's wallet address

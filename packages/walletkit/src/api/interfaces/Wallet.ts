@@ -22,9 +22,9 @@ import type {
     NFT,
     NFTTransferRequest,
     NFTRawTransferRequest,
+    TransactionPreviewOptions,
 } from '../models';
 import type { WalletAdapter } from './WalletAdapter';
-import type { TransactionPreviewOptions } from '../../utils';
 
 export type Wallet = WalletAdapter &
     WalletTonInterface &

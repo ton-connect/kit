@@ -11,7 +11,7 @@ import { beginCell, Cell, loadMessageRelaxed, storeMessageRelaxed } from '@ton/c
 
 import { toTransactionEmulatedTrace } from '../clients/toncenter/mappers/map-emulation-trace';
 import { computeMoneyFlow } from './computeMoneyFlow';
-import type { Base64String, EmulationResponse } from '../api/models';
+import type { Base64String, EmulationResponse, TransactionPreviewMode, TransactionPreviewOptions } from '../api/models';
 import { ERROR_CODES } from '../errors/codes';
 import { CallForSuccess } from './retry';
 import type { TransactionEmulatedPreview, TransactionRequest } from '../api/models';
@@ -23,15 +23,7 @@ import { globalLogger } from '../core/Logger';
 
 const log = globalLogger.createChild('TransactionPreview');
 
-export type TransactionPreviewMode = 'send' | 'sign';
-
 const SIGN_MODE_EMULATION_VALUE = 2_000_000_000n;
-
-export interface TransactionPreviewOptions {
-    // 'send' emulates the external message as-is; 'sign' emulates the internal body
-    mode?: TransactionPreviewMode;
-    relayGas?: bigint; // gas amount to inject for gasless relaying, by default 2 TON
-}
 
 export async function createTransactionPreview(
     client: ApiClient,
