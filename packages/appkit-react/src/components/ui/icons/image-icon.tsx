@@ -13,10 +13,6 @@ import type { IconProps } from './types';
 
 /**
  * Image / picture placeholder icon — used as a fallback for missing media.
- *
- * @public
- * @category Component
- * @section UI
  */
 export const ImageIcon: FC<IconProps> = ({ size = DEFAULT_ICON_SIZE, ...props }) => (
     <svg

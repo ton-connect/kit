@@ -13,10 +13,6 @@ import type { IconProps } from './types';
 
 /**
  * Verified badge icon — scalloped seal with an inner checkmark.
- *
- * @public
- * @category Component
- * @section UI
  */
 export const VerifiedIcon: FC<IconProps> = ({ size = DEFAULT_ICON_SIZE, ...props }) => (
     <svg

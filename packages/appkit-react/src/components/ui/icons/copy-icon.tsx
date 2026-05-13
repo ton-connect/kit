@@ -13,10 +13,6 @@ import type { IconProps } from './types';
 
 /**
  * Copy icon — two overlapping rectangles indicating clipboard copy.
- *
- * @public
- * @category Component
- * @section UI
  */
 export const CopyIcon: FC<IconProps> = ({ size = DEFAULT_ICON_SIZE, ...props }) => (
     <svg

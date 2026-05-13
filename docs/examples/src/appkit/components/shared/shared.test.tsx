@@ -20,6 +20,7 @@ import { CopyButtonExample } from './copy-button';
 import { SettingsButtonExample } from './settings-button';
 import { AmountPresetsExample } from './amount-presets';
 import { OptionSwitcherExample } from './option-switcher';
+import { CurrencyItemExample } from './currency-item';
 
 describe('Shared Component Examples', () => {
     let mockAppKit: any;
@@ -71,5 +72,11 @@ describe('Shared Component Examples', () => {
     it('OptionSwitcherExample renders the active option label', () => {
         render(<OptionSwitcherExample />);
         expect(screen.getByText(/All tokens/)).toBeDefined();
+    });
+
+    it('CurrencyItemExample renders the token name and ticker', () => {
+        render(<CurrencyItemExample />);
+        expect(screen.getByText('Tether USD')).toBeDefined();
+        expect(screen.getByText(/USDT/)).toBeDefined();
     });
 });

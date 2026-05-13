@@ -30,20 +30,7 @@ const log = globalLogger.createChild('OmnistonSwapProvider');
  * Uses the Omniston SDK to get quotes and build swap transactions
  * across multiple DEXs on TON blockchain.
  *
- * @example
- * ```typescript
- * // Import from a separate entry point to avoid bundling the Omniston SDK
- * import { createOmnistonProvider } from '@ton/walletkit/swap/omniston';
- *
- * kit.swap.registerProvider(
- *     createOmnistonProvider({
- *         apiUrl: 'wss://omni-ws.ston.fi',
- *         defaultSlippageBps: 100, // 1%
- *         referrerAddress: 'EQ...',
- *         referrerFeeBps: 10, // 0.1%
- *     }),
- * );
- * ```
+ * @sample docs/examples/src/appkit/swap#OMNISTON_QUICK_START
  */
 export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> {
     private readonly apiUrl: string;

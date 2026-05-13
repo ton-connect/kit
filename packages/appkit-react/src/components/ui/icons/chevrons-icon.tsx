@@ -13,10 +13,6 @@ import type { IconProps } from './types';
 
 /**
  * Stacked up/down chevrons icon — used to signal select/dropdown affordance.
- *
- * @public
- * @category Component
- * @section UI
  */
 export const ChevronsIcon: FC<IconProps> = ({ size = DEFAULT_ICON_SIZE, ...props }) => (
     <svg

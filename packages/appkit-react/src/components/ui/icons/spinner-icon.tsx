@@ -13,10 +13,6 @@ import type { IconProps } from './types';
 
 /**
  * Loading spinner icon — a three-quarter circle stroke. Animation must be applied via CSS by the caller.
- *
- * @public
- * @category Component
- * @section UI
  */
 export const SpinnerIcon: FC<IconProps> = ({ size = DEFAULT_ICON_SIZE, ...props }) => (
     <svg

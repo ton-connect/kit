@@ -26,6 +26,8 @@ export interface CollapsibleProps extends ComponentProps<'div'> {
 /**
  * Animated collapsible container — transitions its height between `0` and the content's natural height when `open` toggles. Sets `aria-hidden` to mirror the open state.
  *
+ * @sample docs/examples/src/appkit/components/ui#COLLAPSIBLE
+ *
  * @public
  * @category Component
  * @section UI

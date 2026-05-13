@@ -53,6 +53,8 @@ export interface SwapFieldProps extends Omit<ComponentProps<typeof Input.Contain
 /**
  * One row of the swap form. Renders the amount input, fiat conversion, balance line, and a token-selector chip. The `pay` variant is editable and exposes a "max" shortcut; the `receive` variant is read-only and shows the quote result.
  *
+ * @sample docs/examples/src/appkit/components/swap#SWAP_FIELD
+ *
  * @public
  * @category Component
  * @section Swap

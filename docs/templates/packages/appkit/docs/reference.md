@@ -79,20 +79,6 @@ Abstract base class implemented by crypto-onramp providers (Layerswap, swaps.xyz
 
 Constructor: `new CryptoOnrampProvider()`
 
-**Example**
-
-```typescript
-class MyCryptoOnrampProvider extends CryptoOnrampProvider {
-  async getQuote(params: CryptoOnrampQuoteParams): Promise<CryptoOnrampQuote> {
-    // Implementation
-  }
-
-  async createDeposit(params: CryptoOnrampDepositParams): Promise<CryptoOnrampDeposit> {
-    // Implementation
-  }
-}
-```
-
 #### LayerswapCryptoOnrampProvider
 
 [`CryptoOnrampProvider`](#cryptoonrampprovider) implementation backed by Layerswap. Use [`createLayerswapProvider`](#createlayerswapprovider) to register it on AppKit; quote, deposit and status calls go through [`getCryptoOnrampQuote`](#getcryptoonrampquote) / [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit) / [`getCryptoOnrampStatus`](#getcryptoonrampstatus) like any other crypto-onramp provider.
@@ -204,17 +190,7 @@ Constructor: `new DeDustSwapProvider(config)`
 
 **Example**
 
-```typescript
-import { createDeDustProvider } from '@ton/walletkit/swap/dedust';
-
-kit.swap.registerProvider(
-    createDeDustProvider({
-        defaultSlippageBps: 100, // 1%
-        referralAddress: 'EQ...',
-        referralFeeBps: 50, // 0.5%
-    }),
-);
-```
+%%docs/examples/src/appkit/swap#DEDUST_QUICK_START%%
 
 #### OmnistonSwapProvider
 
@@ -228,19 +204,7 @@ Constructor: `new OmnistonSwapProvider(config)`
 
 **Example**
 
-```typescript
-// Import from a separate entry point to avoid bundling the Omniston SDK
-import { createOmnistonProvider } from '@ton/walletkit/swap/omniston';
-
-kit.swap.registerProvider(
-    createOmnistonProvider({
-        apiUrl: 'wss://omni-ws.ston.fi',
-        defaultSlippageBps: 100, // 1%
-        referrerAddress: 'EQ...',
-        referrerFeeBps: 10, // 0.1%
-    }),
-);
-```
+%%docs/examples/src/appkit/swap#OMNISTON_QUICK_START%%
 
 #### SwapError
 
@@ -269,20 +233,6 @@ Constructor: `new SwapManager(createFactoryContext)`
 Abstract base class implemented by swap providers (DeDust, Omniston, custom integrations); apps don't use it directly — they consume providers through [`SwapManager`](#swapmanager) and the `getSwap*` / `buildSwapTransaction` actions.
 
 Constructor: `new SwapProvider()`
-
-**Example**
-
-```typescript
-class MySwapProvider extends SwapProvider {
-  async getQuote(params: SwapQuoteParams): Promise<SwapQuote> {
-    // Implementation
-  }
-
-  async buildSwapTransaction(params: SwapParams): Promise<TransactionRequest> {
-    // Implementation
-  }
-}
-```
 
 ### Wallets
 

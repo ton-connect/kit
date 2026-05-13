@@ -47,6 +47,8 @@ export interface StakingBalanceBlockProps extends ComponentProps<'div'> {
 /**
  * Row showing the user's relevant balance for the current direction: wallet balance of the stake token when staking, staked balance when unstaking. Renders a token icon (native TON when the token address is `'ton'`, otherwise a jetton icon resolved via {@link useJettonInfo}), a label, the formatted amount with ticker, and an optional `MAX` button.
  *
+ * @sample docs/examples/src/appkit/components/staking#STAKING_BALANCE_BLOCK
+ *
  * @public
  * @category Component
  * @section Staking
@@ -73,16 +75,27 @@ export const StakingBalanceBlock: FC<StakingBalanceBlockProps> = ({
 
     const { t } = useI18n();
 
+    // Token icon, ticker and decimals all come from `providerMetadata`. Until it
+    // resolves, render the row as a loading skeleton instead of a broken icon
+    // and a ticker-less zero.
+    const isMetadataReady = providerMetadata !== undefined;
     const displayBalance = direction === 'stake' ? balance : stakedBalance;
     const isDisplayLoading = direction === 'stake' ? isBalanceLoading : isStakedBalanceLoading;
     const ticker = direction === 'stake' ? providerMetadata?.stakeToken.ticker : providerMetadata?.receiveToken?.ticker;
     const decimals =
         direction === 'stake' ? providerMetadata?.stakeToken.decimals : providerMetadata?.receiveToken?.decimals;
+    const showValueSkeleton = !isMetadataReady || isDisplayLoading;
 
     return (
         <div className={clsx(styles.container, className)} {...props}>
             <div className={styles.iconContainer}>
-                {isNativeTon ? <TonIconCircle size={36} /> : <Logo size={36} src={jettonInfo?.image} />}
+                {!isMetadataReady ? (
+                    <Skeleton width={36} height={36} />
+                ) : isNativeTon ? (
+                    <TonIconCircle size={36} />
+                ) : (
+                    <Logo size={36} src={jettonInfo?.image} />
+                )}
             </div>
 
             <div className={styles.info}>
@@ -90,7 +103,7 @@ export const StakingBalanceBlock: FC<StakingBalanceBlockProps> = ({
                     {direction === 'stake' ? t('staking.yourBalance') : t('staking.stakedBalance')}
                 </div>
                 <div className={styles.value}>
-                    {isDisplayLoading ? (
+                    {showValueSkeleton ? (
                         <Skeleton className={styles.skeleton} />
                     ) : (
                         <span>
@@ -101,7 +114,7 @@ export const StakingBalanceBlock: FC<StakingBalanceBlockProps> = ({
                 </div>
             </div>
 
-            {onMaxClick && (
+            {onMaxClick && isMetadataReady && (
                 <Button size="s" variant="secondary" className={styles.maxButton} onClick={onMaxClick}>
                     {t('staking.max')}
                 </Button>

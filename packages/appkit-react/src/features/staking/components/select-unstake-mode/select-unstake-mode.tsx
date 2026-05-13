@@ -45,6 +45,8 @@ interface ModeOption {
 /**
  * Collapsible selector for the unstake mode (instant / round-end / when-available). Filters options by `providerMetadata.supportedUnstakeModes` and renders nothing when only one mode is supported. Annotates the instant option with the provider's current instant-unstake limit.
  *
+ * @sample docs/examples/src/appkit/components/staking#SELECT_UNSTAKE_MODE
+ *
  * @public
  * @category Component
  * @section Staking

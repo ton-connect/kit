@@ -26,6 +26,8 @@ export interface BlockProps extends ComponentProps<'div'> {
 /**
  * Flex container primitive — renders a `<div>` that lays its children out vertically (`'column'`) or horizontally (`'row'`).
  *
+ * @sample docs/examples/src/appkit/components/ui#BLOCK
+ *
  * @public
  * @category Component
  * @section UI

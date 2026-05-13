@@ -8,7 +8,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { render, cleanup } from '@testing-library/react';
+import { render, cleanup, screen } from '@testing-library/react';
 import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import { Network } from '@ton/walletkit';
 
@@ -44,8 +44,12 @@ describe('Crypto Onramp Component Examples', () => {
 
     afterEach(() => cleanup());
 
-    it('CryptoOnrampWidgetExample renders without crashing', () => {
-        const { container } = render(<CryptoOnrampWidgetExample />, { wrapper: createWrapper(mockAppKit) });
-        expect(container).toBeDefined();
+    // Confirms the SAMPLE comment: with no `tokens` / `paymentMethods` props, the
+    // widget surfaces its built-in TON target token (and renders without crashing).
+    it('CryptoOnrampWidgetExample falls back to built-in defaults when no tokens are supplied', () => {
+        render(<CryptoOnrampWidgetExample />, { wrapper: createWrapper(mockAppKit) });
+        // `defaultTokenId="ton"` picks the built-in TON entry from `CRYPTO_ONRAMP_TARGET_TOKENS`.
+        // Multiple `TON` matches can appear (token ticker + chain name); at least one must.
+        expect(screen.getAllByText(/\bTON\b/).length).toBeGreaterThan(0);
     });
 });

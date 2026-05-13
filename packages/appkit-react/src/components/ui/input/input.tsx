@@ -231,6 +231,8 @@ const Caption: FC<ComponentProps<'span'>> = ({ className, children, ...props }) 
 /**
  * Compound text-input component. Use the default export as the outer wrapper (it is the {@link Input.Container}) and compose sub-components for the header, field, slots, control, and caption. State flags (`disabled`, `error`, `loading`, `resizable`, `size`) live on the container and are read by the inner control via context.
  *
+ * @sample docs/examples/src/appkit/components/ui#INPUT
+ *
  * @public
  * @category Component
  * @section UI

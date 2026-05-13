@@ -87,6 +87,8 @@ const RADIUS_CLASS: Record<ButtonBorderRadius, string> = {
 /**
  * Themed `<button>` with size, border-radius, and variant tokens. Renders an optional leading `icon`, swaps content for a spinner while `loading`, and is disabled whenever `disabled` or `loading` is true.
  *
+ * @sample docs/examples/src/appkit/components/ui#BUTTON
+ *
  * @public
  * @category Component
  * @section UI

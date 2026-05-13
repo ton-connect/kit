@@ -37,6 +37,8 @@ export interface SwapInfoProps extends ComponentProps<typeof InfoBlock.Container
 /**
  * Summary block rendered under the swap form. Shows the minimum amount the user is guaranteed to receive after slippage, the configured slippage tolerance, and the active {@link appkit:SwapProvider}.
  *
+ * @sample docs/examples/src/appkit/components/swap#SWAP_INFO
+ *
  * @public
  * @category Component
  * @section Swap

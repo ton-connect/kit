@@ -139,6 +139,8 @@ const CurrencyItemRoot: FC<CurrencyItemProps> = ({
 /**
  * Compound row used inside currency/token select lists: shows a token logo, name + ticker, optional verified badge, and an optional balance / under-balance on the right. Pass top-level props for the default layout, or pass `children` made of the sub-components for full control.
  *
+ * @sample docs/examples/src/appkit/components/shared#CURRENCY_ITEM
+ *
  * @public
  * @category Component
  * @section Shared

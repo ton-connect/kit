@@ -39,6 +39,8 @@ export interface CenteredAmountInputProps extends ComponentProps<'div'> {
 /**
  * Center-aligned, auto-resizing amount input with optional leading symbol and trailing ticker. Scales the font down to fit the container when the rendered text overflows, and clicking the wrapper focuses the input.
  *
+ * @sample docs/examples/src/appkit/components/ui#CENTERED_AMOUNT_INPUT
+ *
  * @public
  * @category Component
  * @section UI

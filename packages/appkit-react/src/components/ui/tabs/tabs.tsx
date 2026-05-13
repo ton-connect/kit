@@ -43,6 +43,8 @@ export interface TabsProps extends ComponentProps<'div'> {
 /**
  * Root tabs container — owns the active value (controlled or uncontrolled) and shares it with descendant {@link TabsList}, {@link TabsTrigger}, and {@link TabsContent} via context.
  *
+ * @sample docs/examples/src/appkit/components/ui#TABS
+ *
  * @public
  * @category Component
  * @section UI

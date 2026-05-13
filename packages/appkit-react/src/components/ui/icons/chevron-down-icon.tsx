@@ -13,10 +13,6 @@ import type { IconProps } from './types';
 
 /**
  * Downward-pointing chevron icon — typically used to indicate expandable content.
- *
- * @public
- * @category Component
- * @section UI
  */
 export const ChevronDownIcon: FC<IconProps> = ({ size = DEFAULT_ICON_SIZE, ...props }) => (
     <svg

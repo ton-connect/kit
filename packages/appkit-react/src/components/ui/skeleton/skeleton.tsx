@@ -29,6 +29,8 @@ export interface SkeletonProps extends ComponentProps<'div'> {
 /**
  * Animated placeholder block used while data is loading. Supply `width` / `height` to match the dimensions of the eventual content.
  *
+ * @sample docs/examples/src/appkit/components/ui#SKELETON
+ *
  * @public
  * @category Component
  * @section UI

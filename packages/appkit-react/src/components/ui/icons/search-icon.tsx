@@ -13,10 +13,6 @@ import type { IconProps } from './types';
 
 /**
  * Magnifying-glass search icon.
- *
- * @public
- * @category Component
- * @section UI
  */
 export const SearchIcon: FC<IconProps> = ({ size = DEFAULT_ICON_SIZE, ...props }) => (
     <svg

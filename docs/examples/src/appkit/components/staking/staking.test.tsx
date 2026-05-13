@@ -14,6 +14,9 @@ import { Network } from '@ton/walletkit';
 
 import { createWrapper } from '../../../__tests__/test-utils';
 import { StakingWidgetExample } from './staking-widget';
+import { SelectUnstakeModeExample } from './select-unstake-mode';
+import { StakingSettingsModalExample } from './staking-settings-modal';
+import { StakingBalanceBlockExample } from './staking-balance-block';
 
 describe('Staking Component Examples', () => {
     let mockAppKit: any;
@@ -46,6 +49,21 @@ describe('Staking Component Examples', () => {
 
     it('StakingWidgetExample renders without crashing', () => {
         const { container } = render(<StakingWidgetExample />, { wrapper: createWrapper(mockAppKit) });
+        expect(container).toBeDefined();
+    });
+
+    it('SelectUnstakeModeExample renders without crashing', () => {
+        const { container } = render(<SelectUnstakeModeExample />, { wrapper: createWrapper(mockAppKit) });
+        expect(container).toBeDefined();
+    });
+
+    it('StakingSettingsModalExample renders without crashing', () => {
+        const { container } = render(<StakingSettingsModalExample />, { wrapper: createWrapper(mockAppKit) });
+        expect(container).toBeDefined();
+    });
+
+    it('StakingBalanceBlockExample renders without crashing', () => {
+        const { container } = render(<StakingBalanceBlockExample />, { wrapper: createWrapper(mockAppKit) });
         expect(container).toBeDefined();
     });
 });

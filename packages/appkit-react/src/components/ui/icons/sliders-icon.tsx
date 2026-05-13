@@ -13,10 +13,6 @@ import type { IconProps } from './types';
 
 /**
  * Sliders / settings icon — two horizontal tracks with adjustable handles.
- *
- * @public
- * @category Component
- * @section UI
  */
 export const SlidersIcon: FC<IconProps> = ({ size = DEFAULT_ICON_SIZE, ...props }) => (
     <svg

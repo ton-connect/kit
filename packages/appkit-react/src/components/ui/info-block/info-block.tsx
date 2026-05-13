@@ -40,6 +40,8 @@ const ValueSkeleton: FC<SkeletonProps> = ({ width = 80, height = '1lh', ...props
 /**
  * Compound component for rendering a stacked list of label/value rows (e.g., transaction details, settings summaries). Sub-components forward extra props to the underlying DOM element so callers can layer custom classes and handlers.
  *
+ * @sample docs/examples/src/appkit/components/ui#INFO_BLOCK
+ *
  * @public
  * @category Component
  * @section UI

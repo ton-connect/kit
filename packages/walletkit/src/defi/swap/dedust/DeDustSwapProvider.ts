@@ -53,18 +53,7 @@ const DEFAULT_PROTOCOLS = [
  * Uses the DeDust Router API to get quotes and build swap transactions
  * with optimal routing across multiple pools and protocols.
  *
- * @example
- * ```typescript
- * import { createDeDustProvider } from '@ton/walletkit/swap/dedust';
- *
- * kit.swap.registerProvider(
- *     createDeDustProvider({
- *         defaultSlippageBps: 100, // 1%
- *         referralAddress: 'EQ...',
- *         referralFeeBps: 50, // 0.5%
- *     }),
- * );
- * ```
+ * @sample docs/examples/src/appkit/swap#DEDUST_QUICK_START
  */
 export class DeDustSwapProvider extends SwapProvider<DeDustProviderOptions, DeDustProviderOptions> {
     private readonly apiUrl: string;

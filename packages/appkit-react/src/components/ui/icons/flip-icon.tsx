@@ -13,10 +13,6 @@ import type { IconProps } from './types';
 
 /**
  * Flip / swap icon — two opposing arrows used for swap and direction-toggle actions.
- *
- * @public
- * @category Component
- * @section UI
  */
 export const FlipIcon: FC<IconProps> = ({ size = DEFAULT_ICON_SIZE, ...props }) => (
     <svg

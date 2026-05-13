@@ -13,10 +13,6 @@ import type { IconProps } from './types';
 
 /**
  * Checkmark icon — a single stroked tick.
- *
- * @public
- * @category Component
- * @section UI
  */
 export const CheckIcon: FC<IconProps> = ({ size = DEFAULT_ICON_SIZE, ...props }) => (
     <svg

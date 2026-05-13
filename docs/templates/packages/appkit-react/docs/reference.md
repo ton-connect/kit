@@ -946,6 +946,10 @@ Collapsible selector for the unstake mode (instant / round-end / when-available)
 | `providerInfo`\* | <code><a href="/ecosystem/appkit/reference/appkit#stakingproviderinfo">StakingProviderInfo</a> \| undefined</code> | Dynamic provider info — used to show the instant-unstake limit when available. |
 | `providerMetadata`\* | <code><a href="/ecosystem/appkit/reference/appkit#stakingprovidermetadata">StakingProviderMetadata</a> \| undefined</code> | Static provider metadata — supplies `supportedUnstakeModes` and stake-token formatting. |
 
+**Example**
+
+%%docs/examples/src/appkit/components/staking#SELECT_UNSTAKE_MODE%%
+
 #### StakingBalanceBlock
 
 Row showing the user's relevant balance for the current direction: wallet balance of the stake token when staking, staked balance when unstaking. Renders a token icon (native TON when the token address is `'ton'`, otherwise a jetton icon resolved via [`useJettonInfo`](#usejettoninfo)), a label, the formatted amount with ticker, and an optional `MAX` button.
@@ -959,6 +963,10 @@ Row showing the user's relevant balance for the current direction: wallet balanc
 | `balance` | `string` | User's wallet balance of the stake token, used when `direction === 'stake'`. |
 | `isBalanceLoading` | `boolean` | True while the wallet balance is being fetched. |
 | `onMaxClick` | `() => void` | When provided, renders a `MAX` button that invokes this callback. |
+
+**Example**
+
+%%docs/examples/src/appkit/components/staking#STAKING_BALANCE_BLOCK%%
 
 #### StakingInfo
 
@@ -985,6 +993,10 @@ Modal that lets the user pick the active staking provider. The selection is stag
 | `providers`\* | <code><a href="/ecosystem/appkit/reference/appkit#stakingprovider">StakingProvider</a>[]</code> | All registered staking providers to choose from. |
 | `onProviderChange`\* | `(providerId: string) => void` | Invoked with the chosen `providerId` when the user saves a different selection. |
 | `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network used to resolve each provider's display name via its metadata. |
+
+**Example**
+
+%%docs/examples/src/appkit/components/staking#STAKING_SETTINGS_MODAL%%
 
 #### StakingWidget
 
@@ -1071,6 +1083,10 @@ One row of the swap form. Renders the amount input, fiat conversion, balance lin
 | `error` | `boolean` | When true, the field renders in error styling and [`Input.Caption`](#input) switches to error text. |
 | `resizable` | `boolean` | When true, [`Input.Input`](#input) scales its font down to fit the available width as the user types. |
 
+**Example**
+
+%%docs/examples/src/appkit/components/swap#SWAP_FIELD%%
+
 #### SwapFlipButton
 
 Round button rendered between the source and target [`SwapField`](#swapfield) rows. Clicking it flips the selected tokens; visual rotation is driven by `rotated`.
@@ -1079,6 +1095,10 @@ Round button rendered between the source and target [`SwapField`](#swapfield) ro
 | --- | --- | --- |
 | `onClick` | `() => void` | Called when the user clicks the button. Wire this to a handler that swaps the source/target tokens (e.g. `onFlip` from the swap context). |
 | `rotated` | `boolean` | When true, the icon is drawn in its rotated state — used to animate between flips. |
+
+**Example**
+
+%%docs/examples/src/appkit/components/swap#SWAP_FLIP_BUTTON%%
 
 #### SwapInfo
 
@@ -1091,6 +1111,10 @@ Summary block rendered under the swap form. Shows the minimum amount the user is
 | `provider` | <code><a href="/ecosystem/appkit/reference/appkit#swapprovider">SwapProvider</a></code> | Current [`SwapProvider`](/ecosystem/appkit/reference/appkit#swapprovider); its display name is shown in the provider row. |
 | `quote` | <code><a href="/ecosystem/appkit/reference/appkit#swapquote">SwapQuote</a></code> | Quote whose `minReceived` value is displayed; when undefined the value falls back to `0` (still suffixed with the token symbol). |
 | `isQuoteLoading` | `boolean` | When true, the minimum-received value renders a skeleton placeholder instead of the formatted number. |
+
+**Example**
+
+%%docs/examples/src/appkit/components/swap#SWAP_INFO%%
 
 #### SwapWidget
 
@@ -1174,6 +1198,10 @@ Flex container primitive — renders a `<div>` that lays its children out vertic
 | --- | --- | --- |
 | `direction` | `'row' \| 'column'` | Flex direction of the block. Defaults to `'column'`. |
 
+**Example**
+
+%%docs/examples/src/appkit/components/ui#BLOCK%%
+
 #### Button
 
 Themed `<button>` with size, border-radius, and variant tokens. Renders an optional leading `icon`, swaps content for a spinner while `loading`, and is disabled whenever `disabled` or `loading` is true.
@@ -1186,6 +1214,10 @@ Themed `<button>` with size, border-radius, and variant tokens. Renders an optio
 | `loading` | `boolean` | When true, renders a spinner instead of `icon`/`children` and disables the button. |
 | `fullWidth` | `boolean` | When true, the button stretches to fill its container width. |
 | `icon` | `ReactNode` | Optional leading icon rendered before `children` when not loading. |
+
+**Example**
+
+%%docs/examples/src/appkit/components/ui#BUTTON%%
 
 #### CenteredAmountInput
 
@@ -1200,37 +1232,9 @@ Center-aligned, auto-resizing amount input with optional leading symbol and trai
 | `placeholder` | `string` | Placeholder shown when `value` is empty. Defaults to `'0'`. |
 | `disabled` | `boolean` | When true, the underlying `<input>` is disabled. |
 
-#### CheckIcon
+**Example**
 
-Checkmark icon — a single stroked tick.
-
-| Prop | Type | Description |
-| --- | --- | --- |
-| `size` | `number` | Square size of the icon in pixels. Defaults to [`DEFAULT_ICON_SIZE`](#default_icon_size). |
-
-#### ChevronDownIcon
-
-Downward-pointing chevron icon — typically used to indicate expandable content.
-
-| Prop | Type | Description |
-| --- | --- | --- |
-| `size` | `number` | Square size of the icon in pixels. Defaults to [`DEFAULT_ICON_SIZE`](#default_icon_size). |
-
-#### ChevronsIcon
-
-Stacked up/down chevrons icon — used to signal select/dropdown affordance.
-
-| Prop | Type | Description |
-| --- | --- | --- |
-| `size` | `number` | Square size of the icon in pixels. Defaults to [`DEFAULT_ICON_SIZE`](#default_icon_size). |
-
-#### CloseIcon
-
-Close (X) icon — used for dismiss buttons and modal close affordances.
-
-| Prop | Type | Description |
-| --- | --- | --- |
-| `size` | `number` | Square size of the icon in pixels. Defaults to [`DEFAULT_ICON_SIZE`](#default_icon_size). |
+%%docs/examples/src/appkit/components/ui#CENTERED_AMOUNT_INPUT%%
 
 #### Collapsible
 
@@ -1240,37 +1244,9 @@ Animated collapsible container — transitions its height between `0` and the co
 | --- | --- | --- |
 | `open`\* | `boolean` | When true, the content is expanded; when false, it is collapsed to zero height. |
 
-#### CopyIcon
+**Example**
 
-Copy icon — two overlapping rectangles indicating clipboard copy.
-
-| Prop | Type | Description |
-| --- | --- | --- |
-| `size` | `number` | Square size of the icon in pixels. Defaults to [`DEFAULT_ICON_SIZE`](#default_icon_size). |
-
-#### FailedIcon
-
-Failure icon — a circle with an X, used for error and failed-transaction states.
-
-| Prop | Type | Description |
-| --- | --- | --- |
-| `size` | `number` | Square size of the icon in pixels. Defaults to [`DEFAULT_ICON_SIZE`](#default_icon_size). |
-
-#### FlipIcon
-
-Flip / swap icon — two opposing arrows used for swap and direction-toggle actions.
-
-| Prop | Type | Description |
-| --- | --- | --- |
-| `size` | `number` | Square size of the icon in pixels. Defaults to [`DEFAULT_ICON_SIZE`](#default_icon_size). |
-
-#### ImageIcon
-
-Image / picture placeholder icon — used as a fallback for missing media.
-
-| Prop | Type | Description |
-| --- | --- | --- |
-| `size` | `number` | Square size of the icon in pixels. Defaults to [`DEFAULT_ICON_SIZE`](#default_icon_size). |
+%%docs/examples/src/appkit/components/ui#COLLAPSIBLE%%
 
 #### InfoBlock
 
@@ -1352,14 +1328,6 @@ Centered modal dialog with a header (optional title + close button) and a scroll
 
 %%docs/examples/src/appkit/components/ui#MODAL%%
 
-#### SearchIcon
-
-Magnifying-glass search icon.
-
-| Prop | Type | Description |
-| --- | --- | --- |
-| `size` | `number` | Square size of the icon in pixels. Defaults to [`DEFAULT_ICON_SIZE`](#default_icon_size). |
-
 #### Select
 
 Compound select / dropdown component with controlled or uncontrolled state. The content is portaled to `document.body` and positioned relative to the trigger; closes on outside click, `Escape`, or item selection.
@@ -1382,29 +1350,9 @@ Animated placeholder block used while data is loading. Supply `width` / `height`
 | `width` | `string \| number` | Width of the placeholder. Accepts any valid CSS length or a number (interpreted as pixels). |
 | `height` | `string \| number` | Height of the placeholder. Accepts any valid CSS length or a number (interpreted as pixels). |
 
-#### SlidersIcon
+**Example**
 
-Sliders / settings icon — two horizontal tracks with adjustable handles.
-
-| Prop | Type | Description |
-| --- | --- | --- |
-| `size` | `number` | Square size of the icon in pixels. Defaults to [`DEFAULT_ICON_SIZE`](#default_icon_size). |
-
-#### SpinnerIcon
-
-Loading spinner icon — a three-quarter circle stroke. Animation must be applied via CSS by the caller.
-
-| Prop | Type | Description |
-| --- | --- | --- |
-| `size` | `number` | Square size of the icon in pixels. Defaults to [`DEFAULT_ICON_SIZE`](#default_icon_size). |
-
-#### SuccessIcon
-
-Success icon — a circle with an inner checkmark for confirmation states.
-
-| Prop | Type | Description |
-| --- | --- | --- |
-| `size` | `number` | Square size of the icon in pixels. Defaults to [`DEFAULT_ICON_SIZE`](#default_icon_size). |
+%%docs/examples/src/appkit/components/ui#SKELETON%%
 
 #### Tabs
 
@@ -1416,6 +1364,10 @@ Root tabs container — owns the active value (controlled or uncontrolled) and s
 | `defaultValue` | `string` | Initial active tab when uncontrolled. Defaults to `''`. |
 | `onValueChange` | `(value: string) => void` | Called whenever the active tab changes. |
 | `children`\* | `ReactNode` | Compound sub-components — typically [`TabsList`](#tabslist) (with [`TabsTrigger`](#tabstrigger)s) followed by [`TabsContent`](#tabscontent)s. |
+
+**Example**
+
+%%docs/examples/src/appkit/components/ui#TABS%%
 
 #### TabsContent
 
@@ -1454,14 +1406,6 @@ TON brand diamond glyph — solid, inherits color from `currentColor`.
 #### TonIconCircle
 
 TON brand glyph rendered inside a filled circle, using the TON brand color token.
-
-| Prop | Type | Description |
-| --- | --- | --- |
-| `size` | `number` | Square size of the icon in pixels. Defaults to [`DEFAULT_ICON_SIZE`](#default_icon_size). |
-
-#### VerifiedIcon
-
-Verified badge icon — scalloped seal with an inner checkmark.
 
 | Prop | Type | Description |
 | --- | --- | --- |

@@ -30,6 +30,8 @@ export interface SwapFlipButtonProps extends ComponentProps<'div'> {
 /**
  * Round button rendered between the source and target {@link SwapField} rows. Clicking it flips the selected tokens; visual rotation is driven by `rotated`.
  *
+ * @sample docs/examples/src/appkit/components/swap#SWAP_FLIP_BUTTON
+ *
  * @public
  * @category Component
  * @section Swap

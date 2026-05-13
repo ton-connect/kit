@@ -300,6 +300,8 @@ SelectItem.displayName = 'SelectItem';
 /**
  * Compound select / dropdown component with controlled or uncontrolled state. The content is portaled to `document.body` and positioned relative to the trigger; closes on outside click, `Escape`, or item selection.
  *
+ * @sample docs/examples/src/appkit/components/ui#SELECT
+ *
  * @public
  * @category Component
  * @section UI
