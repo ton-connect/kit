@@ -6,8 +6,9 @@
  *
  */
 
-import type { TonApiAccountEvent } from './events';
+// import type { TonApiAccountEvent } from './events';
 import type { TonApiTrace } from './traces';
+// import type { TonApiTransaction } from './transactions';
 
 export interface TonApiJettonQuantity {
     quantity: string;
@@ -26,8 +27,15 @@ export interface TonApiRisk {
     nfts: unknown[];
 }
 
-export interface TonApiMessageConsequences {
-    trace: TonApiTrace;
-    risk: TonApiRisk;
-    event: TonApiAccountEvent;
-}
+export type TonApiMessageConsequences = TonApiTrace;
+//  {
+
+// transaction: TonApiTransaction;
+// children: {
+//     transaction: TonApiTransaction;
+//     children: TonApiMessageConsequences[];
+// }[];
+// trace: TonApiTrace;
+// risk: TonApiRisk;
+// event: TonApiAccountEvent;
+// }

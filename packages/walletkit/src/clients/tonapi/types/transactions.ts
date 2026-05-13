@@ -38,6 +38,12 @@ export interface TonApiMessage {
     bounced?: boolean | null;
     import_fee?: string | number | null;
     decoded_body?: unknown;
+
+    // hex boc of inMessage
+    raw: string;
+
+    // hex boc of inMessage.body
+    raw_body: string;
 }
 
 export interface TonApiPhaseStorage {
