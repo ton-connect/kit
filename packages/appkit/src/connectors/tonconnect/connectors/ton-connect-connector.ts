@@ -29,7 +29,7 @@ export type TonConnectConnector = Connector & {
 };
 
 export const createTonConnectConnector = (config: TonConnectConnectorConfig) => {
-    return createConnector(({ eventEmitter, networkManager, ssr }): TonConnectConnector => {
+    return createConnector(({ eventEmitter, networkManager }): TonConnectConnector => {
         let originalTonConnectUI: TonConnectUI | null = null;
         let unsubscribeTonConnect: (() => void) | null = null;
 
@@ -40,7 +40,7 @@ export const createTonConnectConnector = (config: TonConnectConnectorConfig) => 
                 return originalTonConnectUI;
             }
 
-            if (ssr && typeof window === 'undefined') {
+            if (typeof window === 'undefined') {
                 return null;
             }
 

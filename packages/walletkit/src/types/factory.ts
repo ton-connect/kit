@@ -17,7 +17,6 @@ import type { SharedKitEvents } from './emitter';
 export interface ProviderFactoryContext<Events extends SharedKitEvents = SharedKitEvents> {
     networkManager: NetworkManager;
     eventEmitter: EventEmitter<Events>;
-    ssr?: boolean;
 }
 
 /** Factory function that creates a provider from context */
