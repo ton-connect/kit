@@ -43,7 +43,7 @@ export type UseConnectReturnType<context = unknown> = UseMutationReturnType<
 >;
 
 /**
- * React mutation hook that triggers the connection flow on a registered connector by id (wraps {@link appkit:connect}); returns `mutate({ connectorId })` you call from event handlers. The underlying action throws `Error('Connector with id "<id>" not found')` when no connector with that id is registered — TanStack Query surfaces it via the mutation's `error`.
+ * Open a registered connector's connection flow (e.g., the TonConnect modal) and await its completion. Call `mutate` from a Connect button with the `connectorId` of the connector to drive; once the user finishes the flow the new wallet becomes available via {@link useSelectedWallet} / {@link useConnectedWallets}. Throws `Error('Connector with id "<id>" not found')` when no connector with that id is registered — TanStack Query surfaces it via the mutation's `error`.
  *
  * @param parameters - {@link UseConnectParameters} TanStack Query mutation overrides.
  * @returns Mutation result for the connect call.

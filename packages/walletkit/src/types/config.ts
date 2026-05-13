@@ -35,8 +35,7 @@ export interface NetworkConfig {
 }
 
 /**
- * Multi-network configuration keyed by chain ID
- * Example: { [Network.mainnet().chainId]: { apiClient: {...} }, [Network.testnet().chainId]: { apiClient: {...} } }
+ * Multi-network configuration keyed by chain ID — each entry maps a chain ID (e.g. `Network.mainnet().chainId`) to its own {@link NetworkConfig} carrying the api-client setup.
  */
 export type NetworkAdapters = {
     [key: string]: NetworkConfig | undefined;

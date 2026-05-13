@@ -37,7 +37,7 @@ export type UseSignTextReturnType<context = unknown> = UseMutationResult<
 >;
 
 /**
- * React mutation hook that asks the selected wallet to sign a plain-text message (wraps {@link appkit:signText}); returns `mutate({ text })` you call from event handlers. The underlying action throws `Error('Wallet not connected')` if no wallet is currently selected — TanStack Query surfaces it via the mutation's `error`.
+ * Ask the selected wallet to sign a plain-text message — useful for off-chain login proofs and signed challenges. Call `mutate` from an event handler with the `text` to sign and an optional `network` override; on success, `data` carries the signature plus the canonicalized signer address, timestamp and dApp domain the wallet bound to the signature. Throws `Error('Wallet not connected')` if no wallet is currently selected — TanStack Query surfaces it via the mutation's `error`.
  *
  * @param parameters - {@link UseSignTextParameters} TanStack Query mutation overrides.
  * @returns Mutation result for the signing call.

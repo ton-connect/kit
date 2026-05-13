@@ -187,8 +187,9 @@ function extractByCategory(
         case 'Component':
             if (Node.isVariableDeclaration(declaration)) {
                 const init = declaration.getInitializer();
-                if (init && Node.isObjectLiteralExpression(init)) {
-                    return extractNamespaceComponent(name, declaration, init, sourcePath);
+                const membersLiteral = resolveNamespaceMembersLiteral(init);
+                if (membersLiteral) {
+                    return extractNamespaceComponent(name, declaration, membersLiteral, sourcePath);
                 }
                 return extractVariableAsComponent(declaration, name, sourcePath);
             }
@@ -197,6 +198,27 @@ function extractByCategory(
             }
             throw mismatch(name, category, 'function or variable declaration');
     }
+}
+
+/**
+ * Returns the object-literal carrying compound members, or null when the
+ * initializer doesn't look like a compound. Two shapes are recognized:
+ *  - bare `{ Member: ... }` literal (the simple compound pattern)
+ *  - `Object.assign(Root, { Member: ... })` — used when the root needs to also be
+ *    callable as a React component (e.g. `Input`, `CurrencyItem`).
+ */
+function resolveNamespaceMembersLiteral(init: Node | undefined): ObjectLiteralExpression | null {
+    if (!init) return null;
+    if (Node.isObjectLiteralExpression(init)) return init;
+    if (Node.isCallExpression(init)) {
+        const expr = init.getExpression();
+        const callee = expr.getText();
+        if (callee !== 'Object.assign') return null;
+        const args = init.getArguments();
+        const literal = args.find((arg) => Node.isObjectLiteralExpression(arg));
+        return literal && Node.isObjectLiteralExpression(literal) ? literal : null;
+    }
+    return null;
 }
 
 function mismatch(name: string, category: ValidCategory, expected: string): Error {
@@ -364,6 +386,11 @@ function extractVariableAsComponent(
     if (init && (Node.isArrowFunction(init) || Node.isFunctionExpression(init))) {
         const params = init.getParameters();
         if (params.length > 0) propsType = params[0].getType();
+    } else if (init && Node.isCallExpression(init)) {
+        // Wrappers like `forwardRef((props, ref) => ...)` or `memo((props) => ...)` —
+        // the variable's resolved type buries the real props inside React's helper
+        // types, so read the props from the render function arg instead.
+        propsType = readPropsFromComponentWrapper(init);
     } else {
         const callSig = decl.getType().getCallSignatures()[0];
         const propsParam = callSig?.getParameters()[0];
@@ -374,6 +401,17 @@ function extractVariableAsComponent(
 
     const props = propsType ? readPropsFromType(propsType, decl) : [];
     return { kind: 'component', name, sourcePath, summary, props, examples, samples };
+}
+
+function readPropsFromComponentWrapper(call: Node): Type | null {
+    if (!Node.isCallExpression(call)) return null;
+    const firstArg = call.getArguments()[0];
+    if (!firstArg) return null;
+    if (Node.isArrowFunction(firstArg) || Node.isFunctionExpression(firstArg)) {
+        const params = firstArg.getParameters();
+        if (params.length > 0) return params[0].getType();
+    }
+    return null;
 }
 
 function extractNamespaceComponent(

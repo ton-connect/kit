@@ -42,7 +42,7 @@ export type UseCryptoOnrampStatusReturnType<selectData = GetCryptoOnrampStatusDa
 >;
 
 /**
- * React hook reading the current status of a crypto-onramp deposit previously created via {@link useCreateCryptoOnrampDeposit} through TanStack Query (wraps {@link appkit:getCryptoOnrampStatus}) — typically polled via `refetchInterval` until the status is `'success'` or `'failed'`.
+ * Read the current status of a crypto-onramp deposit previously created via {@link useCreateCryptoOnrampDeposit}. Typically polled via `refetchInterval` until `data` reaches a terminal state — `'success'` (delivered to the recipient) or `'failed'` (provider could not complete the deposit).
  *
  * @param parameters - {@link UseCryptoOnrampStatusParameters} Deposit id, originating provider id and TanStack Query overrides.
  * @returns TanStack Query result for the status read.

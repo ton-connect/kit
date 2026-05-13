@@ -44,9 +44,7 @@ export interface CryptoOnrampProviderProps extends PropsWithChildren {
     /** Optional section configs grouping `paymentMethods` in the picker. */
     methodSections?: PaymentMethodSectionConfig[];
     /**
-     * Custom CAIP-2 → chain display info overrides. Merged on top of the
-     * built-in defaults, so consumers only need to provide what they want to
-     * override or add (e.g. `{ 'eip155:42161': { name: 'Arbitrum', logo: '...' } }`).
+     * Custom CAIP-2 → chain display info overrides. Merged on top of the built-in defaults, so consumers only need to provide what they want to override or add — for example, a single entry keyed by `'eip155:42161'` with a `name` of `'Arbitrum'` and a `logo` URL.
      */
     chains?: Record<string, ChainInfo>;
     /** ID of the target token pre-selected on mount. */

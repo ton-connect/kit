@@ -171,23 +171,45 @@ function renderComponent(entry: ExtractedComponent, level: HeadingLevel): string
 }
 
 function renderNamespaceComponent(entry: ExtractedNamespaceComponent, level: HeadingLevel): string {
-    const memberLevel = level === '###' ? '####' : '#####';
     const lines: string[] = [];
     lines.push(`${level} ${entry.name}`);
     lines.push('');
     lines.push(resolveLinks(entry.summary ?? TODO_MARKER));
     lines.push('');
-    lines.push(`Compound component. Members:`);
-    lines.push('');
-    for (const member of entry.members) {
-        lines.push(`${memberLevel} ${entry.name}.${member.name}`);
+
+    if (entry.members.length === 0) return lines.join('\n').trimEnd();
+
+    // When any member declares its own props, fall back to per-member sub-headings
+    // so the props table can sit under the member it documents.
+    const anyWithProps = entry.members.some((m) => m.props.length > 0);
+    if (anyWithProps) {
+        const memberLevel = level === '###' ? '####' : '#####';
+        lines.push('**Members**');
         lines.push('');
-        lines.push(resolveLinks(member.summary ?? TODO_MARKER));
-        lines.push('');
-        if (member.props.length > 0) {
-            lines.push(renderPropsTable(member.props));
+        for (const member of entry.members) {
+            lines.push(`${memberLevel} ${entry.name}.${member.name}`);
             lines.push('');
+            lines.push(resolveLinks(member.summary ?? TODO_MARKER));
+            lines.push('');
+            if (member.props.length > 0) {
+                lines.push(renderPropsTable(member.props));
+                lines.push('');
+            }
         }
+        return lines.join('\n').trimEnd();
+    }
+
+    // Compact members table — readable and scannable for sub-components without props.
+    lines.push('**Members**');
+    lines.push('');
+    lines.push('| Member | Description |');
+    lines.push('| --- | --- |');
+    for (const member of entry.members) {
+        const name = `\`${entry.name}.${member.name}\``;
+        const desc = resolveLinks(member.summary ?? TODO_MARKER)
+            .replace(/\r?\n+/g, ' ')
+            .replace(/\|/g, '\\|');
+        lines.push(`| ${name} | ${desc} |`);
     }
     return lines.join('\n').trimEnd();
 }
@@ -405,12 +427,31 @@ function resolveLinks(text: string): string {
                 throw new Error(`Unknown package prefix in {@link ${raw}}. Got "${pkg}"; expected one of: ${known}.`);
             }
             const prefix = PACKAGE_PREFIX.get(pkg) ?? '';
-            out.push(`[\`${name}\`](${prefix}#${slugify(name)})`);
+            out.push(renderUnqualifiedLink(name, prefix));
         } else {
             const prefix = LINKABLE.get(raw) ?? '';
-            out.push(`[\`${raw}\`](${prefix}#${slugify(raw)})`);
+            out.push(renderUnqualifiedLink(raw, prefix));
         }
         cursor = end + LINK_MARKER_CLOSE.length;
     }
     return out.join('');
+}
+
+/**
+ * Renders a `{@link Name}` (or its already-resolved cross-package counterpart)
+ * to a markdown link. Dot-form references like `Foo.Bar` resolve to the parent
+ * symbol's anchor (`#foo`) when `Foo` is itself documented — compound members
+ * don't get their own anchors, so this keeps the chip linkable to the parent's
+ * section where the member is listed.
+ */
+function renderUnqualifiedLink(name: string, prefix: string): string {
+    const dot = name.indexOf('.');
+    if (dot > 0) {
+        const parent = name.slice(0, dot);
+        if (LINKABLE.has(parent)) {
+            const parentPrefix = prefix || LINKABLE.get(parent) || '';
+            return `[\`${name}\`](${parentPrefix}#${slugify(parent)})`;
+        }
+    }
+    return `[\`${name}\`](${prefix}#${slugify(name)})`;
 }

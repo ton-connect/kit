@@ -148,7 +148,7 @@ export const CurrencyItem = Object.assign(CurrencyItemRoot, {
     Container,
     /** Token logo cell rendered as a 40px {@link Logo}. */
     Logo: LogoWrapper,
-    /** Vertical block holding the {@link Header} and {@link Ticker}. */
+    /** Vertical block holding the {@link CurrencyItem.Header} and {@link CurrencyItem.Ticker}. */
     Info,
     /** Verified checkmark badge — rendered next to the name when `isVerified` is set. */
     VerifiedBadge,
@@ -156,7 +156,7 @@ export const CurrencyItem = Object.assign(CurrencyItemRoot, {
     Header,
     /** Primary text line — defaults to the token name, falling back to the ticker when no name is provided. */
     Name,
-    /** Secondary text line — renders the ticker and, when both ticker and name are present, appends `• {name}`. */
+    /** Secondary text line — renders the ticker, and when both ticker and name are present appends `• ` followed by the name. */
     Ticker,
     /** Right-aligned column for balance values. */
     RightSide,

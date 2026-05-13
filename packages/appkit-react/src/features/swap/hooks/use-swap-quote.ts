@@ -38,7 +38,7 @@ export type UseSwapQuoteReturnType<selectData = GetSwapQuoteData> = UseQueryRetu
 >;
 
 /**
- * React hook fetching a swap quote through TanStack Query — wraps {@link appkit:getSwapQuote}. The resulting `data` is the {@link appkit:SwapQuote} payload required to call {@link appkit:buildSwapTransaction} (see {@link useBuildSwapTransaction}). The `network` field defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
+ * Quote a swap — given source/target tokens and an amount, returns the rate, expected output and the provider-specific metadata required to feed {@link useBuildSwapTransaction}. `data` is the {@link appkit:SwapQuote} payload. The `network` field defaults to the selected wallet's network; if no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
  *
  * @param parameters - {@link UseSwapQuoteParameters} Source and target tokens, amount, optional network/provider override, and TanStack Query overrides.
  * @returns TanStack Query result for the swap quote.
