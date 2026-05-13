@@ -77,7 +77,7 @@ const appKit = new AppKit({
 
 #### EventEmitter
 
-Strongly-typed event emitter built on a string event name → payload type map. Backs [`AppKit`](#appkit)'s `emitter` and any custom emitters apps create. `appKit.emitter.on(name, handler)` returns an unsubscribe function.
+Strongly-typed event emitter built on a string event name → payload type map. Backs [`AppKit`](#appkit)'s `emitter` and any custom emitters apps create. See [`AppKitEvents`](#appkitevents) for the full list of events AppKit emits. `appKit.emitter.on(name, handler)` returns an unsubscribe function.
 
 Constructor: `new EventEmitter()`
 
@@ -2363,8 +2363,17 @@ Map of every event name AppKit can emit to its payload type, used to type listen
 | `streaming:balance-update`\* | <code><a href="#balanceupdate">BalanceUpdate</a></code> | Fired by a streaming provider when a watched address's TON balance changes. |
 | `streaming:transactions`\* | <code><a href="#transactionsupdate">TransactionsUpdate</a></code> | Fired by a streaming provider when new transactions land for a watched address. |
 | `streaming:jettons-update`\* | <code><a href="#jettonupdate">JettonUpdate</a></code> | Fired by a streaming provider when a watched address's jetton holdings change. |
-| `provider:registered`\* | `BaseProviderUpdate` | Fired by a DeFi manager when a provider is registered through it (carries the provider's id and kind). |
-| `provider:default-changed`\* | `BaseProviderUpdate` | Fired by a DeFi manager when its default provider is set or cleared (carries the new default's id and kind). |
+| `provider:registered`\* | <code><a href="#baseproviderupdate">BaseProviderUpdate</a></code> | Fired by a DeFi manager when a provider is registered through it (carries the provider's id and kind). |
+| `provider:default-changed`\* | <code><a href="#baseproviderupdate">BaseProviderUpdate</a></code> | Fired by a DeFi manager when its default provider is set or cleared (carries the new default's id and kind). |
+
+#### BaseProviderUpdate
+
+Payload of `provider:registered` and `provider:default-changed` events — carries the affected provider's id and kind.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `providerId`\* | `string` | _TODO: describe_ |
+| `type`\* | `string` | _TODO: describe_ |
 
 #### ConnectorAddedPayload
 
@@ -2435,8 +2444,8 @@ Event-name → payload map shared between AppKit and walletkit. AppKit extends i
 | `streaming:balance-update`\* | <code><a href="#balanceupdate">BalanceUpdate</a></code> | Fired by a streaming provider when a watched address's TON balance changes. |
 | `streaming:transactions`\* | <code><a href="#transactionsupdate">TransactionsUpdate</a></code> | Fired by a streaming provider when new transactions land for a watched address. |
 | `streaming:jettons-update`\* | <code><a href="#jettonupdate">JettonUpdate</a></code> | Fired by a streaming provider when a watched address's jetton holdings change. |
-| `provider:registered`\* | `BaseProviderUpdate` | Fired by a DeFi manager when a provider is registered through it (carries the provider's id and kind). |
-| `provider:default-changed`\* | `BaseProviderUpdate` | Fired by a DeFi manager when its default provider is set or cleared (carries the new default's id and kind). |
+| `provider:registered`\* | <code><a href="#baseproviderupdate">BaseProviderUpdate</a></code> | Fired by a DeFi manager when a provider is registered through it (carries the provider's id and kind). |
+| `provider:default-changed`\* | <code><a href="#baseproviderupdate">BaseProviderUpdate</a></code> | Fired by a DeFi manager when its default provider is set or cleared (carries the new default's id and kind). |
 
 ### Crypto Onramp
 

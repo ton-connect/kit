@@ -7,7 +7,7 @@
  */
 
 /**
- * Strongly-typed event emitter built on a string event name → payload type map. Backs {@link AppKit}'s `emitter` and any custom emitters apps create. `appKit.emitter.on(name, handler)` returns an unsubscribe function.
+ * Strongly-typed event emitter built on a string event name → payload type map. Backs {@link AppKit}'s `emitter` and any custom emitters apps create. See {@link AppKitEvents} for the full list of events AppKit emits. `appKit.emitter.on(name, handler)` returns an unsubscribe function.
  *
  * @extract
  * @public
@@ -55,3 +55,13 @@ export type { EventListener } from '@ton/walletkit';
  * @section Core
  */
 export type { SharedKitEvents } from '@ton/walletkit';
+
+/**
+ * Payload of `provider:registered` and `provider:default-changed` events — carries the affected provider's id and kind.
+ *
+ * @extract
+ * @public
+ * @category Type
+ * @section Core
+ */
+export type { BaseProviderUpdate } from '@ton/walletkit';
