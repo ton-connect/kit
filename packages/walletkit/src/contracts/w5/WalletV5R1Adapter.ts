@@ -201,6 +201,7 @@ export class WalletV5R1Adapter implements WalletAdapter {
             value: 0n,
             body: transfer,
             bounce: false,
+            init: this.walletContract.init,
         });
         msg.info = msg.info as CommonMessageInfoInternal;
         msg.info.createdLt = 0n;

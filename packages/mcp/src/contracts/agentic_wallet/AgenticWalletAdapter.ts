@@ -263,6 +263,7 @@ export class AgenticWalletAdapter implements WalletAdapter {
             value: 0n,
             body: transfer,
             bounce: false,
+            init: this.walletInit,
         });
         msg.info = msg.info as CommonMessageInfoInternal;
         msg.info.createdLt = 0n;

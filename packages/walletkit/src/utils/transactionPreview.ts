@@ -36,7 +36,7 @@ export async function createTransactionPreview(
 
     const getSignedTransaction = isSignMode ? wallet?.getSignedSignMessage : wallet?.getSignedSendTransaction;
 
-    const signedBoc = await getSignedTransaction(request, {
+    const signedBoc = await getSignedTransaction.call(wallet, request, {
         fakeSignature: true,
     });
 
