@@ -47,7 +47,6 @@ export interface ConnectorMetadata {
 export interface ConnectorFactoryContext {
     networkManager: AppKitNetworkManager;
     eventEmitter: AppKitEmitter;
-    ssr?: boolean;
 }
 
 /** Factory function that creates a connector from context */

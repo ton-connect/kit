@@ -212,7 +212,6 @@ export class TonWalletKit implements ITonWalletKit {
         return {
             networkManager: this.networkManager,
             eventEmitter: this.eventEmitter,
-            ssr: false,
         };
     }
 
