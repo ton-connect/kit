@@ -74,7 +74,7 @@ export type AppKitEvents = {
     // Connector events
     /** Fired by {@link addConnector} when a connector is registered with AppKit. */
     [CONNECTOR_EVENTS.ADDED]: ConnectorAddedPayload;
-    /** Fired by `removeConnector` when a connector is unregistered from AppKit. */
+    /** Fired when a connector is unregistered from AppKit — typically by calling the unregister function returned from {@link addConnector}. */
     [CONNECTOR_EVENTS.REMOVED]: ConnectorRemovedPayload;
     /** Fired by a connector whenever its connected-wallets list changes (connect, disconnect, or account switch inside the wallet). */
     [CONNECTOR_EVENTS.WALLETS_UPDATED]: ConnectorWalletsUpdatedPayload;

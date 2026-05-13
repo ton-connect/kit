@@ -1086,18 +1086,18 @@ Pre-wired button that builds a jetton transfer with [`createTransferJettonTransa
 | --- | --- | --- |
 | `recipientAddress`\* | `string` | Recipient address. |
 | `amount`\* | `string` | Amount in jetton units as a human-readable decimal string. Converted to raw smallest units via `jetton.decimals`. |
-| `jetton`\* | `{         address: string;         symbol: string;         decimals: number;     }` | Jetton master metadata — `address` (master contract), `symbol` (rendered in the button label) and `decimals` (used to format `amount`). |
+| `jetton`\* | `{ address: string; symbol: string; decimals: number; }` | Jetton master metadata — `address` (master contract), `symbol` (rendered in the button label) and `decimals` (used to format `amount`). |
 | `comment` | `string` | Optional human-readable comment attached to the transfer. |
-| `text` | `ReactNode` | Custom button text |
+| `text` | `ReactNode` | Override the button label. Defaults to "Send". |
 | `size` | `ButtonSize` | Size class applied to the button. Pass `'unset'` to skip the size class entirely (no padding, no typography) — useful with `variant="unstyled"`. |
 | `borderRadius` | `ButtonBorderRadius` | Border radius token. Defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
 | `variant` | `ButtonVariant` | Visual variant. Use `'unstyled'` to opt out of all built-in styling — the consumer is fully responsible for visuals via `className`. The Button still provides ref forwarding, `disabled`/`loading` plumbing, and `icon`/`children` rendering. |
 | `loading` | `boolean` | When true, renders a spinner instead of `icon`/`children` and disables the button. |
 | `fullWidth` | `boolean` | When true, the button stretches to fill its container width. |
 | `icon` | `ReactNode` | Optional leading icon rendered before `children` when not loading. |
-| `children` | `(props: SendRenderProps) => ReactNode` | Custom render function |
-| `onError` | `(error: Error) => void` | Callback when an error occurs |
-| `onSuccess` | <code>(response: <a href="/ecosystem/appkit/reference/appkit#sendtransactionreturntype">SendTransactionReturnType</a>) =&gt; void</code> | Callback when the transaction is successful |
+| `children` | `(props: SendRenderProps) => ReactNode` | Custom render function — replaces the default button with the caller's UI. Receives the current send state and click handler via [`SendRenderProps`](#sendrenderprops). |
+| `onError` | `(error: Error) => void` | Called when the wallet rejects the request or the send fails. Receives the raised `Error`. |
+| `onSuccess` | <code>(response: <a href="/ecosystem/appkit/reference/appkit#sendtransactionreturntype">SendTransactionReturnType</a>) =&gt; void</code> | Called once the transaction is broadcast. Receives the wallet's [`SendTransactionReturnType`](/ecosystem/appkit/reference/appkit#sendtransactionreturntype) (BoC + normalized hash). |
 
 **Example**
 
@@ -1127,16 +1127,16 @@ Pre-wired button that builds a TON transfer with [`createTransferTonTransaction`
 | `recipientAddress`\* | `string` | Recipient address. |
 | `amount`\* | `string` | Amount in TON as a human-readable decimal string (e.g., `"1.5"`). Converted to nano-TON internally. |
 | `comment` | `string` | Optional human-readable comment attached to the transfer. |
-| `text` | `ReactNode` | Custom button text |
+| `text` | `ReactNode` | Override the button label. Defaults to "Send". |
 | `size` | `ButtonSize` | Size class applied to the button. Pass `'unset'` to skip the size class entirely (no padding, no typography) — useful with `variant="unstyled"`. |
 | `borderRadius` | `ButtonBorderRadius` | Border radius token. Defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
 | `variant` | `ButtonVariant` | Visual variant. Use `'unstyled'` to opt out of all built-in styling — the consumer is fully responsible for visuals via `className`. The Button still provides ref forwarding, `disabled`/`loading` plumbing, and `icon`/`children` rendering. |
 | `loading` | `boolean` | When true, renders a spinner instead of `icon`/`children` and disables the button. |
 | `fullWidth` | `boolean` | When true, the button stretches to fill its container width. |
 | `icon` | `ReactNode` | Optional leading icon rendered before `children` when not loading. |
-| `children` | `(props: SendRenderProps) => ReactNode` | Custom render function |
-| `onError` | `(error: Error) => void` | Callback when an error occurs |
-| `onSuccess` | <code>(response: <a href="/ecosystem/appkit/reference/appkit#sendtransactionreturntype">SendTransactionReturnType</a>) =&gt; void</code> | Callback when the transaction is successful |
+| `children` | `(props: SendRenderProps) => ReactNode` | Custom render function — replaces the default button with the caller's UI. Receives the current send state and click handler via [`SendRenderProps`](#sendrenderprops). |
+| `onError` | `(error: Error) => void` | Called when the wallet rejects the request or the send fails. Receives the raised `Error`. |
+| `onSuccess` | <code>(response: <a href="/ecosystem/appkit/reference/appkit#sendtransactionreturntype">SendTransactionReturnType</a>) =&gt; void</code> | Called once the transaction is broadcast. Receives the wallet's [`SendTransactionReturnType`](/ecosystem/appkit/reference/appkit#sendtransactionreturntype) (BoC + normalized hash). |
 
 **Example**
 
@@ -1384,7 +1384,7 @@ Modal shown when a transaction would leave insufficient TON to cover fees — ad
 | Prop | Type | Description |
 | --- | --- | --- |
 | `open`\* | `boolean` | Controls visibility of the modal. |
-| `mode`\* | <code><a href="#lowbalancemode">LowBalanceMode</a></code> | `reduce` — user can fix it by reducing the amount (shows Change/Cancel). `topup`  — reducing doesn't help, user must top up TON (shows Close only). |
+| `mode`\* | <code><a href="#lowbalancemode">LowBalanceMode</a></code> | `reduce` — user can fix it by reducing the amount (shows Change/Cancel). `topup` — reducing doesn't help, user must top up TON (shows Close only). |
 | `requiredTon`\* | `string` | Required amount in TON, formatted as a decimal string (e.g. `"0.423"`). |
 | `onChange`\* | `() => void` | Called when the user clicks the primary "Change" action (only in `reduce` mode). |
 | `onCancel`\* | `() => void` | Called when the user dismisses the modal (Cancel, Close, or backdrop click). |
@@ -2167,18 +2167,18 @@ Props accepted by [`SendJettonButton`](#sendjettonbutton) — extends the base `
 | --- | --- | --- |
 | `recipientAddress`\* | `string` | Recipient address. |
 | `amount`\* | `string` | Amount in jetton units as a human-readable decimal string. Converted to raw smallest units via `jetton.decimals`. |
-| `jetton`\* | `{         address: string;         symbol: string;         decimals: number;     }` | Jetton master metadata — `address` (master contract), `symbol` (rendered in the button label) and `decimals` (used to format `amount`). |
+| `jetton`\* | `{ address: string; symbol: string; decimals: number; }` | Jetton master metadata — `address` (master contract), `symbol` (rendered in the button label) and `decimals` (used to format `amount`). |
 | `comment` | `string` | Optional human-readable comment attached to the transfer. |
-| `text` | `ReactNode` | Custom button text |
+| `text` | `ReactNode` | Override the button label. Defaults to "Send". |
 | `size` | `ButtonSize` | Size class applied to the button. Pass `'unset'` to skip the size class entirely (no padding, no typography) — useful with `variant="unstyled"`. |
 | `borderRadius` | `ButtonBorderRadius` | Border radius token. Defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
 | `variant` | `ButtonVariant` | Visual variant. Use `'unstyled'` to opt out of all built-in styling — the consumer is fully responsible for visuals via `className`. The Button still provides ref forwarding, `disabled`/`loading` plumbing, and `icon`/`children` rendering. |
 | `loading` | `boolean` | When true, renders a spinner instead of `icon`/`children` and disables the button. |
 | `fullWidth` | `boolean` | When true, the button stretches to fill its container width. |
 | `icon` | `ReactNode` | Optional leading icon rendered before `children` when not loading. |
-| `children` | `(props: SendRenderProps) => ReactNode` | Custom render function |
-| `onError` | `(error: Error) => void` | Callback when an error occurs |
-| `onSuccess` | <code>(response: <a href="/ecosystem/appkit/reference/appkit#sendtransactionreturntype">SendTransactionReturnType</a>) =&gt; void</code> | Callback when the transaction is successful |
+| `children` | `(props: SendRenderProps) => ReactNode` | Custom render function — replaces the default button with the caller's UI. Receives the current send state and click handler via [`SendRenderProps`](#sendrenderprops). |
+| `onError` | `(error: Error) => void` | Called when the wallet rejects the request or the send fails. Receives the raised `Error`. |
+| `onSuccess` | <code>(response: <a href="/ecosystem/appkit/reference/appkit#sendtransactionreturntype">SendTransactionReturnType</a>) =&gt; void</code> | Called once the transaction is broadcast. Receives the wallet's [`SendTransactionReturnType`](/ecosystem/appkit/reference/appkit#sendtransactionreturntype) (BoC + normalized hash). |
 
 #### SendTonButtonProps
 
@@ -2189,16 +2189,16 @@ Props accepted by [`SendTonButton`](#sendtonbutton) — extends the base `Send` 
 | `recipientAddress`\* | `string` | Recipient address. |
 | `amount`\* | `string` | Amount in TON as a human-readable decimal string (e.g., `"1.5"`). Converted to nano-TON internally. |
 | `comment` | `string` | Optional human-readable comment attached to the transfer. |
-| `text` | `ReactNode` | Custom button text |
+| `text` | `ReactNode` | Override the button label. Defaults to "Send". |
 | `size` | `ButtonSize` | Size class applied to the button. Pass `'unset'` to skip the size class entirely (no padding, no typography) — useful with `variant="unstyled"`. |
 | `borderRadius` | `ButtonBorderRadius` | Border radius token. Defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). |
 | `variant` | `ButtonVariant` | Visual variant. Use `'unstyled'` to opt out of all built-in styling — the consumer is fully responsible for visuals via `className`. The Button still provides ref forwarding, `disabled`/`loading` plumbing, and `icon`/`children` rendering. |
 | `loading` | `boolean` | When true, renders a spinner instead of `icon`/`children` and disables the button. |
 | `fullWidth` | `boolean` | When true, the button stretches to fill its container width. |
 | `icon` | `ReactNode` | Optional leading icon rendered before `children` when not loading. |
-| `children` | `(props: SendRenderProps) => ReactNode` | Custom render function |
-| `onError` | `(error: Error) => void` | Callback when an error occurs |
-| `onSuccess` | <code>(response: <a href="/ecosystem/appkit/reference/appkit#sendtransactionreturntype">SendTransactionReturnType</a>) =&gt; void</code> | Callback when the transaction is successful |
+| `children` | `(props: SendRenderProps) => ReactNode` | Custom render function — replaces the default button with the caller's UI. Receives the current send state and click handler via [`SendRenderProps`](#sendrenderprops). |
+| `onError` | `(error: Error) => void` | Called when the wallet rejects the request or the send fails. Receives the raised `Error`. |
+| `onSuccess` | <code>(response: <a href="/ecosystem/appkit/reference/appkit#sendtransactionreturntype">SendTransactionReturnType</a>) =&gt; void</code> | Called once the transaction is broadcast. Receives the wallet's [`SendTransactionReturnType`](/ecosystem/appkit/reference/appkit#sendtransactionreturntype) (BoC + normalized hash). |
 
 #### UseBalanceByAddressParameters
 
@@ -2950,7 +2950,7 @@ Props accepted by [`LowBalanceModal`](#lowbalancemodal).
 | Field | Type | Description |
 | --- | --- | --- |
 | `open`\* | `boolean` | Controls visibility of the modal. |
-| `mode`\* | <code><a href="#lowbalancemode">LowBalanceMode</a></code> | `reduce` — user can fix it by reducing the amount (shows Change/Cancel). `topup`  — reducing doesn't help, user must top up TON (shows Close only). |
+| `mode`\* | <code><a href="#lowbalancemode">LowBalanceMode</a></code> | `reduce` — user can fix it by reducing the amount (shows Change/Cancel). `topup` — reducing doesn't help, user must top up TON (shows Close only). |
 | `requiredTon`\* | `string` | Required amount in TON, formatted as a decimal string (e.g. `"0.423"`). |
 | `onChange`\* | `() => void` | Called when the user clicks the primary "Change" action (only in `reduce` mode). |
 | `onCancel`\* | `() => void` | Called when the user dismisses the modal (Cancel, Close, or backdrop click). |

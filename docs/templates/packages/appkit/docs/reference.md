@@ -972,7 +972,7 @@ Build a [`TransactionRequest`](#transactionrequest) that executes a swap previou
 | `options.userAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user performing the swap |
 | `options.destinationAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address to receive the swapped tokens (defaults to userAddress) |
 | `options.slippageBps` | `number` | Slippage tolerance in basis points (1 bp = 0.01%) |
-| `options.deadline` | `number` | Transaction deadline in unix timestamp |
+| `options.deadline` | `number` | Unix timestamp (in seconds) after which the swap transaction must not be executed. |
 | `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
 
 Returns: <code><a href="#buildswaptransactionreturntype">BuildSwapTransactionReturnType</a></code> — Transaction request ready to pass to `sendTransaction`.
@@ -1971,7 +1971,7 @@ Map of every event name AppKit can emit to its payload type, used to type listen
 | Field | Type | Description |
 | --- | --- | --- |
 | `connector:added`\* | <code><a href="#connectoraddedpayload">ConnectorAddedPayload</a></code> | Fired by [`addConnector`](#addconnector) when a connector is registered with AppKit. |
-| `connector:removed`\* | <code><a href="#connectorremovedpayload">ConnectorRemovedPayload</a></code> | Fired by `removeConnector` when a connector is unregistered from AppKit. |
+| `connector:removed`\* | <code><a href="#connectorremovedpayload">ConnectorRemovedPayload</a></code> | Fired when a connector is unregistered from AppKit — typically by calling the unregister function returned from [`addConnector`](#addconnector). |
 | `connector:wallets-updated`\* | <code><a href="#connectorwalletsupdatedpayload">ConnectorWalletsUpdatedPayload</a></code> | Fired by a connector whenever its connected-wallets list changes (connect, disconnect, or account switch inside the wallet). |
 | `wallets:updated`\* | <code>&lbrace; wallets: <a href="#walletinterface">WalletInterface</a>[] &rbrace;</code> | Fired by AppKit's wallet manager after re-aggregating connectors — `wallets` is the full current set. |
 | `wallets:selection-changed`\* | `{ walletId: string \| null }` | Fired when the selected wallet changes — `walletId` is the new selection, or `null` when cleared. |
@@ -2090,7 +2090,7 @@ type CreateCryptoOnrampDepositReturnType = Promise<CryptoOnrampDeposit>;
 Deposit details returned by a crypto onramp provider.
 
 The user must send `amount` of `sourceCurrencyAddress` to `address` on `sourceChain`
-to complete the onramp. The provider then delivers the target crypto to the * user's TON address.
+to complete the onramp. The provider then delivers the target crypto to the user's TON address.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -2516,7 +2516,7 @@ Fungible TEP-74 token held in the user's TON wallet — carries the master contr
 | `decimalsNumber` | `number` | The number of decimal places used by the token |
 | `isVerified`\* | `boolean` | Indicates if the jetton is verified |
 | `prices`\* | `JettonPrice[]` | Current prices of the jetton in various currencies |
-| `extra` | `{         [key: string]: unknown;     }` | Additional arbitrary data related to the jetton |
+| `extra` | `{ [key: string]: unknown; }` | Additional arbitrary data related to the jetton |
 
 #### JettonInfo
 
@@ -2716,7 +2716,7 @@ Non-fungible TEP-62 token held in the user's TON wallet — carries the contract
 | `ownerAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Current owner address of the NFT |
 | `realOwnerAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Real owner address when NFT is on sale (sale contract becomes temporary owner) |
 | `saleContractAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the sale contract, if the NFT is listed for sale |
-| `extra` | `{         [key: string]: unknown;     }` | Additional arbitrary data related to the NFT. |
+| `extra` | `{ [key: string]: unknown; }` | Additional arbitrary data related to the NFT. |
 
 #### NFTAttribute
 
@@ -2742,7 +2742,7 @@ NFT collection (TEP-62) — surfaced as [`NFT`](#nft)'s `collection` and carries
 | `codeHash` | <code><a href="#hex">Hex</a></code> | The hash of the collection's smart contract code |
 | `dataHash` | <code><a href="#hex">Hex</a></code> | The hash of the collection's data in the blockchain |
 | `ownerAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | The blockchain address of the collection owner |
-| `extra` | `{         [key: string]: unknown;     }` | Additional arbitrary data related to the NFT collection |
+| `extra` | `{ [key: string]: unknown; }` | Additional arbitrary data related to the NFT collection |
 
 #### NFTsResponse
 
@@ -2873,10 +2873,10 @@ Walletkit-side options shape consumed by [`KitNetworkManager`](#kitnetworkmanage
 | `networks` | <code><a href="#networkadapters">NetworkAdapters</a></code> | Network configuration |
 | `bridge` | `BridgeConfig` | Bridge settings |
 | `storage` | `StorageConfig \| StorageAdapter` | Storage settings |
-| `validation` | `{         strictMode?: boolean;         allowUnknownWalletVersions?: boolean;     }` | Validation settings |
+| `validation` | `{ strictMode?: boolean; allowUnknownWalletVersions?: boolean; }` | Validation settings |
 | `eventProcessor` | `EventProcessorConfig` | Event processor settings |
-| `analytics` | `AnalyticsManagerOptions & {         enabled?: boolean;     }` | Analytics manager options merged with an `enabled` toggle. Off by default. |
-| `dev` | `{         disableNetworkSend?: boolean;         disableManifestDomainCheck?: boolean;     }` | Diagnostic toggles useful during local development. Should not be set in production builds. |
+| `analytics` | `AnalyticsManagerOptions & { enabled?: boolean; }` | Analytics manager options merged with an `enabled` toggle. Off by default. |
+| `dev` | `{ disableNetworkSend?: boolean; disableManifestDomainCheck?: boolean; }` | Diagnostic toggles useful during local development. Should not be set in production builds. |
 
 #### WatchDefaultNetworkParameters
 
@@ -3267,10 +3267,10 @@ Staking balance information for a user
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `rawStakedBalance`\* | <code><a href="#tokenamount">TokenAmount</a></code> | Amount currently staked |
-| `stakedBalance`\* | `string` | Amount currently staked |
-| `rawInstantUnstakeAvailable`\* | <code><a href="#tokenamount">TokenAmount</a></code> | Amount available for instant unstake |
-| `instantUnstakeAvailable`\* | `string` | Amount available for instant unstake |
+| `rawStakedBalance`\* | <code><a href="#tokenamount">TokenAmount</a></code> | Amount currently staked, in raw smallest units of the stake token (e.g., nano-TON). |
+| `stakedBalance`\* | `string` | Amount currently staked, formatted to the stake token's decimals as a human-readable decimal string (e.g., `"12.5"`). |
+| `rawInstantUnstakeAvailable`\* | <code><a href="#tokenamount">TokenAmount</a></code> | Amount available for instant unstake, in raw smallest units of the stake token (e.g., nano-TON). |
+| `instantUnstakeAvailable`\* | `string` | Amount available for instant unstake, formatted to the stake token's decimals as a human-readable decimal string (e.g., `"12.5"`). |
 | `providerId`\* | `string` | Identifier of the staking provider |
 
 #### StakingProviderInfo
@@ -3280,8 +3280,8 @@ Dynamic staking information for a provider
 | Field | Type | Description |
 | --- | --- | --- |
 | `apy`\* | `number` | Annual Percentage Yield in basis points (100 = 1%) |
-| `rawInstantUnstakeAvailable` | <code><a href="#tokenamount">TokenAmount</a></code> | Amount available for instant unstake |
-| `instantUnstakeAvailable` | `string` | Amount available for instant unstake |
+| `rawInstantUnstakeAvailable` | <code><a href="#tokenamount">TokenAmount</a></code> | Amount available for instant unstake right now, in raw smallest units of the stake token (e.g., nano-TON). |
+| `instantUnstakeAvailable` | `string` | Amount available for instant unstake right now, formatted to the stake token's decimals as a human-readable decimal string (e.g., `"12.5"`). |
 | `exchangeRate` | `string` | Exchange rate between stakeToken and receiveToken (e.g. 1 TON = 0.95 tsTON). Undefined when there is no receiveToken (direct/custodial staking). |
 
 #### StakingProviderMetadata
@@ -3296,6 +3296,19 @@ Static metadata for a staking provider
 | `stakeToken`\* | <code><a href="#stakingtokeninfo">StakingTokenInfo</a></code> | Token that the user sends when staking (e.g. TON) |
 | `receiveToken` | <code><a href="#stakingtokeninfo">StakingTokenInfo</a></code> | Token that the user receives when staking (e.g. tsTON for liquid staking). Absent for direct/custodial staking. |
 | `contractAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Provider contract address (optional — custodial providers may not have one) |
+
+#### StakingProviderMetadataOverride
+
+Partial overrides applied on top of a provider's built-in [`StakingProviderMetadata`](#stakingprovidermetadata). Used in provider configuration (e.g. `TonStakersChainConfig.metadata`) when an integrator needs to tweak the display name, token info or supported modes for a specific chain.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `name` | `string` | Override the human-readable provider name surfaced in UIs. |
+| `stakeToken` | <code><a href="#stakingtokeninfo">StakingTokenInfo</a></code> | Override the [`StakingTokenInfo`](#stakingtokeninfo) of the token the user sends when staking. |
+| `receiveToken` | <code><a href="#stakingtokeninfo">StakingTokenInfo</a></code> | Override the [`StakingTokenInfo`](#stakingtokeninfo) of the token the user receives when staking (e.g. liquid-staking receipt). |
+| `contractAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Override the provider contract address (user-friendly format). |
+| `supportedUnstakeModes` | <code><a href="#unstakemodes">UnstakeModes</a>[]</code> | Override the list of supported unstake-timing modes. See [`UnstakeMode`](#unstakemode). |
+| `supportsReversedQuote` | `boolean` | Override whether the provider supports reversed-amount quotes (e.g., specifying TON instead of tsTON on an unstake quote). |
 
 #### StakingQuote
 
@@ -3352,7 +3365,7 @@ Per-chain Tonstakers config — optional TonAPI key for APY reads and an optiona
 | Field | Type | Description |
 | --- | --- | --- |
 | `tonApiToken` | `string` | TonAPI key used for APY reads. Optional — APY still works without it, but providing one is recommended when you already use TonAPI elsewhere. |
-| `metadata` | `StakingProviderMetadataOverride` | Optional override of the provider metadata surfaced via `getStakingProviderMetadata`. |
+| `metadata` | <code><a href="#stakingprovidermetadataoverride">StakingProviderMetadataOverride</a></code> | Optional [`StakingProviderMetadataOverride`](#stakingprovidermetadataoverride) applied on top of the built-in Tonstakers metadata for this chain. |
 
 #### TonStakersProviderConfig
 
@@ -3412,7 +3425,7 @@ DeDust-specific options forwarded through `providerOptions` on [`SwapQuoteParams
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `protocols` | `string[]` | Protocols to use for routing Available: 'dedust', 'dedust_v3', 'dedust_v3_memepad', 'stonfi_v1', 'stonfi_v2', 'tonco', 'memeslab', 'tonfun' |
+| `protocols` | `string[]` | Protocols to use for routing. Available values: `'dedust'`, `'dedust_v3'`, `'dedust_v3_memepad'`, `'stonfi_v1'`, `'stonfi_v2'`, `'tonco'`, `'memeslab'`, `'tonfun'`. Defaults to all protocols when omitted. |
 | `excludeProtocols` | `string[]` | Protocols to exclude from routing |
 | `onlyVerifiedPools` | `boolean` | Only use verified pools |
 | `maxSplits` | `number` | Maximum number of route splits |
@@ -3598,7 +3611,7 @@ Parameters consumed by [`buildSwapTransaction`](#buildswaptransaction) — the p
 | `userAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user performing the swap |
 | `destinationAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address to receive the swapped tokens (defaults to userAddress) |
 | `slippageBps` | `number` | Slippage tolerance in basis points (1 bp = 0.01%) |
-| `deadline` | `number` | Transaction deadline in unix timestamp |
+| `deadline` | `number` | Unix timestamp (in seconds) after which the swap transaction must not be executed. |
 | `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
 
 #### SwapQuote

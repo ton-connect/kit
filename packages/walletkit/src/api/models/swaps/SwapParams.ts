@@ -35,7 +35,7 @@ export interface SwapParams<TProviderOptions = unknown> {
     slippageBps?: number;
 
     /**
-     * Transaction deadline in unix timestamp
+     * Unix timestamp (in seconds) after which the swap transaction must not be executed.
      * @format int
      */
     deadline?: number;

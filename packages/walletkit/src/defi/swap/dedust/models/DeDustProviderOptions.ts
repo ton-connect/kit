@@ -13,9 +13,7 @@ import type { DeDustReferralOptions } from './DeDustReferralOptions';
  */
 export interface DeDustProviderOptions extends DeDustReferralOptions {
     /**
-     * Protocols to use for routing
-     * Available: 'dedust', 'dedust_v3', 'dedust_v3_memepad', 'stonfi_v1', 'stonfi_v2', 'tonco', 'memeslab', 'tonfun'
-     * @default all protocols
+     * Protocols to use for routing. Available values: `'dedust'`, `'dedust_v3'`, `'dedust_v3_memepad'`, `'stonfi_v1'`, `'stonfi_v2'`, `'tonco'`, `'memeslab'`, `'tonfun'`. Defaults to all protocols when omitted.
      */
     protocols?: string[];
 

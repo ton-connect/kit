@@ -7,9 +7,6 @@
  */
 
 /**
- * Deposit details returned by a crypto onramp provider.
- *
- * The user must send `amount` of `sourceCurrencyAddress` to `address` on `sourceChain`
- * to complete the onramp. The provider then delivers the target crypto to the * user's TON address.
+ * Final state of a crypto-onramp deposit — `'success'` (delivered to the recipient), `'pending'` (still in flight) or `'failed'` (provider could not complete the deposit).
  */
 export type CryptoOnrampStatus = 'success' | 'pending' | 'failed';

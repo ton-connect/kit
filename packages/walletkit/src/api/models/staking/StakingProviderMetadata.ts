@@ -45,13 +45,19 @@ export interface StakingProviderMetadata {
 }
 
 /**
- * Used in provider configuration to override fields of the provider's metadata.
+ * Partial overrides applied on top of a provider's built-in {@link StakingProviderMetadata}. Used in provider configuration (e.g. `TonStakersChainConfig.metadata`) when an integrator needs to tweak the display name, token info or supported modes for a specific chain.
  */
 export interface StakingProviderMetadataOverride {
+    /** Override the human-readable provider name surfaced in UIs. */
     name?: string;
+    /** Override the {@link StakingTokenInfo} of the token the user sends when staking. */
     stakeToken?: StakingTokenInfo;
+    /** Override the {@link StakingTokenInfo} of the token the user receives when staking (e.g. liquid-staking receipt). */
     receiveToken?: StakingTokenInfo;
+    /** Override the provider contract address (user-friendly format). */
     contractAddress?: UserFriendlyAddress;
+    /** Override the list of supported unstake-timing modes. See {@link UnstakeMode}. */
     supportedUnstakeModes?: UnstakeModes[];
+    /** Override whether the provider supports reversed-amount quotes (e.g., specifying TON instead of tsTON on an unstake quote). */
     supportsReversedQuote?: boolean;
 }

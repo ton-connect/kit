@@ -244,7 +244,7 @@ function extractFunctionLike(
     const fnTypeParams = collectTypeParamDefaults(decl);
     const rawReturnNode = decl.getReturnTypeNode()?.getText();
     const returnTypeText = rawReturnNode
-        ? substituteTypeParams(rawReturnNode, fnTypeParams)
+        ? collapseWhitespace(substituteTypeParams(rawReturnNode, fnTypeParams))
         : formatType(decl.getReturnType(), decl);
 
     return {
@@ -285,7 +285,7 @@ function extractVariableFunction(
         const fnTypeParams = collectTypeParamDefaults(init);
         const rawReturnNode = init.getReturnTypeNode()?.getText();
         const returnTypeText = rawReturnNode
-            ? substituteTypeParams(rawReturnNode, fnTypeParams)
+            ? collapseWhitespace(substituteTypeParams(rawReturnNode, fnTypeParams))
             : formatType(init.getReturnType(), decl);
 
         return {
@@ -319,7 +319,9 @@ function extractVariableFunction(
                     : true;
             const typeText =
                 valueDecl && Node.isParameterDeclaration(valueDecl)
-                    ? (valueDecl.getTypeNode()?.getText() ?? formatType(p.getTypeAtLocation(decl), decl))
+                    ? collapseWhitespace(
+                          valueDecl.getTypeNode()?.getText() ?? formatType(p.getTypeAtLocation(decl), decl),
+                      )
                     : formatType(p.getTypeAtLocation(decl), decl);
             return {
                 name: paramName,
@@ -648,7 +650,7 @@ function expandParameters(
         const tagInfo = paramTags.get(paramName);
         const rawSyntactic = param.getTypeNode()?.getText();
         const paramSyntactic = rawSyntactic
-            ? substituteTypeParams(rawSyntactic, fnTypeParams)
+            ? collapseWhitespace(substituteTypeParams(rawSyntactic, fnTypeParams))
             : formatType(paramType, contextNode);
 
         const shouldFlatten = expandNames.has(paramName) && isFlattenableObjectType(paramType);
@@ -718,7 +720,7 @@ function readPropsFromType(type: Type, contextNode: Node): ParamRow[] {
                 ? valueDecl.getTypeNode()?.getText()
                 : undefined;
         const syntacticType = rawSyntactic
-            ? substituteTypeParams(rawSyntactic, collectTypeParamDefaults(valueDecl))
+            ? collapseWhitespace(substituteTypeParams(rawSyntactic, collectTypeParamDefaults(valueDecl)))
             : formatType(propType, contextNode);
         rows.push({
             name: prop.getName(),
@@ -807,6 +809,14 @@ function stripUndefinedFromUnion(type: Type): Type {
 
 function formatType(type: Type, contextNode: Node): string {
     return type.getText(contextNode, FORMAT_FLAGS).replace(/\s+/g, ' ');
+}
+
+/**
+ * Collapses runs of whitespace in a syntactic type text — turns indented inline object literals
+ * (e.g. `{          [key: string]: unknown;     }`) into single-line readable chips.
+ */
+function collapseWhitespace(text: string): string {
+    return text.replace(/\s+/g, ' ');
 }
 
 function pickJsDoc(jsDocs: JSDoc[]): JSDoc | null {

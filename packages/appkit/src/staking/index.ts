@@ -74,6 +74,7 @@ export type {
     StakingProviderInfo,
     StakingQuoteDirection,
     StakingProviderMetadata,
+    StakingProviderMetadataOverride,
 } from '@ton/walletkit';
 
 /**

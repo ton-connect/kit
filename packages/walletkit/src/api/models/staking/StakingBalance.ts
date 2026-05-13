@@ -13,22 +13,22 @@ import type { TokenAmount } from '../core/TokenAmount';
  */
 export interface StakingBalance {
     /**
-     * Amount currently staked
+     * Amount currently staked, in raw smallest units of the stake token (e.g., nano-TON).
      */
     rawStakedBalance: TokenAmount;
 
     /**
-     * Amount currently staked
+     * Amount currently staked, formatted to the stake token's decimals as a human-readable decimal string (e.g., `"12.5"`).
      */
     stakedBalance: string;
 
     /**
-     * Amount available for instant unstake
+     * Amount available for instant unstake, in raw smallest units of the stake token (e.g., nano-TON).
      */
     rawInstantUnstakeAvailable: TokenAmount;
 
     /**
-     * Amount available for instant unstake
+     * Amount available for instant unstake, formatted to the stake token's decimals as a human-readable decimal string (e.g., `"12.5"`).
      */
     instantUnstakeAvailable: string;
 

@@ -29,15 +29,15 @@ export type SendRequest =
     | (() => Promise<SendTransactionParameters>);
 
 export interface SendProps extends Omit<ButtonProps, 'children' | 'onError'> {
-    /** The transaction request parameters */
+    /** Transaction request (or a sync/async producer of one) the button hands to {@link sendTransaction} on click. */
     request: SendRequest;
-    /** Callback when an error occurs */
+    /** Called when the wallet rejects the request or the send fails. Receives the raised `Error`. */
     onError?: (error: Error) => void;
-    /** Callback when the transaction is successful */
+    /** Called once the transaction is broadcast. Receives the wallet's {@link SendTransactionReturnType} (BoC + normalized hash). */
     onSuccess?: (response: SendTransactionReturnType) => void;
-    /** Custom button text */
+    /** Override the button label. Defaults to "Send". */
     text?: ReactNode;
-    /** Custom render function */
+    /** Custom render function — replaces the default button with the caller's UI. Receives the current send state and click handler via {@link SendRenderProps}. */
     children?: (props: SendRenderProps) => ReactNode;
 }
 

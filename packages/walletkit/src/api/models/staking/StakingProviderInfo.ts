@@ -18,12 +18,12 @@ export interface StakingProviderInfo {
     apy: number;
 
     /**
-     * Amount available for instant unstake
+     * Amount available for instant unstake right now, in raw smallest units of the stake token (e.g., nano-TON).
      */
     rawInstantUnstakeAvailable?: TokenAmount;
 
     /**
-     * Amount available for instant unstake
+     * Amount available for instant unstake right now, formatted to the stake token's decimals as a human-readable decimal string (e.g., `"12.5"`).
      */
     instantUnstakeAvailable?: string;
 

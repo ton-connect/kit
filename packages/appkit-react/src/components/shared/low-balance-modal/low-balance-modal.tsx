@@ -34,7 +34,7 @@ export interface LowBalanceModalProps {
     open: boolean;
     /**
      * `reduce` — user can fix it by reducing the amount (shows Change/Cancel).
-     * `topup`  — reducing doesn't help, user must top up TON (shows Close only).
+     * `topup` — reducing doesn't help, user must top up TON (shows Close only).
      */
     mode: LowBalanceMode;
     /** Required amount in TON, formatted as a decimal string (e.g. `"0.423"`). */
