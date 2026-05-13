@@ -31,7 +31,7 @@ export type AddConnectorReturnType = () => void;
  * Register a wallet connector at runtime — equivalent to passing it via {@link AppKitConfig}'s `connectors` at construction, but available after AppKit is up.
  *
  * @param appKit - {@link AppKit} Runtime instance.
- * @param connectorFn - {@link AddConnectorParameters} Connector instance or factory to register.
+ * @param connector - {@link AddConnectorParameters} Connector instance or factory to register.
  * @returns Function that unregisters the connector when called.
  *
  * @sample docs/examples/src/appkit/actions/connectors#ADD_CONNECTOR
@@ -40,6 +40,6 @@ export type AddConnectorReturnType = () => void;
  * @category Action
  * @section Connectors
  */
-export const addConnector = (appKit: AppKit, connectorFn: AddConnectorParameters): AddConnectorReturnType => {
-    return appKit.addConnector(connectorFn);
+export const addConnector = (appKit: AppKit, connector: AddConnectorParameters): AddConnectorReturnType => {
+    return appKit.addConnector(connector);
 };

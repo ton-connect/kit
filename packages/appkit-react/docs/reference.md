@@ -68,7 +68,7 @@ return <div>Balance: {balance}</div>;
 
 #### useWatchBalance
 
-Subscribe to Toncoin balance updates for the currently selected wallet. Updates flow into the TanStack Query cache so [`useBalance`](#usebalance) re-renders automatically (use [`useWatchBalanceByAddress`](#usewatchbalancebyaddress) for a fixed address).
+Subscribe to Toncoin balance updates for the currently selected wallet. Updates flow into the TanStack Query cache so [`useBalance`](#usebalance) picks up the new data automatically (use [`useWatchBalanceByAddress`](#usewatchbalancebyaddress) for a fixed address). Requires a streaming provider registered for the network — the hook exits silently with a console warning when none is configured.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -88,7 +88,7 @@ return <div>Current balance: {balance}</div>;
 
 #### useWatchBalanceByAddress
 
-Subscribe to Toncoin balance updates for an arbitrary address — updates flow into the TanStack Query cache so [`useBalanceByAddress`](#usebalancebyaddress) re-renders automatically. No-ops with a console warning when no streaming provider is configured for the resolved network.
+Subscribe to Toncoin balance updates for an arbitrary address — updates flow into the TanStack Query cache so [`useBalanceByAddress`](#usebalancebyaddress) picks up the new data automatically. Requires a streaming provider registered for the network — the hook exits silently with a console warning when none is configured.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -112,7 +112,7 @@ return <div>Current balance: {balance}</div>;
 
 #### useConnectorById
 
-Look up a connector by its id and stay subscribed to its registration lifecycle — re-renders when a connector with that id is registered (via AppKit's constructor or [`addConnector`](/ecosystem/appkit/reference/appkit#addconnector)) or unregistered. Returns the matching [`Connector`](/ecosystem/appkit/reference/appkit#connector), or `undefined` when none with that id is currently registered. Use [`useConnectedWallets`](#useconnectedwallets) if you want to react to wallet connect/disconnect events instead.
+Look up a connector by its id and stay subscribed to its registration lifecycle — updates when a connector with that id is registered (via AppKit's constructor or [`addConnector`](/ecosystem/appkit/reference/appkit#addconnector)) or unregistered. Returns the matching [`Connector`](/ecosystem/appkit/reference/appkit#connector), or `undefined` when none with that id is currently registered. Use [`useConnectedWallets`](#useconnectedwallets) if you want to react to wallet connect/disconnect events instead.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -122,7 +122,7 @@ Returns: <code><a href="/ecosystem/appkit/reference/appkit#connector">Connector<
 
 #### useConnectors
 
-Read the list of connectors registered on this AppKit instance. Re-renders when a connector is registered or unregistered (use [`useConnectedWallets`](#useconnectedwallets) to react to wallet connect/disconnect events).
+Read the list of connectors registered on this AppKit instance. Updates when a connector is registered or unregistered (use [`useConnectedWallets`](#useconnectedwallets) to react to wallet connect/disconnect events).
 
 Returns: <code><a href="#useconnectorsreturntype">UseConnectorsReturnType</a></code> — Read-only array of registered [`Connector`](/ecosystem/appkit/reference/appkit#connector)s.
 
@@ -403,7 +403,7 @@ return (
 
 #### useWatchJettons
 
-Subscribe to jetton-balance updates for the currently selected wallet. Updates flow into the TanStack Query cache so [`useJettons`](#usejettons) re-renders automatically (use [`useWatchJettonsByAddress`](#usewatchjettonsbyaddress) for a fixed address).
+Subscribe to jetton-balance updates for the currently selected wallet. Updates flow into the TanStack Query cache so [`useJettons`](#usejettons) picks up the new data automatically (use [`useWatchJettonsByAddress`](#usewatchjettonsbyaddress) for a fixed address). Requires a streaming provider registered for the network — the hook exits silently with a console warning when none is configured.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -434,7 +434,7 @@ return (
 
 #### useWatchJettonsByAddress
 
-Subscribe to jetton-balance updates for an arbitrary owner address. Updates flow into the TanStack Query cache so [`useJettonsByAddress`](#usejettonsbyaddress) and [`useJettonBalanceByAddress`](#usejettonbalancebyaddress) re-render automatically. Logs a warning and exits when no streaming provider is configured for the resolved network.
+Subscribe to jetton-balance updates for an arbitrary owner address. Updates flow into the TanStack Query cache so [`useJettonsByAddress`](#usejettonsbyaddress) and [`useJettonBalanceByAddress`](#usejettonbalancebyaddress) pick up the new data automatically. Requires a streaming provider registered for the network — the hook exits silently with a console warning when none is configured.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -639,19 +639,19 @@ Returns: <code><a href="#useblocknumberreturntype">UseBlockNumberReturnType</a>&
 
 #### useDefaultNetwork
 
-Read and write AppKit's default network — the network connectors use for new wallet connections. Returns a `useState`-style tuple. The read side re-renders when the default changes through any source (this hook, [`setDefaultNetwork`](/ecosystem/appkit/reference/appkit#setdefaultnetwork), manager events).
+Read and write AppKit's default network — the network connectors use for new wallet connections. Returns a `useState`-style tuple. The read side updates when the default changes through any source (this hook, [`setDefaultNetwork`](/ecosystem/appkit/reference/appkit#setdefaultnetwork), manager events).
 
 Returns: <code><a href="#usedefaultnetworkreturntype">UseDefaultNetworkReturnType</a></code> — Tuple `[network, setNetwork]`.
 
 #### useNetwork
 
-Read the [`Network`](/ecosystem/appkit/reference/appkit#network) the selected wallet is connected to. Re-renders when the wallet's network changes (e.g. user switches mainnet/testnet inside the wallet).
+Read the [`Network`](/ecosystem/appkit/reference/appkit#network) the selected wallet is connected to. Updates when the wallet's network changes (e.g. user switches mainnet/testnet inside the wallet).
 
 Returns: <code><a href="#usenetworkreturntype">UseNetworkReturnType</a></code> — Selected wallet's network, or `undefined` when no wallet is selected.
 
 #### useNetworks
 
-Read the list of networks configured on AppKit. Re-renders when [`AppKitNetworkManager`](/ecosystem/appkit/reference/appkit#appkitnetworkmanager) adds, replaces or drops a network.
+Read the list of networks configured on AppKit. Updates when [`AppKitNetworkManager`](/ecosystem/appkit/reference/appkit#appkitnetworkmanager) adds, replaces or drops a network.
 
 Returns: <code><a href="#usenetworksreturntype">UseNetworksReturnType</a></code> — Array of configured [`Network`](/ecosystem/appkit/reference/appkit#network)s.
 
@@ -851,7 +851,7 @@ Returns: <code><a href="#usetransfertonreturntype">UseTransferTonReturnType</a>&
 
 #### useWatchTransactions
 
-Subscribe to incoming-transaction events for the currently selected wallet (use [`useWatchTransactionsByAddress`](#usewatchtransactionsbyaddress) for a fixed address). Auto-rebinds when the user connects, switches or disconnects.
+Subscribe to incoming-transaction events for the currently selected wallet (use [`useWatchTransactionsByAddress`](#usewatchtransactionsbyaddress) for a fixed address). Auto-rebinds when the user connects, switches or disconnects. Requires a streaming provider registered for the network — the hook exits silently with a console warning when none is configured.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -887,7 +887,7 @@ return (
 
 #### useWatchTransactionsByAddress
 
-Subscribe to incoming-transaction events for an arbitrary address (use [`useWatchTransactions`](#usewatchtransactions) for the selected wallet). Logs a warning and exits when no streaming provider is configured for the resolved network or no `onChange` callback was provided.
+Subscribe to incoming-transaction events for an arbitrary address (use [`useWatchTransactions`](#usewatchtransactions) for the selected wallet). Requires a streaming provider registered for the network — the hook exits silently with a console warning when none is configured.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
@@ -927,7 +927,7 @@ return (
 
 #### useAddress
 
-Read the user-friendly address of the currently selected wallet. Re-renders when the selection changes.
+Read the user-friendly address of the currently selected wallet. Updates when the selection changes.
 
 Returns: <code><a href="#useaddressreturntype">UseAddressReturnType</a></code> — Selected wallet's address, or `undefined` when none is selected.
 
@@ -943,7 +943,7 @@ Returns: <code><a href="#useconnectreturntype">UseConnectReturnType</a>&lt;conte
 
 #### useConnectedWallets
 
-Read the list of currently connected wallets across all registered connectors. Re-renders when a wallet connects or disconnects.
+Read the list of currently connected wallets across all registered connectors. Updates when a wallet connects or disconnects.
 
 Returns: <code><a href="#useconnectedwalletsreturntype">UseConnectedWalletsReturnType</a></code> — Read-only array of [`WalletInterface`](/ecosystem/appkit/reference/appkit#walletinterface)s.
 

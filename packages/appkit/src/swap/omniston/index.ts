@@ -7,7 +7,7 @@
  */
 
 /**
- * {@link SwapProvider} implementation backed by Omniston. Use {@link createOmnistonProvider} to register it on AppKit.
+ * {@link SwapProvider} implementation backed by Omniston. Prefer the {@link createOmnistonProvider} factory over instantiating this class directly — the factory returns a `ProviderInput` ready to pass to {@link AppKitConfig}'s `providers` or {@link registerProvider}.
  *
  * @extract
  * @public

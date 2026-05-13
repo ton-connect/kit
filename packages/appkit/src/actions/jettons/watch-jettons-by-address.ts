@@ -40,7 +40,7 @@ export interface WatchJettonsByAddressOptions {
 export type WatchJettonsByAddressReturnType = () => void;
 
 /**
- * Subscribe to jetton-balance updates for an arbitrary owner address (use {@link watchJettons} for the selected wallet).
+ * Subscribe to jetton-balance updates for an arbitrary owner address (use {@link watchJettons} for the selected wallet). Requires a streaming provider registered for the network — call throws when none is configured. Use {@link hasStreamingProvider} to check first.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param options - {@link WatchJettonsByAddressOptions} Owner address, update callback and optional network override.

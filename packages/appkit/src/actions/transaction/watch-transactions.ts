@@ -37,7 +37,7 @@ export interface WatchTransactionsOptions {
 export type WatchTransactionsReturnType = () => void;
 
 /**
- * Subscribe to incoming-transaction events for the currently selected wallet, automatically rebinding when the user connects, switches, or disconnects (use {@link watchTransactionsByAddress} for a fixed address).
+ * Subscribe to incoming-transaction events for the currently selected wallet, automatically rebinding when the user connects, switches, or disconnects (use {@link watchTransactionsByAddress} for a fixed address). Requires a streaming provider registered for the network — call throws when none is configured. Use {@link hasStreamingProvider} to check first.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param options - {@link WatchTransactionsOptions} Update callback and optional network override.

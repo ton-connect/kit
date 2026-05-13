@@ -7,7 +7,7 @@
  */
 
 /**
- * {@link StakingProvider} implementation backed by Tonstakers. Use {@link createTonstakersProvider} to register it on AppKit.
+ * {@link StakingProvider} implementation backed by Tonstakers. The constructor is private — always go through the {@link createTonstakersProvider} factory and pass the result to {@link AppKitConfig}'s `providers` or {@link registerProvider}.
  *
  * @extract
  * @public

@@ -22,7 +22,7 @@ import { useAppKit } from '../../settings';
 export type UseConnectorsReturnType = GetConnectorsReturnType;
 
 /**
- * Read the list of connectors registered on this AppKit instance. Re-renders when a connector is registered or unregistered (use {@link useConnectedWallets} to react to wallet connect/disconnect events).
+ * Read the list of connectors registered on this AppKit instance. Updates when a connector is registered or unregistered (use {@link useConnectedWallets} to react to wallet connect/disconnect events).
  *
  * @returns Read-only array of registered {@link appkit:Connector}s.
  *

@@ -7,7 +7,7 @@
  */
 
 /**
- * {@link CryptoOnrampProvider} implementation backed by Layerswap. Use {@link createLayerswapProvider} to register it on AppKit.
+ * {@link CryptoOnrampProvider} implementation backed by Layerswap. Prefer the {@link createLayerswapProvider} factory over instantiating this class directly — the factory returns a `ProviderInput` ready to pass to {@link AppKitConfig}'s `providers` or {@link registerProvider}.
  *
  * @extract
  * @public

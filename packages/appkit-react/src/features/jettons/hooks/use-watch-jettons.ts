@@ -22,7 +22,7 @@ import { useWatchJettonsByAddress } from './use-watch-jettons-by-address';
 export type UseWatchJettonsParameters = Partial<WatchJettonsOptions>;
 
 /**
- * Subscribe to jetton-balance updates for the currently selected wallet. Updates flow into the TanStack Query cache so {@link useJettons} re-renders automatically (use {@link useWatchJettonsByAddress} for a fixed address).
+ * Subscribe to jetton-balance updates for the currently selected wallet. Updates flow into the TanStack Query cache so {@link useJettons} picks up the new data automatically (use {@link useWatchJettonsByAddress} for a fixed address). Requires a streaming provider registered for the network — the hook exits silently with a console warning when none is configured.
  *
  * @param parameters - {@link UseWatchJettonsParameters} Update callback and optional network override.
  *

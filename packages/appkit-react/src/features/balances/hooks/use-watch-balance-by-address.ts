@@ -24,7 +24,7 @@ import { useAppKit } from '../../settings';
 export type UseWatchBalanceByAddressParameters = Partial<WatchBalanceByAddressOptions>;
 
 /**
- * Subscribe to Toncoin balance updates for an arbitrary address — updates flow into the TanStack Query cache so {@link useBalanceByAddress} re-renders automatically. No-ops with a console warning when no streaming provider is configured for the resolved network.
+ * Subscribe to Toncoin balance updates for an arbitrary address — updates flow into the TanStack Query cache so {@link useBalanceByAddress} picks up the new data automatically. Requires a streaming provider registered for the network — the hook exits silently with a console warning when none is configured.
  *
  * @param parameters - {@link UseWatchBalanceByAddressParameters} Address, update callback and optional network override.
  *

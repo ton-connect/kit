@@ -7,7 +7,7 @@
  */
 
 /**
- * {@link SwapProvider} implementation backed by DeDust. Use {@link createDeDustProvider} to register it on AppKit.
+ * {@link SwapProvider} implementation backed by DeDust. Prefer the {@link createDeDustProvider} factory over instantiating this class directly — the factory returns a `ProviderInput` ready to pass to {@link AppKitConfig}'s `providers` or {@link registerProvider}.
  *
  * @extract
  * @public

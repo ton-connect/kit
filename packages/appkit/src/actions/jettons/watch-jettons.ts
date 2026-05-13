@@ -37,7 +37,7 @@ export interface WatchJettonsOptions {
 export type WatchJettonsReturnType = () => void;
 
 /**
- * Subscribe to jetton-balance updates for the currently selected wallet, automatically rebinding when the user connects, switches, or disconnects (use {@link watchJettonsByAddress} for a fixed address).
+ * Subscribe to jetton-balance updates for the currently selected wallet, automatically rebinding when the user connects, switches, or disconnects (use {@link watchJettonsByAddress} for a fixed address). Requires a streaming provider registered for the network — call throws when none is configured. Use {@link hasStreamingProvider} to check first.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param options - {@link WatchJettonsOptions} Update callback and optional network override.

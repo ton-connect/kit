@@ -40,7 +40,7 @@ export interface WatchTransactionsByAddressOptions {
 export type WatchTransactionsByAddressReturnType = () => void;
 
 /**
- * Subscribe to incoming-transaction events for an arbitrary address (use {@link watchTransactions} for the selected wallet).
+ * Subscribe to incoming-transaction events for an arbitrary address (use {@link watchTransactions} for the selected wallet). Requires a streaming provider registered for the network — call throws when none is configured. Use {@link hasStreamingProvider} to check first.
  *
  * @param appKit - {@link AppKit} Runtime instance.
  * @param options - {@link WatchTransactionsByAddressOptions} Address, update callback and optional network override.

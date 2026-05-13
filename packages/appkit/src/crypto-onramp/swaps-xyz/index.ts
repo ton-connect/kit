@@ -7,7 +7,7 @@
  */
 
 /**
- * {@link CryptoOnrampProvider} implementation backed by swaps.xyz. Use {@link createSwapsXyzProvider} to register it on AppKit.
+ * {@link CryptoOnrampProvider} implementation backed by swaps.xyz. Prefer the {@link createSwapsXyzProvider} factory over instantiating this class directly — the factory returns a `ProviderInput` ready to pass to {@link AppKitConfig}'s `providers` or {@link registerProvider}.
  *
  * @extract
  * @public

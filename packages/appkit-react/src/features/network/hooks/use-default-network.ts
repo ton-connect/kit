@@ -25,7 +25,7 @@ export type UseDefaultNetworkReturnType = [
 ];
 
 /**
- * Read and write AppKit's default network — the network connectors use for new wallet connections. Returns a `useState`-style tuple. The read side re-renders when the default changes through any source (this hook, {@link appkit:setDefaultNetwork}, manager events).
+ * Read and write AppKit's default network — the network connectors use for new wallet connections. Returns a `useState`-style tuple. The read side updates when the default changes through any source (this hook, {@link appkit:setDefaultNetwork}, manager events).
  *
  * @returns Tuple `[network, setNetwork]`.
  *

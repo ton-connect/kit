@@ -21,7 +21,7 @@ import type { UseWatchBalanceByAddressParameters } from './use-watch-balance-by-
 export type UseWatchBalanceParameters = Omit<UseWatchBalanceByAddressParameters, 'address'>;
 
 /**
- * Subscribe to Toncoin balance updates for the currently selected wallet. Updates flow into the TanStack Query cache so {@link useBalance} re-renders automatically (use {@link useWatchBalanceByAddress} for a fixed address).
+ * Subscribe to Toncoin balance updates for the currently selected wallet. Updates flow into the TanStack Query cache so {@link useBalance} picks up the new data automatically (use {@link useWatchBalanceByAddress} for a fixed address). Requires a streaming provider registered for the network — the hook exits silently with a console warning when none is configured.
  *
  * @param parameters - {@link UseWatchBalanceParameters} Update callback and optional network override.
  *
