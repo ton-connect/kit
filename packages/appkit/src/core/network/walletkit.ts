@@ -40,6 +40,16 @@ export { ApiClient } from '@ton/walletkit';
 export { ApiClientToncenter } from '@ton/walletkit';
 
 /**
+ * Configuration accepted by {@link ApiClientToncenter} — endpoint, API key, request timeout, custom `fetch`, target network, and optional DNS-resolver override.
+ *
+ * @extract
+ * @public
+ * @category Type
+ * @section Client
+ */
+export type { ApiClientToncenterConfig } from '@ton/walletkit';
+
+/**
  * {@link ApiClient} implementation backed by the TonAPI indexer.
  *
  * @extract
@@ -48,3 +58,13 @@ export { ApiClientToncenter } from '@ton/walletkit';
  * @section Client
  */
 export { ApiClientTonApi } from '@ton/walletkit';
+
+/**
+ * Configuration shared by every {@link ApiClient} subclass — endpoint, API key, request timeout, custom `fetch`, target network and a `disableNetworkSend` dev toggle. Accepted directly by {@link ApiClientTonApi}; extended by {@link ApiClientToncenterConfig}.
+ *
+ * @extract
+ * @public
+ * @category Type
+ * @section Client
+ */
+export type { BaseApiClientConfig } from '@ton/walletkit';

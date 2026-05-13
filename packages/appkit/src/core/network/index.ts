@@ -8,3 +8,4 @@
 
 export { AppKitNetworkManager } from './services/app-kit-network-manager';
 export { ApiClient, ApiClientToncenter, ApiClientTonApi, KitNetworkManager } from './walletkit';
+export type { ApiClientToncenterConfig, BaseApiClientConfig } from './walletkit';

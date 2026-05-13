@@ -50,7 +50,7 @@ export type GetTransactionStatusErrorType = Error;
  * Read the status of a sent transaction by its BoC or normalized hash. In TON a single external message triggers a tree of internal messages — the transaction is `'completed'` only when the entire trace finishes. Until then it stays `'pending'`. Throws when neither `boc` nor `normalizedHash` is provided.
  *
  * @param appKit - {@link AppKit} Runtime instance.
- * @param parameters - {@link GetTransactionStatusParameters} `boc` xor `normalizedHash` and optional network override.
+ * @param parameters - {@link GetTransactionStatusParameters} Exactly one of `boc` or `normalizedHash`, plus an optional network override.
  * @returns Status response with current state, completed/total message counts and trace details.
  *
  * @public

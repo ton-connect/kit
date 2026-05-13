@@ -10,11 +10,17 @@ import type { Network } from '../api/models';
 import { TonClientError } from './TonClientError';
 
 export interface BaseApiClientConfig {
+    /** Base URL of the indexer endpoint. Defaults to the provider's mainnet/testnet URL based on `network`. */
     endpoint?: string;
+    /** API key forwarded to the indexer for higher rate limits. */
     apiKey?: string;
+    /** Per-request timeout in milliseconds. Defaults to a provider-specific value. */
     timeout?: number;
+    /** Custom `fetch` implementation. Defaults to the global `fetch`. */
     fetchApi?: typeof fetch;
+    /** {@link Network} The network the client should target. Determines the default `endpoint` when one isn't supplied. */
     network?: Network;
+    /** When `true`, swallow `sendBoc` calls instead of broadcasting them — useful for local development and tests. */
     disableNetworkSend?: boolean;
 }
 

@@ -7,3 +7,5 @@
  */
 
 export { ApiClientToncenter } from './ApiClientToncenter';
+export type { ApiClientToncenterConfig } from './ApiClientToncenter';
+export type { BaseApiClientConfig } from '../BaseApiClient';

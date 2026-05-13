@@ -1130,7 +1130,7 @@ Read the status of a sent transaction by its BoC or normalized hash. In TON a si
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
-| `parameters`\* | [`GetTransactionStatusParameters`](#gettransactionstatusparameters) | `boc` xor `normalizedHash` and optional network override. |
+| `parameters`\* | [`GetTransactionStatusParameters`](#gettransactionstatusparameters) | Exactly one of `boc` or `normalizedHash`, plus an optional network override. |
 
 Returns: <code>Promise&lt;<a href="#gettransactionstatusreturntype">GetTransactionStatusReturnType</a>&gt;</code> — Status response with current state, completed/total message counts and trace details.
 
@@ -1286,7 +1286,13 @@ Constructor: `new ApiClientTonApi(config)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config` | `BaseApiClientConfig` | TonAPI client config — endpoint URL and API key. Defaults to TonAPI mainnet/testnet URLs based on `config.network`. |
+| `config` | [`BaseApiClientConfig`](#baseapiclientconfig) | TonAPI client config — endpoint URL and API key. Defaults to TonAPI mainnet/testnet URLs based on `config.network`. |
+| `config.endpoint` | `string` | Base URL of the indexer endpoint. Defaults to the provider's mainnet/testnet URL based on `network`. |
+| `config.apiKey` | `string` | API key forwarded to the indexer for higher rate limits. |
+| `config.timeout` | `number` | Per-request timeout in milliseconds. Defaults to a provider-specific value. |
+| `config.fetchApi` | `typeof fetch` | Custom `fetch` implementation. Defaults to the global `fetch`. |
+| `config.network` | [`Network`](#network) | The network the client should target. Determines the default `endpoint` when one isn't supplied. |
+| `config.disableNetworkSend` | `boolean` | When `true`, swallow `sendBoc` calls instead of broadcasting them — useful for local development and tests. |
 
 #### ApiClientToncenter
 
@@ -1296,7 +1302,14 @@ Constructor: `new ApiClientToncenter(config)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `config` | <code><a href="#apiclientconfig">ApiClientConfig</a></code> | Toncenter client config — endpoint URL, API key and optional DNS resolver override. Defaults to mainnet/testnet Toncenter URLs based on `config.network`. |
+| `config` | [`ApiClientToncenterConfig`](#apiclienttoncenterconfig) | Toncenter client config — endpoint URL, API key and optional DNS resolver override. Defaults to mainnet/testnet Toncenter URLs based on `config.network`. |
+| `config.dnsResolver` | `string` | Override the contract address used to resolve TON DNS records. Defaults to the network's standard root resolver. |
+| `config.endpoint` | `string` | Base URL of the indexer endpoint. Defaults to the provider's mainnet/testnet URL based on `network`. |
+| `config.apiKey` | `string` | API key forwarded to the indexer for higher rate limits. |
+| `config.timeout` | `number` | Per-request timeout in milliseconds. Defaults to a provider-specific value. |
+| `config.fetchApi` | `typeof fetch` | Custom `fetch` implementation. Defaults to the global `fetch`. |
+| `config.network` | [`Network`](#network) | The network the client should target. Determines the default `endpoint` when one isn't supplied. |
+| `config.disableNetworkSend` | `boolean` | When `true`, swallow `sendBoc` calls instead of broadcasting them — useful for local development and tests. |
 
 ### Core
 
@@ -1691,6 +1704,33 @@ Configuration accepted by [`NetworkConfig`](#networkconfig)'s `apiClient` — pi
 | --- | --- | --- |
 | `url` | `string` | Base URL of the indexer endpoint. Defaults to `'https://toncenter.com'` for mainnet, `'https://testnet.toncenter.com'` for testnet. |
 | `key` | `string` | API key forwarded to the indexer for higher rate limits. |
+
+#### ApiClientToncenterConfig
+
+Configuration accepted by [`ApiClientToncenter`](#apiclienttoncenter) — endpoint, API key, request timeout, custom `fetch`, target network, and optional DNS-resolver override.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `dnsResolver` | `string` | Override the contract address used to resolve TON DNS records. Defaults to the network's standard root resolver. |
+| `endpoint` | `string` | Base URL of the indexer endpoint. Defaults to the provider's mainnet/testnet URL based on `network`. |
+| `apiKey` | `string` | API key forwarded to the indexer for higher rate limits. |
+| `timeout` | `number` | Per-request timeout in milliseconds. Defaults to a provider-specific value. |
+| `fetchApi` | `typeof fetch` | Custom `fetch` implementation. Defaults to the global `fetch`. |
+| `network` | [`Network`](#network) | The network the client should target. Determines the default `endpoint` when one isn't supplied. |
+| `disableNetworkSend` | `boolean` | When `true`, swallow `sendBoc` calls instead of broadcasting them — useful for local development and tests. |
+
+#### BaseApiClientConfig
+
+Configuration shared by every [`ApiClient`](#apiclient) subclass — endpoint, API key, request timeout, custom `fetch`, target network and a `disableNetworkSend` dev toggle. Accepted directly by [`ApiClientTonApi`](#apiclienttonapi); extended by [`ApiClientToncenterConfig`](#apiclienttoncenterconfig).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `endpoint` | `string` | Base URL of the indexer endpoint. Defaults to the provider's mainnet/testnet URL based on `network`. |
+| `apiKey` | `string` | API key forwarded to the indexer for higher rate limits. |
+| `timeout` | `number` | Per-request timeout in milliseconds. Defaults to a provider-specific value. |
+| `fetchApi` | `typeof fetch` | Custom `fetch` implementation. Defaults to the global `fetch`. |
+| `network` | [`Network`](#network) | The network the client should target. Determines the default `endpoint` when one isn't supplied. |
+| `disableNetworkSend` | `boolean` | When `true`, swallow `sendBoc` calls instead of broadcasting them — useful for local development and tests. |
 
 #### GetApiClientOptions
 
