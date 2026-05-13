@@ -16,7 +16,7 @@ import type {
 } from '../../../api/models';
 import { Network } from '../../../api/models';
 import { CryptoOnrampProvider } from '../CryptoOnrampProvider';
-import { CryptoOnrampError } from '../errors';
+import { CryptoOnrampError, CryptoOnrampErrorCode } from '../errors';
 import { createProvider } from '../../../types/factory';
 import type { LayerswapCreateSwapResponse, LayerswapGetSwapResponse } from './types';
 import {
@@ -101,28 +101,28 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<undefine
         if (params.sourceChain !== ARBITRUM_CAIP2) {
             throw new CryptoOnrampError(
                 `Layerswap: unsupported source chain "${params.sourceChain}" (only Arbitrum One / ${ARBITRUM_CAIP2} is supported)`,
-                CryptoOnrampError.INVALID_PARAMS,
+                CryptoOnrampErrorCode.InvalidParams,
             );
         }
 
         if (params.sourceCurrencyAddress.toLowerCase() !== ARBITRUM_USDT0_ADDRESS) {
             throw new CryptoOnrampError(
                 `Layerswap: unsupported source token "${params.sourceCurrencyAddress}" (only USDT0 on Arbitrum is supported)`,
-                CryptoOnrampError.INVALID_PARAMS,
+                CryptoOnrampErrorCode.InvalidParams,
             );
         }
 
         if (params.targetCurrencyAddress !== TON_USDT_ADDRESS) {
             throw new CryptoOnrampError(
                 `Layerswap: unsupported target token "${params.targetCurrencyAddress}" (only USDT on TON is supported)`,
-                CryptoOnrampError.INVALID_PARAMS,
+                CryptoOnrampErrorCode.InvalidParams,
             );
         }
 
         if (params.isSourceAmount === false) {
             throw new CryptoOnrampError(
                 'Layerswap: only source-amount quotes are supported',
-                CryptoOnrampError.REVERSED_AMOUNT_NOT_SUPPORTED,
+                CryptoOnrampErrorCode.ReversedAmountNotSupported,
             );
         }
 
@@ -152,7 +152,7 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<undefine
         } catch (error) {
             throw new CryptoOnrampError(
                 'Layerswap: network error while creating swap',
-                CryptoOnrampError.QUOTE_FAILED,
+                CryptoOnrampErrorCode.QuoteFailed,
                 error,
             );
         }
@@ -163,7 +163,7 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<undefine
             const err = isErrorResponse(json) ? json.error : undefined;
             throw new CryptoOnrampError(
                 err?.message ?? `Layerswap create swap failed (HTTP ${response.status})`,
-                err?.code ?? CryptoOnrampError.QUOTE_FAILED,
+                (err?.code as CryptoOnrampErrorCode) ?? CryptoOnrampErrorCode.QuoteFailed,
                 err ?? { status: response.status },
             );
         }
@@ -173,7 +173,7 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<undefine
         if (!depositAction) {
             throw new CryptoOnrampError(
                 'Layerswap: swap was created but no deposit action was returned',
-                CryptoOnrampError.QUOTE_FAILED,
+                CryptoOnrampErrorCode.QuoteFailed,
                 data,
             );
         }
@@ -209,7 +209,7 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<undefine
         if (!metadata?.swapId) {
             throw new CryptoOnrampError(
                 'Layerswap: quote metadata is missing — quote must be obtained from this provider',
-                CryptoOnrampError.INVALID_PARAMS,
+                CryptoOnrampErrorCode.InvalidParams,
             );
         }
 
@@ -236,7 +236,7 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<undefine
         } catch (error) {
             throw new CryptoOnrampError(
                 'Layerswap: network error while fetching swap status',
-                CryptoOnrampError.PROVIDER_ERROR,
+                CryptoOnrampErrorCode.ProviderError,
                 error,
             );
         }
@@ -251,7 +251,7 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<undefine
             const err = isErrorResponse(json) ? json.error : undefined;
             throw new CryptoOnrampError(
                 err?.message ?? `Layerswap get swap failed (HTTP ${response.status})`,
-                err?.code ?? CryptoOnrampError.PROVIDER_ERROR,
+                (err?.code as CryptoOnrampErrorCode) ?? CryptoOnrampErrorCode.ProviderError,
                 err ?? { status: response.status },
             );
         }

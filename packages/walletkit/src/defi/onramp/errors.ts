@@ -8,14 +8,23 @@
 
 import { DefiError } from '../errors';
 
-export class OnrampError extends DefiError {
-    static readonly PROVIDER_ERROR = 'PROVIDER_ERROR';
-    static readonly InvalidParams = 'INVALID_ONRAMP_PARAMS';
-    static readonly QUOTE_FAILED = 'QUOTE_FAILED';
-    static readonly URL_BUILD_FAILED = 'URL_BUILD_FAILED';
+export enum OnrampErrorCode {
+    /** Provider's upstream API rejected the call. */
+    ProviderError = 'PROVIDER_ERROR',
+    /** Caller passed parameters that fail provider-level validation. */
+    InvalidParams = 'INVALID_ONRAMP_PARAMS',
+    /** Provider could not produce a quote for the supplied parameters. */
+    QuoteFailed = 'QUOTE_FAILED',
+    /** Provider could not build the redirect URL for the requested onramp. */
+    UrlBuildFailed = 'URL_BUILD_FAILED',
+}
 
-    constructor(message: string, code: string, details?: unknown) {
+export class OnrampError extends DefiError {
+    public readonly code: OnrampErrorCode;
+
+    constructor(message: string, code: OnrampErrorCode, details?: unknown) {
         super(message, code, details);
         this.name = 'OnrampError';
+        this.code = code;
     }
 }

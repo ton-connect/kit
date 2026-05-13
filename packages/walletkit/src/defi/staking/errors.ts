@@ -20,7 +20,7 @@ export class StakingError extends DefiError {
 
     /**
      * @param message - Human-readable description, forwarded to `Error`.
-     * @param code - Stable {@link StakingErrorCode} for branching logic.
+     * @param code - {@link StakingErrorCode} Stable error code for branching logic.
      * @param details - Optional provider-specific context for diagnostics.
      */
     constructor(message: string, code: StakingErrorCode, details?: unknown) {

@@ -18,7 +18,7 @@ import type { DeDustSwapResponse } from './DeDustPrivateTypes';
 import { SwapProvider } from '../SwapProvider';
 import type { SwapQuoteParams, SwapQuote, SwapParams, SwapProviderMetadata } from '../../../api/models';
 import { Network } from '../../../api/models';
-import { SwapError } from '../errors';
+import { SwapError, SwapErrorCode } from '../errors';
 import { globalLogger } from '../../../core/Logger';
 import { tokenToMinter, validateNetwork, isDeDustQuoteMetadata } from './utils';
 import type { TransactionRequest } from '../../../api/models';
@@ -160,20 +160,20 @@ export class DeDustSwapProvider extends SwapProvider<DeDustProviderOptions, DeDu
                 log.error('DeDust quote API error', { status: response.status, error: errorText });
 
                 if (response.status === 400) {
-                    throw new SwapError(`No route found for swap: ${errorText}`, SwapError.INSUFFICIENT_LIQUIDITY);
+                    throw new SwapError(`No route found for swap: ${errorText}`, SwapErrorCode.InsufficientLiquidity);
                 }
 
-                throw new SwapError(`DeDust API error: ${response.status} ${errorText}`, SwapError.NETWORK_ERROR);
+                throw new SwapError(`DeDust API error: ${response.status} ${errorText}`, SwapErrorCode.NetworkError);
             }
 
             const quoteResponse: DeDustQuoteResponse = await response.json();
 
             if (!quoteResponse.swap_is_possible) {
-                throw new SwapError('Swap is not possible for this pair', SwapError.INSUFFICIENT_LIQUIDITY);
+                throw new SwapError('Swap is not possible for this pair', SwapErrorCode.InsufficientLiquidity);
             }
 
             if (!quoteResponse.swap_data?.routes || quoteResponse.swap_data.routes.length === 0) {
-                throw new SwapError('No routes found for this swap', SwapError.INSUFFICIENT_LIQUIDITY);
+                throw new SwapError('No routes found for this swap', SwapErrorCode.InsufficientLiquidity);
             }
 
             // Calculate min received based on slippage
@@ -218,7 +218,7 @@ export class DeDustSwapProvider extends SwapProvider<DeDustProviderOptions, DeDu
 
             throw new SwapError(
                 `DeDust quote request failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                SwapError.NETWORK_ERROR,
+                SwapErrorCode.NetworkError,
                 error,
             );
         }
@@ -230,7 +230,7 @@ export class DeDustSwapProvider extends SwapProvider<DeDustProviderOptions, DeDu
         const metadata = params.quote.metadata;
 
         if (!metadata || !isDeDustQuoteMetadata(metadata)) {
-            throw new SwapError('Invalid quote: missing DeDust quote data', SwapError.INVALID_QUOTE);
+            throw new SwapError('Invalid quote: missing DeDust quote data', SwapErrorCode.InvalidQuote);
         }
 
         try {
@@ -261,14 +261,14 @@ export class DeDustSwapProvider extends SwapProvider<DeDustProviderOptions, DeDu
                 log.error('DeDust swap API error', { status: response.status, error: errorText });
                 throw new SwapError(
                     `DeDust swap API error: ${response.status} ${errorText}`,
-                    SwapError.BUILD_TX_FAILED,
+                    SwapErrorCode.BuildTxFailed,
                 );
             }
 
             const swapResponse: DeDustSwapResponse = await response.json();
 
             if (!swapResponse.transactions || swapResponse.transactions.length === 0) {
-                throw new SwapError('No transactions returned from swap API', SwapError.BUILD_TX_FAILED);
+                throw new SwapError('No transactions returned from swap API', SwapErrorCode.BuildTxFailed);
             }
 
             const transaction: TransactionRequest = {
@@ -296,7 +296,7 @@ export class DeDustSwapProvider extends SwapProvider<DeDustProviderOptions, DeDu
 
             throw new SwapError(
                 `Failed to build DeDust transaction: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                SwapError.BUILD_TX_FAILED,
+                SwapErrorCode.BuildTxFailed,
                 error,
             );
         }

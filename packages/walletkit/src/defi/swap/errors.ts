@@ -8,23 +8,30 @@
 
 import { DefiError } from '../errors';
 
-export class SwapError extends DefiError {
+export enum SwapErrorCode {
     /** Provider returned malformed or missing quote data. */
-    static readonly INVALID_QUOTE = 'INVALID_QUOTE';
+    InvalidQuote = 'INVALID_QUOTE',
     /** No route or pool has enough liquidity to satisfy the requested swap. */
-    static readonly INSUFFICIENT_LIQUIDITY = 'INSUFFICIENT_LIQUIDITY';
-    /** Quote payload is too old to use — fetch a new quote before building the transaction. */
-    static readonly QUOTE_EXPIRED = 'QUOTE_EXPIRED';
+    InsufficientLiquidity = 'INSUFFICIENT_LIQUIDITY',
+    /** Quote payload is too old to use. Fetch a new one before building the transaction. */
+    QuoteExpired = 'QUOTE_EXPIRED',
     /** Provider failed to produce a swap transaction from the supplied quote. */
-    static readonly BUILD_TX_FAILED = 'BUILD_TX_FAILED';
+    BuildTxFailed = 'BUILD_TX_FAILED',
+    /** Provider rejected the request because of an upstream/network failure. */
+    NetworkError = 'NETWORK_ERROR',
+}
+
+export class SwapError extends DefiError {
+    public readonly code: SwapErrorCode;
 
     /**
      * @param message - Human-readable description, forwarded to `Error`.
-     * @param code - Stable error code from the static `SwapError.*` / `DefiError.*` constants.
+     * @param code - {@link SwapErrorCode} Stable error code for branching logic.
      * @param details - Optional provider-specific context for diagnostics.
      */
-    constructor(message: string, code: string, details?: unknown) {
+    constructor(message: string, code: SwapErrorCode, details?: unknown) {
         super(message, code, details);
         this.name = 'SwapError';
+        this.code = code;
     }
 }

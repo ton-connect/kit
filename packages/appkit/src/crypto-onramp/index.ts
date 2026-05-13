@@ -7,15 +7,7 @@
  */
 
 /**
- * Error thrown by {@link CryptoOnrampManager} and crypto-onramp providers — extends {@link DefiError} with `name: 'CryptoOnrampError'` and a stable `code` from the static `CryptoOnrampError.*` / `DefiError.*` constants.
- *
- * Codes (`CryptoOnrampError.*`, in addition to inherited {@link DefiError} codes):
- * - `'PROVIDER_ERROR'` — provider's upstream API rejected the call (unexpected response, auth failure, internal error).
- * - `'QUOTE_FAILED'` — provider could not produce a quote for the supplied parameters.
- * - `'DEPOSIT_FAILED'` — provider could not create a deposit for the previously obtained quote.
- * - `'REFUND_ADDRESS_REQUIRED'` — provider requires a refund address that the caller did not supply.
- * - `'INVALID_REFUND_ADDRESS'` — supplied refund address is not valid for the source chain.
- * - `'REVERSED_AMOUNT_NOT_SUPPORTED'` — provider does not support specifying the amount on the target side of the swap.
+ * Error thrown by {@link CryptoOnrampManager} and crypto-onramp providers — extends {@link DefiError} with `name: 'CryptoOnrampError'` and a typed {@link CryptoOnrampErrorCode} on `code`.
  *
  * @extract
  * @public
@@ -23,6 +15,16 @@
  * @section Crypto Onramp
  */
 export { CryptoOnrampError } from '@ton/walletkit';
+
+/**
+ * Discriminator carried on every {@link CryptoOnrampError}'s `code` — covers provider/quote/deposit failures and refund-address validation.
+ *
+ * @extract
+ * @public
+ * @category Constants
+ * @section Crypto Onramp
+ */
+export { CryptoOnrampErrorCode } from '@ton/walletkit';
 
 /**
  * Abstract base class implemented by crypto-onramp providers (Layerswap, swaps.xyz, custom integrations). Apps don't use it directly — they consume providers through {@link CryptoOnrampManager} and the `getCryptoOnramp*` / {@link createCryptoOnrampDeposit} actions.

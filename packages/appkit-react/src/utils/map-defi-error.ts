@@ -6,7 +6,7 @@
  *
  */
 
-import { DefiError } from '@ton/appkit';
+import { DefiError, DefiErrorCode } from '@ton/appkit';
 
 /**
  * Map a thrown error to an i18n key from the `defi.*` namespace.
@@ -17,17 +17,17 @@ export const mapDefiError = (error: unknown): string | null => {
     if (!(error instanceof DefiError)) return null;
 
     switch (error.code) {
-        case DefiError.UNSUPPORTED_NETWORK:
+        case DefiErrorCode.UnsupportedNetwork:
             return 'defi.unsupportedNetwork';
-        case DefiError.NETWORK_ERROR:
+        case DefiErrorCode.NetworkError:
             return 'defi.networkError';
-        case DefiError.PROVIDER_NOT_FOUND:
+        case DefiErrorCode.ProviderNotFound:
             return 'defi.providerNotFound';
-        case DefiError.NO_DEFAULT_PROVIDER:
+        case DefiErrorCode.NoDefaultProvider:
             return 'defi.noDefaultProvider';
-        case DefiError.INVALID_PROVIDER:
+        case DefiErrorCode.InvalidProvider:
             return 'defi.invalidProvider';
-        case DefiError.INVALID_PARAMS:
+        case DefiErrorCode.InvalidParams:
             return 'defi.invalidParams';
         default:
             return null;

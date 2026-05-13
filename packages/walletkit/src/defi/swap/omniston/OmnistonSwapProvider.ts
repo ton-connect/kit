@@ -14,7 +14,7 @@ import type { OmnistonQuoteMetadata, OmnistonSwapProviderConfig, OmnistonProvide
 import { SwapProvider } from '../SwapProvider';
 import type { SwapQuoteParams, SwapQuote, SwapParams, SwapProviderMetadata } from '../../../api/models';
 import { Network } from '../../../api/models';
-import { SwapError } from '../errors';
+import { SwapError, SwapErrorCode } from '../errors';
 import { globalLogger } from '../../../core/Logger';
 import { tokenToAddress, toOmnistonAddress, isOmnistonQuoteMetadata } from './utils';
 import type { TransactionRequest } from '../../../api/models';
@@ -145,7 +145,7 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
 
                     if (!isSettled) {
                         isSettled = true;
-                        reject(new SwapError('Quote request timed out', SwapError.NETWORK_ERROR));
+                        reject(new SwapError('Quote request timed out', SwapErrorCode.NetworkError));
                     }
 
                     unsubscribe.unsubscribe();
@@ -161,7 +161,9 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
                             isSettled = true;
                             clearTimeout(timeoutId);
                             unsubscribe.unsubscribe();
-                            reject(new SwapError('No quote available for this swap', SwapError.INSUFFICIENT_LIQUIDITY));
+                            reject(
+                                new SwapError('No quote available for this swap', SwapErrorCode.InsufficientLiquidity),
+                            );
                             return;
                         }
 
@@ -184,7 +186,7 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
             });
 
             if (quoteEvent.type !== 'quoteUpdated') {
-                throw new SwapError('Quote data is missing', SwapError.INVALID_QUOTE);
+                throw new SwapError('Quote data is missing', SwapErrorCode.InvalidQuote);
             }
 
             const quote = quoteEvent.quote;
@@ -206,7 +208,7 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
 
             throw new SwapError(
                 `Omniston quote request failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                SwapError.NETWORK_ERROR,
+                SwapErrorCode.NetworkError,
                 error,
             );
         }
@@ -218,7 +220,7 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
         const metadata = params.quote.metadata;
 
         if (!metadata || !isOmnistonQuoteMetadata(metadata)) {
-            throw new SwapError('Invalid quote: missing Omniston quote data', SwapError.INVALID_QUOTE);
+            throw new SwapError('Invalid quote: missing Omniston quote data', SwapErrorCode.InvalidQuote);
         }
 
         try {
@@ -226,7 +228,7 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
             const now = getUnixtime();
 
             if (omnistonQuote.tradeStartDeadline && omnistonQuote.tradeStartDeadline < now) {
-                throw new SwapError('Quote has expired, please request a new one', SwapError.QUOTE_EXPIRED);
+                throw new SwapError('Quote has expired, please request a new one', SwapErrorCode.QuoteExpired);
             }
 
             const userAddress = Address.parse(params.userAddress).toRawString();
@@ -251,7 +253,7 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
             const messages = buildResult?.ton?.messages;
 
             if (!messages || messages.length === 0) {
-                throw new SwapError('Failed to build transaction: no messages returned', SwapError.BUILD_TX_FAILED);
+                throw new SwapError('Failed to build transaction: no messages returned', SwapErrorCode.BuildTxFailed);
             }
 
             const transaction: TransactionRequest = {
@@ -280,7 +282,7 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
 
             throw new SwapError(
                 `Failed to build Omniston transaction: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                SwapError.NETWORK_ERROR,
+                SwapErrorCode.NetworkError,
                 error,
             );
         }

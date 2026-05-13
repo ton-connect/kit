@@ -9,14 +9,6 @@
 /**
  * Base error thrown across all DeFi domains (swap, staking, onramp, crypto-onramp). Subclassed by {@link SwapError}, {@link StakingError}, {@link CryptoOnrampError} and the internal onramp error — catch the base when you don't care which domain produced the failure.
  *
- * Codes (`DefiError.*`):
- * - `'PROVIDER_NOT_FOUND'` — provider with the requested id is not registered with the manager.
- * - `'NO_DEFAULT_PROVIDER'` — no default provider is configured and the caller did not specify one.
- * - `'NETWORK_ERROR'` — provider rejected the request because of an upstream/network failure.
- * - `'UNSUPPORTED_NETWORK'` — provider does not support the network selected for the operation.
- * - `'INVALID_PARAMS'` — caller passed parameters that fail provider-level validation.
- * - `'INVALID_PROVIDER'` — provider failed its own internal validation and cannot be used.
- *
  * @extract
  * @public
  * @category Class
@@ -25,13 +17,17 @@
 export { DefiError } from '@ton/walletkit';
 
 /**
- * Error thrown by {@link SwapManager} and swap providers — extends {@link DefiError} with `name: 'SwapError'` and a stable `code` from the static `SwapError.*` / `DefiError.*` constants.
+ * Discriminator carried on {@link DefiError}'s `code` for codes shared by every DeFi domain — provider lookup, default-provider state, and shared transport/validation failures. Subclass codes ({@link SwapErrorCode}, {@link StakingErrorCode}, {@link CryptoOnrampErrorCode}) cover domain-specific failures.
  *
- * Codes (`SwapError.*`, in addition to inherited {@link DefiError} codes):
- * - `'INVALID_QUOTE'` — provider returned malformed or missing quote data.
- * - `'INSUFFICIENT_LIQUIDITY'` — no route or pool has enough liquidity to satisfy the requested swap.
- * - `'QUOTE_EXPIRED'` — quote payload is too old to use. Fetch a new one before building the transaction.
- * - `'BUILD_TX_FAILED'` — provider failed to produce a swap transaction from the supplied quote.
+ * @extract
+ * @public
+ * @category Constants
+ * @section DeFi
+ */
+export { DefiErrorCode } from '@ton/walletkit';
+
+/**
+ * Error thrown by {@link SwapManager} and swap providers — extends {@link DefiError} with `name: 'SwapError'` and a typed {@link SwapErrorCode} on `code`.
  *
  * @extract
  * @public
@@ -39,6 +35,16 @@ export { DefiError } from '@ton/walletkit';
  * @section Swap
  */
 export { SwapError } from '@ton/walletkit';
+
+/**
+ * Discriminator carried on every {@link SwapError}'s `code` — covers quote / liquidity / transaction-build failures plus the shared `NETWORK_ERROR` for upstream-API faults.
+ *
+ * @extract
+ * @public
+ * @category Constants
+ * @section Swap
+ */
+export { SwapErrorCode } from '@ton/walletkit';
 
 /**
  * Abstract base class implemented by swap providers (DeDust, Omniston, custom integrations). Apps don't use it directly — they consume providers through {@link SwapManager} and the `getSwap*` / `buildSwapTransaction` actions.

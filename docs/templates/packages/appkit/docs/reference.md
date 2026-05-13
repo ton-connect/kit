@@ -57,22 +57,14 @@ Constructor: `new EventEmitter()`
 
 #### CryptoOnrampError
 
-Error thrown by [`CryptoOnrampManager`](#cryptoonrampmanager) and crypto-onramp providers — extends [`DefiError`](#defierror) with `name: 'CryptoOnrampError'` and a stable `code` from the static `CryptoOnrampError.*` / `DefiError.*` constants.
-
-Codes (`CryptoOnrampError.*`, in addition to inherited [`DefiError`](#defierror) codes):
-- `'PROVIDER_ERROR'` — provider's upstream API rejected the call (unexpected response, auth failure, internal error).
-- `'QUOTE_FAILED'` — provider could not produce a quote for the supplied parameters.
-- `'DEPOSIT_FAILED'` — provider could not create a deposit for the previously obtained quote.
-- `'REFUND_ADDRESS_REQUIRED'` — provider requires a refund address that the caller did not supply.
-- `'INVALID_REFUND_ADDRESS'` — supplied refund address is not valid for the source chain.
-- `'REVERSED_AMOUNT_NOT_SUPPORTED'` — provider does not support specifying the amount on the target side of the swap.
+Error thrown by [`CryptoOnrampManager`](#cryptoonrampmanager) and crypto-onramp providers — extends [`DefiError`](#defierror) with `name: 'CryptoOnrampError'` and a typed [`CryptoOnrampErrorCode`](#cryptoonramperrorcode) on `code`.
 
 Constructor: `new CryptoOnrampError(message, code, details)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `message`\* | `string` | Human-readable description, forwarded to `Error`. |
-| `code`\* | `string` | Stable error code from the static `CryptoOnrampError.*` / `DefiError.*` constants. |
+| `code`\* | [`CryptoOnrampErrorCode`](#cryptoonramperrorcode) | Stable error code for branching logic. |
 | `details` | `unknown` | Optional provider-specific context for diagnostics. |
 
 #### CryptoOnrampManager
@@ -118,20 +110,12 @@ Constructor: `new SwapsXyzCryptoOnrampProvider(config)`
 
 Base error thrown across all DeFi domains (swap, staking, onramp, crypto-onramp). Subclassed by [`SwapError`](#swaperror), [`StakingError`](#stakingerror), [`CryptoOnrampError`](#cryptoonramperror) and the internal onramp error — catch the base when you don't care which domain produced the failure.
 
-Codes (`DefiError.*`):
-- `'PROVIDER_NOT_FOUND'` — provider with the requested id is not registered with the manager.
-- `'NO_DEFAULT_PROVIDER'` — no default provider is configured and the caller did not specify one.
-- `'NETWORK_ERROR'` — provider rejected the request because of an upstream/network failure.
-- `'UNSUPPORTED_NETWORK'` — provider does not support the network selected for the operation.
-- `'INVALID_PARAMS'` — caller passed parameters that fail provider-level validation.
-- `'INVALID_PROVIDER'` — provider failed its own internal validation and cannot be used.
-
 Constructor: `new DefiError(message, code, details)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `message`\* | `string` | Human-readable description, forwarded to `Error`. |
-| `code`\* | `string` | Stable error code from the `DefiError.*` constants. |
+| `code`\* | [`DefiErrorCode`](#defierrorcode) | Stable error code for branching logic. |
 | `details` | `unknown` | Optional provider-specific context for diagnostics. |
 
 ### Networks
@@ -168,7 +152,7 @@ Constructor: `new StakingError(message, code, details)`
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `message`\* | `string` | Human-readable description, forwarded to `Error`. |
-| `code`\* | <code><a href="#stakingerrorcode">StakingErrorCode</a></code> | Stable [`StakingErrorCode`](#stakingerrorcode) for branching logic. |
+| `code`\* | [`StakingErrorCode`](#stakingerrorcode) | Stable error code for branching logic. |
 | `details` | `unknown` | Optional provider-specific context for diagnostics. |
 
 #### StakingManager
@@ -247,20 +231,14 @@ Constructor: `new OmnistonSwapProvider(config)`
 
 #### SwapError
 
-Error thrown by [`SwapManager`](#swapmanager) and swap providers — extends [`DefiError`](#defierror) with `name: 'SwapError'` and a stable `code` from the static `SwapError.*` / `DefiError.*` constants.
-
-Codes (`SwapError.*`, in addition to inherited [`DefiError`](#defierror) codes):
-- `'INVALID_QUOTE'` — provider returned malformed or missing quote data.
-- `'INSUFFICIENT_LIQUIDITY'` — no route or pool has enough liquidity to satisfy the requested swap.
-- `'QUOTE_EXPIRED'` — quote payload is too old to use. Fetch a new one before building the transaction.
-- `'BUILD_TX_FAILED'` — provider failed to produce a swap transaction from the supplied quote.
+Error thrown by [`SwapManager`](#swapmanager) and swap providers — extends [`DefiError`](#defierror) with `name: 'SwapError'` and a typed [`SwapErrorCode`](#swaperrorcode) on `code`.
 
 Constructor: `new SwapError(message, code, details)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `message`\* | `string` | Human-readable description, forwarded to `Error`. |
-| `code`\* | `string` | Stable error code from the static `SwapError.*` / `DefiError.*` constants. |
+| `code`\* | [`SwapErrorCode`](#swaperrorcode) | Stable error code for branching logic. |
 | `details` | `unknown` | Optional provider-specific context for diagnostics. |
 
 #### SwapManager
@@ -3918,6 +3896,37 @@ Default id assigned to the TonConnect connector when none is supplied to [`creat
 const TONCONNECT_DEFAULT_CONNECTOR_ID = 'tonconnect';
 ```
 
+### Crypto Onramp
+
+#### CryptoOnrampErrorCode
+
+Discriminator carried on every [`CryptoOnrampError`](#cryptoonramperror)'s `code` — covers provider/quote/deposit failures and refund-address validation.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `ProviderError`\* | `"PROVIDER_ERROR"` | Provider's upstream API rejected the call (unexpected response, auth failure, internal error). |
+| `QuoteFailed`\* | `"QUOTE_FAILED"` | Provider could not produce a quote for the supplied parameters. |
+| `DepositFailed`\* | `"DEPOSIT_FAILED"` | Provider could not create a deposit for the previously obtained quote. |
+| `RefundAddressRequired`\* | `"REFUND_ADDRESS_REQUIRED"` | Provider requires a refund address that the caller did not supply. |
+| `InvalidRefundAddress`\* | `"INVALID_REFUND_ADDRESS"` | Supplied refund address is not valid for the source chain. |
+| `ReversedAmountNotSupported`\* | `"REVERSED_AMOUNT_NOT_SUPPORTED"` | Provider does not support specifying the amount on the target side of the swap. |
+| `InvalidParams`\* | `"INVALID_PARAMS"` | Caller passed parameters that fail provider-level validation. |
+
+### DeFi
+
+#### DefiErrorCode
+
+Discriminator carried on [`DefiError`](#defierror)'s `code` for codes shared by every DeFi domain — provider lookup, default-provider state, and shared transport/validation failures. Subclass codes ([`SwapErrorCode`](#swaperrorcode), [`StakingErrorCode`](#stakingerrorcode), [`CryptoOnrampErrorCode`](#cryptoonramperrorcode)) cover domain-specific failures.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `ProviderNotFound`\* | `"PROVIDER_NOT_FOUND"` | Provider with the requested id is not registered with the manager. |
+| `NoDefaultProvider`\* | `"NO_DEFAULT_PROVIDER"` | No default provider is configured and the caller did not specify one. |
+| `NetworkError`\* | `"NETWORK_ERROR"` | Provider rejected the request because of an upstream/network failure. |
+| `UnsupportedNetwork`\* | `"UNSUPPORTED_NETWORK"` | Provider does not support the network selected for the operation. |
+| `InvalidParams`\* | `"INVALID_PARAMS"` | Caller passed parameters that fail provider-level validation. |
+| `InvalidProvider`\* | `"INVALID_PROVIDER"` | Provider failed its own internal validation and cannot be used. |
+
 ### Networks
 
 #### NETWORKS_EVENTS
@@ -3949,6 +3958,20 @@ Allowed unstake-timing flavours referenced by [`UnstakeModes`](#unstakemodes) an
 ```ts
 const UnstakeMode = { readonly INSTANT: "INSTANT"; readonly WHEN_AVAILABLE: "WHEN_AVAILABLE"; readonly ROUND_END: "ROUND_END"; };
 ```
+
+### Swap
+
+#### SwapErrorCode
+
+Discriminator carried on every [`SwapError`](#swaperror)'s `code` — covers quote / liquidity / transaction-build failures plus the shared `NETWORK_ERROR` for upstream-API faults.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `InvalidQuote`\* | `"INVALID_QUOTE"` | Provider returned malformed or missing quote data. |
+| `InsufficientLiquidity`\* | `"INSUFFICIENT_LIQUIDITY"` | No route or pool has enough liquidity to satisfy the requested swap. |
+| `QuoteExpired`\* | `"QUOTE_EXPIRED"` | Quote payload is too old to use. Fetch a new one before building the transaction. |
+| `BuildTxFailed`\* | `"BUILD_TX_FAILED"` | Provider failed to produce a swap transaction from the supplied quote. |
+| `NetworkError`\* | `"NETWORK_ERROR"` | Provider rejected the request because of an upstream/network failure. |
 
 ### Wallets
 

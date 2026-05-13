@@ -16,7 +16,7 @@ import type {
 } from '../../../api/models';
 import { Network } from '../../../api/models';
 import { CryptoOnrampProvider } from '../CryptoOnrampProvider';
-import { CryptoOnrampError } from '../errors';
+import { CryptoOnrampError, CryptoOnrampErrorCode } from '../errors';
 import { createProvider } from '../../../types/factory';
 import type { SwapsXyzGetActionResponse, SwapsXyzSwapDirection } from './types';
 import { evmChainIdToCaip2, isErrorResponse, isEvmAddress, mapStatus, parseEvmChainIdFromCaip2 } from './utils';
@@ -108,7 +108,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
         if (srcChainId === undefined) {
             throw new CryptoOnrampError(
                 `SwapsXyz: sourceChain must be a CAIP-2 EVM chain (e.g. "eip155:1"), got "${params.sourceChain}"`,
-                CryptoOnrampError.INVALID_PARAMS,
+                CryptoOnrampErrorCode.InvalidParams,
             );
         }
 
@@ -118,7 +118,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
         if (!isEvmAddress(sender)) {
             throw new CryptoOnrampError(
                 'SwapsXyz: senderAddress must be a valid EVM address (got "' + sender + '")',
-                CryptoOnrampError.INVALID_REFUND_ADDRESS,
+                CryptoOnrampErrorCode.InvalidRefundAddress,
             );
         }
 
@@ -144,7 +144,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
         } catch (error) {
             throw new CryptoOnrampError(
                 'SwapsXyz: network error while calling getAction',
-                CryptoOnrampError.QUOTE_FAILED,
+                CryptoOnrampErrorCode.QuoteFailed,
                 error,
             );
         }
@@ -155,7 +155,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
             const err = isErrorResponse(body) ? body.error : undefined;
             throw new CryptoOnrampError(
                 err?.message ?? `SwapsXyz getAction failed (HTTP ${response.status})`,
-                err?.code ?? CryptoOnrampError.QUOTE_FAILED,
+                (err?.code as CryptoOnrampErrorCode) ?? CryptoOnrampErrorCode.QuoteFailed,
                 err ?? { status: response.status },
             );
         }
@@ -163,7 +163,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
         if (body.vmId !== 'evm') {
             throw new CryptoOnrampError(
                 `SwapsXyz: only EVM source chains are supported (got vmId="${body.vmId}")`,
-                CryptoOnrampError.INVALID_PARAMS,
+                CryptoOnrampErrorCode.InvalidParams,
                 { vmId: body.vmId, srcChainId },
             );
         }
@@ -188,7 +188,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
         if (!metadata?.response?.tx?.to) {
             throw new CryptoOnrampError(
                 'SwapsXyz: quote metadata is missing — quote must be obtained from this provider',
-                CryptoOnrampError.INVALID_PARAMS,
+                CryptoOnrampErrorCode.InvalidParams,
             );
         }
 
@@ -202,14 +202,14 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
             if (!params.refundAddress) {
                 throw new CryptoOnrampError(
                     'SwapsXyz: a refund address is required to create a deposit',
-                    CryptoOnrampError.REFUND_ADDRESS_REQUIRED,
+                    CryptoOnrampErrorCode.RefundAddressRequired,
                 );
             }
 
             if (!isEvmAddress(params.refundAddress)) {
                 throw new CryptoOnrampError(
                     'SwapsXyz: senderAddress must be a valid EVM address (got "' + params.refundAddress + '")',
-                    CryptoOnrampError.INVALID_REFUND_ADDRESS,
+                    CryptoOnrampErrorCode.InvalidRefundAddress,
                 );
             }
 
@@ -227,7 +227,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
             if (!newMetadata) {
                 throw new CryptoOnrampError(
                     'SwapsXyz: quote metadata is missing — quote must be obtained from this provider',
-                    CryptoOnrampError.INVALID_PARAMS,
+                    CryptoOnrampErrorCode.InvalidParams,
                 );
             }
 
@@ -264,7 +264,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
         } catch (error) {
             throw new CryptoOnrampError(
                 'SwapsXyz: network error while fetching status',
-                CryptoOnrampError.PROVIDER_ERROR,
+                CryptoOnrampErrorCode.ProviderError,
                 error,
             );
         }
@@ -280,7 +280,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
 
             throw new CryptoOnrampError(
                 err?.message ?? `SwapsXyz getStatus failed (HTTP ${response.status})`,
-                err?.code ?? CryptoOnrampError.PROVIDER_ERROR,
+                (err?.code as CryptoOnrampErrorCode) ?? CryptoOnrampErrorCode.ProviderError,
                 err ?? { status: response.status },
             );
         }

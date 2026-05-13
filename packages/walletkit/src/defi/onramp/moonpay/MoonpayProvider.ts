@@ -9,7 +9,7 @@
 import type { OnrampParams, OnrampQuote, OnrampQuoteParams } from '../../../api/models';
 import { Network } from '../../../api/models';
 import { OnrampProvider } from '../OnrampProvider';
-import { OnrampError } from '../errors';
+import { OnrampError, OnrampErrorCode } from '../errors';
 
 /**
  * Custom options for Moonpay requests
@@ -48,7 +48,7 @@ export class MoonpayProvider extends OnrampProvider<MoonpayQuoteOptions, Moonpay
     constructor(apiKey: string) {
         super();
         if (!apiKey) {
-            throw new OnrampError('Moonpay API key is required', OnrampError.PROVIDER_ERROR);
+            throw new OnrampError('Moonpay API key is required', OnrampErrorCode.ProviderError);
         }
         this.apiKey = apiKey;
     }
@@ -89,7 +89,7 @@ export class MoonpayProvider extends OnrampProvider<MoonpayQuoteOptions, Moonpay
                 metadata: data,
             };
         } catch (error) {
-            throw new OnrampError('Failed to get Moonpay quote', OnrampError.QUOTE_FAILED, error);
+            throw new OnrampError('Failed to get Moonpay quote', OnrampErrorCode.QuoteFailed, error);
         }
     }
 
@@ -116,7 +116,7 @@ export class MoonpayProvider extends OnrampProvider<MoonpayQuoteOptions, Moonpay
 
             return url.toString();
         } catch (error) {
-            throw new OnrampError('Failed to build Moonpay URL', OnrampError.URL_BUILD_FAILED, error);
+            throw new OnrampError('Failed to build Moonpay URL', OnrampErrorCode.UrlBuildFailed, error);
         }
     }
 }
