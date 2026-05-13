@@ -7,6 +7,7 @@
  */
 
 import { Address, beginCell } from '@ton/core';
+import { LRUCache } from 'lru-cache';
 
 import { isValidAddress, asAddressFriendly } from './address';
 import { ParseStack, SerializeStack } from './tvmStack';
@@ -64,6 +65,14 @@ export async function getJettonWalletAddressFromClient(
     }
 }
 
+// Cache for jetton master addresses by wallet address
+const JETTON_MASTER_BY_WALLET_CACHE_SIZE = 1000;
+const JETTON_MASTER_BY_WALLET_CACHE_TTL = 1000 * 60 * 10; // 10 minutes TTL
+const jettonMasterByWalletCache = new LRUCache<string, UserFriendlyAddress>({
+    max: JETTON_MASTER_BY_WALLET_CACHE_SIZE,
+    ttl: JETTON_MASTER_BY_WALLET_CACHE_TTL,
+});
+
 /**
  * Gets the jetton wallet address for an owner
  */
@@ -71,6 +80,12 @@ export async function getJettonMasterAddressFromClient(
     client: ApiClient,
     jettonWalletAddress: UserFriendlyAddress,
 ): Promise<UserFriendlyAddress> {
+    const cacheKey = `${client.getNetwork().chainId}-${jettonWalletAddress}`;
+    const cached = jettonMasterByWalletCache.get(cacheKey);
+    if (cached) {
+        return cached;
+    }
+
     if (!isValidAddress(jettonWalletAddress)) {
         throw new Error(`Invalid jetton address: ${jettonWalletAddress}`);
     }
@@ -83,6 +98,16 @@ export async function getJettonMasterAddressFromClient(
         const result = await client.runGetMethod(jettonWalletAddress, 'get_wallet_data');
 
         const parsedStack = ParseStack(result.stack);
+
+        const ownerAddress =
+            parsedStack[1].type === 'slice' || parsedStack[1].type === 'cell'
+                ? parsedStack[1].cell.asSlice().loadAddress()
+                : null;
+
+        if (!ownerAddress) {
+            throw new Error('Failed to get owner address');
+        }
+
         const jettonMasterAddress =
             parsedStack[2].type === 'slice' || parsedStack[2].type === 'cell'
                 ? parsedStack[2].cell.asSlice().loadAddress()
@@ -92,7 +117,19 @@ export async function getJettonMasterAddressFromClient(
             throw new Error('Failed to get jetton master address');
         }
 
-        return asAddressFriendly(jettonMasterAddress.toString());
+        const verifiedJettonWalletAddress = await getJettonWalletAddressFromClient(
+            client,
+            asAddressFriendly(jettonMasterAddress.toString()),
+            asAddressFriendly(ownerAddress.toString()),
+        );
+
+        if (verifiedJettonWalletAddress !== jettonWalletAddress) {
+            throw new Error('Jetton wallet address mismatch');
+        }
+
+        const normalizedJettonMasterAddress = asAddressFriendly(jettonMasterAddress);
+        jettonMasterByWalletCache.set(cacheKey, normalizedJettonMasterAddress);
+        return normalizedJettonMasterAddress;
     } catch (error) {
         throw new Error(
             `Failed to get jetton master address for ${jettonWalletAddress}: ${

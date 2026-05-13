@@ -77,6 +77,10 @@ export class ApiClientToncenter extends BaseApiClient implements ApiClient {
         super(config, defaultEndpoint);
     }
 
+    getNetwork(): Network {
+        return this.network;
+    }
+
     protected appendAuthHeaders(headers: Headers): void {
         if (this.apiKey) headers.set('x-api-key', this.apiKey);
     }
