@@ -981,6 +981,20 @@ Compound component for rendering a token balance pill (icon + amount + symbol). 
 | `BalanceBadge.Symbol` | Ticker symbol cell rendered next to the amount (e.g., `TON`, `USDT`). |
 | `BalanceBadge.Balance` | Formatted balance number; takes a raw `balance` and `decimals` and renders the human-readable amount. |
 
+**Example**
+
+```ts
+return (
+    <BalanceBadge.Container>
+        <BalanceBadge.Icon size={32} src="https://ton.org/download/ton_symbol.png" alt="TON" />
+        <BalanceBadge.BalanceBlock>
+            <BalanceBadge.Balance balance="1234500000" decimals={9} />
+            <BalanceBadge.Symbol symbol="TON" />
+        </BalanceBadge.BalanceBlock>
+    </BalanceBadge.Container>
+);
+```
+
 #### SendJettonButton
 
 Pre-wired button that builds a jetton transfer with [`createTransferJettonTransaction`](/ecosystem/appkit/reference/appkit#createtransferjettontransaction) and dispatches it through the standard `Send` flow on click — disabled until `recipientAddress`, `amount`, `jetton.address` and a non-zero `jetton.decimals` are all set; throws inside the click handler when `jetton.address` is missing or `jetton.decimals` is falsy. (A `0`-decimal jetton must be passed as a truthy value to avoid being treated as missing.)
@@ -1248,6 +1262,23 @@ Compound row used inside currency/token select lists: shows a token logo, name +
 | `CurrencyItem.RightSide` | Right-aligned column for balance values. |
 | `CurrencyItem.MainBalance` | Primary balance number (top of `RightSide`). |
 | `CurrencyItem.UnderBalance` | Secondary balance value (e.g., fiat) shown under `MainBalance`. |
+
+**Example**
+
+```tsx
+// Top-level props give you the default layout in one line.
+return (
+    <CurrencyItem
+        ticker="USDT"
+        name="Tether USD"
+        icon="https://cdn.example.com/usdt.png"
+        balance="1,234.56"
+        underBalance="≈ $1,234.56"
+        isVerified
+        onClick={() => console.log('Picked USDT')}
+    />
+);
+```
 
 #### CurrencySelect
 
@@ -1807,6 +1838,23 @@ Compound component for rendering a stacked list of label/value rows (e.g., trans
 | `InfoBlock.LabelSkeleton` | Skeleton placeholder for a [`InfoBlock.Label`](#infoblock) while data is loading. Defaults to `width=64`, `height='1lh'`. |
 | `InfoBlock.ValueSkeleton` | Skeleton placeholder for a [`InfoBlock.Value`](#infoblock) while data is loading. Defaults to `width=80`, `height='1lh'`. |
 
+**Example**
+
+```ts
+return (
+    <InfoBlock.Container>
+        <InfoBlock.Row>
+            <InfoBlock.Label>Rate</InfoBlock.Label>
+            <InfoBlock.Value>1 TON ≈ $5.43</InfoBlock.Value>
+        </InfoBlock.Row>
+        <InfoBlock.Row>
+            <InfoBlock.Label>Network fee</InfoBlock.Label>
+            <InfoBlock.Value>0.01 TON</InfoBlock.Value>
+        </InfoBlock.Row>
+    </InfoBlock.Container>
+);
+```
+
 #### Input
 
 Compound text-input component. Use the default export as the outer wrapper (it is the [`Input.Container`](#input)) and compose sub-components for the header, field, slots, control, and caption. State flags (`disabled`, `error`, `loading`, `resizable`, `size`) live on the container and are read by the inner control via context.
@@ -1822,6 +1870,22 @@ Compound text-input component. Use the default export as the outer wrapper (it i
 | `Input.Slot` | Side-anchored slot used for adornments such as icons or buttons. |
 | `Input.Input` | The actual `<input>` control; respects context flags and reads its size/variant from [`Input.Container`](#input). |
 | `Input.Caption` | Caption / helper text below the field; switches to error styling when the container has `error` set. |
+
+**Example**
+
+```tsx
+return (
+    <Input size="m">
+        <Input.Header>
+            <Input.Title>Recipient</Input.Title>
+        </Input.Header>
+        <Input.Field>
+            <Input.Input value={value} onChange={(event) => setValue(event.target.value)} placeholder="EQ..." />
+        </Input.Field>
+        <Input.Caption>Paste a TON wallet address.</Input.Caption>
+    </Input>
+);
+```
 
 #### Logo
 
@@ -1906,6 +1970,20 @@ Compound select / dropdown component with controlled or uncontrolled state. The 
 | `Select.Trigger` | [`Button`](#button)-based trigger that toggles the popover and exposes `aria-expanded`. |
 | `Select.Content` | Portaled popover that renders the list of items; positioned under the trigger with optional `sideOffset`. |
 | `Select.Item` | Selectable option row; commits its `value` to the root on click. |
+
+**Example**
+
+```ts
+return (
+    <Select.Root value={value} onValueChange={setValue}>
+        <Select.Trigger>{value === 'mainnet' ? 'Mainnet' : 'Testnet'}</Select.Trigger>
+        <Select.Content>
+            <Select.Item value="mainnet">Mainnet</Select.Item>
+            <Select.Item value="testnet">Testnet</Select.Item>
+        </Select.Content>
+    </Select.Root>
+);
+```
 
 #### Skeleton
 

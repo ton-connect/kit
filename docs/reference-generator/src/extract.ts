@@ -73,6 +73,8 @@ export interface ExtractedNamespaceComponent {
     category: string;
     summary: string | null;
     members: { name: string; props: ParamRow[]; summary: string | null }[];
+    examples: string[];
+    samples: string[];
 }
 
 export interface ExtractedType {
@@ -423,6 +425,8 @@ function extractNamespaceComponent(
     const stmt = decl.getVariableStatement();
     const jsdoc = pickJsDoc(stmt?.getJsDocs() ?? []);
     const summary = readSummary(jsdoc);
+    const examples = readExamples(jsdoc);
+    const samples = readSamples(jsdoc);
 
     const members: ExtractedNamespaceComponent['members'] = [];
     for (const prop of init.getProperties()) {
@@ -437,7 +441,7 @@ function extractNamespaceComponent(
         members.push({ name: memberName, props, summary: memberSummary });
     }
 
-    return { kind: 'componentNamespace', name, sourcePath, summary, members };
+    return { kind: 'componentNamespace', name, sourcePath, summary, members, examples, samples };
 }
 
 function extractType(

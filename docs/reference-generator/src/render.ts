@@ -177,7 +177,10 @@ function renderNamespaceComponent(entry: ExtractedNamespaceComponent, level: Hea
     lines.push(resolveLinks(entry.summary ?? TODO_MARKER));
     lines.push('');
 
-    if (entry.members.length === 0) return lines.join('\n').trimEnd();
+    if (entry.members.length === 0) {
+        appendExamples(lines, entry.examples, entry.samples);
+        return lines.join('\n').trimEnd();
+    }
 
     // When any member declares its own props, fall back to per-member sub-headings
     // so the props table can sit under the member it documents.
@@ -196,6 +199,7 @@ function renderNamespaceComponent(entry: ExtractedNamespaceComponent, level: Hea
                 lines.push('');
             }
         }
+        appendExamples(lines, entry.examples, entry.samples);
         return lines.join('\n').trimEnd();
     }
 
@@ -211,6 +215,8 @@ function renderNamespaceComponent(entry: ExtractedNamespaceComponent, level: Hea
             .replace(/\|/g, '\\|');
         lines.push(`| ${name} | ${desc} |`);
     }
+    lines.push('');
+    appendExamples(lines, entry.examples, entry.samples);
     return lines.join('\n').trimEnd();
 }
 
