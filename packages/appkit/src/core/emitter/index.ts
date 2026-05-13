@@ -7,7 +7,7 @@
  */
 
 /**
- * Strongly-typed event emitter built on a string event name → payload type map. Backs {@link AppKit}'s `emitter` and any custom emitters apps create. See {@link AppKitEvents} for the full list of events AppKit emits. `appKit.emitter.on(name, handler)` returns an unsubscribe function.
+ * Strongly-typed event emitter built on a string event name → payload type map. Type of `appKit.emitter` and the base for any custom emitters apps create. See {@link AppKitEvents} for the full list of events AppKit emits. `appKit.emitter.on(name, handler)` returns an unsubscribe function.
  *
  * @extract
  * @public

@@ -87,7 +87,10 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
     private readonly apiUrl: string;
     private readonly defaultSender: string;
 
-    /** @param config - {@link SwapsXyzProviderConfig} Configuration carrying the required `apiKey` plus optional URL/sender overrides. */
+    /**
+     * @param config - {@link SwapsXyzProviderConfig} Configuration carrying the required `apiKey` plus optional URL/sender overrides.
+     * @expand config
+     */
     constructor(config: SwapsXyzProviderConfig) {
         super();
         this.apiKey = config.apiKey;
@@ -291,6 +294,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
  * Pass to `providers: [createSwapsXyzProvider(config)]`.
  *
  * @param config - {@link SwapsXyzProviderConfig} Configuration carrying the required `apiKey` plus optional URL/sender overrides.
+ * @expand config
  */
 export const createSwapsXyzProvider = (config: SwapsXyzProviderConfig) =>
     createProvider(() => new SwapsXyzCryptoOnrampProvider(config));

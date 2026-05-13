@@ -9,9 +9,13 @@
 import { DefiError } from '../errors';
 
 export class SwapError extends DefiError {
+    /** Provider returned malformed or missing quote data. */
     static readonly INVALID_QUOTE = 'INVALID_QUOTE';
+    /** No route or pool has enough liquidity to satisfy the requested swap. */
     static readonly INSUFFICIENT_LIQUIDITY = 'INSUFFICIENT_LIQUIDITY';
+    /** Quote payload is too old to use — fetch a new quote before building the transaction. */
     static readonly QUOTE_EXPIRED = 'QUOTE_EXPIRED';
+    /** Provider failed to produce a swap transaction from the supplied quote. */
     static readonly BUILD_TX_FAILED = 'BUILD_TX_FAILED';
 
     /**

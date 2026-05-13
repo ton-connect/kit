@@ -7,7 +7,7 @@
  */
 
 /**
- * {@link CryptoOnrampProvider} implementation backed by Layerswap. Use {@link createLayerswapProvider} to register it on AppKit. Quote, deposit and status calls go through {@link getCryptoOnrampQuote} / {@link createCryptoOnrampDeposit} / {@link getCryptoOnrampStatus} like any other crypto-onramp provider.
+ * {@link CryptoOnrampProvider} implementation backed by Layerswap. Use {@link createLayerswapProvider} to register it on AppKit.
  *
  * @extract
  * @public

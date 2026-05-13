@@ -13,7 +13,7 @@ import type { AppKitEmitter } from '../../app-kit/types/events';
 import { KitNetworkManager } from '../walletkit';
 
 /**
- * Network manager exposed as {@link AppKit}'s `networkManager` — extends walletkit's `KitNetworkManager` with a default-network setter and AppKit event emission.
+ * Network manager that extends walletkit's {@link KitNetworkManager} with a default-network setter and AppKit event emission. Usually accessed through the higher-level actions ({@link getDefaultNetwork}, {@link setDefaultNetwork}, {@link watchDefaultNetwork}, {@link getNetworks}, {@link watchNetworks}).
  *
  * @public
  * @category Class

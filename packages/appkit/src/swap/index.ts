@@ -9,6 +9,14 @@
 /**
  * Base error thrown across all DeFi domains (swap, staking, onramp, crypto-onramp). Subclassed by {@link SwapError}, {@link StakingError}, {@link CryptoOnrampError} and the internal onramp error — catch the base when you don't care which domain produced the failure.
  *
+ * Codes (`DefiError.*`):
+ * - `'PROVIDER_NOT_FOUND'` — provider with the requested id is not registered with the manager.
+ * - `'NO_DEFAULT_PROVIDER'` — no default provider is configured and the caller did not specify one.
+ * - `'NETWORK_ERROR'` — provider rejected the request because of an upstream/network failure.
+ * - `'UNSUPPORTED_NETWORK'` — provider does not support the network selected for the operation.
+ * - `'INVALID_PARAMS'` — caller passed parameters that fail provider-level validation.
+ * - `'INVALID_PROVIDER'` — provider failed its own internal validation and cannot be used.
+ *
  * @extract
  * @public
  * @category Class
@@ -18,6 +26,12 @@ export { DefiError } from '@ton/walletkit';
 
 /**
  * Error thrown by {@link SwapManager} and swap providers — extends {@link DefiError} with `name: 'SwapError'` and a stable `code` from the static `SwapError.*` / `DefiError.*` constants.
+ *
+ * Codes (`SwapError.*`, in addition to inherited {@link DefiError} codes):
+ * - `'INVALID_QUOTE'` — provider returned malformed or missing quote data.
+ * - `'INSUFFICIENT_LIQUIDITY'` — no route or pool has enough liquidity to satisfy the requested swap.
+ * - `'QUOTE_EXPIRED'` — quote payload is too old to use. Fetch a new one before building the transaction.
+ * - `'BUILD_TX_FAILED'` — provider failed to produce a swap transaction from the supplied quote.
  *
  * @extract
  * @public
@@ -37,7 +51,7 @@ export { SwapError } from '@ton/walletkit';
 export { SwapProvider } from '@ton/walletkit';
 
 /**
- * Runtime that owns registered {@link SwapProvider}s and dispatches quote/swap calls. Exposed as {@link AppKit}'s `swapManager`. Usually accessed through the higher-level actions ({@link getSwapQuote}, {@link buildSwapTransaction}).
+ * Runtime that owns registered {@link SwapProvider}s and dispatches quote/swap calls. Usually accessed through the higher-level actions ({@link getSwapQuote}, {@link buildSwapTransaction}).
  *
  * @extract
  * @public

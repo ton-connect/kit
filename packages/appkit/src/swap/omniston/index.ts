@@ -7,7 +7,7 @@
  */
 
 /**
- * {@link SwapProvider} implementation backed by Omniston. Use {@link createOmnistonProvider} to register it on AppKit. Quote and swap calls go through {@link getSwapQuote} / {@link buildSwapTransaction} like any other swap provider.
+ * {@link SwapProvider} implementation backed by Omniston. Use {@link createOmnistonProvider} to register it on AppKit.
  *
  * @extract
  * @public

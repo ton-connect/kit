@@ -77,7 +77,7 @@ const appKit = new AppKit({
 
 #### EventEmitter
 
-Strongly-typed event emitter built on a string event name → payload type map. Backs [`AppKit`](#appkit)'s `emitter` and any custom emitters apps create. See [`AppKitEvents`](#appkitevents) for the full list of events AppKit emits. `appKit.emitter.on(name, handler)` returns an unsubscribe function.
+Strongly-typed event emitter built on a string event name → payload type map. Type of `appKit.emitter` and the base for any custom emitters apps create. See [`AppKitEvents`](#appkitevents) for the full list of events AppKit emits. `appKit.emitter.on(name, handler)` returns an unsubscribe function.
 
 Constructor: `new EventEmitter()`
 
@@ -86,6 +86,14 @@ Constructor: `new EventEmitter()`
 #### CryptoOnrampError
 
 Error thrown by [`CryptoOnrampManager`](#cryptoonrampmanager) and crypto-onramp providers — extends [`DefiError`](#defierror) with `name: 'CryptoOnrampError'` and a stable `code` from the static `CryptoOnrampError.*` / `DefiError.*` constants.
+
+Codes (`CryptoOnrampError.*`, in addition to inherited [`DefiError`](#defierror) codes):
+- `'PROVIDER_ERROR'` — provider's upstream API rejected the call (unexpected response, auth failure, internal error).
+- `'QUOTE_FAILED'` — provider could not produce a quote for the supplied parameters.
+- `'DEPOSIT_FAILED'` — provider could not create a deposit for the previously obtained quote.
+- `'REFUND_ADDRESS_REQUIRED'` — provider requires a refund address that the caller did not supply.
+- `'INVALID_REFUND_ADDRESS'` — supplied refund address is not valid for the source chain.
+- `'REVERSED_AMOUNT_NOT_SUPPORTED'` — provider does not support specifying the amount on the target side of the swap.
 
 Constructor: `new CryptoOnrampError(message, code, details)`
 
@@ -97,7 +105,7 @@ Constructor: `new CryptoOnrampError(message, code, details)`
 
 #### CryptoOnrampManager
 
-Runtime that owns registered [`CryptoOnrampProvider`](#cryptoonrampprovider)s and dispatches quote/deposit/status calls. Exposed as [`AppKit`](#appkit)'s `cryptoOnrampManager`. Usually accessed through the higher-level actions ([`getCryptoOnrampQuote`](#getcryptoonrampquote), [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit), [`getCryptoOnrampStatus`](#getcryptoonrampstatus)).
+Runtime that owns registered [`CryptoOnrampProvider`](#cryptoonrampprovider)s and dispatches quote/deposit/status calls. Usually accessed through the higher-level actions ([`getCryptoOnrampQuote`](#getcryptoonrampquote), [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit), [`getCryptoOnrampStatus`](#getcryptoonrampstatus)).
 
 Constructor: `new CryptoOnrampManager()`
 
@@ -109,29 +117,42 @@ Constructor: `new CryptoOnrampProvider()`
 
 #### LayerswapCryptoOnrampProvider
 
-[`CryptoOnrampProvider`](#cryptoonrampprovider) implementation backed by Layerswap. Use [`createLayerswapProvider`](#createlayerswapprovider) to register it on AppKit. Quote, deposit and status calls go through [`getCryptoOnrampQuote`](#getcryptoonrampquote) / [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit) / [`getCryptoOnrampStatus`](#getcryptoonrampstatus) like any other crypto-onramp provider.
+[`CryptoOnrampProvider`](#cryptoonrampprovider) implementation backed by Layerswap. Use [`createLayerswapProvider`](#createlayerswapprovider) to register it on AppKit.
 
 Constructor: `new LayerswapCryptoOnrampProvider(config)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `config` | <code><a href="#layerswapproviderconfig">LayerswapProviderConfig</a></code> | Optional [`LayerswapProviderConfig`](#layerswapproviderconfig). Defaults are filled in for any field left undefined. |
+| `config.apiKey` | `string` | Optional API key. Forwarded as `X-LS-APIKEY` when provided. |
+| `config.apiUrl` | `string` | Override the base API URL. Defaults to https://api.layerswap.io/api/v2 |
 
 #### SwapsXyzCryptoOnrampProvider
 
-[`CryptoOnrampProvider`](#cryptoonrampprovider) implementation backed by swaps.xyz. Use [`createSwapsXyzProvider`](#createswapsxyzprovider) to register it on AppKit. Quote, deposit and status calls go through [`getCryptoOnrampQuote`](#getcryptoonrampquote) / [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit) / [`getCryptoOnrampStatus`](#getcryptoonrampstatus) like any other crypto-onramp provider.
+[`CryptoOnrampProvider`](#cryptoonrampprovider) implementation backed by swaps.xyz. Use [`createSwapsXyzProvider`](#createswapsxyzprovider) to register it on AppKit.
 
 Constructor: `new SwapsXyzCryptoOnrampProvider(config)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `config`\* | [`SwapsXyzProviderConfig`](#swapsxyzproviderconfig) | Configuration carrying the required `apiKey` plus optional URL/sender overrides. |
+| `config.apiKey`\* | `string` | API key issued by swaps.xyz (passed as `x-api-key`) |
+| `config.apiUrl` | `string` | Override the base API URL. Defaults to https://api-v2.swaps.xyz/api |
+| `config.defaultSender` | `string` | EVM address used as `sender` on getAction requests. Required by the API even for deposit flows where the actual payer is unknown. Defaults to a null address when omitted. |
 
 ### DeFi
 
 #### DefiError
 
 Base error thrown across all DeFi domains (swap, staking, onramp, crypto-onramp). Subclassed by [`SwapError`](#swaperror), [`StakingError`](#stakingerror), [`CryptoOnrampError`](#cryptoonramperror) and the internal onramp error — catch the base when you don't care which domain produced the failure.
+
+Codes (`DefiError.*`):
+- `'PROVIDER_NOT_FOUND'` — provider with the requested id is not registered with the manager.
+- `'NO_DEFAULT_PROVIDER'` — no default provider is configured and the caller did not specify one.
+- `'NETWORK_ERROR'` — provider rejected the request because of an upstream/network failure.
+- `'UNSUPPORTED_NETWORK'` — provider does not support the network selected for the operation.
+- `'INVALID_PARAMS'` — caller passed parameters that fail provider-level validation.
+- `'INVALID_PROVIDER'` — provider failed its own internal validation and cannot be used.
 
 Constructor: `new DefiError(message, code, details)`
 
@@ -145,7 +166,7 @@ Constructor: `new DefiError(message, code, details)`
 
 #### AppKitNetworkManager
 
-Network manager exposed as [`AppKit`](#appkit)'s `networkManager` — extends walletkit's `KitNetworkManager` with a default-network setter and AppKit event emission.
+Network manager that extends walletkit's [`KitNetworkManager`](#kitnetworkmanager) with a default-network setter and AppKit event emission. Usually accessed through the higher-level actions ([`getDefaultNetwork`](#getdefaultnetwork), [`setDefaultNetwork`](#setdefaultnetwork), [`watchDefaultNetwork`](#watchdefaultnetwork), [`getNetworks`](#getnetworks), [`watchNetworks`](#watchnetworks)).
 
 Constructor: `new AppKitNetworkManager(options, emitter)`
 
@@ -156,7 +177,7 @@ Constructor: `new AppKitNetworkManager(options, emitter)`
 
 #### KitNetworkManager
 
-Walletkit-side network manager that [`AppKitNetworkManager`](#appkitnetworkmanager) extends, adding default-network state and AppKit event emission. Apps usually interact with the [`AppKitNetworkManager`](#appkitnetworkmanager) subclass via [`AppKit`](#appkit)'s `networkManager`.
+Walletkit-side network manager that [`AppKitNetworkManager`](#appkitnetworkmanager) extends, adding default-network state and AppKit event emission. Apps usually interact with the [`AppKitNetworkManager`](#appkitnetworkmanager) subclass.
 
 Constructor: `new KitNetworkManager(options)`
 
@@ -180,7 +201,7 @@ Constructor: `new StakingError(message, code, details)`
 
 #### StakingManager
 
-Runtime that owns registered [`StakingProvider`](#stakingprovider)s and dispatches quote/stake/balance calls. Exposed as [`AppKit`](#appkit)'s `stakingManager`. Usually accessed through the higher-level actions ([`getStakingQuote`](#getstakingquote), [`buildStakeTransaction`](#buildstaketransaction), [`getStakedBalance`](#getstakedbalance)).
+Runtime that owns registered [`StakingProvider`](#stakingprovider)s and dispatches quote/stake/balance calls. Usually accessed through the higher-level actions ([`getStakingQuote`](#getstakingquote), [`buildStakeTransaction`](#buildstaketransaction), [`getStakedBalance`](#getstakedbalance)).
 
 Constructor: `new StakingManager(createFactoryContext)`
 
@@ -200,7 +221,7 @@ Constructor: `new StakingProvider(providerId)`
 
 #### TonStakersStakingProvider
 
-[`StakingProvider`](#stakingprovider) implementation backed by Tonstakers. The constructor is private — use [`createTonstakersProvider`](#createtonstakersprovider) to register it on AppKit. Quote and stake calls then go through [`getStakingQuote`](#getstakingquote) / [`buildStakeTransaction`](#buildstaketransaction) like any other staking provider.
+[`StakingProvider`](#stakingprovider) implementation backed by Tonstakers. Use [`createTonstakersProvider`](#createtonstakersprovider) to register it on AppKit.
 
 Constructor: `new TonStakersStakingProvider()`
 
@@ -208,13 +229,23 @@ Constructor: `new TonStakersStakingProvider()`
 
 #### DeDustSwapProvider
 
-[`SwapProvider`](#swapprovider) implementation backed by DeDust. Use [`createDeDustProvider`](#creatededustprovider) to register it on AppKit. Quote and swap calls go through [`getSwapQuote`](#getswapquote) / [`buildSwapTransaction`](#buildswaptransaction) like any other swap provider.
+[`SwapProvider`](#swapprovider) implementation backed by DeDust. Use [`createDeDustProvider`](#creatededustprovider) to register it on AppKit.
 
 Constructor: `new DeDustSwapProvider(config)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `config` | <code><a href="#dedustswapproviderconfig">DeDustSwapProviderConfig</a></code> | Optional [`DeDustSwapProviderConfig`](#dedustswapproviderconfig). Defaults are filled in for any field left undefined. |
+| `config.providerId` | `string` | Custom provider ID (defaults to 'dedust') |
+| `config.defaultSlippageBps` | `number` | Default slippage tolerance in basis points (1 bp = 0.01%) |
+| `config.apiUrl` | `string` | API base URL |
+| `config.onlyVerifiedPools` | `boolean` | Only use verified pools |
+| `config.maxSplits` | `number` | Maximum number of route splits |
+| `config.maxLength` | `number` | Maximum route length (hops) |
+| `config.minPoolUsdTvl` | `string` | Minimum pool TVL in USD |
+| `config.metadata` | `SwapProviderMetadataOverride` | Custom metadata for the provider |
+| `config.referralAddress` | `string` | The address of the referrer |
+| `config.referralFeeBps` | `number` | Referral fee in basis points (max 100 = 1%) |
 
 **Example**
 
@@ -230,13 +261,21 @@ kit.registerProvider(
 
 #### OmnistonSwapProvider
 
-[`SwapProvider`](#swapprovider) implementation backed by Omniston. Use [`createOmnistonProvider`](#createomnistonprovider) to register it on AppKit. Quote and swap calls go through [`getSwapQuote`](#getswapquote) / [`buildSwapTransaction`](#buildswaptransaction) like any other swap provider.
+[`SwapProvider`](#swapprovider) implementation backed by Omniston. Use [`createOmnistonProvider`](#createomnistonprovider) to register it on AppKit.
 
 Constructor: `new OmnistonSwapProvider(config)`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `config` | <code><a href="#omnistonswapproviderconfig">OmnistonSwapProviderConfig</a></code> | Optional [`OmnistonSwapProviderConfig`](#omnistonswapproviderconfig). Defaults are filled in for any field left undefined. |
+| `config.apiUrl` | `string` | Optional URL for the Omniston API |
+| `config.defaultSlippageBps` | `number` | Default slippage tolerance in basis points (1 bp = 0.01%) |
+| `config.quoteTimeoutMs` | `number` | Timeout for quote requests in milliseconds |
+| `config.providerId` | `string` | Identifier for the provider |
+| `config.metadata` | `SwapProviderMetadataOverride` | Custom metadata for the provider |
+| `config.referrerAddress` | `string` | The address of the referrer |
+| `config.referrerFeeBps` | `number` | Referrer fee in basis points (1 bp = 0.01%) |
+| `config.flexibleReferrerFee` | `boolean` | Whether a flexible referrer fee is allowed |
 
 **Example**
 
@@ -253,6 +292,12 @@ kit.registerProvider(
 
 Error thrown by [`SwapManager`](#swapmanager) and swap providers — extends [`DefiError`](#defierror) with `name: 'SwapError'` and a stable `code` from the static `SwapError.*` / `DefiError.*` constants.
 
+Codes (`SwapError.*`, in addition to inherited [`DefiError`](#defierror) codes):
+- `'INVALID_QUOTE'` — provider returned malformed or missing quote data.
+- `'INSUFFICIENT_LIQUIDITY'` — no route or pool has enough liquidity to satisfy the requested swap.
+- `'QUOTE_EXPIRED'` — quote payload is too old to use. Fetch a new one before building the transaction.
+- `'BUILD_TX_FAILED'` — provider failed to produce a swap transaction from the supplied quote.
+
 Constructor: `new SwapError(message, code, details)`
 
 | Parameter | Type | Description |
@@ -263,7 +308,7 @@ Constructor: `new SwapError(message, code, details)`
 
 #### SwapManager
 
-Runtime that owns registered [`SwapProvider`](#swapprovider)s and dispatches quote/swap calls. Exposed as [`AppKit`](#appkit)'s `swapManager`. Usually accessed through the higher-level actions ([`getSwapQuote`](#getswapquote), [`buildSwapTransaction`](#buildswaptransaction)).
+Runtime that owns registered [`SwapProvider`](#swapprovider)s and dispatches quote/swap calls. Usually accessed through the higher-level actions ([`getSwapQuote`](#getswapquote), [`buildSwapTransaction`](#buildswaptransaction)).
 
 Constructor: `new SwapManager(createFactoryContext)`
 
@@ -2341,7 +2386,7 @@ Constructor options for [`AppKit`](#appkit) — networks, connectors, providers 
 
 #### AppKitEmitter
 
-Strongly-typed event emitter exposed as [`AppKit`](#appkit)'s `emitter`. `appKit.emitter.on(name, handler)` returns an unsubscribe function.
+Strongly-typed event emitter accessed through `appKit.emitter`. `appKit.emitter.on(name, handler)` returns an unsubscribe function.
 
 ```ts
 type AppKitEmitter = EventEmitter<AppKitEvents>;

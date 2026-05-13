@@ -29,7 +29,7 @@ export { StakingProvider } from '@ton/walletkit';
 export { StakingError } from '@ton/walletkit';
 
 /**
- * Runtime that owns registered {@link StakingProvider}s and dispatches quote/stake/balance calls. Exposed as {@link AppKit}'s `stakingManager`. Usually accessed through the higher-level actions ({@link getStakingQuote}, {@link buildStakeTransaction}, {@link getStakedBalance}).
+ * Runtime that owns registered {@link StakingProvider}s and dispatches quote/stake/balance calls. Usually accessed through the higher-level actions ({@link getStakingQuote}, {@link buildStakeTransaction}, {@link getStakedBalance}).
  *
  * @extract
  * @public

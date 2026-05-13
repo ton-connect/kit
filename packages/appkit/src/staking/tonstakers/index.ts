@@ -7,7 +7,7 @@
  */
 
 /**
- * {@link StakingProvider} implementation backed by Tonstakers. The constructor is private — use {@link createTonstakersProvider} to register it on AppKit. Quote and stake calls then go through {@link getStakingQuote} / {@link buildStakeTransaction} like any other staking provider.
+ * {@link StakingProvider} implementation backed by Tonstakers. Use {@link createTonstakersProvider} to register it on AppKit.
  *
  * @extract
  * @public

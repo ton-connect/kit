@@ -85,7 +85,10 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<undefine
     private readonly apiKey: string | undefined;
     private readonly apiUrl: string;
 
-    /** @param config - Optional {@link LayerswapProviderConfig}. Defaults are filled in for any field left undefined. */
+    /**
+     * @param config - Optional {@link LayerswapProviderConfig}. Defaults are filled in for any field left undefined.
+     * @expand config
+     */
     constructor(config: LayerswapProviderConfig = {}) {
         super();
         this.apiKey = config.apiKey;
@@ -262,6 +265,7 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<undefine
  * Pass to `providers: [createLayerswapProvider(config)]`.
  *
  * @param config - Optional {@link LayerswapProviderConfig}. Defaults are filled in for any field left undefined.
+ * @expand config
  */
 export const createLayerswapProvider = (config: LayerswapProviderConfig = {}) =>
     createProvider(() => new LayerswapCryptoOnrampProvider(config));

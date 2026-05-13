@@ -640,7 +640,10 @@ function expandParameters(
 
     for (const param of params) {
         const paramName = param.getName();
-        const paramType = param.getType();
+        const rawParamType = param.getType();
+        // Optional params surface as `T | undefined` in their resolved type — peel that
+        // back to `T` so `@expand` flattening sees the underlying object shape.
+        const paramType = stripUndefinedFromUnion(rawParamType);
         const required = !param.hasQuestionToken() && !param.hasInitializer() && !param.isRestParameter();
         const tagInfo = paramTags.get(paramName);
         const rawSyntactic = param.getTypeNode()?.getText();
@@ -778,6 +781,12 @@ function isFlattenableObjectType(type: Type): boolean {
     if (type.getCallSignatures().length > 0) return false;
     if (type.getConstructSignatures().length > 0) return false;
     return type.getProperties().length > 0;
+}
+
+function stripUndefinedFromUnion(type: Type): Type {
+    if (!type.isUnion()) return type;
+    const nonUndefined = type.getUnionTypes().filter((t) => !t.isUndefined() && !t.isNull());
+    return nonUndefined.length === 1 ? nonUndefined[0] : type;
 }
 
 function formatType(type: Type, contextNode: Node): string {

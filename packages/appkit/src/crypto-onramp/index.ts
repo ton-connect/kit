@@ -9,6 +9,14 @@
 /**
  * Error thrown by {@link CryptoOnrampManager} and crypto-onramp providers — extends {@link DefiError} with `name: 'CryptoOnrampError'` and a stable `code` from the static `CryptoOnrampError.*` / `DefiError.*` constants.
  *
+ * Codes (`CryptoOnrampError.*`, in addition to inherited {@link DefiError} codes):
+ * - `'PROVIDER_ERROR'` — provider's upstream API rejected the call (unexpected response, auth failure, internal error).
+ * - `'QUOTE_FAILED'` — provider could not produce a quote for the supplied parameters.
+ * - `'DEPOSIT_FAILED'` — provider could not create a deposit for the previously obtained quote.
+ * - `'REFUND_ADDRESS_REQUIRED'` — provider requires a refund address that the caller did not supply.
+ * - `'INVALID_REFUND_ADDRESS'` — supplied refund address is not valid for the source chain.
+ * - `'REVERSED_AMOUNT_NOT_SUPPORTED'` — provider does not support specifying the amount on the target side of the swap.
+ *
  * @extract
  * @public
  * @category Class
@@ -27,7 +35,7 @@ export { CryptoOnrampError } from '@ton/walletkit';
 export { CryptoOnrampProvider } from '@ton/walletkit';
 
 /**
- * Runtime that owns registered {@link CryptoOnrampProvider}s and dispatches quote/deposit/status calls. Exposed as {@link AppKit}'s `cryptoOnrampManager`. Usually accessed through the higher-level actions ({@link getCryptoOnrampQuote}, {@link createCryptoOnrampDeposit}, {@link getCryptoOnrampStatus}).
+ * Runtime that owns registered {@link CryptoOnrampProvider}s and dispatches quote/deposit/status calls. Usually accessed through the higher-level actions ({@link getCryptoOnrampQuote}, {@link createCryptoOnrampDeposit}, {@link getCryptoOnrampStatus}).
  *
  * @extract
  * @public

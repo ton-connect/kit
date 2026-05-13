@@ -47,7 +47,10 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
 
     readonly providerId: string;
 
-    /** @param config - Optional {@link OmnistonSwapProviderConfig}. Defaults are filled in for any field left undefined. */
+    /**
+     * @param config - Optional {@link OmnistonSwapProviderConfig}. Defaults are filled in for any field left undefined.
+     * @expand config
+     */
     constructor(config?: OmnistonSwapProviderConfig) {
         super();
         this.providerId = config?.providerId ?? 'omniston';
@@ -327,6 +330,7 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
  * pass to `providers: [createOmnistonProvider(config)]`.
  *
  * @param config - Optional {@link OmnistonSwapProviderConfig}. Defaults are filled in for any field left undefined.
+ * @expand config
  */
 export const createOmnistonProvider = (
     config: OmnistonSwapProviderConfig = {},

@@ -93,7 +93,7 @@ export type AppKitEvents = {
 } & SharedKitEvents;
 
 /**
- * Strongly-typed event emitter exposed as {@link AppKit}'s `emitter`. `appKit.emitter.on(name, handler)` returns an unsubscribe function.
+ * Strongly-typed event emitter accessed through `appKit.emitter`. `appKit.emitter.on(name, handler)` returns an unsubscribe function.
  *
  * @public
  * @category Type

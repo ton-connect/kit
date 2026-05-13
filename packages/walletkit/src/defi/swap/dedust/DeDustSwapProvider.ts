@@ -72,7 +72,10 @@ export class DeDustSwapProvider extends SwapProvider<DeDustProviderOptions, DeDu
         url: 'https://dedust.io',
     };
 
-    /** @param config - Optional {@link DeDustSwapProviderConfig}. Defaults are filled in for any field left undefined. */
+    /**
+     * @param config - Optional {@link DeDustSwapProviderConfig}. Defaults are filled in for any field left undefined.
+     * @expand config
+     */
     constructor(config?: DeDustSwapProviderConfig) {
         super();
         this.providerId = config?.providerId ?? 'dedust';
@@ -305,6 +308,7 @@ export class DeDustSwapProvider extends SwapProvider<DeDustProviderOptions, DeDu
  * pass to `providers: [createDeDustProvider(config)]`.
  *
  * @param config - Optional {@link DeDustSwapProviderConfig}. Defaults are filled in for any field left undefined.
+ * @expand config
  */
 export const createDeDustProvider = (
     config: DeDustSwapProviderConfig = {},
