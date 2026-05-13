@@ -7,6 +7,21 @@
  */
 
 import { Address } from '@ton/core';
+import { Base64ToHex } from '@ton/walletkit';
+
+export function normalizeAddress(address: string): string | null {
+    try {
+        return Address.parse(address).toString();
+    } catch {
+        return null;
+    }
+}
+
+export function shortenAddress(addr?: string, count = 6): string {
+    if (!addr) return '';
+    const normalized = normalizeAddress(addr) ?? addr;
+    return normalized.length <= count * 2 ? normalized : `${normalized.slice(0, count)}...${normalized.slice(-count)}`;
+}
 
 /**
  * Compare two TON addresses for equality (handles different formats: 0:xxx, EQxxx, UQxxx)
@@ -52,6 +67,29 @@ export const formatTonForDisplay = (amountOrValue: string): string => {
  * @returns Shortened address (e.g., "EQAbc...xyz123")
  */
 export const formatAddress = (addr: string): string => {
-    if (!addr) return '';
-    return `${addr.slice(0, 6)}...${addr.slice(-6)}`;
+    return shortenAddress(addr);
 };
+
+type ExplorerNetwork = 'mainnet' | 'testnet' | 'tetra';
+
+function getTonviewerHost(network: ExplorerNetwork): string {
+    if (network === 'testnet') return 'testnet.tonviewer.com';
+    if (network === 'tetra') return 'tetra.tonviewer.com';
+    return 'tonviewer.com';
+}
+
+function toHexHash(hash: string): string {
+    if (/^(0x)?[0-9a-fA-F]+$/.test(hash)) {
+        return hash.startsWith('0x') ? hash.slice(2) : hash;
+    }
+    try {
+        const hex = Base64ToHex(hash);
+        return hex.startsWith('0x') ? hex.slice(2) : hex;
+    } catch {
+        return hash;
+    }
+}
+
+export function getTonviewerTxUrl(network: ExplorerNetwork, hash: string): string {
+    return `https://${getTonviewerHost(network)}/transaction/${toHexHash(hash)}`;
+}

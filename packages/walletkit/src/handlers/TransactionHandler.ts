@@ -6,33 +6,26 @@
  *
  */
 
-import { Address } from '@ton/core';
-import type { ChainId, SendTransactionRpcResponseError, WalletResponseTemplateError } from '@tonconnect/protocol';
+import type { SendTransactionRpcResponseError, WalletResponseTemplateError } from '@tonconnect/protocol';
 import { SEND_TRANSACTION_ERROR_CODES } from '@tonconnect/protocol';
 
 import type { TonWalletKitOptions, ValidationResult } from '../types';
-import { toTransactionRequest, parseConnectTransactionParamContent } from '../types/internal';
 import type {
     RawBridgeEvent,
     EventHandler,
     RawBridgeEventTransaction,
-    RawConnectTransactionParamContent,
+    RawBridgeEventSignMessage,
 } from '../types/internal';
-import { validateTransactionMessages as validateTonConnectTransactionMessages } from '../validation/transaction';
 import { globalLogger } from '../core/Logger';
-import { isValidAddress } from '../utils/address';
-import { createTransactionPreview as createTransactionPreviewHelper } from '../utils/transactionPreview';
 import { BasicHandler } from './BasicHandler';
-import { CallForSuccess } from '../utils/retry';
 import type { WalletKitEventEmitter } from '../types/emitter';
 import type { WalletManager } from '../core/WalletManager';
-import type { ReturnWithValidationResult } from '../validation/types';
-import { WalletKitError, ERROR_CODES } from '../errors';
 import type { Wallet } from '../api/interfaces';
-import type { TransactionEmulatedPreview, TransactionRequest, SendTransactionRequestEvent } from '../api/models';
-import { Result } from '../api/models';
+import type { TransactionRequest, SendTransactionRequestEvent } from '../api/models';
 import type { Analytics, AnalyticsManager } from '../analytics';
 import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
+import { checkTransactionRequestItems, getWalletFromEvent, parseTonConnectTransactionRequest } from '../utils/events';
+import { createTransactionPreviewIfPossible } from '../utils';
 
 const log = globalLogger.createChild('TransactionHandler');
 
@@ -61,25 +54,9 @@ export class TransactionHandler
     }
 
     async handle(event: RawBridgeEventTransaction): Promise<SendTransactionRequestEvent | WalletResponseTemplateError> {
-        // Support both walletId (new) and walletAddress (legacy)
-        const walletId = event.walletId;
-        const walletAddress = event.walletAddress;
-
-        if (!walletId && !walletAddress) {
-            log.error('Wallet ID not found', { event });
-            return {
-                error: {
-                    code: SEND_TRANSACTION_ERROR_CODES.UNKNOWN_APP_ERROR,
-                    message: 'Wallet ID not found',
-                },
-                id: event.id,
-            } as SendTransactionRpcResponseError;
-        }
-
-        // Try to get wallet by walletId first, fall back to address search
-        const wallet = walletId ? this.walletManager.getWallet(walletId) : undefined;
+        const wallet = getWalletFromEvent(this.walletManager, event);
         if (!wallet) {
-            log.error('Wallet not found', { event, walletId, walletAddress });
+            log.error('Wallet not found', { event });
             return {
                 error: {
                     code: SEND_TRANSACTION_ERROR_CODES.UNKNOWN_APP_ERROR,
@@ -102,31 +79,9 @@ export class TransactionHandler
                 id: event.id,
             } as SendTransactionRpcResponseError;
         }
-        const request = requestValidation.result;
 
-        let preview: TransactionEmulatedPreview | undefined;
-        if (!this.config.eventProcessor?.disableTransactionEmulation) {
-            try {
-                preview = await CallForSuccess(() => createTransactionPreviewHelper(wallet.client, request, wallet));
-                // Emit emulation result event for jetton caching and other components
-                if (preview.result === Result.success && preview.trace) {
-                    try {
-                        this.eventEmitter.emit('emulationResult', preview.trace, 'transaction-handler');
-                    } catch (error) {
-                        log.warn('Error emitting emulation result event', { error });
-                    }
-                }
-            } catch (error) {
-                log.error('Failed to create transaction preview', { error });
-                preview = {
-                    error: {
-                        code: ERROR_CODES.UNKNOWN_EMULATION_ERROR,
-                        message: 'Unknown emulation error',
-                    },
-                    result: Result.failure,
-                };
-            }
-        }
+        const request = await checkTransactionRequestItems(requestValidation.result, wallet);
+        const preview = await createTransactionPreviewIfPossible(this.config, wallet.client, request, wallet);
 
         const txEvent: SendTransactionRequestEvent = {
             ...event,
@@ -135,8 +90,8 @@ export class TransactionHandler
                 data: preview,
             },
             dAppInfo: event.dAppInfo ?? {},
-            walletId: walletId ?? this.walletManager.getWalletId(wallet),
-            walletAddress: walletAddress ?? wallet.getAddress(),
+            walletId: wallet.getWalletId(),
+            walletAddress: wallet.getAddress(),
         };
 
         if (this.analytics) {
@@ -162,129 +117,12 @@ export class TransactionHandler
      */
 
     private parseTonConnectTransactionRequest(
-        event: RawBridgeEventTransaction,
+        event: RawBridgeEventTransaction | RawBridgeEventSignMessage,
         wallet: Wallet,
     ): {
         result: TransactionRequest | undefined;
         validation: ValidationResult;
     } {
-        let errors: string[] = [];
-        try {
-            if (event.params.length !== 1) {
-                throw new WalletKitError(
-                    ERROR_CODES.INVALID_REQUEST_EVENT,
-                    'Invalid transaction request - expected exactly 1 parameter',
-                    undefined,
-                    { paramCount: event.params.length, eventId: event.id },
-                );
-            }
-            const rawParams = JSON.parse(event.params[0]) as RawConnectTransactionParamContent;
-            const params = parseConnectTransactionParamContent(rawParams);
-
-            const validUntilValidation = this.validateValidUntil(params.validUntil);
-            if (!validUntilValidation.isValid) {
-                errors = errors.concat(validUntilValidation.errors);
-            } else {
-                params.validUntil = validUntilValidation.result;
-            }
-
-            const networkValidation = this.validateNetwork(params.network, wallet);
-            if (!networkValidation.isValid) {
-                errors = errors.concat(networkValidation.errors);
-            } else {
-                params.network = networkValidation.result;
-            }
-
-            const fromValidation = this.validateFrom(params.from, wallet);
-            if (!fromValidation.isValid) {
-                errors = errors.concat(fromValidation.errors);
-            } else {
-                params.from = fromValidation.result;
-            }
-
-            const isTonConnect = !event.isLocal;
-            const messagesValidation = validateTonConnectTransactionMessages(params.messages, isTonConnect);
-            if (!messagesValidation.isValid) {
-                errors = errors.concat(messagesValidation.errors);
-            }
-
-            return {
-                result: toTransactionRequest(params),
-                validation: { isValid: errors.length === 0, errors: errors },
-            };
-        } catch (error) {
-            log.error('Failed to parse transaction request', { error });
-            errors.push('Failed to parse transaction request');
-            return {
-                result: undefined,
-                validation: { isValid: errors.length === 0, errors: errors },
-            };
-        }
-    }
-
-    /**
-     * Parse network from various possible formats
-     */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private validateNetwork(network: any, wallet: Wallet): ReturnWithValidationResult<ChainId | undefined> {
-        let errors: string[] = [];
-        if (typeof network === 'string') {
-            const walletNetwork = wallet.getNetwork();
-            if (network !== walletNetwork.chainId) {
-                errors.push('Invalid network not equal to wallet network');
-            } else {
-                return { result: network, isValid: errors.length === 0, errors: errors };
-            }
-        } else {
-            errors.push('Invalid network not a string');
-        }
-
-        return { result: undefined, isValid: errors.length === 0, errors: errors };
-    }
-
-    private validateFrom(from: unknown, wallet: Wallet): ReturnWithValidationResult<string> {
-        let errors: string[] = [];
-
-        if (typeof from !== 'string') {
-            errors.push('Invalid from address not a string');
-            return { result: '', isValid: errors.length === 0, errors: errors };
-        }
-
-        if (!isValidAddress(from)) {
-            errors.push('Invalid from address');
-            return { result: '', isValid: errors.length === 0, errors: errors };
-        }
-
-        const fromAddress = Address.parse(from);
-        const walletAddress = Address.parse(wallet.getAddress());
-        if (!fromAddress.equals(walletAddress)) {
-            errors.push('Invalid from address not equal to wallet address');
-            return { result: '', isValid: errors.length === 0, errors: errors };
-        }
-
-        return { result: from, isValid: errors.length === 0, errors: errors };
-    }
-
-    /**
-     * Parse validUntil timestamp
-     */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private validateValidUntil(validUntil: any): ReturnWithValidationResult<number> {
-        let errors: string[] = [];
-        if (typeof validUntil === 'undefined') {
-            return { result: 0, isValid: errors.length === 0, errors: errors };
-        }
-        if (typeof validUntil !== 'number' || isNaN(validUntil)) {
-            errors.push('Invalid validUntil timestamp not a number');
-            return { result: 0, isValid: errors.length === 0, errors: errors };
-        }
-
-        const now = Math.floor(Date.now() / 1000);
-        if (validUntil < now) {
-            errors.push('Invalid validUntil timestamp');
-            return { result: 0, isValid: errors.length === 0, errors: errors };
-        }
-
-        return { result: validUntil, isValid: errors.length === 0, errors: errors };
+        return parseTonConnectTransactionRequest(event, wallet);
     }
 }

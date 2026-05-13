@@ -32,6 +32,7 @@ import type {
     GetEventsRequest,
     GetEventsResponse,
     MasterchainInfo,
+    Network,
 } from '@ton/walletkit';
 
 export class SwiftAPIClientAdapter implements ApiClient {
@@ -39,6 +40,10 @@ export class SwiftAPIClientAdapter implements ApiClient {
 
     constructor(swiftApiClient: ApiClient) {
         this.swiftApiClient = swiftApiClient;
+    }
+
+    getNetwork(): Network {
+        return this.swiftApiClient.getNetwork();
     }
 
     async sendBoc(boc: Base64String): Promise<string> {

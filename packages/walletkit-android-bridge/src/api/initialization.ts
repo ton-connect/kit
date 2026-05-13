@@ -18,6 +18,7 @@ import type {
     RequestErrorEvent,
     SendTransactionRequestEvent,
     SignDataRequestEvent,
+    SignMessageRequestEvent,
 } from '@ton/walletkit';
 
 import type { WalletKitBridgeInitConfig, SetEventsListenersArgs, WalletKitBridgeEventCallback } from '../types';
@@ -84,6 +85,16 @@ export async function setEventsListeners(args?: SetEventsListenersArgs): Promise
 
     kit.onSignDataRequest(eventListeners.onSignDataListener);
 
+    if (eventListeners.onSignMessageListener) {
+        kit.removeSignMessageRequestCallback();
+    }
+
+    eventListeners.onSignMessageListener = (event: SignMessageRequestEvent) => {
+        callback('signMessageRequest', event);
+    };
+
+    kit.onSignMessageRequest(eventListeners.onSignMessageListener);
+
     if (eventListeners.onDisconnectListener) {
         kit.removeDisconnectCallback();
     }
@@ -127,6 +138,11 @@ export async function removeEventListeners(): Promise<{ ok: true }> {
     if (eventListeners.onSignDataListener) {
         kit.removeSignDataRequestCallback();
         eventListeners.onSignDataListener = null;
+    }
+
+    if (eventListeners.onSignMessageListener) {
+        kit.removeSignMessageRequestCallback();
+        eventListeners.onSignMessageListener = null;
     }
 
     if (eventListeners.onDisconnectListener) {

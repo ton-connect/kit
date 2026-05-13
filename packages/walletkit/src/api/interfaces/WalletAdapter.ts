@@ -10,6 +10,7 @@ import type { Hex, Base64String, UserFriendlyAddress } from '../models/core/Prim
 import type { Network } from '../models/core/Network';
 import type { ApiClient, WalletId } from '../..';
 import type { TransactionRequest } from '../models/transactions/TransactionRequest';
+import type { SignedSendTransactionOptions } from '../models/transactions/SignedSendTransactionOptions';
 import type { PreparedSignData } from '../models/core/PreparedSignData';
 import type { ProofMessage } from '../models/core/ProofMessage';
 import type { Feature } from '../../types/jsBridge';
@@ -37,12 +38,7 @@ export interface WalletAdapter {
     getStateInit(): Promise<Base64String>;
 
     /** Get the signed send transaction */
-    getSignedSendTransaction(
-        input: TransactionRequest,
-        options?: {
-            fakeSignature: boolean;
-        },
-    ): Promise<Base64String>;
+    getSignedSendTransaction(input: TransactionRequest, options?: SignedSendTransactionOptions): Promise<Base64String>;
     getSignedSignData(
         input: PreparedSignData,
         options?: {

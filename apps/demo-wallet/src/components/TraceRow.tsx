@@ -9,10 +9,10 @@
 import React, { memo, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
-import { Base64ToHex } from '@ton/walletkit';
 import type { ToncenterTraceItem } from '@ton/walletkit';
 import { useWalletKit, useWalletStore, getChainNetwork } from '@demo/wallet-core';
 
+import { getTonviewerTxUrl } from '@/utils';
 import { log } from '@/utils/logger';
 
 // Local type definitions for transaction data
@@ -388,8 +388,10 @@ export const TraceRow: React.FC<TraceRowProps> = memo(
 
         if (error || !trace) {
             return (
-                <Link
-                    to={`/wallet/trace/${traceId}:${externalHash}`}
+                <a
+                    href={getTonviewerTxUrl(walletNetwork, externalHash ?? traceId)}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg"
                 >
                     <div className="flex items-center space-x-3">
@@ -408,7 +410,7 @@ export const TraceRow: React.FC<TraceRowProps> = memo(
                             <p className="text-xs text-red-700">{error}</p>
                         </div>
                     </div>
-                </Link>
+                </a>
             );
         }
 
@@ -416,12 +418,7 @@ export const TraceRow: React.FC<TraceRowProps> = memo(
         const transactionCount = Object.keys(trace.transactions).length;
         const actionCount = trace.actions?.length ?? 0;
 
-        // Determine the link destination - use first transaction's hash
-        const firstTxHash = trace.transactions_order?.[0] || Object.keys(trace.transactions)[0];
-        const firstTx = trace.transactions[firstTxHash];
-        const linkTo = firstTx?.in_msg?.hash
-            ? `/wallet/trace/${Base64ToHex(firstTx.in_msg.hash)}`
-            : `/wallet/trace/${traceId}`;
+        const linkTo = getTonviewerTxUrl(walletNetwork, externalHash ?? traceId);
 
         const orderedTransactions = trace.transactions_order
             ? trace.transactions_order.map((hash) => trace.transactions[hash] as TransactionData)
@@ -430,8 +427,10 @@ export const TraceRow: React.FC<TraceRowProps> = memo(
         return (
             <div className="bg-gray-50 rounded-lg overflow-hidden">
                 {/* Main trace header - clickable for navigation */}
-                <Link
-                    to={linkTo}
+                <a
+                    href={linkTo}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="flex items-center justify-between p-3 hover:bg-gray-100 transition-colors block no-underline"
                 >
                     <div className="flex items-center space-x-3">
@@ -545,7 +544,7 @@ export const TraceRow: React.FC<TraceRowProps> = memo(
                             </p>
                         </div>
                     </div>
-                </Link>
+                </a>
 
                 {/* Expand/Collapse button for transaction previews */}
                 {transactionCount > 1 && (

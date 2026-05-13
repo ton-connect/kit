@@ -88,6 +88,10 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
         super(config, defaultEndpoint);
     }
 
+    getNetwork(): Network {
+        return this.network;
+    }
+
     async getAccountState(address: UserFriendlyAddress, _seqno?: number): Promise<FullAccountState> {
         // Note: seqno parameter is not supported by TonApi /v2/accounts endpoint for historical state queries
         try {

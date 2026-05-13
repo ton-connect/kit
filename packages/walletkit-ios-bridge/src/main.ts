@@ -27,6 +27,8 @@ import type {
     ConnectionApprovalResponse,
     SendTransactionRequestEvent,
     SignDataRequestEvent,
+    SignMessageRequestEvent,
+    SignMessageApprovalResponse,
     ApiClientConfig,
     ApiClient,
     SignatureDomain,
@@ -38,6 +40,7 @@ import type {
     StreamingAPI,
     StakingProviderInterface,
     StakingAPI,
+    EmbeddedRequestEvent,
 } from '@ton/walletkit';
 import {
     CreateTonMnemonic,
@@ -424,7 +427,7 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
         async approveConnectRequest(
             event: ConnectionRequestEvent,
             response?: ConnectionApprovalResponse,
-        ): Promise<void> {
+        ): Promise<EmbeddedRequestEvent | undefined> {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
             console.log('✅ Bridge: Approving connect request:', event, event.walletAddress);
 
@@ -512,6 +515,38 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
                 return result;
             } catch (error) {
                 console.error('❌ Failed to reject sign data request:', error);
+                throw error;
+            }
+        },
+
+        // Sign message handling
+        async approveSignMessageRequest(
+            event: SignMessageRequestEvent,
+            response?: SignMessageApprovalResponse,
+        ): Promise<SignMessageApprovalResponse> {
+            if (!initialized) throw new Error('WalletKit Bridge not initialized');
+            console.log('✅ Bridge: Approving sign message request:', event);
+
+            try {
+                const result = await walletKit.approveSignMessageRequest(event, response);
+                console.log('✅ Sign message request approved:', result);
+                return result;
+            } catch (error) {
+                console.error('❌ Failed to approve sign message request:', error);
+                throw error;
+            }
+        },
+
+        async rejectSignMessageRequest(event: SignMessageRequestEvent, reason?: string): Promise<void> {
+            if (!initialized) throw new Error('WalletKit Bridge not initialized');
+            console.log('❌ Bridge: Rejecting sign message request:', event, reason);
+
+            try {
+                const result = await walletKit.rejectSignMessageRequest(event, reason);
+                console.log('✅ Sign message request rejected:', result);
+                return result;
+            } catch (error) {
+                console.error('❌ Failed to reject sign message request:', error);
                 throw error;
             }
         },
