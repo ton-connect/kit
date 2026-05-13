@@ -21,7 +21,7 @@ export type PackageKey = 'appkit' | 'appkit-react';
 
 const TODO_MARKER = '_TODO: describe_';
 
-const CATEGORY_ORDER = ['Class', 'Action', 'Hook', 'Component', 'Type', 'Constants'];
+const CATEGORY_ORDER = ['Action', 'Hook', 'Component', 'Class', 'Type', 'Constants'];
 
 /**
  * Symbol-name → URL-prefix map used to resolve unqualified `{@link X}`
