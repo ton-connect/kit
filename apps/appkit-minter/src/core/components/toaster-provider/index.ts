@@ -6,4 +6,4 @@
  *
  */
 
-export * from './components/sign-message-card';
+export { ToasterProvider } from './toaster-provider';

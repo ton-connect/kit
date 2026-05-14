@@ -12,7 +12,7 @@ import clsx from 'clsx';
 
 import styles from './button.module.css';
 
-export type ButtonSize = 's' | 'm' | 'l' | 'unset';
+export type ButtonSize = 's' | 'm' | 'l' | 'icon' | 'unset';
 export type ButtonBorderRadius = 's' | 'm' | 'l' | 'xl' | '2xl' | 'full';
 export type ButtonVariant = 'fill' | 'secondary' | 'bezeled' | 'gray' | 'ghost' | 'unstyled';
 
@@ -39,6 +39,7 @@ const SIZE_DEFAULT_RADIUS: Record<Exclude<ButtonSize, 'unset'>, ButtonBorderRadi
     s: '2xl',
     m: 'l',
     l: 'xl',
+    icon: 'full',
 };
 
 const RADIUS_CLASS: Record<ButtonBorderRadius, string> = {

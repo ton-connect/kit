@@ -72,7 +72,7 @@ export const CARD_DESCRIPTIONS: Record<Rarity, string[]> = {
 /**
  * Get a random rarity based on configured weights
  */
-export function getRandomRarity(): Rarity {
+export const getRandomRarity = (): Rarity => {
     const totalWeight = Object.values(RARITY_CONFIGS).reduce((sum, config) => sum + config.weight, 0);
     let random = Math.random() * totalWeight;
 
@@ -85,28 +85,28 @@ export function getRandomRarity(): Rarity {
     }
 
     return RarityValues.Common;
-}
+};
 
 /**
  * Get a random name for a given rarity
  */
-export function getRandomName(rarity: Rarity): string {
+export const getRandomName = (rarity: Rarity): string => {
     const names = CARD_NAMES[rarity];
     return names[Math.floor(Math.random() * names.length)];
-}
+};
 
 /**
  * Get a random description for a given rarity
  */
-export function getRandomDescription(rarity: Rarity): string {
+export const getRandomDescription = (rarity: Rarity): string => {
     const descriptions = CARD_DESCRIPTIONS[rarity];
     return descriptions[Math.floor(Math.random() * descriptions.length)];
-}
+};
 
 /**
  * Generate a placeholder image URL based on rarity (inline SVG with path-based text)
  */
-export async function getCardImageUrl(rarity: Rarity, name: string): Promise<string> {
+export const getCardImageUrl = async (rarity: Rarity, name: string): Promise<string> => {
     const config = RARITY_CONFIGS[rarity];
     const fontSize = 18;
     const textWidth = await getTextWidth(name, fontSize);
@@ -119,4 +119,4 @@ export async function getCardImageUrl(rarity: Rarity, name: string): Promise<str
         <path d="${textPath}" fill="#ffffff"/>
     </svg>`;
     return `data:image/svg+xml,${encodeURIComponent(svg)}`;
-}
+};

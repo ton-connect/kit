@@ -27,7 +27,7 @@ type UseNftTransactionType =
 /**
  * Hook to create NFT mint transaction request
  */
-export function useNftMintTransaction(): UseNftTransactionType {
+export const useNftMintTransaction = (): UseNftTransactionType => {
     const currentCard = useMinterStore((state) => state.currentCard);
     const [wallet] = useSelectedWallet();
 
@@ -85,4 +85,4 @@ export function useNftMintTransaction(): UseNftTransactionType {
             canMint: false,
         };
     }
-}
+};

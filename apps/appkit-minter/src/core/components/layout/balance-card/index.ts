@@ -6,4 +6,4 @@
  *
  */
 
-export { WalletInfo } from './components/wallet-info';
+export { BalanceCard } from './balance-card';

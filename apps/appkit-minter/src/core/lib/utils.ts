@@ -10,15 +10,11 @@ import { clsx } from 'clsx';
 import type { ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-export function cn(...inputs: ClassValue[]) {
-    return twMerge(clsx(inputs));
-}
+export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs));
 
-export function formatAddress(address: string): string {
+export const formatAddress = (address: string): string => {
     if (address.length <= 10) return address;
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
-}
+};
 
-export function generateId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-}
+export const generateId = (): string => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;

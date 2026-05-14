@@ -7,3 +7,4 @@
  */
 
 export { NetworkPicker } from './components/network-picker';
+export { loadStoredNetworkChainId, saveStoredNetworkChainId } from './storage';

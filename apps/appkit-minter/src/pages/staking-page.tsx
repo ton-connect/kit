@@ -9,14 +9,14 @@
 import type React from 'react';
 import { StakingWidget } from '@ton/appkit-react';
 
-import { Card, Layout } from '@/core/components';
+import { Layout } from '@/core/components';
 
 export const StakingPage: React.FC = () => {
     return (
-        <Layout title="Staking">
-            <Card className="w-full max-w-[434px] mx-auto">
+        <Layout title={<span className="hidden md:block">Staking</span>}>
+            <div className="w-full max-w-[434px] mx-auto">
                 <StakingWidget />
-            </Card>
+            </div>
         </Layout>
     );
 };

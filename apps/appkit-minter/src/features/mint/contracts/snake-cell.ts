@@ -12,20 +12,20 @@ import type { Cell } from '@ton/core';
 /**
  * Split buffer into chunks of specified size
  */
-function bufferToChunks(buff: Buffer, chunkSize: number): Buffer[] {
+const bufferToChunks = (buff: Buffer, chunkSize: number): Buffer[] => {
     const chunks: Buffer[] = [];
     while (buff.byteLength > 0) {
         chunks.push(buff.subarray(0, chunkSize));
         buff = buff.subarray(chunkSize);
     }
     return chunks;
-}
+};
 
 /**
  * Create a snake cell from buffer data
  * Snake cells store data across multiple cells linked by refs
  */
-export function makeSnakeCell(data: Buffer): Cell {
+export const makeSnakeCell = (data: Buffer): Cell => {
     const chunks = bufferToChunks(data, 127);
 
     if (chunks.length === 0) {
@@ -51,4 +51,4 @@ export function makeSnakeCell(data: Buffer): Cell {
     }
 
     return curCell.endCell();
-}
+};
