@@ -13,7 +13,14 @@ import { getJettonsByAddress } from '../../actions/jettons/get-jettons-by-addres
 import type { GetJettonsByAddressOptions } from '../../actions/jettons/get-jettons-by-address';
 import type { QueryOptions, QueryParameter } from '../../types/query';
 import type { Compute, ExactPartial } from '../../types/utils';
-import { filterQueryOptions, resolveNetwork, compareAddress, formatUnits, sleep } from '../../utils';
+import {
+    filterQueryOptions,
+    resolveNetwork,
+    compareAddress,
+    formatUnits,
+    sleep,
+    tryToBounceableAddress,
+} from '../../utils';
 import type { GetJettonsByAddressReturnType } from '../../actions/jettons/get-jettons-by-address';
 import type { JettonUpdate } from '../../core/streaming';
 import type { Network } from '../../types/network';
@@ -32,7 +39,11 @@ export const getJettonsByAddressQueryOptions = <selectData = GetJettonsByAddress
     initialOptions: GetJettonsByAddressQueryConfig<selectData> = {},
 ): GetJettonsByAddressQueryOptions<selectData> => {
     const network = resolveNetwork(appKit, initialOptions.network);
-    const options = { ...initialOptions, network };
+    const options = {
+        ...initialOptions,
+        network,
+        address: tryToBounceableAddress(initialOptions.address) ?? initialOptions.address,
+    };
 
     return {
         ...options.query,
@@ -73,8 +84,12 @@ export const handleJettonsUpdate = (
     { address, network }: { address: string; network: Network },
     update: JettonUpdate,
 ) => {
+    const queryKey = getJettonsByAddressQueryKey({
+        address: tryToBounceableAddress(address) ?? address,
+        network,
+    });
+
     if (update.status === 'finalized') {
-        const queryKey = getJettonsByAddressQueryKey({ address, network });
         const currentData = queryClient.getQueryData(queryKey) as GetJettonsByAddressData | undefined;
 
         if (currentData?.jettons) {
@@ -99,7 +114,6 @@ export const handleJettonsUpdate = (
     }
 
     if (update.status === 'invalidated') {
-        const queryKey = getJettonsByAddressQueryKey({ address, network });
         queryClient.invalidateQueries({ queryKey });
     }
 };

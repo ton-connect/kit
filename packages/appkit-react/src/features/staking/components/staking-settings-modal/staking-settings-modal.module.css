@@ -1,0 +1,24 @@
+.rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 0;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ta-color-text);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.saveButton {
+  margin-top: 16px;
+}

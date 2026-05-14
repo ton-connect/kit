@@ -9,9 +9,10 @@
 import { getJettonInfoQueryOptions } from '@ton/appkit/queries';
 import type { GetJettonInfoData, GetJettonInfoErrorType, GetJettonInfoQueryConfig } from '@ton/appkit/queries';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 import { useQuery } from '../../../libs/query';
 import type { UseQueryReturnType } from '../../../libs/query';
+import { useNetwork } from '../../network';
 
 export type UseJettonInfoParameters<selectData = GetJettonInfoData> = GetJettonInfoQueryConfig<selectData>;
 
@@ -27,6 +28,7 @@ export const useJettonInfo = <selectData = GetJettonInfoData>(
     parameters: UseJettonInfoParameters<selectData> = {},
 ): UseJettonInfoReturnType<selectData> => {
     const appKit = useAppKit();
+    const walletNetwork = useNetwork();
 
-    return useQuery(getJettonInfoQueryOptions(appKit, parameters));
+    return useQuery(getJettonInfoQueryOptions(appKit, { ...parameters, network: parameters.network ?? walletNetwork }));
 };

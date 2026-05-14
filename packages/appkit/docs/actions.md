@@ -442,11 +442,12 @@ console.log('NFT Transfer Result:', result);
 Register a custom provider in AppKit (e.g., Swap or Streaming).
 
 ```ts
-const omnistonProvider = new OmnistonSwapProvider({
-    defaultSlippageBps: 100, // 1%
-});
-
-registerProvider(appKit, omnistonProvider);
+registerProvider(
+    appKit,
+    createOmnistonProvider({
+        defaultSlippageBps: 100, // 1%
+    }),
+);
 ```
 
 ## Signing
@@ -499,6 +500,45 @@ Get the `SwapManager` instance to interact with swap providers directly.
 const swapManager = getSwapManager(appKit);
 ```
 
+### `getSwapProvider`
+
+Get a specific swap provider by its ID.
+
+```ts
+const swapProvider = getSwapProvider(appKit, { id: 'stonfi' });
+```
+
+### `getSwapProviders`
+
+Get all registered swap providers. The returned array keeps a stable reference until the provider list changes.
+
+```ts
+const swapProviders = getSwapProviders(appKit);
+console.log(
+    'Registered providers:',
+    swapProviders.map((p) => p.providerId),
+);
+```
+
+### `setDefaultSwapProvider`
+
+Set the default swap provider. Subsequent quote and swap-transaction calls will use this provider when none is specified.
+
+```ts
+setDefaultSwapProvider(appKit, { providerId: 'stonfi' });
+```
+
+### `watchSwapProviders`
+
+Watch for new swap providers registration.
+
+```ts
+const unsubscribe = watchSwapProviders(appKit, {
+    onChange: () => console.log('Swap providers updated'),
+});
+unsubscribe();
+```
+
 ### `getSwapQuote`
 
 Get a swap quote from registered providers.
@@ -543,13 +583,24 @@ console.log('Available Staking Providers:', providers);
 
 ### `getStakingProviderInfo`
 
-Get information about a specific staking provider.
+Get dynamic information about a specific staking provider (e.g. APY, rate).
 
 ```ts
 const providerInfo = await getStakingProviderInfo(appKit, {
     providerId: 'tonstakers',
 });
 console.log('Provider Info:', providerInfo);
+```
+
+### `getStakingProviderMetadata`
+
+Get static metadata about a specific staking provider.
+
+```ts
+const providerMetadata = getStakingProviderMetadata(appKit, {
+    providerId: 'tonstakers',
+});
+console.log('Provider Metadata:', providerMetadata);
 ```
 
 ### `getStakingQuote`

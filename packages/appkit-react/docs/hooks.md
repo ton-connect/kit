@@ -694,6 +694,155 @@ return (
 );
 ```
 
+### `useSwapProvider`
+
+Hook to read and change the currently selected swap provider. Returns a tuple `[provider, setProviderId]` — mirrors `useSelectedWallet`.
+
+```tsx
+const [provider, setProviderId] = useSwapProvider();
+return (
+    <div>
+        <div>Result: {provider ? provider.providerId : 'null'}</div>
+        <button onClick={() => setProviderId('stonfi')}>Use STON.fi</button>
+    </div>
+);
+```
+
+### `useSwapProviders`
+
+Hook to get all registered swap providers. The returned array keeps a stable reference until the provider list changes, so it is safe to use with `useSyncExternalStore`.
+
+```tsx
+const providers = useSwapProviders();
+return (
+    <ul>
+        {providers.map((p) => (
+            <li key={p.providerId}>{p.getMetadata().name}</li>
+        ))}
+    </ul>
+);
+```
+
+## Staking
+
+### `useStakingProviders`
+
+Hook to get all registered staking providers. The returned array keeps a stable reference until the provider list changes.
+
+```tsx
+const providers = useStakingProviders();
+return (
+    <ul>
+        {providers.map((p) => (
+            <li key={p.providerId}>{p.providerId}</li>
+        ))}
+    </ul>
+);
+```
+
+### `useStakingProvider`
+
+Hook to get a specific staking provider by id (or the default when no id is passed).
+
+```tsx
+const provider = useStakingProvider({ id: 'tonstakers' });
+return <div>Result: {provider ? provider.providerId : 'null'}</div>;
+```
+
+### `useStakingQuote`
+
+Hook to get a quote for staking or unstaking a given amount.
+
+```tsx
+const {
+    data: quote,
+    isLoading,
+    error,
+} = useStakingQuote({
+    amount: '10',
+    direction: 'stake',
+});
+
+if (isLoading) return <div>Loading quote...</div>;
+if (error) return <div>Error: {error.message}</div>;
+
+return <div>Expected Output: {quote?.amountOut}</div>;
+```
+
+### `useStakedBalance`
+
+Hook to get the user's currently staked balance.
+
+```tsx
+const { data: balance, isLoading } = useStakedBalance({
+    userAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+});
+
+if (isLoading) return <div>Loading balance...</div>;
+
+return <div>Staked Balance: {balance?.stakedBalance}</div>;
+```
+
+### `useStakingProviderInfo`
+
+Hook to get live info about a staking provider (APY, limits, etc.).
+
+```tsx
+const { data: info, isLoading } = useStakingProviderInfo({
+    providerId: 'tonstakers',
+});
+
+if (isLoading) return <div>Loading info...</div>;
+
+return <div>APY: {info?.apy}</div>;
+```
+
+### `useStakingProviderMetadata`
+
+Hook to get static metadata about a staking provider (name, receive token, etc.).
+
+```tsx
+const metadata = useStakingProviderMetadata();
+return <div>Receive Token: {metadata?.receiveToken?.ticker}</div>;
+```
+
+### `useBuildStakeTransaction`
+
+Hook to build a stake transaction from a previously fetched quote.
+
+```tsx
+const { data: quote } = useStakingQuote({
+    amount: '10',
+    direction: 'stake',
+});
+
+const { mutateAsync: buildTx, isPending: isBuilding } = useBuildStakeTransaction();
+const { mutateAsync: sendTx, isPending: isSending } = useSendTransaction();
+
+const handleStake = async () => {
+    if (!quote) return;
+    try {
+        const transaction = await buildTx({
+            quote,
+            userAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+        });
+        await sendTx(transaction);
+    } catch (e) {
+        console.error(e);
+    }
+};
+
+const isPending = isBuilding || isSending;
+
+return (
+    <div>
+        <button onClick={handleStake} disabled={!quote || isPending}>
+            {isPending ? 'Processing...' : 'Stake'}
+        </button>
+    </div>
+);
+```
+
 ## Transaction
 
 ### `useSendTransaction`

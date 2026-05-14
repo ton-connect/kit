@@ -1,5 +1,12 @@
+@import '@ton/appkit-react/styles.css';
+
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
 :root {
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: var(--font-sans);
   line-height: 1.5;
   font-weight: 400;
 
@@ -9,13 +16,136 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --font-sans: "Inter", system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --radius: 0.625rem;
+
+  /* Colors aliased from @ton/appkit-react */
+  --primary: var(--ta-color-primary);
+  --primary-foreground: var(--ta-color-primary-foreground);
+  --primary-light: var(--ta-color-primary-light);
+  --error: var(--ta-color-error);
+  --success: var(--ta-color-success);
+  --background: var(--ta-color-background);
+  --foreground: var(--ta-color-text);
+  --secondary: var(--ta-color-background-secondary);
+  --secondary-foreground: var(--ta-color-text-secondary);
+  --tertiary: var(--ta-color-background-tertiary);
+  --tertiary-foreground: var(--ta-color-text-tertiary);
+  --background-bezeled: var(--ta-color-background-bezeled);
+  --skeleton-shimmer: var(--ta-color-skeleton-shimmer);
+  --white: var(--ta-color-white);
+  --black: var(--ta-color-black);
+  --ton: var(--ta-color-ton);
 }
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
+#root {
   width: 100%;
-  min-height: 100vh;
+}
+
+/* Rarity glow effects */
+.rarity-common {
+  --rarity-color: #9ca3af;
+  --rarity-glow: rgba(156, 163, 175, 0.3);
+}
+
+.rarity-rare {
+  --rarity-color: #3b82f6;
+  --rarity-glow: rgba(59, 130, 246, 0.4);
+}
+
+.rarity-epic {
+  --rarity-color: #8b5cf6;
+  --rarity-glow: rgba(139, 92, 246, 0.5);
+}
+
+.rarity-legendary {
+  --rarity-color: #f59e0b;
+  --rarity-glow: rgba(245, 158, 11, 0.6);
+}
+
+/* Card glow animation */
+.card-glow {
+  box-shadow: 0 0 20px var(--rarity-glow), 0 0 40px var(--rarity-glow);
+}
+
+.card-glow-legendary {
+  animation: legendary-glow 2s ease-in-out infinite;
+}
+
+@keyframes legendary-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.6), 0 0 40px rgba(245, 158, 11, 0.4),
+      0 0 60px rgba(245, 158, 11, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(245, 158, 11, 0.8), 0 0 60px rgba(245, 158, 11, 0.6),
+      0 0 90px rgba(245, 158, 11, 0.4);
+  }
+}
+
+/* Shimmer effect for legendary cards */
+.shimmer-overlay {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-light: var(--primary-light);
+  --color-error: var(--error);
+  --color-success: var(--success);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-tertiary: var(--tertiary);
+  --color-tertiary-foreground: var(--tertiary-foreground);
+  --color-background-bezeled: var(--background-bezeled);
+  --color-white: var(--white);
+  --color-black: var(--black);
+  --color-ton: var(--ton);
+
+  --font-sans: "Inter", sans-serif;
+}
+
+@layer base {
+  * {
+    @apply border-tertiary outline-none;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    margin: 0;
+    display: flex;
+    place-items: center;
+    min-width: 320px;
+    width: 100%;
+    min-height: 100vh;
+  }
 }

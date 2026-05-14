@@ -10,7 +10,7 @@ import { useMemo } from 'react';
 import type { FC, ReactNode, ComponentProps } from 'react';
 import { clsx } from 'clsx';
 
-import { useI18n } from '../../../../hooks/use-i18n';
+import { useI18n } from '../../../settings/hooks/use-i18n';
 import { TransactionProgressProvider, useTransactionProgressContext } from './transaction-progress-provider';
 import type { TransactionProgressContextValue } from './transaction-progress-provider';
 import { TransactionProgressIcon } from './transaction-progress-icons';

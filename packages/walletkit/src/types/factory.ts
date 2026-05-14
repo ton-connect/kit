@@ -6,7 +6,7 @@
  *
  */
 
-import type { BaseProvider } from '../api/interfaces';
+import type { BaseProvider } from '../api/models';
 import type { NetworkManager } from '../core/NetworkManager';
 import type { EventEmitter } from '../core/EventEmitter';
 import type { SharedKitEvents } from './emitter';

@@ -1,0 +1,32 @@
+.flipButton {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s;
+  box-shadow: var(--ta-shadow-m);
+  appearance: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  background-color: var(--ta-color-background-tertiary);
+  color: var(--ta-color-text);
+}
+
+.flipButton:hover {
+  opacity: 1;
+}
+
+.flipButton:focus {
+  opacity: 1;
+}
+
+.flipButton.rotated {
+  transform: rotate(180deg);
+}

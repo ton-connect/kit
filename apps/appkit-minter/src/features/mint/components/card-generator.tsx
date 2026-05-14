@@ -8,8 +8,8 @@
 
 import { useState } from 'react';
 import type React from 'react';
-import { Sparkles, Coins, AlertCircle } from 'lucide-react';
-import { useSelectedWallet, Send } from '@ton/appkit-react';
+import { AlertCircle, Coins, Sparkles } from 'lucide-react';
+import { Button, Send, useSelectedWallet } from '@ton/appkit-react';
 import { getErrorMessage } from '@ton/appkit';
 import { toast } from 'sonner';
 
@@ -19,7 +19,14 @@ import { useNftMintTransaction } from '../hooks/use-nft-mint-transaction';
 import { mintCard } from '../store/actions/mint-card';
 import { setMintError } from '../store/actions/set-mint-error';
 
-import { Button, Card } from '@/core/components';
+import { cn } from '@/core/lib/utils';
+
+const RARITY_ODDS: { label: string; chance: number; color: string }[] = [
+    { label: 'Common', chance: 60, color: 'bg-tertiary-foreground' },
+    { label: 'Rare', chance: 25, color: 'bg-blue-500' },
+    { label: 'Epic', chance: 12, color: 'bg-purple-500' },
+    { label: 'Legendary', chance: 3, color: 'bg-amber-500' },
+];
 
 interface CardGeneratorProps {
     className?: string;
@@ -33,96 +40,79 @@ export const CardGenerator: React.FC<CardGeneratorProps> = ({ className }) => {
     const isConnected = !!wallet;
 
     return (
-        <Card className={className}>
-            <div className="space-y-4">
-                {/* Card preview area */}
-                <div className="flex justify-center">
-                    {currentCard ? (
-                        <div className="w-48">
-                            <CardPreview card={currentCard} />
-                        </div>
-                    ) : (
-                        <div className="w-48 rounded-2xl border-2 border-dashed border-border bg-muted/50 p-4">
-                            <div className="aspect-[3/4] rounded-xl flex items-center justify-center bg-background/50 mb-4">
-                                <div className="text-center">
-                                    <Sparkles className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
-                                    <p className="text-muted-foreground text-xs px-2">Your card will appear here</p>
-                                </div>
-                            </div>
-                            <div className="h-14" />
-                        </div>
-                    )}
-                </div>
-
-                {/* Rarity odds info */}
-                <div className="bg-muted/50 rounded-lg p-2">
-                    <div className="grid grid-cols-4 gap-1 text-center text-xs">
-                        <div className="flex items-center justify-center gap-1">
-                            <div className="w-2 h-2 bg-muted-foreground rounded-full" />
-                            <span className="text-muted-foreground">60%</span>
-                        </div>
-                        <div className="flex items-center justify-center gap-1">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                            <span className="text-muted-foreground">25%</span>
-                        </div>
-                        <div className="flex items-center justify-center gap-1">
-                            <div className="w-2 h-2 bg-purple-500 rounded-full" />
-                            <span className="text-muted-foreground">12%</span>
-                        </div>
-                        <div className="flex items-center justify-center gap-1">
-                            <div className="w-2 h-2 bg-amber-500 rounded-full" />
-                            <span className="text-muted-foreground">3%</span>
-                        </div>
+        <div className={cn('mx-auto flex w-full max-w-[434px] flex-col gap-4', className)}>
+            <div className="flex justify-center rounded-2xl bg-secondary p-6">
+                {currentCard ? (
+                    <div className="w-56">
+                        <CardPreview card={currentCard} />
                     </div>
-                </div>
-
-                {/* Mint error */}
-                {mintErrorLocal && (
-                    <div className="flex items-center gap-2 p-2 bg-destructive/10 border border-destructive/20 rounded-lg">
-                        <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0" />
-                        <p className="text-xs text-destructive">{mintErrorLocal}</p>
+                ) : (
+                    <div className="flex aspect-[3/4] w-56 flex-col items-center justify-center rounded-xl border-2 border-dashed border-tertiary bg-background/40 px-4">
+                        <Sparkles className="mb-2 h-10 w-10 text-tertiary-foreground" />
+                        <p className="text-center text-xs text-tertiary-foreground">Your card will appear here</p>
                     </div>
                 )}
-
-                {/* Action buttons */}
-                <div className="flex gap-2">
-                    <Button onClick={generate} isLoading={isGenerating} className="flex-1">
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        {currentCard ? 'New' : 'Generate'}
-                    </Button>
-
-                    {isConnected && canMint && (
-                        <Send
-                            request={createMintTransaction}
-                            onSuccess={() => {
-                                mintCard();
-                                setMintErrorLocal(null);
-                                setMintError(null);
-                                toast.success('NFT minted successfully!');
-                            }}
-                            onError={(error: Error) => {
-                                const msg = getErrorMessage(error);
-                                setMintErrorLocal(msg);
-                                setMintError(msg);
-                            }}
-                            disabled={!canMint}
-                        >
-                            {({ isLoading, onSubmit, disabled }) => (
-                                <Button
-                                    onClick={onSubmit}
-                                    disabled={disabled}
-                                    isLoading={isLoading}
-                                    variant="secondary"
-                                    className="flex-1"
-                                >
-                                    <Coins className="w-4 h-4 mr-2" />
-                                    Mint
-                                </Button>
-                            )}
-                        </Send>
-                    )}
-                </div>
             </div>
-        </Card>
+
+            <div className="grid grid-cols-4 gap-1 rounded-xl bg-secondary px-3 py-2 text-xs">
+                {RARITY_ODDS.map(({ label, chance, color }) => (
+                    <div key={label} className="flex items-center justify-center gap-1.5">
+                        <span className={cn('h-2 w-2 rounded-full', color)} />
+                        <span className="text-tertiary-foreground">{chance}%</span>
+                    </div>
+                ))}
+            </div>
+
+            {mintErrorLocal && (
+                <div className="flex items-center gap-2 rounded-xl border border-error/30 bg-error/10 p-3">
+                    <AlertCircle className="h-4 w-4 flex-shrink-0 text-error" />
+                    <p className="text-xs text-error">{mintErrorLocal}</p>
+                </div>
+            )}
+
+            <div className="flex flex-col gap-2">
+                <Button
+                    size="l"
+                    variant={currentCard ? 'bezeled' : 'fill'}
+                    onClick={generate}
+                    loading={isGenerating}
+                    fullWidth
+                    icon={<Sparkles className="h-4 w-4" />}
+                >
+                    {currentCard ? 'Generate new card' : 'Generate card'}
+                </Button>
+
+                {isConnected && canMint && (
+                    <Send
+                        request={createMintTransaction}
+                        onSuccess={() => {
+                            mintCard();
+                            setMintErrorLocal(null);
+                            setMintError(null);
+                            toast.success('NFT minted successfully!');
+                        }}
+                        onError={(error: Error) => {
+                            const msg = getErrorMessage(error);
+                            setMintErrorLocal(msg);
+                            setMintError(msg);
+                        }}
+                        disabled={!canMint}
+                    >
+                        {({ isLoading, onSubmit, disabled }) => (
+                            <Button
+                                size="l"
+                                onClick={onSubmit}
+                                disabled={disabled}
+                                loading={isLoading}
+                                fullWidth
+                                icon={<Coins className="h-4 w-4" />}
+                            >
+                                Mint NFT
+                            </Button>
+                        )}
+                    </Send>
+                )}
+            </div>
+        </div>
     );
 };

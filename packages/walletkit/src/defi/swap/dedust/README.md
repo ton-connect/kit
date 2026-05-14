@@ -13,12 +13,13 @@ For detailed information about DeDust Router, see the [official documentation](h
 ## Quick Start
 
 ```ts
-const provider = new DeDustSwapProvider({
-    defaultSlippageBps: 100, // 1%
-    referralAddress: 'EQ...',
-    referralFeeBps: 50, // 0.5%
-});
-kit.registerProvider(provider);
+kit.registerProvider(
+    createDeDustProvider({
+        defaultSlippageBps: 100, // 1%
+        referralAddress: 'EQ...',
+        referralFeeBps: 50, // 0.5%
+    }),
+);
 ```
 
 ## Configuration
@@ -95,11 +96,12 @@ const USDT = {
 };
 
 // Global referrer in config
-const provider = new DeDustSwapProvider({
-    referralAddress: 'EQ...global',
-    referralFeeBps: 50,
-});
-appKit.registerProvider(provider);
+appKit.registerProvider(
+    createDeDustProvider({
+        referralAddress: 'EQ...global',
+        referralFeeBps: 50,
+    }),
+);
 
 // Override for specific quote
 const quote = await getSwapQuote(appKit, {

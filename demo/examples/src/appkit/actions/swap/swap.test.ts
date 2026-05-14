@@ -30,15 +30,20 @@ describe('Swap Actions Examples', () => {
             },
         });
 
+        // Mock SwapManager
         mockGetQuote = vi.fn();
         mockBuildSwapTransaction = vi.fn();
         mockSendTransaction = vi.fn();
 
-        // Mock SwapManager
+        // @ts-expect-error - internal access
+        vi.spyOn(appKit.swapManager, 'getProvider').mockImplementation((id) => ({
+            providerId: id || 'default',
+        }));
         // @ts-expect-error - internal access
         vi.spyOn(appKit.swapManager, 'getQuote').mockImplementation(mockGetQuote);
         // @ts-expect-error - internal access
         vi.spyOn(appKit.swapManager, 'buildSwapTransaction').mockImplementation(mockBuildSwapTransaction);
+        vi.spyOn(appKit.swapManager, 'setDefaultProvider').mockImplementation(() => {});
     });
 
     afterEach(() => {

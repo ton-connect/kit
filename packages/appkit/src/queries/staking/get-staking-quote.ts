@@ -12,7 +12,7 @@ import type { GetStakingQuoteReturnType } from '../../actions/staking/get-stakin
 import type { AppKit } from '../../core/app-kit';
 import type { QueryOptions, QueryParameter } from '../../types/query';
 import type { Compute, ExactPartial } from '../../types/utils';
-import { filterQueryOptions } from '../../utils';
+import { filterQueryOptions, resolveNetwork, tryToBounceableAddress } from '../../utils';
 
 export type GetStakingQuoteErrorType = Error;
 
@@ -23,11 +23,20 @@ export type GetStakingQuoteQueryConfig<selectData = GetStakingQuoteData> = Compu
 
 export const getStakingQuoteQueryOptions = <selectData = GetStakingQuoteData>(
     appKit: AppKit,
-    options: GetStakingQuoteQueryConfig<selectData> = {},
+    initialOptions: GetStakingQuoteQueryConfig<selectData> = {},
 ): GetStakingQuoteQueryOptions<selectData> => {
+    const network = resolveNetwork(appKit, initialOptions.network);
+    const options = {
+        ...initialOptions,
+        network,
+        userAddress: tryToBounceableAddress(initialOptions.userAddress) ?? initialOptions.userAddress,
+    };
+
     return {
         ...options.query,
-        enabled: Boolean(options.amount && options.direction && (options.query?.enabled ?? true)),
+        enabled: Boolean(
+            options.amount && options.amount !== '0' && options.direction && (options.query?.enabled ?? true),
+        ),
         queryFn: async (context) => {
             const [, parameters] = context.queryKey as [string, GetStakingQuoteOptions];
             if (!parameters.amount || !parameters.direction) {
@@ -47,7 +56,7 @@ export type GetStakingQuoteData = GetStakingQuoteQueryFnData;
 export const getStakingQuoteQueryKey = (
     options: Compute<ExactPartial<GetStakingQuoteOptions>> = {},
 ): GetStakingQuoteQueryKey => {
-    return ['stakingQuote', filterQueryOptions(options as unknown as Record<string, unknown>)] as const;
+    return ['stakingQuote', filterQueryOptions(options)] as const;
 };
 
 export type GetStakingQuoteQueryKey = readonly ['stakingQuote', Compute<ExactPartial<GetStakingQuoteOptions>>];

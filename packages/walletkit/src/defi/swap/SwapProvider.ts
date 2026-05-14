@@ -6,7 +6,14 @@
  *
  */
 
-import type { TransactionRequest, SwapQuoteParams, SwapQuote, SwapParams } from '../../api/models';
+import type {
+    Network,
+    TransactionRequest,
+    SwapQuoteParams,
+    SwapQuote,
+    SwapParams,
+    SwapProviderMetadata,
+} from '../../api/models';
 import type { SwapProviderInterface } from '../../api/interfaces';
 
 /**
@@ -36,6 +43,12 @@ export abstract class SwapProvider<
     abstract readonly providerId: string;
 
     /**
+     * Get supported networks for this provider
+     * @returns Array of networks supported by this provider
+     */
+    abstract getSupportedNetworks(): Network[];
+
+    /**
      * Get a quote for swapping tokens
      * @param params - Quote parameters including tokens, amount, and network
      * @returns Promise resolving to swap quote with pricing information
@@ -48,4 +61,9 @@ export abstract class SwapProvider<
      * @returns Promise resolving to transaction request ready to be signed
      */
     abstract buildSwapTransaction(params: SwapParams<TSwapOptions>): Promise<TransactionRequest>;
+
+    /**
+     * Get provider metadata
+     */
+    abstract getMetadata(): SwapProviderMetadata;
 }

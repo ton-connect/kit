@@ -41,6 +41,12 @@ export interface StakingQuoteParams<TProviderOptions = unknown> {
     unstakeMode?: UnstakeModes;
 
     /**
+     * If true, for unstake requests the amount is specified in the staking coin (e.g. TON)
+     * instead of the Liquid Staking Token (e.g. tsTON).
+     */
+    isReversed?: boolean;
+
+    /**
      * Provider-specific options
      */
     providerOptions?: TProviderOptions;

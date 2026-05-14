@@ -13,9 +13,10 @@ import type {
     GetJettonBalanceByAddressQueryConfig,
 } from '@ton/appkit/queries';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 import { useQuery } from '../../../libs/query';
 import type { UseQueryReturnType } from '../../../libs/query';
+import { useNetwork } from '../../network';
 
 export type UseJettonBalanceByAddressParameters<selectData = GetJettonBalanceByAddressData> =
     GetJettonBalanceByAddressQueryConfig<selectData>;
@@ -32,6 +33,9 @@ export const useJettonBalanceByAddress = <selectData = GetJettonBalanceByAddress
     parameters: UseJettonBalanceByAddressParameters<selectData> = {},
 ): UseJettonBalanceByAddressReturnType<selectData> => {
     const appKit = useAppKit();
+    const walletNetwork = useNetwork();
 
-    return useQuery(getJettonBalanceByAddressQueryOptions(appKit, parameters));
+    return useQuery(
+        getJettonBalanceByAddressQueryOptions(appKit, { ...parameters, network: parameters.network ?? walletNetwork }),
+    );
 };

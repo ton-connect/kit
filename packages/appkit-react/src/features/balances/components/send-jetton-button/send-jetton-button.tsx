@@ -10,8 +10,7 @@ import { useCallback, useMemo } from 'react';
 import type { FC } from 'react';
 import { createTransferJettonTransaction, formatUnits, parseUnits } from '@ton/appkit';
 
-import { useI18n } from '../../../../hooks/use-i18n';
-import { useAppKit } from '../../../../hooks/use-app-kit';
+import { useI18n, useAppKit } from '../../../settings';
 import type { SendProps } from '../../../transaction';
 import { Send } from '../../../transaction';
 

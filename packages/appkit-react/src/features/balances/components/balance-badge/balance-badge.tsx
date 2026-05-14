@@ -10,9 +10,9 @@ import { formatUnits } from '@ton/appkit';
 import type { FC, ComponentProps } from 'react';
 import clsx from 'clsx';
 
-import { Block } from '../../../../components/block';
+import { Block } from '../../../../components/ui/block';
 import styles from './balance-badge.module.css';
-import { CircleIcon } from '../../../../components/circle-icon';
+import { Logo } from '../../../../components/ui/logo';
 
 const BalanceBadgeContainer: FC<ComponentProps<'div'>> = ({ className, ...props }) => {
     return <Block direction="row" className={clsx(styles.balance, className)} {...props} />;
@@ -40,7 +40,7 @@ const BalanceSymbol: FC<ComponentProps<'span'> & { symbol: string }> = ({ classN
 
 export const BalanceBadge = {
     Container: BalanceBadgeContainer,
-    Icon: CircleIcon,
+    Icon: Logo,
     BalanceBlock: BalanceBlock,
     Symbol: BalanceSymbol,
     Balance: Balance,

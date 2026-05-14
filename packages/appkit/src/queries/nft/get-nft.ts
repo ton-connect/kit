@@ -13,7 +13,7 @@ import { getNft } from '../../actions/nft/get-nft';
 import type { GetNftOptions as GetNftParameters } from '../../actions/nft/get-nft';
 import type { QueryOptions, QueryParameter } from '../../types/query';
 import type { Compute, ExactPartial } from '../../types/utils';
-import { filterQueryOptions, resolveNetwork } from '../../utils';
+import { filterQueryOptions, resolveNetwork, tryToBounceableAddress } from '../../utils';
 
 export type GetNftErrorType = Error;
 
@@ -25,7 +25,11 @@ export const getNftQueryOptions = <selectData = GetNftData>(
     initialOptions: GetNftQueryConfig<selectData> = {},
 ): GetNftQueryOptions<selectData> => {
     const network = resolveNetwork(appKit, initialOptions.network);
-    const options = { ...initialOptions, network };
+    const options = {
+        ...initialOptions,
+        network,
+        address: tryToBounceableAddress(initialOptions.address) ?? initialOptions.address,
+    };
 
     return {
         ...options.query,

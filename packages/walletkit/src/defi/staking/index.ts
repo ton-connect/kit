@@ -8,5 +8,4 @@
 
 export { StakingProvider } from './StakingProvider';
 export { StakingManager } from './StakingManager';
-export { StakingError } from './errors';
-export type { StakingErrorCode } from './errors';
+export { StakingError, StakingErrorCode } from './errors';

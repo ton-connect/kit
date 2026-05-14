@@ -244,6 +244,30 @@ Get the `SwapManager` instance to interact with swap providers directly.
 
 %%demo/examples/src/appkit/actions/swap#GET_SWAP_MANAGER%%
 
+### `getSwapProvider`
+
+Get a specific swap provider by its ID.
+
+%%demo/examples/src/appkit/actions/swap#GET_SWAP_PROVIDER%%
+
+### `getSwapProviders`
+
+Get all registered swap providers. The returned array keeps a stable reference until the provider list changes.
+
+%%demo/examples/src/appkit/actions/swap#GET_SWAP_PROVIDERS%%
+
+### `setDefaultSwapProvider`
+
+Set the default swap provider. Subsequent quote and swap-transaction calls will use this provider when none is specified.
+
+%%demo/examples/src/appkit/actions/swap#SET_DEFAULT_SWAP_PROVIDER%%
+
+### `watchSwapProviders`
+
+Watch for new swap providers registration.
+
+%%demo/examples/src/appkit/actions/swap#WATCH_SWAP_PROVIDERS%%
+
 ### `getSwapQuote`
 
 Get a swap quote from registered providers.
@@ -266,9 +290,15 @@ Get all available staking provider IDs.
 
 ### `getStakingProviderInfo`
 
-Get information about a specific staking provider.
+Get dynamic information about a specific staking provider (e.g. APY, rate).
 
 %%demo/examples/src/appkit/actions/staking#GET_STAKING_PROVIDER_INFO%%
+
+### `getStakingProviderMetadata`
+
+Get static metadata about a specific staking provider.
+
+%%demo/examples/src/appkit/actions/staking#GET_STAKING_PROVIDER_METADATA%%
 
 ### `getStakingQuote`
 

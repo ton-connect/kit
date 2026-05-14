@@ -12,7 +12,17 @@ import type { Base64String, TokenAmount, TransactionRequestMessage, UserFriendly
 import type { ApiClient } from '../../../api/interfaces';
 import { CONTRACT } from './constants';
 import { asAddressFriendly, ReaderStack, SerializeStack } from '../../../utils';
-import { formatUnits } from '../../../utils/units';
+
+export interface PoolData {
+    /** Total TON balance in the pool (nanoTON) */
+    totalBalance: bigint;
+    /** Total tsTON supply (nanotsTON) */
+    supply: bigint;
+    /** Projected TON balance at round end (nanoTON) */
+    projectedBalance: bigint;
+    /** Projected tsTON supply at round end (nanotsTON) */
+    projectedSupply: bigint;
+}
 
 export class PoolContract {
     readonly address: UserFriendlyAddress;
@@ -140,28 +150,26 @@ export class PoolContract {
     }
 
     /**
-     * Get current and projected exchange rates for tsTON/TON.
+     * Get raw pool data for precise bigint calculations.
+     *
+     * Exchange rates can be derived as:
+     * - spot rate (tsTON→TON): `totalBalance / supply`
+     * - projected rate: `projectedBalance / projectedSupply`
      */
-    async getRates(): Promise<{ tsTONTON: number; tsTONTONProjected: number }> {
+    async getPoolData(): Promise<PoolData> {
         const data = await this.client.runGetMethod(this.address, 'get_pool_full_data');
         const stack = ReaderStack(data.stack);
 
         stack.skip(2); // Skip state, halted
-        const totalBalance = Number(formatUnits(stack.readBigNumber(), 9));
+        const totalBalance = stack.readBigNumber();
 
         stack.skip(10); // Skip up to minter
-        const supply = Number(formatUnits(stack.readBigNumber(), 9));
+        const supply = stack.readBigNumber();
 
         stack.skip(14); // Skip to projected balance
-        const projectedBalance = Number(formatUnits(stack.readBigNumber(), 9));
-        const projectedSupply = Number(formatUnits(stack.readBigNumber(), 9));
+        const projectedBalance = stack.readBigNumber();
+        const projectedSupply = stack.readBigNumber();
 
-        const tsTONTON = supply > 0 ? totalBalance / supply : 1;
-        const tsTONTONProjected = projectedSupply > 0 ? projectedBalance / projectedSupply : 1;
-
-        return {
-            tsTONTON,
-            tsTONTONProjected,
-        };
+        return { totalBalance, supply, projectedBalance, projectedSupply };
     }
 }

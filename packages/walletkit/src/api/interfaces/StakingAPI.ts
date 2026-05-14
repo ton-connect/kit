@@ -13,11 +13,11 @@ import type {
     StakeParams,
     StakingBalance,
     StakingProviderInfo,
+    StakingProviderMetadata,
     StakingQuote,
     StakingQuoteParams,
     TransactionRequest,
     UserFriendlyAddress,
-    UnstakeModes,
 } from '../models';
 
 /**
@@ -58,11 +58,12 @@ export interface StakingAPI extends DefiManagerAPI<StakingProviderInterface> {
     getStakingProviderInfo(network?: Network, providerId?: string): Promise<StakingProviderInfo>;
 
     /**
-     * Get supported unstake modes
+     * Get static metadata for a staking provider
+     * @param network Network to query (optional)
      * @param providerId Provider identifier (optional, uses default if not specified)
-     * @returns An array of supported unstake modes
+     * @returns Synchronous Provider Metadata
      */
-    getSupportedUnstakeModes(providerId?: string): UnstakeModes[];
+    getStakingProviderMetadata(network?: Network, providerId?: string): StakingProviderMetadata;
 }
 
 /**
@@ -106,8 +107,9 @@ export interface StakingProviderInterface extends DefiProvider {
     getStakingProviderInfo(network?: Network): Promise<StakingProviderInfo>;
 
     /**
-     * Get supported unstake modes
-     * @returns An array of supported unstake modes
+     * Get static metadata for this staking provider
+     * @param network Network to query (optional)
+     * @returns Synchronous Provider Metadata
      */
-    getSupportedUnstakeModes(): UnstakeModes[];
+    getStakingProviderMetadata(network?: Network): StakingProviderMetadata;
 }

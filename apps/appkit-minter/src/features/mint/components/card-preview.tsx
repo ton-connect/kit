@@ -56,12 +56,12 @@ export const CardPreview: React.FC<CardPreviewProps> = ({ card, className }) => 
             {/* Card content */}
             <div className="relative p-4">
                 {/* Card image */}
-                <div className="relative aspect-[3/4] rounded-xl overflow-hidden mb-4 bg-background/50 backdrop-blur-sm border border-border/20">
+                <div className="relative aspect-[3/4] rounded-xl overflow-hidden mb-4 bg-background/50 backdrop-blur-sm border border-tertiary/20">
                     {card.imageUrl ? (
                         <img src={card.imageUrl} alt={card.name} className="w-full h-full object-cover" />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                            <ImageIcon className="w-16 h-16 text-muted-foreground/30" />
+                            <ImageIcon className="w-16 h-16 text-tertiary-foreground/30" />
                         </div>
                     )}
 
@@ -81,7 +81,7 @@ export const CardPreview: React.FC<CardPreviewProps> = ({ card, className }) => 
                     </h3>
 
                     {card.description && (
-                        <p className="text-xs text-muted-foreground text-center italic line-clamp-2">
+                        <p className="text-xs text-tertiary-foreground text-center italic line-clamp-2">
                             {card.description}
                         </p>
                     )}

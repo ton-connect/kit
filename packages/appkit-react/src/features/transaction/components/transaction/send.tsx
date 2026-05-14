@@ -7,12 +7,13 @@
  */
 
 import { useCallback, useMemo } from 'react';
-import type { FC, ReactNode, ComponentProps } from 'react';
+import type { FC, ReactNode } from 'react';
 import type { SendTransactionParameters, SendTransactionReturnType } from '@ton/appkit';
 
+import { useI18n } from '../../../settings/hooks/use-i18n';
 import { SendProvider, useSendContext } from '../transaction-provider';
-import { useI18n } from '../../../../hooks/use-i18n';
-import { Button } from '../../../../components/button';
+import { Button } from '../../../../components/ui/button';
+import type { ButtonProps } from '../../../../components/ui/button';
 
 export interface SendRenderProps {
     isLoading: boolean;
@@ -27,7 +28,7 @@ export type SendRequest =
     | (() => SendTransactionParameters)
     | (() => Promise<SendTransactionParameters>);
 
-export interface SendProps extends Omit<ComponentProps<'button'>, 'children' | 'onError'> {
+export interface SendProps extends Omit<ButtonProps, 'children' | 'onError'> {
     /** The transaction request parameters */
     request: SendRequest;
     /** Callback when an error occurs */
@@ -40,7 +41,7 @@ export interface SendProps extends Omit<ComponentProps<'button'>, 'children' | '
     children?: (props: SendRenderProps) => ReactNode;
 }
 
-interface SendContentProps extends Omit<ComponentProps<'button'>, 'children'> {
+interface SendContentProps extends Omit<ButtonProps, 'children'> {
     text?: ReactNode;
     children?: (props: SendRenderProps) => ReactNode;
 }

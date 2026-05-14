@@ -12,7 +12,7 @@ import { watchJettonsByAddress, hasStreamingProvider, resolveNetwork } from '@to
 import type { WatchJettonsByAddressOptions, JettonUpdate } from '@ton/appkit';
 import { handleJettonBalanceUpdate, handleJettonsUpdate } from '@ton/appkit/queries';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 
 export type UseWatchJettonsByAddressParameters = Partial<WatchJettonsByAddressOptions>;
 

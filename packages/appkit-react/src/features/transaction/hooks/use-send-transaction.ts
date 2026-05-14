@@ -19,7 +19,7 @@ import { sendTransactionMutationOptions } from '@ton/appkit/queries';
 
 import { useMutation } from '../../../libs/query';
 import type { UseMutationReturnType } from '../../../libs/query';
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 
 export type UseSendTransactionParameters<context = unknown> = SendTransactionOptions<context>;
 

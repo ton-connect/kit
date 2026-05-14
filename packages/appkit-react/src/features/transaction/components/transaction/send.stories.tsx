@@ -6,9 +6,9 @@
  *
  */
 
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { Button } from '../../../../components/button';
+import { Button } from '../../../../components/ui/button';
 
 // Create a preview component that doesn't depend on context
 const SendPreview = ({
@@ -24,12 +24,9 @@ const SendPreview = ({
 };
 
 const meta: Meta<typeof SendPreview> = {
-    title: 'Public/Features/Transaction/Send',
+    title: 'Features/Transaction/Send',
     component: SendPreview,
     tags: ['autodocs'],
-    parameters: {
-        layout: 'centered',
-    },
 };
 
 export default meta;

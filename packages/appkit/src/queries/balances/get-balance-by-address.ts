@@ -13,7 +13,7 @@ import { getBalanceByAddress } from '../../actions/balances/get-balance-by-addre
 import type { GetBalanceByAddressOptions } from '../../actions/balances/get-balance-by-address';
 import type { QueryOptions, QueryParameter } from '../../types/query';
 import type { Compute, ExactPartial } from '../../types/utils';
-import { filterQueryOptions, resolveNetwork, sleep } from '../../utils';
+import { filterQueryOptions, resolveNetwork, sleep, tryToBounceableAddress } from '../../utils';
 import type { GetBalanceByAddressReturnType } from '../../actions/balances/get-balance-by-address';
 import type { BalanceUpdate } from '../../core/streaming';
 import type { Network } from '../../types/network';
@@ -32,7 +32,11 @@ export const getBalanceByAddressQueryOptions = <selectData = GetBalanceByAddress
     initialOptions: GetBalanceByAddressQueryConfig<selectData> = {},
 ): GetBalanceByAddressQueryOptions<selectData> => {
     const network = resolveNetwork(appKit, initialOptions.network);
-    const options = { ...initialOptions, network };
+    const options = {
+        ...initialOptions,
+        network,
+        address: tryToBounceableAddress(initialOptions.address) ?? initialOptions.address,
+    };
 
     return {
         ...options.query,
@@ -72,14 +76,17 @@ export const handleBalanceUpdate = (
     { address, network }: { address: string; network: Network },
     update: BalanceUpdate,
 ) => {
+    const queryKey = getBalanceByAddressQueryKey({
+        address: tryToBounceableAddress(address) ?? address,
+        network,
+    });
+
     if (update.status === 'finalized') {
-        const queryKey = getBalanceByAddressQueryKey({ address, network });
         queryClient.setQueryData(queryKey, update.balance);
         sleep(5000).then(() => queryClient.invalidateQueries({ queryKey }));
     }
 
     if (update.status === 'invalidated') {
-        const queryKey = getBalanceByAddressQueryKey({ address, network });
         queryClient.invalidateQueries({ queryKey });
     }
 };

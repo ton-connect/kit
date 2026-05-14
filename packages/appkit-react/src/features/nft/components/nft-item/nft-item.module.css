@@ -38,10 +38,9 @@
 }
 
 .name {
-    composes: bodySmall from "../../../../styles/typography.module.css";
+    composes: labelSemibold from "../../../../styles/typography.module.css";
 
     color: var(--ta-color-text);
-    font-weight: var(--ta-body-medium-font-weight);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -49,7 +48,7 @@
 }
 
 .collectionName {
-    composes: bodySmall from "../../../../styles/typography.module.css";
+    composes: footnoteRegular from "../../../../styles/typography.module.css";
 
     color: var(--ta-color-text-secondary);
     white-space: nowrap;
@@ -59,7 +58,7 @@
 }
 
 .saleBadge {
-    composes: caption2 from "../../../../styles/typography.module.css";
+    composes: captionSemibold from "../../../../styles/typography.module.css";
 
     position: absolute;
     top: 8px;
@@ -68,7 +67,6 @@
     align-items: center;
     padding: 2px 6px;
     border-radius: var(--ta-border-radius-s);
-    font-weight: var(--ta-body-medium-font-weight);
     background-color: var(--ta-color-primary);
-    color: var(--ta-color-text-on-primary, #fff);
+    color: var(--ta-color-primary-foreground);
 }

@@ -6,14 +6,25 @@
  *
  */
 
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
 import type { StorybookConfig } from '@storybook/react-vite';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 const config: StorybookConfig = {
     stories: ['../src/**/*.stories.@(ts|tsx)'],
-    addons: ['@storybook/addon-docs'],
+    addons: [getAbsolutePath('@storybook/addon-docs')],
+    staticDirs: ['./public'],
     framework: {
-        name: '@storybook/react-vite',
+        name: getAbsolutePath('@storybook/react-vite'),
         options: {},
     },
     core: {
@@ -55,3 +66,7 @@ const config: StorybookConfig = {
 };
 
 export default config;
+
+function getAbsolutePath(value: string) {
+    return dirname(fileURLToPath(import.meta.resolve(`${value}/package.json`)));
+}

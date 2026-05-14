@@ -12,7 +12,7 @@ import type { GetStakedBalanceReturnType } from '../../actions/staking/get-stake
 import type { AppKit } from '../../core/app-kit';
 import type { QueryOptions, QueryParameter } from '../../types/query';
 import type { Compute, ExactPartial } from '../../types/utils';
-import { filterQueryOptions } from '../../utils';
+import { filterQueryOptions, resolveNetwork, tryToBounceableAddress } from '../../utils';
 
 export type GetStakedBalanceErrorType = Error;
 
@@ -23,8 +23,15 @@ export type GetStakedBalanceQueryConfig<selectData = GetStakedBalanceData> = Com
 
 export const getStakedBalanceQueryOptions = <selectData = GetStakedBalanceData>(
     appKit: AppKit,
-    options: GetStakedBalanceQueryConfig<selectData> = {},
+    initialOptions: GetStakedBalanceQueryConfig<selectData> = {},
 ): GetStakedBalanceQueryOptions<selectData> => {
+    const network = resolveNetwork(appKit, initialOptions.network);
+    const options = {
+        ...initialOptions,
+        network,
+        userAddress: tryToBounceableAddress(initialOptions.userAddress) ?? initialOptions.userAddress,
+    };
+
     return {
         ...options.query,
         enabled: Boolean(options.userAddress && (options.query?.enabled ?? true)),
@@ -47,7 +54,7 @@ export type GetStakedBalanceData = GetStakedBalanceQueryFnData;
 export const getStakedBalanceQueryKey = (
     options: Compute<ExactPartial<GetStakedBalanceOptions>> = {},
 ): GetStakedBalanceQueryKey => {
-    return ['stakedBalance', filterQueryOptions(options as unknown as Record<string, unknown>)] as const;
+    return ['stakedBalance', filterQueryOptions(options)] as const;
 };
 
 export type GetStakedBalanceQueryKey = readonly ['stakedBalance', Compute<ExactPartial<GetStakedBalanceOptions>>];

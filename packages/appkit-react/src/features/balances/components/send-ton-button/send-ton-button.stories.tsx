@@ -6,9 +6,9 @@
  *
  */
 
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { Button } from '../../../../components/button';
+import { Button } from '../../../../components/ui/button';
 
 const SendTonButtonPreview = ({
     text = 'Send TON',
@@ -23,12 +23,9 @@ const SendTonButtonPreview = ({
 };
 
 const meta: Meta<typeof SendTonButtonPreview> = {
-    title: 'Public/Features/Balances/SendTonButton',
+    title: 'Features/Balances/SendTonButton',
     component: SendTonButtonPreview,
     tags: ['autodocs'],
-    parameters: {
-        layout: 'centered',
-    },
 };
 
 export default meta;

@@ -6,7 +6,7 @@
  *
  */
 
-export { DeDustSwapProvider } from './DeDustSwapProvider';
+export { DeDustSwapProvider, createDeDustProvider } from './DeDustSwapProvider';
 export type {
     DeDustSwapProviderConfig,
     DeDustProviderOptions,

@@ -25,3 +25,11 @@ export const toNonBounceableAddress = (address?: Address | string | null): strin
         throw new Error(`Can not convert to non-bounceable address from "${address}". Error: ${getErrorMessage(e)}`);
     }
 };
+
+export const tryToNonBounceableAddress = (address?: Address | string | null): string | undefined => {
+    try {
+        return toNonBounceableAddress(address);
+    } catch {
+        return undefined;
+    }
+};

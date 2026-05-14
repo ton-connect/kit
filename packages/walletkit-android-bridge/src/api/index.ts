@@ -105,7 +105,7 @@ export const api = {
     buildStakeTransaction: staking.buildStakeTransaction,
     getStakedBalance: staking.getStakedBalance,
     getStakingProviderInfo: staking.getStakingProviderInfo,
-    getSupportedUnstakeModes: staking.getSupportedUnstakeModes,
+    getStakingProviderMetadata: staking.getStakingProviderMetadata,
     registerKotlinStakingProvider: staking.registerKotlinStakingProvider,
 
     createOmnistonSwapProvider: swap.createOmnistonSwapProvider,

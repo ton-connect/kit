@@ -10,7 +10,7 @@ import { useSyncExternalStore, useCallback } from 'react';
 import { getSelectedWallet, watchSelectedWallet, setSelectedWalletId } from '@ton/appkit';
 import type { GetSelectedWalletReturnType } from '@ton/appkit';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 
 export type UseSelectedWalletReturnType = readonly [GetSelectedWalletReturnType, (walletId: string | null) => void];
 

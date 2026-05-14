@@ -21,15 +21,15 @@
 }
 
 .success {
-    color: #4caf50;
+    color: var(--ta-color-success);
 }
 
 .failed {
-    color: #f44336;
+    color: var(--ta-color-error);
 }
 
 .message {
-    composes: bodyLargeMedium from "../../../../styles/typography.module.css";
+    composes: labelMedium from "../../../../styles/typography.module.css";
     text-align: center;
     font-family: var(--ta-font-family-mono);
 }

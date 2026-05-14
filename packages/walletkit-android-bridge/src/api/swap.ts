@@ -11,8 +11,10 @@ import type { OmnistonSwapProviderConfig } from '@ton/walletkit/swap/omniston';
 import { DeDustSwapProvider } from '@ton/walletkit/swap/dedust';
 import type { DeDustSwapProviderConfig } from '@ton/walletkit/swap/dedust';
 import type {
+    Network,
     SwapAPI,
     SwapProviderInterface,
+    SwapProviderMetadata,
     SwapQuote,
     SwapQuoteParams,
     SwapParams,
@@ -27,11 +29,26 @@ import { get, release, retainWithId } from '../utils/registry';
  * JS-side proxy that implements [SwapProviderInterface] by forwarding every call to a
  * Kotlin-implemented `ITONSwapProvider` via reverse-RPC. Mirrors the Kotlin staking / streaming
  * proxy pattern.
+ *
+ * `getMetadata` and `getSupportedNetworks` are synchronous per the interface contract, so both
+ * values are passed in at registration and cached on this instance.
  */
 class ProxySwapProvider implements SwapProviderInterface {
     readonly type = 'swap' as const;
 
-    constructor(readonly providerId: string) {}
+    constructor(
+        readonly providerId: string,
+        private readonly metadata: SwapProviderMetadata,
+        private readonly supportedNetworks: Network[],
+    ) {}
+
+    getMetadata(): SwapProviderMetadata {
+        return this.metadata;
+    }
+
+    getSupportedNetworks(): Network[] {
+        return this.supportedNetworks;
+    }
 
     async getQuote(params: SwapQuoteParams): Promise<SwapQuote> {
         const resultJson = (await bridgeRequest('kotlinSwapProviderQuote', {
@@ -81,7 +98,7 @@ export async function setDefaultSwapProvider(args: { providerId: string }): Prom
 }
 
 export async function getRegisteredSwapProviders(): Promise<{ providerIds: string[] }> {
-    const providerIds = (await getSwap()).getRegisteredProviders();
+    const providerIds = (await getSwap()).getProviders().map((provider) => provider.providerId);
     return { providerIds };
 }
 
@@ -102,13 +119,20 @@ export async function buildSwapTransaction(args: { params: SwapParams }): Promis
  * Tell the JS swap manager that a Kotlin-implemented provider is available.
  * A [ProxySwapProvider] is created and registered; all subsequent swap operations on it
  * forward to the Kotlin instance via reverse-RPC.
+ *
+ * @param args.metadata Static provider metadata returned synchronously from `getMetadata`.
+ * @param args.supportedNetworks Networks the Kotlin provider can serve, returned by `getSupportedNetworks`.
  */
-export async function registerKotlinSwapProvider(args: { providerId: string }): Promise<void> {
+export async function registerKotlinSwapProvider(args: {
+    providerId: string;
+    metadata: SwapProviderMetadata;
+    supportedNetworks: Network[];
+}): Promise<void> {
     const previous = get<ProxySwapProvider>(args.providerId);
     if (previous instanceof ProxySwapProvider) {
         release(args.providerId);
     }
-    const provider = new ProxySwapProvider(args.providerId);
+    const provider = new ProxySwapProvider(args.providerId, args.metadata, args.supportedNetworks);
     retainWithId(args.providerId, provider);
     (await getSwap()).registerProvider(provider);
 }

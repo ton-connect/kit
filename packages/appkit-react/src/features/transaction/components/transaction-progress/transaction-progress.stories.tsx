@@ -6,7 +6,7 @@
  *
  */
 
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { I18nProvider } from '../../../../providers/i18n-provider';
 import { TransactionProgressContext } from './transaction-progress-provider';
@@ -43,12 +43,9 @@ const TransactionProgressPreview = ({
 };
 
 const meta: Meta<typeof TransactionProgressPreview> = {
-    title: 'Public/Features/Transaction/TransactionProgress',
+    title: 'Features/Transaction/TransactionProgress',
     component: TransactionProgressPreview,
     tags: ['autodocs'],
-    parameters: {
-        layout: 'centered',
-    },
 };
 
 export default meta;

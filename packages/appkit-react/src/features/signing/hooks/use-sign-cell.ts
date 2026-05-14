@@ -10,7 +10,7 @@ import type { UseMutationResult } from '@tanstack/react-query';
 import { signCellMutationOptions } from '@ton/appkit/queries';
 import type { SignCellData, SignCellErrorType, SignCellOptions, SignCellVariables } from '@ton/appkit/queries';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 import { useMutation } from '../../../libs/query';
 
 export type UseSignCellParameters<context = unknown> = SignCellOptions<context>;

@@ -28,7 +28,9 @@ export const getSwapQuoteQueryOptions = <selectData = GetSwapQuoteData>(
 
     return {
         ...options.query,
-        enabled: Boolean(options.amount && options.from && options.to && (options.query?.enabled ?? true)),
+        enabled: Boolean(
+            options.amount && options.amount !== '0' && options.from && options.to && (options.query?.enabled ?? true),
+        ),
         queryFn: async (context) => {
             const [, parameters] = context.queryKey as [string, GetSwapQuoteOptions];
             if (!parameters.amount || !parameters.from || !parameters.to) {

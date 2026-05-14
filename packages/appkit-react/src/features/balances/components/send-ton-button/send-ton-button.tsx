@@ -10,8 +10,7 @@ import { useCallback } from 'react';
 import type { FC } from 'react';
 import { createTransferTonTransaction } from '@ton/appkit';
 
-import { useI18n } from '../../../../hooks/use-i18n';
-import { useAppKit } from '../../../../hooks/use-app-kit';
+import { useI18n, useAppKit } from '../../../settings';
 import type { SendProps } from '../../../transaction';
 import { Send } from '../../../transaction';
 

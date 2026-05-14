@@ -8,17 +8,24 @@
 
 import { useContext, useEffect } from 'react';
 import { useAppKitTheme } from '@ton/appkit-react';
+import { useTonConnectUI, THEME } from '@tonconnect/ui-react';
 
 import { ThemeProviderContext } from '@/core/components/layout/theme-provider';
 
 export const useTheme = () => {
     const context = useContext(ThemeProviderContext);
     const [, setTheme] = useAppKitTheme();
+    const [tonconnect] = useTonConnectUI();
 
     if (context === undefined) throw new Error('useTheme must be used within a ThemeProvider');
 
     useEffect(() => {
         setTheme(context.theme);
+        tonconnect.uiOptions = {
+            uiPreferences: {
+                theme: context.theme === 'dark' ? THEME.DARK : THEME.LIGHT,
+            },
+        };
     }, [context.theme]);
 
     return context;

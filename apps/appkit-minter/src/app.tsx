@@ -12,8 +12,7 @@ import { AppKitProvider } from '@ton/appkit-react';
 import { appKit } from '@/core/configs/app-kit';
 import { AppRouter, ThemeProvider, ToasterProvider } from '@/core/components';
 
-import './core/styles/app.css';
-import '@ton/appkit-react/styles.css';
+import './core/styles/index.css';
 
 const queryClient = new QueryClient();
 

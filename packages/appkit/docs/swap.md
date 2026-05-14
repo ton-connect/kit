@@ -37,11 +37,11 @@ const appKit = new AppKit({
         },
     },
     providers: [
-        new OmnistonSwapProvider({
+        createOmnistonProvider({
             apiUrl: 'https://api.ston.fi',
             defaultSlippageBps: 100, // 1%
         }),
-        new DeDustSwapProvider({
+        createDeDustProvider({
             defaultSlippageBps: 100,
             referralAddress: 'EQ...', // Optional
         }),
@@ -67,8 +67,8 @@ const appKit = new AppKit({
 });
 
 // 2. Register swap providers
-registerProvider(appKit, new OmnistonSwapProvider({ defaultSlippageBps: 100 }));
-registerProvider(appKit, new DeDustSwapProvider({ defaultSlippageBps: 100 }));
+registerProvider(appKit, createOmnistonProvider({ defaultSlippageBps: 100 }));
+registerProvider(appKit, createDeDustProvider({ defaultSlippageBps: 100 }));
 ```
 
 ## Configuration

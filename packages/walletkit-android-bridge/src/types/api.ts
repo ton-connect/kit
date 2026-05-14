@@ -15,10 +15,13 @@ import type {
     DAppInfo,
     DisconnectEvent,
     JettonsResponse,
+    Network,
     NFT,
     NFTsResponse,
     SendTransactionResponse,
+    StakingProviderMetadata,
     StreamingWatchType,
+    SwapProviderMetadata,
     TONConnectSession,
     TonApiStreamingProviderConfig,
     TonCenterStreamingProviderConfig,
@@ -317,7 +320,8 @@ export interface KotlinProviderDispatchArgs {
 
 export interface RegisterKotlinStakingProviderArgs {
     providerId: string;
-    supportedUnstakeModes: string[];
+    metadata: StakingProviderMetadata;
+    supportedNetworks: Network[];
 }
 
 export interface HandleTonConnectUrlArgs {
@@ -385,7 +389,8 @@ export interface GetStakingProviderInfoArgs {
     providerId?: string;
 }
 
-export interface GetSupportedUnstakeModesArgs {
+export interface GetStakingProviderMetadataArgs {
+    network?: { chainId: string };
     providerId?: string;
 }
 
@@ -403,6 +408,8 @@ export interface RegisterSwapProviderArgs {
 
 export interface RegisterKotlinSwapProviderArgs {
     providerId: string;
+    metadata: SwapProviderMetadata;
+    supportedNetworks: Network[];
 }
 
 export interface GetSwapQuoteArgs {
@@ -513,7 +520,7 @@ export interface WalletKitBridgeApi {
         instantUnstakeAvailable?: string;
         providerId: string;
     }>;
-    getSupportedUnstakeModes(args: GetSupportedUnstakeModesArgs): PromiseOrValue<string[]>;
+    getStakingProviderMetadata(args: GetStakingProviderMetadataArgs): PromiseOrValue<StakingProviderMetadata>;
     registerKotlinStakingProvider(args: RegisterKotlinStakingProviderArgs): PromiseOrValue<void>;
     createOmnistonSwapProvider(args: CreateOmnistonSwapProviderArgs): PromiseOrValue<{ providerId: string }>;
     createDeDustSwapProvider(args: CreateDeDustSwapProviderArgs): PromiseOrValue<{ providerId: string }>;

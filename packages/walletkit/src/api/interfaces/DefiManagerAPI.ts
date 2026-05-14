@@ -16,10 +16,16 @@ import type { DefiProvider } from './DefiProvider';
 export interface DefiManagerAPI<T extends DefiProvider> {
     createFactoryContext(): ProviderFactoryContext;
     /**
-     * Register a new provider
-     * @param provider Provider instance (must have providerId)
+     * Register a new provider. If a provider with the same id is already registered, it is replaced.
+     * @param provider Provider instance or factory (must produce a provider with providerId)
      */
     registerProvider(provider: ProviderInput<T>): void;
+
+    /**
+     * Remove a previously registered provider. No-op if the provider was not registered.
+     * @param provider Provider instance to remove (matched by providerId)
+     */
+    removeProvider(provider: T): void;
 
     /**
      * Set the default provider
@@ -34,9 +40,10 @@ export interface DefiManagerAPI<T extends DefiProvider> {
     getProvider(providerId?: string): T;
 
     /**
-     * Get list of all registered provider ids
+     * Get all registered providers.
+     * The returned array keeps a stable reference until the provider list changes.
      */
-    getRegisteredProviders(): string[];
+    getProviders(): T[];
 
     /**
      * Check if a provider is registered

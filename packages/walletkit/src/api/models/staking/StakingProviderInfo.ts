@@ -9,7 +9,7 @@
 import type { TokenAmount } from '../core/TokenAmount';
 
 /**
- * Staking information for a provider
+ * Dynamic staking information for a provider
  */
 export interface StakingProviderInfo {
     /**
@@ -28,7 +28,8 @@ export interface StakingProviderInfo {
     instantUnstakeAvailable?: string;
 
     /**
-     * Identifier of the staking provider
+     * Exchange rate between stakeToken and receiveToken (e.g. 1 TON = 0.95 tsTON).
+     * Undefined when there is no receiveToken (direct/custodial staking).
      */
-    providerId: string;
+    exchangeRate?: string;
 }

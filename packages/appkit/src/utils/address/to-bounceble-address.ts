@@ -25,3 +25,11 @@ export const toBounceableAddress = (address?: Address | string | null): string =
         throw new Error(`Can not convert to bounceble address from "${address}". Error: ${getErrorMessage(e)}`);
     }
 };
+
+export const tryToBounceableAddress = (address?: Address | string | null): string | undefined => {
+    try {
+        return toBounceableAddress(address);
+    } catch {
+        return undefined;
+    }
+};

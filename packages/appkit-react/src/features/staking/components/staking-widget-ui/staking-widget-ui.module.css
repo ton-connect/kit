@@ -1,0 +1,31 @@
+.widget {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 386px;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tab {
+  margin-bottom: 16px;
+}
+
+.inputSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 28px 0;
+}
+
+.actions {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}

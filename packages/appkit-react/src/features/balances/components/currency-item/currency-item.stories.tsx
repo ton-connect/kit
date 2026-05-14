@@ -6,18 +6,15 @@
  *
  */
 
-import type { Meta, StoryObj } from '@storybook/react';
-import { fn } from '@storybook/test';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
 
 import { CurrencyItem } from './currency-item';
 
 const meta: Meta<typeof CurrencyItem> = {
-    title: 'Public/Features/Balances/CurrencyItem',
+    title: 'Features/Balances/CurrencyItem',
     component: CurrencyItem,
     tags: ['autodocs'],
-    parameters: {
-        layout: 'centered',
-    },
     args: {
         onClick: fn(),
     },

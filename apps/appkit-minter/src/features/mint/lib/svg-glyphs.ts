@@ -16,26 +16,26 @@ let fontPromise: Promise<opentype.Font> | null = null;
 /**
  * Load the Inter font (cached)
  */
-function loadFont(): Promise<opentype.Font> {
+const loadFont = (): Promise<opentype.Font> => {
     if (!fontPromise) {
         fontPromise = opentype.load(FONT_URL);
     }
     return fontPromise!;
-}
+};
 
 /**
  * Convert text to SVG path data
  */
-export async function textToSvgPath(text: string, fontSize: number, x: number, y: number): Promise<string> {
+export const textToSvgPath = async (text: string, fontSize: number, x: number, y: number): Promise<string> => {
     const font = await loadFont();
     const path = font.getPath(text, x, y, fontSize);
     return path.toPathData(2);
-}
+};
 
 /**
  * Get the width of text when rendered
  */
-export async function getTextWidth(text: string, fontSize: number): Promise<number> {
+export const getTextWidth = async (text: string, fontSize: number): Promise<number> => {
     const font = await loadFont();
     return font.getAdvanceWidth(text, fontSize);
-}
+};
