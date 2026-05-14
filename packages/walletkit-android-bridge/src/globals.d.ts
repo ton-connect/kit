@@ -7,13 +7,15 @@
  */
 
 // Re-export bridge types for backwards compatibility
-import type { AndroidBridgeType, WalletKitNativeBridgeType, WalletKitBridgeApi, WalletKitApiMethod } from './types';
+import type { AndroidBridgeType, WalletKitNativeBridgeType, WalletKitBridgeApi } from './types';
 
 declare global {
     interface Window {
         walletkitBridge?: WalletKitBridgeApi;
-        __walletkitCall?: (id: string, method: WalletKitApiMethod, paramsJson?: string | null) => void;
-        __walletkitResponse?: (id: string, resultJson?: string | null, errorJson?: string | null) => void;
+        // WalletKitNative still hosts the synchronous host calls (storageGet/Set, sessionCreate,
+        // apiSendBoc/RunGetMethod/GetBalance, …). The bidirectional bridge messaging that used
+        // to live on `__walletkitCall` / `__walletkitResponse` now flows through a
+        // WebMessagePort handed off from Kotlin during page load.
         WalletKitNative?: WalletKitNativeBridgeType;
         AndroidBridge?: AndroidBridgeType;
     }

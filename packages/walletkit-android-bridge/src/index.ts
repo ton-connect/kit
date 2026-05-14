@@ -9,7 +9,8 @@
 /**
  * Entry point for Android WalletKit bridge.
  * This file ensures native polyfills are installed before the bridge code executes.
- * The bridge bundle does not export anything - all communication happens via window.__walletkitCall.
+ * The bridge bundle does not export anything — all communication happens through the
+ * WebMessagePort handed off from the native side (see `transport/port.ts`).
  */
 import './polyfills/setupNativeBridge';
 import './bridge';

@@ -23,6 +23,7 @@ import type {
     RawStackItem,
     GetMethodResult,
     MasterchainInfo,
+    Network,
 } from '../models';
 import type { EmulationResult } from '../models';
 
@@ -95,6 +96,8 @@ export interface GetEventsResponse {
 }
 
 export interface ApiClient {
+    getNetwork(): Network;
+
     nftItemsByAddress(request: NFTsRequest): Promise<NFTsResponse>;
     nftItemsByOwner(request: UserNFTsRequest): Promise<NFTsResponse>;
     fetchEmulation(messageBoc: Base64String, ignoreSignature?: boolean): Promise<EmulationResult>;

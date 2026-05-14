@@ -73,6 +73,10 @@ export class AndroidAPIClientAdapter implements ApiClient {
         this.network = network;
     }
 
+    getNetwork(): Network {
+        return this.network;
+    }
+
     /**
      * Check if native API clients are available.
      */

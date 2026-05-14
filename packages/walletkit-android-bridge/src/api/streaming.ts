@@ -33,19 +33,19 @@ type InternalStreamingManager = {
     providerConnectionUnsubs: Map<string, () => void>;
 };
 
-function trackKotlinSub(providerId: string, subId: string): void {
+function trackKotlinSub(providerId: string, subscriptionId: string): void {
     let subs = kotlinProviderSubs.get(providerId);
     if (!subs) {
         subs = new Set<string>();
         kotlinProviderSubs.set(providerId, subs);
     }
-    subs.add(subId);
+    subs.add(subscriptionId);
 }
 
-function forgetKotlinSub(providerId: string, subId: string): void {
+function forgetKotlinSub(providerId: string, subscriptionId: string): void {
     const subs = kotlinProviderSubs.get(providerId);
     if (!subs) return;
-    subs.delete(subId);
+    subs.delete(subscriptionId);
     if (subs.size === 0) {
         kotlinProviderSubs.delete(providerId);
     }
@@ -85,14 +85,14 @@ class ProxyStreamingProvider implements StreamingProvider {
     }
 
     private watch(type: string, address: string | null, onChange: (update: unknown) => void): () => void {
-        const subId = uuidv7();
-        kotlinSubCallbacks.set(subId, onChange);
-        trackKotlinSub(this.providerId, subId);
-        void bridgeRequest('kotlinProviderWatch', { providerId: this.providerId, subId, type, address });
+        const subscriptionId = uuidv7();
+        kotlinSubCallbacks.set(subscriptionId, onChange);
+        trackKotlinSub(this.providerId, subscriptionId);
+        void bridgeRequest('kotlinProviderWatch', { providerId: this.providerId, subscriptionId, type, address });
         return () => {
-            kotlinSubCallbacks.delete(subId);
-            forgetKotlinSub(this.providerId, subId);
-            void bridgeRequest('kotlinProviderUnwatch', { subId });
+            kotlinSubCallbacks.delete(subscriptionId);
+            forgetKotlinSub(this.providerId, subscriptionId);
+            void bridgeRequest('kotlinProviderUnwatch', { subscriptionId });
         };
     }
 
@@ -123,23 +123,23 @@ class ProxyStreamingProvider implements StreamingProvider {
     dispose(): void {
         const subs = kotlinProviderSubs.get(this.providerId);
         if (!subs) return;
-        for (const subId of subs) {
-            kotlinSubCallbacks.delete(subId);
-            void bridgeRequest('kotlinProviderUnwatch', { subId });
+        for (const subscriptionId of subs) {
+            kotlinSubCallbacks.delete(subscriptionId);
+            void bridgeRequest('kotlinProviderUnwatch', { subscriptionId });
         }
         kotlinProviderSubs.delete(this.providerId);
     }
 }
 
-export async function createTonCenterStreamingProvider(args: { config: TonCenterStreamingProviderConfig }) {
+export async function createTonCenterStreamingProvider(config: TonCenterStreamingProviderConfig) {
     const instance = await getKit();
-    const provider = new TonCenterStreamingProvider(instance.createFactoryContext(), args.config);
+    const provider = new TonCenterStreamingProvider(instance.createFactoryContext(), config);
     return { providerId: retain('streamingProvider', provider) };
 }
 
-export async function createTonApiStreamingProvider(args: { config: TonApiStreamingProviderConfig }) {
+export async function createTonApiStreamingProvider(config: TonApiStreamingProviderConfig) {
     const instance = await getKit();
-    const provider = new TonApiStreamingProvider(instance.createFactoryContext(), args.config);
+    const provider = new TonApiStreamingProvider(instance.createFactoryContext(), config);
     return { providerId: retain('streamingProvider', provider) };
 }
 
@@ -240,8 +240,8 @@ export async function registerKotlinStreamingProvider(args: { providerId: string
     instance.streaming.registerProvider(() => provider);
 }
 
-export async function kotlinProviderDispatch(args: { subId: string; updateJson: string }) {
-    const callback = kotlinSubCallbacks.get(args.subId);
+export async function kotlinProviderDispatch(args: { subscriptionId: string; updateJson: string }) {
+    const callback = kotlinSubCallbacks.get(args.subscriptionId);
     if (callback) {
         try {
             callback(JSON.parse(args.updateJson));

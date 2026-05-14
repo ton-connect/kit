@@ -538,3 +538,11 @@ export interface TransactionActionMessageSize {
      */
     bits?: number;
 }
+
+export type TransactionPreviewMode = 'send' | 'sign';
+
+export interface TransactionPreviewOptions {
+    // 'send' emulates the external message as-is; 'sign' emulates the internal body
+    mode?: TransactionPreviewMode;
+    relayGas?: bigint; // gas amount to inject for gasless relaying, by default 2 TON
+}

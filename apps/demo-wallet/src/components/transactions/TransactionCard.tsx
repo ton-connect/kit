@@ -210,12 +210,25 @@ export const TransactionCard: React.FC<TransactionCardProps> = memo(
             );
         }
 
+        const isExternal = /^https?:\/\//.test(traceLink);
+        const className = 'block py-2 hover:bg-gray-50/50 -mx-1 px-1 rounded transition-colors';
+
+        if (isExternal) {
+            return (
+                <a
+                    href={traceLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={className}
+                    {...(debugId && { 'data-debug-id': debugId })}
+                >
+                    {inner}
+                </a>
+            );
+        }
+
         return (
-            <Link
-                to={traceLink}
-                className="block py-2 hover:bg-gray-50/50 -mx-1 px-1 rounded transition-colors"
-                {...(debugId && { 'data-debug-id': debugId })}
-            >
+            <Link to={traceLink} className={className} {...(debugId && { 'data-debug-id': debugId })}>
                 {inner}
             </Link>
         );

@@ -86,3 +86,19 @@ export function parseTon(value: string) {
 export function formatTon(value: bigint | string) {
     return formatUnits(value, 9);
 }
+
+export function formatNanoTonAmount(value?: bigint | string) {
+    try {
+        return `${formatTon(value ?? '0')} TON`;
+    } catch {
+        return `${value ?? '0'} nanotons`;
+    }
+}
+
+export function formatTokenAmount(value: bigint | string, decimals = 9, symbol?: string) {
+    try {
+        return `${formatUnits(value, decimals)}${symbol ? ` ${symbol}` : ''}`;
+    } catch {
+        return `${value}${symbol ? ` ${symbol}` : ''}`;
+    }
+}

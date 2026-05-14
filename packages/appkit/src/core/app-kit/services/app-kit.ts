@@ -82,7 +82,7 @@ export class AppKit {
     }
 
     createFactoryContext(): ConnectorFactoryContext {
-        return { eventEmitter: this.emitter, networkManager: this.networkManager, ssr: this.config?.ssr };
+        return { eventEmitter: this.emitter, networkManager: this.networkManager };
     }
 
     /**

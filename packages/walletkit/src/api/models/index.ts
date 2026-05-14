@@ -52,7 +52,20 @@ export type {
     SendTransactionRequestEvent,
     SendTransactionRequestEventPreview,
 } from './bridge/SendTransactionRequestEvent';
+export type { SignMessageApprovalResponse } from './bridge/SignMessageApprovalResponse';
+export type { SignMessageRequestEvent } from './bridge/SignMessageRequestEvent';
 export type { RequestErrorEvent } from './bridge/RequestErrorEvent';
+export type {
+    EmbeddedRequestEvent,
+    EmbeddedSendTransactionRequestEvent,
+    EmbeddedSignMessageRequestEvent,
+    EmbeddedSignDataRequestEvent,
+    EmbeddedRequest,
+    EmbeddedConnectionResult,
+    SendTransactionEmbeddedRequest,
+    SignDataEmbeddedRequest,
+    SignMessageEmbeddedRequest,
+} from './bridge/EmbeddedRequest';
 export type { TONConnectSession } from './sessions/TONConnectSession';
 
 // Emulation models
@@ -145,6 +158,14 @@ export * from './transactions/Transaction';
 export type { TransactionAddressMetadata, TransactionAddressMetadataEntry } from './transactions/TransactionMetadata';
 export type { TransactionTraceMoneyFlow as TransactionMoneyFlow } from './transactions/TransactionTraceMoneyFlow';
 export type { TransactionRequest, TransactionRequestMessage } from './transactions/TransactionRequest';
+export type { SignedSendTransactionOptions } from './transactions/SignedSendTransactionOptions';
+export type {
+    StructuredItem,
+    StructuredItemType,
+    TonTransferItem,
+    JettonTransferItem,
+    NftTransferItem,
+} from './transactions/StructuredItem';
 export * from './transactions/TransactionTrace';
 export type { TransactionEmulatedPreview } from './transactions/emulation/TransactionEmulatedPreview';
 export type { TransactionEmulatedTrace } from './transactions/emulation/TransactionEmulatedTrace';

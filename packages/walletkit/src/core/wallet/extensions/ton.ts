@@ -21,6 +21,7 @@ import type {
     TransactionRequestMessage,
     SendTransactionResponse,
     Base64String,
+    TransactionPreviewOptions,
 } from '../../../api/models';
 import type { Wallet, WalletTonInterface } from '../../../api/interfaces';
 
@@ -99,9 +100,12 @@ export class WalletTonClass implements WalletTonInterface {
     async getTransactionPreview(
         this: Wallet,
         param: TransactionRequest | Promise<TransactionRequest>,
+        options?: TransactionPreviewOptions,
     ): Promise<TransactionEmulatedPreview> {
         const transaction = await param;
-        const preview = await CallForSuccess(() => createTransactionPreviewHelper(this.client, transaction, this));
+        const preview = await CallForSuccess(() =>
+            createTransactionPreviewHelper(this.client, transaction, this, options),
+        );
         return preview;
     }
 

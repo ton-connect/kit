@@ -41,14 +41,24 @@ export function getTonConnectDeviceInfo(): DeviceInfo {
 
 export function getTonConnectFeatures(): Feature[] {
     return [
-        'SendTransaction',
         {
             name: 'SendTransaction',
             maxMessages: 4,
+            itemTypes: ['ton', 'jetton', 'nft'],
+            extraCurrencySupported: true,
         },
         {
             name: 'SignData',
             types: ['text', 'binary', 'cell'],
+        },
+        {
+            name: 'SignMessage',
+            maxMessages: 4,
+            itemTypes: ['ton', 'jetton', 'nft'],
+            extraCurrencySupported: true,
+        },
+        {
+            name: 'EmbeddedRequest',
         },
     ];
 }
