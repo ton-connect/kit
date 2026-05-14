@@ -9,6 +9,8 @@
 import type { Network } from '@ton/appkit';
 
 export interface AppkitUIToken {
+    /** Unique identifier for the token, used for section grouping */
+    id: string;
     /** Token symbol, e.g. "TON" */
     symbol: string;
     /** Full token name, e.g. "Toncoin" */

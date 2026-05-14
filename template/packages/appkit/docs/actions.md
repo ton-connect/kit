@@ -208,6 +208,54 @@ Transfer a NFT to a recipient address.
 
 %%demo/examples/src/appkit/actions/nft#TRANSFER_NFT%%
 
+## Onramp
+
+### `getOnrampManager`
+
+Get the `OnrampManager` instance.
+
+### `getOnrampProvider`
+
+Get a specific onramp provider by its ID.
+
+### `getOnrampProviders`
+
+Get all registered onramp providers.
+
+### `watchOnrampProviders`
+
+Watch for new onramp providers registration.
+
+### `getOnrampQuote`
+
+Get an onramp quote from registered providers.
+
+%%demo/examples/src/appkit/actions/onramp#GET_ONRAMP_QUOTE%%
+
+### `buildOnrampUrl`
+
+Build an onramp URL for redirecting the user to the provider.
+
+%%demo/examples/src/appkit/actions/onramp#BUILD_ONRAMP_URL%%
+
+## Crypto Onramp
+
+### `getCryptoOnrampProvider`
+
+Get a registered crypto-onramp provider by id, or the default one when no id is given.
+
+%%demo/examples/src/appkit/actions/onramp#GET_CRYPTO_ONRAMP_PROVIDER%%
+
+### `getCryptoOnrampProviders`
+
+Get all registered crypto-onramp providers.
+
+%%demo/examples/src/appkit/actions/onramp#GET_CRYPTO_ONRAMP_PROVIDERS%%
+
+### `watchCryptoOnrampProviders`
+
+Watch for new crypto-onramp providers registration and default-provider changes.
+
 ## Providers
 
 ### `registerProvider`

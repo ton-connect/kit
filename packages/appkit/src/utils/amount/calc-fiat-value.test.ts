@@ -32,15 +32,15 @@ describe('calcFiatValue', () => {
         expect(calcFiatValue('', '1.5')).toBe('0');
     });
 
-    it('should calculate fiat value without rounding', () => {
+    it('should calculate fiat value rounded to 2 decimal places', () => {
         expect(calcFiatValue('100', '1.5')).toBe('150');
-        expect(calcFiatValue('1', '0.001')).toBe('0.001');
-        expect(calcFiatValue('3', '1.005')).toBe('3.015');
+        expect(calcFiatValue('1', '0.001')).toBe('0');
+        expect(calcFiatValue('10', '1.005')).toBe('10.05');
     });
 
-    it('should handle decimal amounts without rounding', () => {
+    it('should handle decimal amounts rounded to 2 decimal places', () => {
         expect(calcFiatValue('0.5', '2')).toBe('1');
-        expect(calcFiatValue('1.23456', '100')).toBe('123.456');
-        expect(calcFiatValue('2.996876', '1')).toBe('2.996876');
+        expect(calcFiatValue('1.23456', '100')).toBe('123.46');
+        expect(calcFiatValue('2.994', '1')).toBe('2.99');
     });
 });

@@ -29,6 +29,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     fromToken,
     toToken,
     tokens,
+    tokenSections,
     fromAmount,
     toAmount,
     fiatSymbol,
@@ -66,6 +67,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     const { t } = useI18n();
 
     const [activeField, setActiveField] = useState<'from' | 'to' | null>(null);
+
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isFlipped, setIsFlipped] = useState(false);
 
@@ -88,13 +90,13 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                     type="pay"
                     token={fromToken ?? undefined}
                     amount={fromAmount}
+                    fiatSymbol={fiatSymbol}
                     onAmountChange={setFromAmount}
                     balance={fromBalance}
                     isBalanceLoading={isFromBalanceLoading}
                     onMaxClick={onMaxClick}
                     onTokenSelectorClick={() => setActiveField('from')}
                     isWalletConnected={isWalletConnected}
-                    fiatSymbol={fiatSymbol}
                 />
 
                 <div className={styles.flipButtonWrapper}>
@@ -106,12 +108,12 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                     type="receive"
                     token={toToken ?? undefined}
                     amount={toAmount}
+                    fiatSymbol={fiatSymbol}
                     balance={toBalance}
                     isBalanceLoading={isToBalanceLoading}
                     onTokenSelectorClick={() => setActiveField('to')}
                     loading={isQuoteLoading}
                     isWalletConnected={isWalletConnected}
-                    fiatSymbol={fiatSymbol}
                 />
             </div>
 
@@ -119,6 +121,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                 open={activeField !== null}
                 onClose={() => setActiveField(null)}
                 tokens={tokens}
+                tokenSections={tokenSections}
                 onSelect={(token) => {
                     if (activeField === 'from') setFromToken(token);
                     else setToToken(token);

@@ -37,6 +37,33 @@ export {
     type DisconnectVariables,
 } from './connectors/disconnect';
 
+// Crypto onramp
+export {
+    getCryptoOnrampQuoteQueryOptions,
+    type GetCryptoOnrampQuoteQueryConfig,
+    type GetCryptoOnrampQuoteQueryOptions,
+    type GetCryptoOnrampQuoteData,
+    type GetCryptoOnrampQuoteErrorType,
+    type GetCryptoOnrampQuoteQueryFnData,
+    type GetCryptoOnrampQuoteQueryKey,
+} from './crypto-onramp/get-crypto-onramp-quote';
+export {
+    getCryptoOnrampStatusQueryOptions,
+    type GetCryptoOnrampStatusQueryConfig,
+    type GetCryptoOnrampStatusQueryOptions,
+    type GetCryptoOnrampStatusData,
+    type GetCryptoOnrampStatusErrorType,
+    type GetCryptoOnrampStatusQueryFnData,
+    type GetCryptoOnrampStatusQueryKey,
+} from './crypto-onramp/get-crypto-onramp-status';
+export {
+    createCryptoOnrampDepositMutationOptions,
+    type CreateCryptoOnrampDepositMutationOptions,
+    type CreateCryptoOnrampDepositData,
+    type CreateCryptoOnrampDepositErrorType,
+    type CreateCryptoOnrampDepositVariables,
+} from './crypto-onramp/create-crypto-onramp-deposit';
+
 // Jettons
 export {
     getJettonInfoQueryOptions,
@@ -164,6 +191,24 @@ export {
     type BuildSwapTransactionMutateAsync,
     type BuildSwapTransactionVariables,
 } from './swap/build-swap-transaction';
+
+// Onramp
+export {
+    getOnrampQuoteQueryOptions,
+    type GetOnrampQuoteQueryConfig,
+    type GetOnrampQuoteQueryOptions,
+    type GetOnrampQuoteData,
+    type GetOnrampQuoteErrorType,
+    type GetOnrampQuoteQueryFnData,
+    type GetOnrampQuoteQueryKey,
+} from './onramp/get-onramp-quote';
+export {
+    buildOnrampUrlMutationOptions,
+    type BuildOnrampUrlMutationOptions,
+    type BuildOnrampUrlData,
+    type BuildOnrampUrlErrorType,
+    type BuildOnrampUrlVariables,
+} from './onramp/build-onramp-url';
 
 // Staking
 export {

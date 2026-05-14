@@ -6,46 +6,68 @@
  *
  */
 
-import { useState } from 'react';
-import type { FC } from 'react';
-import { compareAddress } from '@ton/appkit';
+import { useMemo, useState } from 'react';
+import type { JSX } from 'react';
 
-import { Input } from '../../ui/input/input';
-import { Modal } from '../../ui/modal/modal';
-import { SearchIcon } from '../../ui/icons';
-import { CurrencyItem } from '../../../features/balances';
-import { useI18n } from '../../../features/settings/hooks/use-i18n';
+import { CurrencySelect } from '../currency-select-modal';
+import { CurrencyItem } from '../currency-item';
 import type { AppkitUIToken } from '../../../types/appkit-ui-token';
-import styles from './token-select-modal.module.css';
+import { useI18n } from '../../../features/settings/hooks/use-i18n';
+import { filterTokens, groupTokenSections } from './utils';
 
-export interface TokenSelectModalProps {
+export interface TokenBase {
+    id: string;
+    symbol: string;
+    name: string;
+    address: string;
+    logo?: string;
+}
+
+export interface TokenSection<T extends TokenBase = AppkitUIToken> {
+    title: string;
+    tokens: T[];
+}
+
+export interface TokenSectionConfig {
+    title: string;
+    ids: string[];
+}
+
+export interface TokenSelectModalProps<T extends TokenBase = AppkitUIToken> {
     open: boolean;
     onClose: () => void;
-    tokens: AppkitUIToken[];
-    onSelect: (token: AppkitUIToken) => void;
+    tokens: T[];
+    tokenSections?: TokenSectionConfig[];
+    onSelect: (token: T) => void;
     title: string;
     searchPlaceholder?: string;
 }
 
-export const TokenSelectModal: FC<TokenSelectModalProps> = ({
+export const TokenSelectModal = <T extends TokenBase = AppkitUIToken>({
     open,
     onClose,
     tokens,
+    tokenSections,
     onSelect,
     title,
     searchPlaceholder,
-}) => {
+}: TokenSelectModalProps<T>): JSX.Element => {
     const { t } = useI18n();
     const [search, setSearch] = useState('');
 
-    const filtered = tokens.filter(
-        (token) =>
-            token.symbol.toLowerCase().includes(search.toLowerCase()) ||
-            token.name.toLowerCase().includes(search.toLowerCase()) ||
-            compareAddress(token.address, search),
-    );
+    const displaySections = useMemo((): TokenSection<T>[] => {
+        if (search) {
+            return [{ title: '', tokens: filterTokens(tokens, search) }];
+        }
+        if (tokenSections) {
+            return groupTokenSections(tokens, tokenSections, t('tokenSelect.otherTokens'));
+        }
+        return [{ title: '', tokens }];
+    }, [tokens, tokenSections, search, t]);
 
-    const handleSelect = (token: AppkitUIToken) => () => {
+    const isEmpty = displaySections.every((s) => s.tokens.length === 0);
+
+    const handleSelect = (token: T) => () => {
         onSelect(token);
         onClose();
         setSearch('');
@@ -59,34 +81,13 @@ export const TokenSelectModal: FC<TokenSelectModalProps> = ({
     };
 
     return (
-        <Modal open={open} onOpenChange={handleOpenChange} title={title}>
-            <Input.Container className={styles.searchWrapper} size="s">
-                <Input.Field>
-                    <Input.Slot>
-                        <SearchIcon size={24} />
-                    </Input.Slot>
-                    <Input.Input
-                        placeholder={searchPlaceholder}
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        autoFocus
-                    />
-                </Input.Field>
-            </Input.Container>
-
-            <div className={styles.list}>
-                {tokens.length === 0 ? (
-                    <div className={styles.empty}>
-                        <p className={styles.emptyText}>{t('tokenSelect.emptyForNetwork')}</p>
-                    </div>
-                ) : filtered.length === 0 ? (
-                    <div className={styles.empty}>
-                        <p className={styles.emptyText}>{t('tokenSelect.emptyNoMatch')}</p>
-                        <p className={styles.emptyText}>{t('tokenSelect.emptyTryAddress')}</p>
-                    </div>
-                ) : (
-                    <ul className={styles.list}>
-                        {filtered.map((token) => (
+        <CurrencySelect.Modal open={open} onOpenChange={handleOpenChange} title={title}>
+            <CurrencySelect.Search searchValue={search} onSearchChange={setSearch} placeholder={searchPlaceholder} />
+            <CurrencySelect.ListContainer isEmpty={isEmpty}>
+                {displaySections.map((section) => (
+                    <CurrencySelect.Section key={section.title}>
+                        {section.title && <CurrencySelect.SectionHeader>{section.title}</CurrencySelect.SectionHeader>}
+                        {section.tokens.map((token) => (
                             <CurrencyItem
                                 key={token.address}
                                 icon={token.logo}
@@ -95,9 +96,9 @@ export const TokenSelectModal: FC<TokenSelectModalProps> = ({
                                 onClick={handleSelect(token)}
                             />
                         ))}
-                    </ul>
-                )}
-            </div>
-        </Modal>
+                    </CurrencySelect.Section>
+                ))}
+            </CurrencySelect.ListContainer>
+        </CurrencySelect.Modal>
     );
 };

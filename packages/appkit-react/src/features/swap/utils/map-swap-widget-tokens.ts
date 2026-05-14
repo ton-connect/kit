@@ -13,7 +13,7 @@ import type { AppkitUIToken } from '../../../types/appkit-ui-token';
 export const mapSwapWidgetTokens = (tokens: AppkitUIToken[]): AppkitUIToken[] => {
     const mapped = tokens.reduce((acc, token) => {
         if (token.address === 'ton') {
-            acc.push({ ...token, address: 'ton' });
+            acc.push(token);
 
             return acc;
         }

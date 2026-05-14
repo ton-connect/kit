@@ -8,8 +8,8 @@
 
 import type { Compute } from '../../types/utils';
 
-export function filterQueryOptions<type extends object>(options: type): Compute<Omit<type, 'query'>> {
+export const filterQueryOptions = <type extends object>(options: type): Compute<Omit<type, 'query'>> => {
     const { query, ...rest } = options as unknown as { query: unknown };
 
     return rest as Compute<Omit<type, 'query'>>;
-}
+};

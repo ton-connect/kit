@@ -7,4 +7,4 @@
  */
 
 export { TokenSelectModal } from './token-select-modal';
-export type { TokenSelectModalProps } from './token-select-modal';
+export type { TokenSelectModalProps, TokenSectionConfig, TokenBase } from './token-select-modal';

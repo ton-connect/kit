@@ -48,6 +48,7 @@ const SwapWidgetContent: FC<
 export const SwapWidget: FC<SwapWidgetProps> = ({
     children,
     tokens,
+    tokenSections,
     network,
     fiatSymbol,
     defaultFromSymbol,
@@ -58,6 +59,7 @@ export const SwapWidget: FC<SwapWidgetProps> = ({
     return (
         <SwapWidgetProvider
             tokens={tokens}
+            tokenSections={tokenSections}
             network={network}
             fiatSymbol={fiatSymbol}
             defaultFromSymbol={defaultFromSymbol}

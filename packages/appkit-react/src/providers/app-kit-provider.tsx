@@ -6,7 +6,7 @@
  *
  */
 
-import type { PropsWithChildren } from 'react';
+import type { PropsWithChildren, FC } from 'react';
 import { createContext } from 'react';
 import type { AppKit } from '@ton/appkit';
 
@@ -19,7 +19,7 @@ export interface AppKitProviderProps extends PropsWithChildren {
     appKit: AppKit;
 }
 
-export function AppKitProvider({ appKit, children }: AppKitProviderProps) {
+export const AppKitProvider: FC<AppKitProviderProps> = ({ appKit, children }) => {
     return (
         <AppKitContext.Provider value={appKit}>
             <TonConnectBridge>
@@ -27,4 +27,4 @@ export function AppKitProvider({ appKit, children }: AppKitProviderProps) {
             </TonConnectBridge>
         </AppKitContext.Provider>
     );
-}
+};

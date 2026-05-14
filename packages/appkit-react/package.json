@@ -45,6 +45,7 @@
   "dependencies": {
     "@ton/appkit": "workspace:*",
     "clsx": "2.1.1",
+    "qrcode.react": "^4.2.0",
     "radix-ui": "^1.4.3",
     "rosetta": "1.1.0"
   },

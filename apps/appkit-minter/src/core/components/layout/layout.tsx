@@ -41,7 +41,7 @@ export const Layout: React.FC<LayoutProps> = ({ title, children }) => {
 
                 <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-4">{children}</main>
 
-                <footer className="text-center py-2 text-xs text-muted-foreground">
+                <footer className="text-center pt-2 pb-4 text-xs text-muted-foreground">
                     <p>Powered by AppKit & TonConnect</p>
                 </footer>
             </SidebarInset>

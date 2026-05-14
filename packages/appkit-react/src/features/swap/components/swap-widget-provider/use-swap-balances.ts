@@ -19,7 +19,7 @@ interface UseSwapBalancesOptions {
     network: Network | undefined;
 }
 
-export function useSwapBalances({ fromToken, toToken, ownerAddress, network }: UseSwapBalancesOptions) {
+export const useSwapBalances = ({ fromToken, toToken, ownerAddress, network }: UseSwapBalancesOptions) => {
     const isFromNative = fromToken?.address === 'ton';
     const isToNative = toToken?.address === 'ton';
 
@@ -50,4 +50,4 @@ export function useSwapBalances({ fromToken, toToken, ownerAddress, network }: U
         isFromBalanceLoading: isFromNative ? isTonBalanceLoading : isFromJettonBalanceLoading,
         isToBalanceLoading: isToNative ? isTonBalanceLoading : isToJettonBalanceLoading,
     };
-}
+};

@@ -1,0 +1,11 @@
+.container {
+    display: grid;
+    gap: 4px;
+    padding: 2px;
+    width: 100%;
+    grid-template-columns: 1fr 1fr;
+}
+
+.tokenSelector {
+    width: 100%;
+}

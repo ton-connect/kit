@@ -35,7 +35,7 @@ export const createTonConnectConnector = (config: TonConnectConnectorConfig) => 
 
         const id = config.id ?? TONCONNECT_DEFAULT_CONNECTOR_ID;
 
-        function getTonConnectUI() {
+        const getTonConnectUI = (): TonConnectUI | null => {
             if (originalTonConnectUI) {
                 return originalTonConnectUI;
             }
@@ -59,9 +59,9 @@ export const createTonConnectConnector = (config: TonConnectConnectorConfig) => 
             }
 
             return originalTonConnectUI;
-        }
+        };
 
-        function getConnectedWallets(): WalletInterface[] {
+        const getConnectedWallets = (): WalletInterface[] => {
             const ui = getTonConnectUI();
 
             if (ui && ui.connected && ui.wallet) {
@@ -77,9 +77,9 @@ export const createTonConnectConnector = (config: TonConnectConnectorConfig) => 
             }
 
             return [];
-        }
+        };
 
-        function setupListeners() {
+        const setupListeners = (): void => {
             if (!originalTonConnectUI || unsubscribeTonConnect) {
                 return;
             }
@@ -101,7 +101,7 @@ export const createTonConnectConnector = (config: TonConnectConnectorConfig) => 
                     originalTonConnectUI.setConnectionNetwork(payload.network?.chainId);
                 }
             });
-        }
+        };
 
         return {
             id,

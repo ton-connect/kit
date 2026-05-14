@@ -6,7 +6,7 @@
  *
  */
 
-export function keyBy<T, K extends PropertyKey>(arr: readonly T[], getKeyFromItem: (item: T) => K): Record<K, T> {
+export const keyBy = <T, K extends PropertyKey>(arr: readonly T[], getKeyFromItem: (item: T) => K): Record<K, T> => {
     const result = {} as Record<K, T>;
 
     arr.forEach((item) => {
@@ -15,4 +15,4 @@ export function keyBy<T, K extends PropertyKey>(arr: readonly T[], getKeyFromIte
     });
 
     return result;
-}
+};

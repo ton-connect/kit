@@ -205,7 +205,7 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
     // enough TON to cover network fees before sending.
     const { data: nativeBalanceData, isLoading: isNativeBalanceLoading } = useBalance({
         network,
-        query: { refetchInterval: 5000 },
+        query: { enabled: isNativeTon, refetchInterval: 5000 },
     });
 
     const { data: jettonBalanceData, isLoading: isJettonBalanceLoading } = useJettonBalanceByAddress({

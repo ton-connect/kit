@@ -7,11 +7,6 @@
   gap: 8px;
 }
 
-.card {
-  position: relative;
-  border-radius: var(--ta-border-radius-xl);
-}
-
 .fieldsContainer {
   box-sizing: border-box;
   width: 100%;

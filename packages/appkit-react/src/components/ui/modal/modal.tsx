@@ -34,9 +34,13 @@ export interface ModalProps {
      * Additional class name for the content container.
      */
     className?: string;
+    /**
+     * Additional class name for the body container.
+     */
+    bodyClassName?: string;
 }
 
-export const Modal: FC<ModalProps> = ({ open, onOpenChange, title, children, className }) => {
+export const Modal: FC<ModalProps> = ({ open, onOpenChange, title, children, className, bodyClassName }) => {
     return (
         <Dialog.Root open={open} onOpenChange={onOpenChange}>
             <Dialog.Portal>
@@ -48,7 +52,7 @@ export const Modal: FC<ModalProps> = ({ open, onOpenChange, title, children, cla
                                 <CloseIcon size={12} />
                             </Dialog.Close>
                         </div>
-                        <div className={styles.body}>{children}</div>
+                        <div className={clsx(styles.body, bodyClassName)}>{children}</div>
                     </Dialog.Content>
                 </Dialog.Overlay>
             </Dialog.Portal>

@@ -22,7 +22,7 @@ interface UseSwapValidationOptions {
     isNetworkSupported: boolean;
 }
 
-export function useSwapValidation({
+export const useSwapValidation = ({
     fromAmount,
     fromAmountDebounced,
     fromToken,
@@ -30,7 +30,7 @@ export function useSwapValidation({
     fromBalance,
     quoteError,
     isNetworkSupported,
-}: UseSwapValidationOptions) {
+}: UseSwapValidationOptions) => {
     const error: string | null = useMemo(() => {
         if (!isNetworkSupported) return 'defi.unsupportedNetwork';
 
@@ -48,4 +48,4 @@ export function useSwapValidation({
     const canSubmit = (parseFloat(fromAmount) || 0) > 0 && fromToken !== null && toToken !== null && error === null;
 
     return { error, canSubmit };
-}
+};

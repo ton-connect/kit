@@ -41,6 +41,37 @@ export {
     type WatchConnectorByIdReturnType,
 } from './connectors/watch-connector-by-id';
 
+// Crypto onramp
+export {
+    getCryptoOnrampProvider,
+    type GetCryptoOnrampProviderOptions,
+    type GetCryptoOnrampProviderReturnType,
+} from './crypto-onramp/get-crypto-onramp-provider';
+export {
+    getCryptoOnrampProviders,
+    type GetCryptoOnrampProvidersReturnType,
+} from './crypto-onramp/get-crypto-onramp-providers';
+export {
+    watchCryptoOnrampProviders,
+    type WatchCryptoOnrampProvidersParameters,
+    type WatchCryptoOnrampProvidersReturnType,
+} from './crypto-onramp/watch-crypto-onramp-providers';
+export {
+    getCryptoOnrampQuote,
+    type GetCryptoOnrampQuoteOptions,
+    type GetCryptoOnrampQuoteReturnType,
+} from './crypto-onramp/get-crypto-onramp-quote';
+export {
+    createCryptoOnrampDeposit,
+    type CreateCryptoOnrampDepositOptions,
+    type CreateCryptoOnrampDepositReturnType,
+} from './crypto-onramp/create-crypto-onramp-deposit';
+export {
+    getCryptoOnrampStatus,
+    type GetCryptoOnrampStatusOptions,
+    type GetCryptoOnrampStatusReturnType,
+} from './crypto-onramp/get-crypto-onramp-status';
+
 // Jettons
 export { getJettonInfo, type GetJettonInfoOptions, type GetJettonInfoReturnType } from './jettons/get-jetton-info';
 export {
@@ -133,6 +164,13 @@ export {
     type BuildSwapTransactionOptions,
     type BuildSwapTransactionReturnType,
 } from './swap/build-swap-transaction';
+
+// Onramp — fiat-onramp: not ready; functions hidden from public API, types kept for internal hooks
+export type { GetOnrampProviderOptions, GetOnrampProviderReturnType } from './onramp/get-onramp-provider';
+export type { GetOnrampProvidersReturnType } from './onramp/get-onramp-providers';
+export type { GetOnrampQuoteOptions, GetOnrampQuoteReturnType } from './onramp/get-onramp-quote';
+export type { WatchOnrampProvidersParameters, WatchOnrampProvidersReturnType } from './onramp/watch-onramp-providers';
+export type { BuildOnrampUrlOptions, BuildOnrampUrlReturnType } from './onramp/build-onramp-url';
 
 // Staking
 export { getStakingManager, type GetStakingManagerReturnType } from './staking/get-staking-manager';

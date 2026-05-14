@@ -13,7 +13,7 @@ import clsx from 'clsx';
 import { useI18n } from '../../../settings/hooks/use-i18n';
 import { Input } from '../../../../components/ui/input/input';
 import { Skeleton } from '../../../../components/ui/skeleton';
-import { TokenSelector } from '../token-selector/token-selector';
+import { TokenSelector } from '../../../../components/shared/token-selector';
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
 import { getDisplayAmount } from '../../utils/get-display-amount';
 import styles from './swap-field.module.css';
@@ -21,6 +21,7 @@ import styles from './swap-field.module.css';
 export interface SwapFieldProps extends Omit<ComponentProps<typeof Input.Container>, 'children'> {
     type: 'pay' | 'receive';
     amount: string;
+    fiatSymbol?: string;
     token?: AppkitUIToken;
     onAmountChange?: (value: string) => void;
     balance?: string;
@@ -29,7 +30,6 @@ export interface SwapFieldProps extends Omit<ComponentProps<typeof Input.Contain
     onMaxClick?: () => void;
     onTokenSelectorClick?: () => void;
     isWalletConnected?: boolean;
-    fiatSymbol?: string;
 }
 
 export const SwapField: FC<SwapFieldProps> = ({
@@ -73,7 +73,7 @@ export const SwapField: FC<SwapFieldProps> = ({
                     disabled={type === 'receive'}
                 />
                 <Input.Slot side="right">
-                    <TokenSelector symbol={tokenSymbol} icon={token?.logo} onClick={onTokenSelectorClick} />
+                    <TokenSelector title={tokenSymbol ?? ''} icon={token?.logo} onClick={onTokenSelectorClick} />
                 </Input.Slot>
             </Input.Field>
 

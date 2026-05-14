@@ -38,18 +38,18 @@ export type UseMutationReturnType<
     }
 >;
 
-export function useQuery<queryFnData, error, data, queryKey extends QueryKey>(
+export const useQuery = <queryFnData, error, data, queryKey extends QueryKey>(
     parameters: UseQueryParameters<queryFnData, error, data, queryKey> & {
         queryKey: QueryKey;
     },
-): UseQueryReturnType<data, error> {
+): UseQueryReturnType<data, error> => {
     const result = tanstack_useQuery({
         ...parameters,
         // queryKeyHashFn: hashFn, // for bigint support
     }) as UseQueryReturnType<data, error>;
     result.queryKey = parameters.queryKey;
     return result;
-}
+};
 
 export type UseQueryParameters<
     queryFnData = unknown,
