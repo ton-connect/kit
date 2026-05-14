@@ -8,14 +8,20 @@
 
 import { DefiError } from '../errors';
 
-export class SwapError extends DefiError {
-    static readonly INVALID_QUOTE = 'INVALID_QUOTE';
-    static readonly INSUFFICIENT_LIQUIDITY = 'INSUFFICIENT_LIQUIDITY';
-    static readonly QUOTE_EXPIRED = 'QUOTE_EXPIRED';
-    static readonly BUILD_TX_FAILED = 'BUILD_TX_FAILED';
+export enum SwapErrorCode {
+    InvalidQuote = 'INVALID_QUOTE',
+    InsufficientLiquidity = 'INSUFFICIENT_LIQUIDITY',
+    QuoteExpired = 'QUOTE_EXPIRED',
+    BuildTxFailed = 'BUILD_TX_FAILED',
+    NetworkError = 'NETWORK_ERROR',
+}
 
-    constructor(message: string, code: string, details?: unknown) {
+export class SwapError extends DefiError {
+    public readonly code: SwapErrorCode;
+
+    constructor(message: string, code: SwapErrorCode, details?: unknown) {
         super(message, code, details);
         this.name = 'SwapError';
+        this.code = code;
     }
 }

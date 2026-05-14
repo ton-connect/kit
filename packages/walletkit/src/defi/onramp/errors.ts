@@ -8,14 +8,19 @@
 
 import { DefiError } from '../errors';
 
-export class OnrampError extends DefiError {
-    static readonly PROVIDER_ERROR = 'PROVIDER_ERROR';
-    static readonly InvalidParams = 'INVALID_ONRAMP_PARAMS';
-    static readonly QUOTE_FAILED = 'QUOTE_FAILED';
-    static readonly URL_BUILD_FAILED = 'URL_BUILD_FAILED';
+export enum OnrampErrorCode {
+    ProviderError = 'PROVIDER_ERROR',
+    InvalidParams = 'INVALID_ONRAMP_PARAMS',
+    QuoteFailed = 'QUOTE_FAILED',
+    UrlBuildFailed = 'URL_BUILD_FAILED',
+}
 
-    constructor(message: string, code: string, details?: unknown) {
+export class OnrampError extends DefiError {
+    public readonly code: OnrampErrorCode;
+
+    constructor(message: string, code: OnrampErrorCode, details?: unknown) {
         super(message, code, details);
         this.name = 'OnrampError';
+        this.code = code;
     }
 }

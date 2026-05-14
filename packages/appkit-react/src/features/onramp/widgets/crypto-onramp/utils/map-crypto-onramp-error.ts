@@ -6,7 +6,7 @@
  *
  */
 
-import { CryptoOnrampError } from '@ton/appkit';
+import { CryptoOnrampError, CryptoOnrampErrorCode } from '@ton/appkit';
 
 import { mapDefiError } from '../../../../../utils/map-defi-error';
 
@@ -18,17 +18,17 @@ import { mapDefiError } from '../../../../../utils/map-defi-error';
 export const mapCryptoOnrampError = (error: unknown): string => {
     if (error instanceof CryptoOnrampError) {
         switch (error.code) {
-            case CryptoOnrampError.REFUND_ADDRESS_REQUIRED:
+            case CryptoOnrampErrorCode.RefundAddressRequired:
                 return 'cryptoOnramp.refundAddressRequired';
-            case CryptoOnrampError.REVERSED_AMOUNT_NOT_SUPPORTED:
+            case CryptoOnrampErrorCode.ReversedAmountNotSupported:
                 return 'cryptoOnramp.reversedAmountNotSupported';
-            case CryptoOnrampError.INVALID_REFUND_ADDRESS:
+            case CryptoOnrampErrorCode.InvalidRefundAddress:
                 return 'cryptoOnramp.invalidRefundAddress';
-            case CryptoOnrampError.QUOTE_FAILED:
+            case CryptoOnrampErrorCode.QuoteFailed:
                 return 'cryptoOnramp.quoteError';
-            case CryptoOnrampError.PROVIDER_ERROR:
+            case CryptoOnrampErrorCode.ProviderError:
                 return 'cryptoOnramp.providerError';
-            case CryptoOnrampError.DEPOSIT_FAILED:
+            case CryptoOnrampErrorCode.DepositFailed:
                 return 'cryptoOnramp.depositFailed';
         }
     }

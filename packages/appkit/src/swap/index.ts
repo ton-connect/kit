@@ -6,7 +6,7 @@
  *
  */
 
-export { DefiError, SwapError, SwapProvider, SwapManager } from '@ton/walletkit';
+export { DefiError, DefiErrorCode, SwapError, SwapErrorCode, SwapProvider, SwapManager } from '@ton/walletkit';
 
 export type {
     SwapToken,
