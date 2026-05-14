@@ -14,11 +14,26 @@ import { handleJettonBalanceUpdate, handleJettonsUpdate } from '@ton/appkit/quer
 
 import { useAppKit } from '../../settings';
 
+/**
+ * Parameters accepted by {@link useWatchJettonsByAddress} — same fields as {@link appkit:WatchJettonsByAddressOptions}, all optional so callers can render the hook before the address is known.
+ *
+ * @public
+ * @category Type
+ * @section Jettons
+ */
 export type UseWatchJettonsByAddressParameters = Partial<WatchJettonsByAddressOptions>;
 
 /**
- * Hook to watch jetton updates for a specific address in real-time.
- * Automatically updates TanStack Query caches for jetton balances.
+ * Subscribe to jetton-balance updates for an arbitrary owner address. Updates flow into the TanStack Query cache so {@link useJettonsByAddress} and {@link useJettonBalanceByAddress} pick up the new data automatically. Requires a streaming provider registered for the network — the hook exits silently with a console warning when none is configured.
+ *
+ * @param parameters - {@link UseWatchJettonsByAddressParameters} Owner address, update callback and optional network override.
+ * @expand parameters
+ *
+ * @sample docs/examples/src/appkit/hooks/jettons#USE_WATCH_JETTONS_BY_ADDRESS
+ *
+ * @public
+ * @category Hook
+ * @section Jettons
  */
 export const useWatchJettonsByAddress = (parameters: UseWatchJettonsByAddressParameters): void => {
     const { address, network } = parameters;

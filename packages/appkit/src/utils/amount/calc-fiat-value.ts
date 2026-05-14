@@ -7,8 +7,7 @@
  */
 
 /**
- * Calculates the fiat value of a token amount.
- * Returns null when rate is unavailable or amount is zero/invalid.
+ * Calculates the fiat value of a token amount. Returns `'0'` when the rate is unavailable or the amount is zero/invalid.
  */
 export const calcFiatValue = (amount: string, rate: string | undefined): string => {
     if (!rate) return '0';

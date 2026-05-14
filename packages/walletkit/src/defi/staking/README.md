@@ -1,7 +1,7 @@
 <!--
 This file is auto-generated. Do not edit manually.
 Changes will be overwritten when running the docs update script.
-Source template: template/packages/walletkit/src/defi/staking/README.md
+Source template: docs/templates/packages/walletkit/src/defi/staking/README.md
 -->
 
 # Staking
@@ -36,7 +36,7 @@ interface StakingQuoteParams<TProviderOptions = unknown> {
     amount: TokenAmount;
     userAddress?: UserFriendlyAddress;
     network?: Network;
-    unstakeMode?: UnstakeModes; // unstake only; see UnstakeMode in @ton/walletkit
+    unstakeMode?: UnstakeModes; // unstake only. See UnstakeMode in @ton/walletkit
     providerOptions?: TProviderOptions;
 }
 ```

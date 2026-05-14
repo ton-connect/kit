@@ -6,14 +6,29 @@
  *
  */
 
-import type { StakingProviderInterface } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
+import type { StakingProviderInterface } from '../../staking';
 
+/**
+ * Return type of {@link getStakingProviders}.
+ *
+ * @public
+ * @category Type
+ * @section Staking
+ */
 export type GetStakingProvidersReturnType = StakingProviderInterface[];
 
 /**
- * Get all registered staking providers.
+ * List every staking provider registered on this AppKit instance — both those passed via {@link AppKitConfig}'s `providers` and those added later through {@link registerProvider}.
+ *
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @returns Array of registered staking providers.
+ *
+ * @sample docs/examples/src/appkit/actions/staking#GET_STAKING_PROVIDERS
+ *
+ * @public
+ * @category Action
+ * @section Staking
  */
 export const getStakingProviders = (appKit: AppKit): GetStakingProvidersReturnType => {
     return appKit.stakingManager.getProviders();

@@ -12,10 +12,23 @@ import type { GetCryptoOnrampProvidersReturnType } from '@ton/appkit';
 
 import { useAppKit } from '../../settings/hooks/use-app-kit';
 
+/**
+ * Return type of {@link useCryptoOnrampProviders} — array of every {@link appkit:CryptoOnrampProviderInterface} currently registered on the AppKit instance.
+ *
+ * @public
+ * @category Type
+ * @section Crypto Onramp
+ */
 export type UseCryptoOnrampProvidersReturnType = GetCryptoOnrampProvidersReturnType;
 
 /**
- * Hook to get all registered crypto-onramp providers.
+ * List every crypto-onramp provider registered on the AppKit instance (both those passed via {@link appkit:AppKitConfig}'s `providers` and those added later through {@link appkit:registerProvider}). Subscribes to {@link appkit:watchCryptoOnrampProviders} and re-reads via {@link appkit:getCryptoOnrampProviders} so the array stays in sync.
+ *
+ * @returns Array of registered crypto-onramp providers.
+ *
+ * @public
+ * @category Hook
+ * @section Crypto Onramp
  */
 export const useCryptoOnrampProviders = (): UseCryptoOnrampProvidersReturnType => {
     const appKit = useAppKit();

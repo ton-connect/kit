@@ -9,10 +9,26 @@
 import type { AppKit } from '../../core/app-kit';
 import type { WalletInterface } from '../../types/wallet';
 
+/**
+ * Return type of {@link getConnectedWallets} — read-only view of the connected-wallets array.
+ *
+ * @public
+ * @category Type
+ * @section Wallets
+ */
 export type GetConnectedWalletsReturnType = readonly WalletInterface[];
 
 /**
- * Get connected wallets
+ * List every wallet currently connected through any registered {@link Connector}.
+ *
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @returns Read-only array of {@link WalletInterface}s.
+ *
+ * @sample docs/examples/src/appkit/actions/wallets#GET_CONNECTED_WALLETS
+ *
+ * @public
+ * @category Action
+ * @section Wallets
  */
 export const getConnectedWallets = (appKit: AppKit): GetConnectedWalletsReturnType => {
     return appKit.walletsManager.wallets;

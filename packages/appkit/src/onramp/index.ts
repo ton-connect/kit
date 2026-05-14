@@ -6,6 +6,10 @@
  *
  */
 
+// Internal-only re-exports (used by appkit code; not yet part of the public API).
+export { OnrampManager } from '@ton/walletkit';
+export type { OnrampProviderInterface, OnrampParams, OnrampQuote, OnrampQuoteParams } from '@ton/walletkit';
+
 // fiat-onramp: not ready — exported via sub-path to keep off main @ton/appkit API
 export {
     getOnrampProvider,

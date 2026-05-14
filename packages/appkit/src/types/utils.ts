@@ -32,7 +32,7 @@ export type FixedArray<type, count extends number, result extends readonly type[
     ? result
     : FixedArray<type, count, readonly [...result, type]>;
 
-/** Checks if {@link type} can be narrowed further than {@link type2} */
+/** Checks if {@link type} can be narrowed further than {@link type2}. */
 export type IsNarrowable<type, type2> =
     IsUnknown<type> extends true
         ? false
@@ -54,7 +54,7 @@ export type IsNever<type> = [type] extends [never] ? true : false;
  */
 export type IsUnknown<type> = unknown extends type ? true : false;
 
-/** Merges two object types into new type  */
+/** Merges two object types into new type. */
 export type Merge<obj1, obj2> = Compute<
     LooseOmit<obj1, keyof obj2 extends infer key extends string ? key : never> & obj2
 >;
@@ -64,7 +64,7 @@ export type Mutable<type extends object> = {
     -readonly [key in keyof type]: type[key];
 };
 
-/** Strict version of built-in Omit type */
+/** Strict version of built-in Omit type. */
 export type StrictOmit<type, keys extends keyof type> = Pick<type, Exclude<keyof type, keys>>;
 
 /** Makes objects destructurable. */
@@ -105,7 +105,7 @@ export type ExactRequired<type> = {
 ///////////////////////////////////////////////////////////////////////////
 // Loose types
 
-/** Loose version of {@link StrictOmit} */
+/** Loose version of {@link StrictOmit}. */
 export type LooseOmit<type, keys extends string> = Pick<type, Exclude<keyof type, keys>>;
 
 ///////////////////////////////////////////////////////////////////////////

@@ -11,10 +11,27 @@ import clsx from 'clsx';
 
 import styles from './block.module.css';
 
+/**
+ * Props accepted by {@link Block}.
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export interface BlockProps extends ComponentProps<'div'> {
+    /** Flex direction of the block. Defaults to `'column'`. */
     direction?: 'row' | 'column';
 }
 
+/**
+ * Flex container primitive — renders a `<div>` that lays its children out vertically (`'column'`) or horizontally (`'row'`).
+ *
+ * @sample docs/examples/src/appkit/components/ui#BLOCK
+ *
+ * @public
+ * @category Component
+ * @section UI
+ */
 export const Block: FC<BlockProps> = ({ className, direction = 'column', ...props }) => {
     return <div className={clsx(styles.block, direction === 'row' && styles.row, className)} {...props} />;
 };

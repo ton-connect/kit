@@ -12,12 +12,29 @@ import { useAddress } from '../../wallets/hooks/use-address';
 import { useNetwork } from '../../network/hooks/use-network';
 import { useWatchTransactionsByAddress } from './use-watch-transactions-by-address';
 
+/**
+ * Parameters accepted by {@link useWatchTransactions}.
+ *
+ * @public
+ * @category Type
+ * @section Transactions
+ */
 export interface UseWatchTransactionsParameters {
+    /** Callback fired on every transactions update from the streaming provider. */
     onChange?: (update: TransactionsUpdate) => void;
 }
 
 /**
- * Hook to watch transaction updates of the currently selected wallet in real-time.
+ * Subscribe to incoming-transaction events for the currently selected wallet (use {@link useWatchTransactionsByAddress} for a fixed address). Auto-rebinds when the user connects, switches or disconnects. Requires a streaming provider registered for the network — the hook exits silently with a console warning when none is configured.
+ *
+ * @param parameters - {@link UseWatchTransactionsParameters} Update callback.
+ * @expand parameters
+ *
+ * @sample docs/examples/src/appkit/hooks/transaction#USE_WATCH_TRANSACTIONS
+ *
+ * @public
+ * @category Hook
+ * @section Transactions
  */
 export const useWatchTransactions = (parameters: UseWatchTransactionsParameters = {}): void => {
     const address = useAddress();

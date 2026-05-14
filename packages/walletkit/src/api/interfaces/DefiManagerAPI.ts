@@ -14,6 +14,7 @@ import type { DefiProvider } from './DefiProvider';
  * Swap API interface exposed by SwapManager
  */
 export interface DefiManagerAPI<T extends DefiProvider> {
+    /** Build a fresh {@link ProviderFactoryContext} the manager hands to provider factories at registration time. */
     createFactoryContext(): ProviderFactoryContext;
     /**
      * Register a new provider. If a provider with the same id is already registered, it is replaced.

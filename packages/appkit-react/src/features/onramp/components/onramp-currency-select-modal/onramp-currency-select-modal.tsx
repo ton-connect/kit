@@ -16,14 +16,25 @@ import { useI18n } from '../../../settings/hooks/use-i18n';
 import { filterCurrencies, groupCurrencySections } from './utils';
 import type { CurrencySection } from './utils';
 
+/**
+ * Props for `OnrampCurrencySelectModal`. Internal: TonPay / fiat onramp are not part of the public API yet.
+ */
 export interface OnrampCurrencySelectModalProps {
+    /** Whether the modal is open. */
     open: boolean;
+    /** Called when the modal requests to close (selection made or dismissed). */
     onClose: () => void;
+    /** Full list of fiat currencies the user can pick from. */
     currencies: OnrampCurrency[];
+    /** Optional section configs grouping `currencies` by id. Ungrouped currencies fall under an "Other" section. */
     currencySections?: CurrencySectionConfig[];
+    /** Called with the picked currency before the modal closes. */
     onSelect: (currency: OnrampCurrency) => void;
 }
 
+/**
+ * Searchable modal listing fiat `OnrampCurrency` entries (optionally grouped into sections) — used by fiat onramp widgets to let users pick the fiat side of the trade. Internal: TonPay / fiat onramp are not part of the public API yet.
+ */
 export const OnrampCurrencySelectModal: FC<OnrampCurrencySelectModalProps> = ({
     open,
     onClose,

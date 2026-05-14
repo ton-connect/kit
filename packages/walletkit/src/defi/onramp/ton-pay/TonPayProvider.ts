@@ -12,7 +12,7 @@ import { OnrampProvider } from '../OnrampProvider';
 import { OnrampError, OnrampErrorCode } from '../errors';
 
 /**
- * Custom options for TonPay requests
+ * Custom options for TonPay requests.
  */
 export interface TonPayQuoteOptions {
     /**
@@ -23,7 +23,7 @@ export interface TonPayQuoteOptions {
 
 export interface TonPayOnrampOptions {
     /**
-     * E.g. dark or light color theme for the widget
+     * E.g. dark or light color theme for the widget.
      */
     theme?: 'dark' | 'light';
 }

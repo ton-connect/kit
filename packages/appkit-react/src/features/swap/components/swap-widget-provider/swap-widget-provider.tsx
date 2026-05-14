@@ -35,8 +35,11 @@ import { useSwapValidation } from './use-swap-validation';
 export type { AppkitUIToken };
 
 /**
- * Context type for the SwapWidget.
- * Provides all necessary state and actions for building custom swap UIs.
+ * Shape of the value exposed by {@link useSwapContext}. Holds the selected source/target tokens, the entered amount and the latest quote, balance readouts, validation state, slippage / provider settings, and the callbacks needed to mutate them or to submit the swap transaction.
+ *
+ * @public
+ * @category Type
+ * @section Swap
  */
 export interface SwapContextType {
     /** Full list of available tokens for swapping */
@@ -99,9 +102,9 @@ export interface SwapContextType {
     lowBalanceMode: 'reduce' | 'topup';
     /** Required TON amount for the pending operation, formatted as a decimal string. Empty when no pending op. */
     lowBalanceRequiredTon: string;
-    /** Replace the input with a value that fits into the current TON balance and close the warning */
+    /** Replace the input with a value that fits within the current TON balance and close the warning. */
     onLowBalanceChange: () => void;
-    /** Dismiss the low-balance warning without changing the input */
+    /** Dismiss the low-balance warning without changing the input. */
     onLowBalanceCancel: () => void;
 }
 
@@ -141,34 +144,47 @@ export const SwapContext = createContext<SwapContextType>({
 });
 
 /**
- * Hook to access the swap context.
- * Must be used within a SwapWidgetProvider (or SwapWidget).
+ * Reads the {@link SwapContextType} populated by the nearest {@link SwapWidgetProvider} (or the {@link SwapWidget} that mounts one). Outside a provider it returns the no-op default value.
+ *
+ * @public
+ * @category Hook
+ * @section Swap
  */
 export const useSwapContext = () => {
     return useContext(SwapContext);
 };
 
 /**
- * Props for the SwapWidgetProvider.
+ * Props accepted by {@link SwapWidgetProvider} — the inputs that configure the swap flow (token universe, network override, defaults).
+ *
+ * @public
+ * @category Type
+ * @section Swap
  */
 export interface SwapProviderProps extends PropsWithChildren {
-    /** Full list of tokens available for swapping in the UI */
+    /** Full list of tokens available for swapping in the UI. Filtered to the active network internally. */
     tokens: AppkitUIToken[];
-    /** Optional section configs for grouping tokens in the selector */
+    /** Optional section configs for grouping tokens inside the `SwapTokenSelectModal`. */
     tokenSections?: TokenSectionConfig[];
-    /** Ticker of the token pre-selected for the source */
+    /** Symbol of the token pre-selected as the source on first mount (e.g. `"TON"`). */
     defaultFromSymbol?: string;
-    /** Ticker of the token pre-selected for the target */
+    /** Symbol of the token pre-selected as the target on first mount. */
     defaultToSymbol?: string;
-    /** Initial slippage in basis points (100 = 1%), defaults to 50 (0.5%) */
-    /** Network to use for quote fetching. When omitted, uses the selected wallet's network. */
+    /** Network used for quote fetching and balance reads. When omitted, falls back to the selected wallet's network via {@link useNetwork}. */
     network?: Network;
-    /** Fiat currency symbol for price display, defaults to "$" */
+    /** Fiat currency symbol displayed next to converted amounts. Defaults to `"$"`. */
     fiatSymbol?: string;
-    /** Initial slippage in basis points (100 = 1%), defaults to 100 (1%) */
+    /** Initial slippage tolerance in basis points (`100` = 1%). Defaults to `100`. */
     defaultSlippage?: number;
 }
 
+/**
+ * Provider that wires up the full swap state machine — debounces the entered amount, fetches the quote via {@link useSwapQuote}, reads source/target balances, validates the input, exposes the active {@link appkit:SwapProvider}, and offers `sendSwapTransaction` which builds the transaction with {@link useBuildSwapTransaction} and sends it (raising the low-balance warning when the outflow exceeds the user's TON balance). Children read everything through {@link useSwapContext}.
+ *
+ * @public
+ * @category Component
+ * @section Swap
+ */
 export const SwapWidgetProvider: FC<SwapProviderProps> = ({
     children,
     tokens,

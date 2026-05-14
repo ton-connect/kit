@@ -36,7 +36,7 @@
  */
 
 /**
- * Log levels enum for controlling logger verbosity
+ * Log levels enum for controlling logger verbosity.
  */
 export enum LogLevel {
     DEBUG = 0,
@@ -47,7 +47,7 @@ export enum LogLevel {
 }
 
 /**
- * Logger configuration interface
+ * Logger configuration interface.
  */
 export interface LoggerConfig {
     level: LogLevel;
@@ -58,7 +58,7 @@ export interface LoggerConfig {
 }
 
 /**
- * Context object for structured logging
+ * Context object for structured logging.
  */
 export interface LogContext {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -84,7 +84,7 @@ function getDefaultLogLevel(): LogLevel {
 
 /**
  * Logger class for TonWalletKit
- * Provides structured logging with configurable levels and context support
+ * Provides structured logging with configurable levels and context support.
  */
 export class Logger {
     private config: LoggerConfig;
@@ -113,14 +113,14 @@ export class Logger {
     }
 
     /**
-     * Update logger configuration
+     * Update logger configuration.
      */
     configure(config: Partial<LoggerConfig>): void {
         this.config = { ...this.config, ...config };
     }
 
     /**
-     * Create a child logger with a prefix that inherits from this logger
+     * Create a child logger with a prefix that inherits from this logger.
      */
     createChild(prefix: string, config?: Partial<LoggerConfig>): Logger {
         return new Logger({
@@ -131,7 +131,7 @@ export class Logger {
     }
 
     /**
-     * Build hierarchical prefix by combining parent prefix with current prefix
+     * Build hierarchical prefix by combining parent prefix with current prefix.
      */
     private buildHierarchicalPrefix(currentPrefix?: string): string {
         if (!this.parent || !currentPrefix) {
@@ -147,21 +147,21 @@ export class Logger {
     }
 
     /**
-     * Get the full hierarchical prefix for this logger
+     * Get the full hierarchical prefix for this logger.
      */
     getPrefix(): string {
         return this.config.prefix || '';
     }
 
     /**
-     * Get the parent logger if it exists
+     * Get the parent logger if it exists.
      */
     getParent(): Logger | undefined {
         return this.parent;
     }
 
     /**
-     * Log debug messages
+     * Log debug messages.
      */
     debug(message: string, context?: LogContext): void {
         if (this.config.level <= LogLevel.DEBUG) {
@@ -170,7 +170,7 @@ export class Logger {
     }
 
     /**
-     * Log info messages
+     * Log info messages.
      */
     info(message: string, context?: LogContext): void {
         if (this.config.level <= LogLevel.INFO) {
@@ -179,7 +179,7 @@ export class Logger {
     }
 
     /**
-     * Log warning messages
+     * Log warning messages.
      */
     warn(message: string, context?: LogContext): void {
         if (this.config.level <= LogLevel.WARN) {
@@ -188,7 +188,7 @@ export class Logger {
     }
 
     /**
-     * Log error messages
+     * Log error messages.
      */
     error(message: string, context?: LogContext): void {
         if (this.config.level <= LogLevel.ERROR) {
@@ -197,7 +197,7 @@ export class Logger {
     }
 
     /**
-     * Internal logging method
+     * Internal logging method.
      */
     private log(level: string, message: string, context?: LogContext): void {
         const timestamp = this.config.enableTimestamp ? new Date().toISOString() : '';
@@ -249,7 +249,7 @@ export class Logger {
 }
 
 /**
- * Default logger instance
+ * Default logger instance.
  */
 export const globalLogger = new Logger({
     level: getDefaultLogLevel(),
@@ -257,7 +257,7 @@ export const globalLogger = new Logger({
 });
 
 /**
- * Create a logger with custom configuration
+ * Create a logger with custom configuration.
  */
 export function createLogger(config?: Partial<LoggerConfig>): Logger {
     return new Logger(config);

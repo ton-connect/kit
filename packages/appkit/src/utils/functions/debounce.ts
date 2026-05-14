@@ -49,9 +49,8 @@ export interface DebouncedFunction<F extends (...args: unknown[]) => void> {
 }
 
 /**
- * Creates a debounced function that delays invoking the provided function until after `debounceMs` milliseconds
- * have elapsed since the last time the debounced function was invoked. The debounced function also has a `cancel`
- * method to cancel any pending execution.
+ * Creates a debounced function that delays invoking `func` until `debounceMs` milliseconds have elapsed since the
+ * last call. The returned function exposes `cancel`, `schedule`, and `flush` for manual control.
  *
  * @template F - The type of function.
  * @param {F} func - The function to debounce.

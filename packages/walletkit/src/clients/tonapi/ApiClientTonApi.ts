@@ -67,6 +67,10 @@ import { mapMasterchainInfo } from './mappers/map-masterchain-info';
  * with the default Toncenter client. Some methods are not yet fully implemented.
  */
 export class ApiClientTonApi extends BaseApiClient implements ApiClient {
+    /**
+     * @param config - {@link BaseApiClientConfig} TonAPI client config — endpoint URL and API key. Defaults to TonAPI mainnet/testnet URLs based on `config.network`.
+     * @expand config
+     */
     constructor(config: BaseApiClientConfig = {}) {
         let defaultEndpoint: string;
 

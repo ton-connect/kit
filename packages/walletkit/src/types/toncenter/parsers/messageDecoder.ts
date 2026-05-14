@@ -8,14 +8,14 @@
 
 /**
  * Pattern matching based message decoder
- * Provides extensible message decoding with type-safe pattern matching
+ * Provides extensible message decoding with type-safe pattern matching.
  */
 
 import type { EmulationMessage } from '../emulation';
 import { MessageType, resolveOpCode, matchesDecodedType } from './opcodes';
 
 /**
- * Decoded message payload with type information
+ * Decoded message payload with type information.
  */
 export interface DecodedMessage<T = unknown> {
     messageType: MessageType;
@@ -26,7 +26,7 @@ export interface DecodedMessage<T = unknown> {
 }
 
 /**
- * Pattern matcher for message types
+ * Pattern matcher for message types.
  */
 export interface MessagePattern<T = unknown> {
     messageType: MessageType;
@@ -35,18 +35,18 @@ export interface MessagePattern<T = unknown> {
 }
 
 /**
- * Generic decoded payload type
+ * Generic decoded payload type.
  */
 export type DecodedPayload = Record<string, unknown>;
 
 /**
- * Registry of message patterns
+ * Registry of message patterns.
  */
 class MessagePatternRegistry {
     private patterns: Map<MessageType, MessagePattern[]> = new Map();
 
     /**
-     * Register a pattern for a message type
+     * Register a pattern for a message type.
      */
     register<T = unknown>(pattern: MessagePattern<T>): void {
         const existing = this.patterns.get(pattern.messageType) || [];
@@ -55,7 +55,7 @@ class MessagePatternRegistry {
     }
 
     /**
-     * Find matching pattern for a message
+     * Find matching pattern for a message.
      */
     match(msg: EmulationMessage): MessagePattern | null {
         for (const patterns of this.patterns.values()) {
@@ -69,7 +69,7 @@ class MessagePatternRegistry {
     }
 
     /**
-     * Get all patterns for a message type
+     * Get all patterns for a message type.
      */
     getPatterns(messageType: MessageType): MessagePattern[] {
         return this.patterns.get(messageType) || [];
@@ -77,12 +77,12 @@ class MessagePatternRegistry {
 }
 
 /**
- * Global pattern registry
+ * Global pattern registry.
  */
 export const messagePatternRegistry = new MessagePatternRegistry();
 
 /**
- * Extracts decoded body from message
+ * Extracts decoded body from message.
  */
 export function getDecodedBody(msg?: EmulationMessage | null): DecodedPayload | null {
     if (!msg) return null;
@@ -95,7 +95,7 @@ export function getDecodedBody(msg?: EmulationMessage | null): DecodedPayload | 
 }
 
 /**
- * Extracts @type from decoded body
+ * Extracts @type from decoded body.
  */
 export function getDecodedType(msg?: EmulationMessage | null): string | null {
     const decoded = getDecodedBody(msg);
@@ -112,7 +112,7 @@ export function getDecodedType(msg?: EmulationMessage | null): string | null {
 }
 
 /**
- * Decodes a message using pattern matching
+ * Decodes a message using pattern matching.
  */
 export function decodeMessage(msg: EmulationMessage): DecodedMessage | null {
     // Try pattern matching first
@@ -163,28 +163,28 @@ export function decodeMessage(msg: EmulationMessage): DecodedMessage | null {
 }
 
 /**
- * Decodes multiple messages
+ * Decodes multiple messages.
  */
 export function decodeMessages(messages: EmulationMessage[]): DecodedMessage[] {
     return messages.map(decodeMessage).filter((m): m is DecodedMessage => m !== null);
 }
 
 /**
- * Helper: check if value is a record
+ * Helper: check if value is a record.
  */
 function isRecord(v: unknown): v is Record<string, unknown> {
     return typeof v === 'object' && v !== null;
 }
 
 /**
- * Helper: extract property from decoded payload
+ * Helper: extract property from decoded payload.
  */
 export function getPayloadProperty<T = unknown>(payload: DecodedPayload, key: string): T | undefined {
     return payload[key] as T | undefined;
 }
 
 /**
- * Helper: extract nested property from decoded payload
+ * Helper: extract nested property from decoded payload.
  */
 export function getNestedProperty<T = unknown>(payload: DecodedPayload, path: string[]): T | undefined {
     let current: unknown = payload;

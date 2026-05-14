@@ -7,7 +7,7 @@
  */
 
 /**
- * Route step from DeDust Router API
+ * Route step from DeDust Router API.
  */
 export interface DeDustRouteStep {
     pool_address: string;
@@ -26,7 +26,7 @@ export interface DeDustRouteStep {
 }
 
 /**
- * Swap data from DeDust Router API quote response
+ * Swap data from DeDust Router API quote response.
  */
 export interface DeDustSwapData {
     slippage_bps: number;
@@ -34,7 +34,7 @@ export interface DeDustSwapData {
 }
 
 /**
- * Quote response from DeDust Router API
+ * Quote response from DeDust Router API.
  */
 export interface DeDustQuoteResponse {
     in_amount: string;
@@ -48,7 +48,7 @@ export interface DeDustQuoteResponse {
 }
 
 /**
- * Swap request to DeDust Router API
+ * Swap request to DeDust Router API.
  */
 export interface DeDustSwapRequest {
     sender_address: string;
@@ -63,7 +63,7 @@ export interface DeDustSwapRequest {
 }
 
 /**
- * Swap transaction from DeDust Router API
+ * Swap transaction from DeDust Router API.
  */
 export interface DeDustSwapTransaction {
     address: string;
@@ -73,7 +73,7 @@ export interface DeDustSwapTransaction {
 }
 
 /**
- * Swap response from DeDust Router API
+ * Swap response from DeDust Router API.
  */
 export interface DeDustSwapResponse {
     query_id: number;

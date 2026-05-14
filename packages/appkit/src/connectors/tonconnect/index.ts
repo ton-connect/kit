@@ -7,17 +7,11 @@
  */
 
 /**
- * TonConnect Feature Entry Point
- *
- * This module contains all TonConnect-related functionality.
- * Import from '@ton/appkit/tonconnect' to use TonConnect features.
- *
- * This is a separate entry point to allow tree-shaking for users
- * who don't need TonConnect functionality.
+ * TonConnect entry point. Import from `@ton/appkit/tonconnect`. It's kept as a separate * entry so apps that don't use TonConnect can tree-shake it out.
  *
  * @example
  * ```ts
- * import { TonConnectConnector, TonConnectWalletWrapper } from '@ton/appkit/tonconnect';
+ * import { createTonConnectConnector, TonConnectWalletAdapter } from '@ton/appkit/tonconnect';
  * ```
  */
 

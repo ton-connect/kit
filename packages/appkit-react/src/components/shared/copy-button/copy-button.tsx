@@ -13,13 +13,29 @@ import { CheckIcon, CopyIcon } from '../../ui/icons';
 import { useCopy } from '../../../hooks/use-copy';
 import styles from './copy-button.module.css';
 
+/**
+ * Props accepted by {@link CopyButton}.
+ *
+ * @public
+ * @category Type
+ * @section Shared
+ */
 export interface CopyButtonProps extends Omit<ComponentProps<'button'>, 'value' | 'children' | 'onClick'> {
-    /** The text written to the clipboard when the button is clicked. */
+    /** Text written to the clipboard when the button is clicked. */
     value: string;
     /** Accessible label for screen readers. */
     'aria-label': string;
 }
 
+/**
+ * Icon-only button that copies `value` to the clipboard on click and flips its icon to a checkmark for a short confirmation window.
+ *
+ * @sample docs/examples/src/appkit/components/shared#COPY_BUTTON
+ *
+ * @public
+ * @category Component
+ * @section Shared
+ */
 export const CopyButton: FC<CopyButtonProps> = ({ value, className, type = 'button', ...props }) => {
     const [copied, copy] = useCopy(value);
 

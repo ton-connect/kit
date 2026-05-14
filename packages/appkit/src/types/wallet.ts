@@ -6,44 +6,37 @@
  *
  */
 
-import type { SendTransactionResponse, Hex, UserFriendlyAddress } from '@ton/walletkit';
-
-import type { TransactionRequest } from './transaction';
+import type { Hex, UserFriendlyAddress } from './primitives';
+import type { TransactionRequest, SendTransactionResponse } from './transaction';
 import type { SignDataRequest, SignDataResponse } from './signing';
 import type { Network } from './network';
 
 /**
- * Minimal wallet interface for appkit.
- * Only includes methods that require wallet-specific logic (signing, identity).
- * Data fetching (balance, jettons, nfts) is done via actions using networkManager.
+ * Wallet contract surfaced by every {@link Connector} — covers identity (address, public key, network) and signing operations. Reads (balance, jettons, NFTs) go through AppKit actions instead.
+ *
+ * @public
+ * @category Type
+ * @section Wallets
  */
 export interface WalletInterface {
-    /** Connector that created this wallet */
+    /** ID of the {@link Connector} that produced this wallet. */
     readonly connectorId: string;
 
-    // ==========================================
-    // Identity
-    // ==========================================
-
-    /** Get the wallet address */
+    /** Wallet address as a user-friendly base64url string. */
     getAddress(): UserFriendlyAddress;
 
-    /** Get the wallet public key */
+    /** Wallet public key as a `0x`-prefixed hex string. */
     getPublicKey(): Hex;
 
-    /** Get the network the wallet is connected to */
+    /** Network the wallet is currently connected to. */
     getNetwork(): Network;
 
-    /** Get unique wallet identifier */
+    /** Stable identifier combining address and network — unique across AppKit's connected wallets. */
     getWalletId(): string;
 
-    // ==========================================
-    // Actions requiring wallet signature
-    // ==========================================
-
-    /** Send a transaction (wallet signs and submits) */
+    /** Send a transaction — the wallet signs and broadcasts it. */
     sendTransaction(request: TransactionRequest): Promise<SendTransactionResponse>;
 
-    /** Sign arbitrary data using TonConnect signData */
+    /** Sign arbitrary data — text, binary or TON cell — through the wallet's sign-data flow. */
     signData(payload: SignDataRequest): Promise<SignDataResponse>;
 }

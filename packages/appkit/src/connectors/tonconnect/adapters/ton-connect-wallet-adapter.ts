@@ -9,35 +9,48 @@
 import { Address } from '@ton/core';
 import type { Wallet as TonConnectWallet } from '@tonconnect/sdk';
 import type { SignDataPayload as TonConnectSignDataPayload } from '@tonconnect/sdk';
-import type { SendTransactionResponse, UserFriendlyAddress, Hex } from '@ton/walletkit';
-import { asHex, createWalletId, getNormalizedExtMessageHash } from '@ton/walletkit';
 import type { TonConnectUI } from '@tonconnect/ui';
 
-import type { TransactionRequest } from '../../../types/transaction';
-import type { Base64String } from '../../../types/primitives';
-import { getValidUntil } from '../utils/transaction';
-import type { WalletInterface } from '../../../types/wallet';
-import type { SignDataRequest, SignDataResponse } from '../../../types/signing';
 import { Network } from '../../../types/network';
+import type { Base64String, UserFriendlyAddress, Hex } from '../../../types/primitives';
+import type { SignDataRequest, SignDataResponse } from '../../../types/signing';
+import type { TransactionRequest, SendTransactionResponse } from '../../../types/transaction';
+import type { WalletInterface } from '../../../types/wallet';
+import { asHex, createWalletId, getNormalizedExtMessageHash } from '../../../utils';
+import { getValidUntil } from '../utils/transaction';
 
 /**
- * Configuration for TonConnectWalletAdapter
+ * Configuration accepted by {@link TonConnectWalletAdapter} when wrapping a TonConnect wallet for AppKit.
+ *
+ * @public
+ * @category Type
+ * @section Wallets
  */
 export interface TonConnectWalletAdapterConfig {
+    /** ID of the connector that produced this wallet — surfaced as `WalletInterface.connectorId`. */
     connectorId: string;
+    /** Underlying TonConnect wallet object. */
     tonConnectWallet: TonConnectWallet;
+    /** TonConnect UI instance used to drive `sendTransaction` and `signData` calls. */
     tonConnectUI: TonConnectUI;
 }
 
 /**
- * Minimal adapter that makes TonConnect wallet compatible with WalletInterface.
- * Only implements identity and signing methods - data fetching is done via actions.
+ * {@link WalletInterface} implementation backed by a TonConnect wallet. Prefer the {@link createTonConnectConnector} factory over instantiating this class directly — the connector builds the adapter for every wallet it tracks and apps interact with it through standard AppKit actions ({@link sendTransaction}, {@link signText}/{@link signBinary}/{@link signCell}). On-chain reads (balance, jettons, NFTs) live on separate actions ({@link getBalance}, {@link getJettons}, {@link getNfts}) and don't go through this adapter.
+ *
+ * @public
+ * @category Class
+ * @section Wallets
  */
 export class TonConnectWalletAdapter implements WalletInterface {
     public readonly tonConnectWallet: TonConnectWallet;
     public readonly tonConnectUI: TonConnectUI;
     public readonly connectorId: string;
 
+    /**
+     * @param config - {@link TonConnectWalletAdapterConfig} TonConnect wallet + UI instance and the id of the connector that produced them.
+     * @expand config
+     */
     constructor(config: TonConnectWalletAdapterConfig) {
         this.tonConnectWallet = config.tonConnectWallet;
         this.tonConnectUI = config.tonConnectUI;

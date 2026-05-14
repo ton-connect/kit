@@ -17,7 +17,7 @@ export interface TokenAnimation {
     url?: string;
 
     /**
-     * Optional Lottie animation data as a string
+     * Optional Lottie animation data as a string.
      */
     lottie?: string;
 }

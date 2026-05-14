@@ -9,7 +9,7 @@
 import type { DeDustQuoteResponse } from '../DeDustPrivateTypes';
 
 /**
- * Metadata stored in SwapQuote for DeDust provider
+ * Metadata stored in SwapQuote for DeDust provider.
  */
 export interface DeDustQuoteMetadata {
     /**

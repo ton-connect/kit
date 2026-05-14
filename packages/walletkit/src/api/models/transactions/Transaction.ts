@@ -15,37 +15,37 @@ import type { TokenAmount } from '../core/TokenAmount';
  */
 export interface Transaction {
     /**
-     * Account of the transaction
+     * Account of the transaction.
      */
     account: UserFriendlyAddress;
 
     /**
-     * The state of the account before the transaction was executed
+     * The state of the account before the transaction was executed.
      */
     accountStateBefore?: AccountState;
 
     /**
-     * * The state of the account after the transaction has been applied
+     * The state of the account after the transaction has been applied.
      */
     accountStateAfter?: AccountState;
 
     /**
-     * The detailed breakdown of the transaction execution
+     * The detailed breakdown of the transaction execution.
      */
     description?: TransactionDescription;
 
     /**
-     * Hash of the transaction
+     * Hash of the transaction.
      */
     hash: Hex;
 
     /**
-     * The logical time of the transaction
+     * The logical time of the transaction.
      */
     logicalTime: LogicalTime;
 
     /**
-     * Unix timestamp of the transaction
+     * Unix timestamp of the transaction.
      */
     now: number;
 
@@ -56,62 +56,62 @@ export interface Transaction {
     mcBlockSeqno: number;
 
     /**
-     * External hash of the trace
+     * External hash of the trace.
      */
     traceExternalHash: Hex;
 
     /**
-     * ID of the trace
+     * ID of the trace.
      */
     traceId?: string;
 
     /**
-     * The hash of the previous transaction
+     * The hash of the previous transaction.
      */
     previousTransactionHash?: string;
 
     /**
-     * The logical time of the previous transaction
+     * The logical time of the previous transaction.
      */
     previousTransactionLogicalTime?: LogicalTime;
 
     /**
-     * Original status of the transaction
+     * Original status of the transaction.
      */
     origStatus?: AccountStatus;
 
     /**
-     * End status of the transaction
+     * End status of the transaction.
      */
     endStatus?: AccountStatus;
 
     /**
-     * Total fees of the transaction
+     * Total fees of the transaction.
      */
     totalFees?: TokenAmount;
 
     /**
-     * Extra currencies in the total fees
+     * Extra currencies in the total fees.
      */
     totalFeesExtraCurrencies?: ExtraCurrencies;
 
     /**
-     * The reference to the block in which the transaction was included
+     * The reference to the block in which the transaction was included.
      */
     blockRef?: TransactionBlockRef;
 
     /**
-     * The incoming message associated with the transaction
+     * The incoming message associated with the transaction.
      */
     inMessage?: TransactionMessage;
 
     /**
-     * The list of outgoing messages produced by the transaction
+     * The list of outgoing messages produced by the transaction.
      */
     outMessages: TransactionMessage[];
 
     /**
-     * Emulated state of the transaction
+     * Emulated state of the transaction.
      */
     isEmulated: boolean;
 }
@@ -130,37 +130,37 @@ export type AccountStatus =
  */
 export interface AccountState {
     /**
-     * The state hash of the account
+     * The state hash of the account.
      */
     hash?: string;
 
     /**
-     * The account's balance in nanotons
+     * The account's balance in nanotons.
      */
     balance: TokenAmount;
 
     /**
-     * The additional currencies held by the account, if any
+     * The additional currencies held by the account, if any.
      */
     extraCurrencies?: ExtraCurrencies;
 
     /**
-     * The status of the account
+     * The status of the account.
      */
     accountStatus?: AccountStatus;
 
     /**
-     * The hash of the frozen account state, if the account is frozen
+     * The hash of the frozen account state, if the account is frozen.
      */
     frozenHash?: string;
 
     /**
-     * The hash of the contract's data section
+     * The hash of the contract's data section.
      */
     dataHash?: string;
 
     /**
-     * The hash of the smart contract code
+     * The hash of the smart contract code.
      */
     codeHash?: string;
 }
@@ -176,7 +176,7 @@ export interface TransactionBlockRef {
     workchain: number;
 
     /**
-     * The shard identifier of the block
+     * The shard identifier of the block.
      */
     shard: string;
 
@@ -192,52 +192,52 @@ export interface TransactionBlockRef {
  */
 export interface TransactionMessage {
     /**
-     * The base64-encoded hash of the message
+     * The base64-encoded hash of the message.
      */
     hash: Hex;
 
     /**
-     * The normalized version of the message hash
+     * The normalized version of the message hash.
      */
     normalizedHash?: Hex;
 
     /**
-     * The source address of the message
+     * The source address of the message.
      */
     source?: UserFriendlyAddress;
 
     /**
-     * The destination address of the message
+     * The destination address of the message.
      */
     destination?: UserFriendlyAddress;
 
     /**
-     * The amount of nanos transferred with the message
+     * The amount of nanos transferred with the message.
      */
     value?: TokenAmount;
 
     /**
-     * The additional currencies included in the message
+     * The additional currencies included in the message.
      */
     valueExtraCurrencies?: ExtraCurrencies;
 
     /**
-     * The forwarding fee for the message
+     * The forwarding fee for the message.
      */
     fwdFee?: TokenAmount;
 
     /**
-     * The logical time when the message was created
+     * The logical time when the message was created.
      */
     creationLogicalTime?: LogicalTime;
 
     /**
-     * The timestamp when the message was created
+     * The timestamp when the message was created.
      */
     createdAt?: number;
 
     /**
-     * The opcode included in the message payload
+     * The opcode included in the message payload.
      */
     opcode?: string;
 
@@ -248,17 +248,17 @@ export interface TransactionMessage {
     ihrDisabled?: boolean;
 
     /**
-     * The fee for IHR delivery
+     * The fee for IHR delivery.
      */
     ihrFee?: TokenAmount;
 
     /**
-     * The flag indicating if the message requested a bounce on failure
+     * The flag indicating if the message requested a bounce on failure.
      */
     isBounce?: boolean;
 
     /**
-     * The flag indicating if the message was bounced back
+     * The flag indicating if the message was bounced back.
      */
     isBounced?: boolean;
 
@@ -268,7 +268,7 @@ export interface TransactionMessage {
     importFee?: TokenAmount;
 
     /**
-     * The content body of the message
+     * The content body of the message.
      */
     messageContent?: TransactionMessageContent;
 }
@@ -278,17 +278,17 @@ export interface TransactionMessage {
  */
 export interface TransactionMessageContent {
     /**
-     * The hash of the initial state
+     * The hash of the initial state.
      */
     hash?: string;
 
     /**
-     * The body in BOC format
+     * The body in BoC format.
      */
     body?: Base64String;
 
     /**
-     * The decoded metadata from the initial state body
+     * The decoded metadata from the initial state body.
      */
     decoded?: unknown;
 }
@@ -303,47 +303,47 @@ export interface TransactionDescription {
     type: string;
 
     /**
-     * The flag indicating if the transaction was aborted
+     * The flag indicating if the transaction was aborted.
      */
     isAborted: boolean;
 
     /**
-     * The flag indicating if the account was destroyed
+     * The flag indicating if the account was destroyed.
      */
     isDestroyed: boolean;
 
     /**
-     * The flag indicating if the credit phase was executed first
+     * The flag indicating if the credit phase was executed first.
      */
     isCreditFirst: boolean;
 
     /**
-     * The flag indicating if this was a tock transaction
+     * The flag indicating if this was a tock transaction.
      */
     isTock: boolean;
 
     /**
-     * The flag indicating if the contract was installed
+     * The flag indicating if the contract was installed.
      */
     isInstalled: boolean;
 
     /**
-     * The storage phase data of the transaction
+     * The storage phase data of the transaction.
      */
     storagePhase?: TransactionStoragePhase;
 
     /**
-     * The credit phase of the transaction
+     * The credit phase of the transaction.
      */
     creditPhase?: TransactionCreditPhase;
 
     /**
-     * The compute phase data of the transaction
+     * The compute phase data of the transaction.
      */
     computePhase?: TransactionComputePhase;
 
     /**
-     * The action phase data of the transaction
+     * The action phase data of the transaction.
      */
     action?: TransactionAction;
 }
@@ -353,12 +353,12 @@ export interface TransactionDescription {
  */
 export interface TransactionStoragePhase {
     /**
-     * The storage fees collected during this phase
+     * The storage fees collected during this phase.
      */
     storageFeesCollected: TokenAmount;
 
     /**
-     * The status change applied to the account during the storage phase
+     * The status change applied to the account during the storage phase.
      */
     statusChange?: string;
 }
@@ -368,7 +368,7 @@ export interface TransactionStoragePhase {
  */
 export interface TransactionCreditPhase {
     /**
-     * The credited amount
+     * The credited amount.
      */
     credit?: TokenAmount;
 }
@@ -378,42 +378,42 @@ export interface TransactionCreditPhase {
  */
 export interface TransactionComputePhase {
     /**
-     * The flag indicating if the compute phase was skipped
+     * The flag indicating if the compute phase was skipped.
      */
     isSkipped?: boolean;
 
     /**
-     * The success state of the compute phase
+     * The success state of the compute phase.
      */
     isSuccess?: boolean;
 
     /**
-     * The flag indicating if message state was used
+     * The flag indicating if message state was used.
      */
     isMessageStateUsed?: boolean;
 
     /**
-     * The flag indicating if the account was activated during compute
+     * The flag indicating if the account was activated during compute.
      */
     isAccountActivated?: boolean;
 
     /**
-     * The gas fees charged for compute
+     * The gas fees charged for compute.
      */
     gasFees?: TokenAmount;
 
     /**
-     * The total gas used in the compute phase
+     * The total gas used in the compute phase.
      */
     gasUsed?: TokenAmount;
 
     /**
-     * The gas limit for the compute phase
+     * The gas limit for the compute phase.
      */
     gasLimit?: TokenAmount;
 
     /**
-     * The gas credit for the compute phase
+     * The gas credit for the compute phase.
      */
     gasCredit?: TokenAmount;
 
@@ -436,12 +436,12 @@ export interface TransactionComputePhase {
     vmStepsNumber?: number;
 
     /**
-     * The hash of the initial VM state before compute
+     * The hash of the initial VM state before compute.
      */
     vmInitStateHash?: Hex;
 
     /**
-     * The hash of the final VM state after compute
+     * The hash of the final VM state after compute.
      */
     vmFinalStateHash?: Hex;
 }
@@ -451,32 +451,32 @@ export interface TransactionComputePhase {
  */
 export interface TransactionAction {
     /**
-     * The flag indicating whether the action phase succeeded
+     * The flag indicating whether the action phase succeeded.
      */
     isSuccess?: boolean;
 
     /**
-     * The flag indicating whether the action phase was valid
+     * The flag indicating whether the action phase was valid.
      */
     isValid?: boolean;
 
     /**
-     * The flag indicating if the transaction had insufficient funds
+     * The flag indicating if the transaction had insufficient funds.
      */
     hasNoFunds?: boolean;
 
     /**
-     * The status change applied to the account during the action phase
+     * The status change applied to the account during the action phase.
      */
     statusChange?: string;
 
     /**
-     * The total forwarding fees charged
+     * The total forwarding fees charged.
      */
     totalForwardingFees?: TokenAmount;
 
     /**
-     * The total fees charged for actions
+     * The total fees charged for actions.
      */
     totalActionFees?: TokenAmount;
 
@@ -511,12 +511,12 @@ export interface TransactionAction {
     messagesCreatedNumber?: number;
 
     /**
-     * The hash of the action list
+     * The hash of the action list.
      */
     actionListHash?: Hex;
 
     /**
-     * The total size of messages created in the action phase
+     * The total size of messages created in the action phase.
      */
     totalMessagesSize?: TransactionActionMessageSize;
 }
@@ -526,12 +526,12 @@ export interface TransactionAction {
  */
 export interface TransactionActionMessageSize {
     /**
-     * The total number of cells used
+     * The total number of cells used.
      */
     cells?: string;
 
     /**
-     * The total number of bits used
+     * The total number of bits used.
      */
     bits?: string;
 }

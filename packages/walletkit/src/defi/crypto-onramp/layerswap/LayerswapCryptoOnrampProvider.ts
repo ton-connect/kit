@@ -44,7 +44,7 @@ export interface LayerswapProviderConfig {
     apiKey?: string;
 
     /**
-     * Override the base API URL. Defaults to https://api.layerswap.io/api/v2
+     * Override the base API URL. Defaults to https://api.layerswap.io/api/v2.
      */
     apiUrl?: string;
 }
@@ -53,12 +53,15 @@ export interface LayerswapProviderConfig {
  * Metadata stored on the CryptoOnrampQuote returned by this provider.
  *
  * The swap is created at quote time, so we cache the swap id and deposit
- * action here; `createDeposit` just reads them out.
- */
+ * action here. `createDeposit` just reads them out. */
 export interface LayerswapQuoteMetadata {
+    /** Layerswap swap id created at quote time and reused by `createDeposit` / `getStatus`. */
     swapId: string;
+    /** Pre-computed deposit address on the source chain that the user must send funds to. */
     depositAddress: string;
+    /** Source-chain amount the user must send, in raw base units (e.g., wei). */
     sourceAmountBaseUnits: string;
+    /** Target-chain amount the user receives, in raw base units (e.g., nanotons). */
     targetAmountBaseUnits: string;
 }
 
@@ -82,6 +85,10 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<undefine
     private readonly apiKey: string | undefined;
     private readonly apiUrl: string;
 
+    /**
+     * @param config - Optional {@link LayerswapProviderConfig}. Defaults are filled in for any field left undefined.
+     * @expand config
+     */
     constructor(config: LayerswapProviderConfig = {}) {
         super();
         this.apiKey = config.apiKey;
@@ -256,6 +263,9 @@ export class LayerswapCryptoOnrampProvider extends CryptoOnrampProvider<undefine
 /**
  * Returns a `ProviderFactory` for `LayerswapCryptoOnrampProvider`.
  * Pass to `providers: [createLayerswapProvider(config)]`.
+ *
+ * @param config - Optional {@link LayerswapProviderConfig}. Defaults are filled in for any field left undefined.
+ * @expand config
  */
 export const createLayerswapProvider = (config: LayerswapProviderConfig = {}) =>
     createProvider(() => new LayerswapCryptoOnrampProvider(config));

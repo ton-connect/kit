@@ -1,7 +1,7 @@
 <!--
 This file is auto-generated. Do not edit manually.
 Changes will be overwritten when running the docs update script.
-Source template: template/packages/appkit-react/docs/components.md
+Source template: docs/templates/packages/appkit-react/docs/components.md
 -->
 
 # Components
@@ -17,8 +17,8 @@ Source template: template/packages/appkit-react/docs/components.md
  ```tsx
 return (
     <AppKitProvider appKit={appKit}>
+        <h1>My App</h1>
         {/* Your App Content */}
-        <div>My App</div>
     </AppKitProvider>
 );
 ```

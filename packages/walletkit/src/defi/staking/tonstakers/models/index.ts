@@ -6,4 +6,4 @@
  *
  */
 
-export type { TonStakersProviderConfig } from './TonStakersProviderConfig';
+export type { TonStakersProviderConfig, TonStakersChainConfig } from './TonStakersProviderConfig';

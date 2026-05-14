@@ -13,23 +13,42 @@ import { getSelectedWallet } from '../wallets/get-selected-wallet';
 import type { Base64String } from '../../types/primitives';
 import { getDefaultNetwork } from '../network/get-default-network';
 
+/**
+ * Parameters accepted by {@link signBinary}.
+ *
+ * @public
+ * @category Type
+ * @section Signing
+ */
 export interface SignBinaryParameters {
-    /** Binary data to sign (base64 encoded) */
+    /** Binary blob the user is asked to sign, encoded as Base64. */
     bytes: Base64String;
-    /** Optional network (mainnet/testnet) */
+    /** Network to issue the sign request against. Defaults to AppKit's configured default network. When none is set, the wallet falls back to its current network. */
     network?: Network;
 }
 
+/**
+ * Return type of {@link signBinary}.
+ *
+ * @public
+ * @category Type
+ * @section Signing
+ */
 export type SignBinaryReturnType = SignDataResponse;
 
 /**
- * Sign binary data with the connected wallet.
+ * Ask the selected wallet to sign a binary blob. Throws `Error('Wallet not connected')` if no wallet is currently selected.
  *
- * @example
- * ```ts
- * const result = await signBinary(appKit, { bytes: btoa("binary data") });
- * console.log(result.signature);
- * ```
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param parameters - {@link SignBinaryParameters} Binary content and optional network override.
+ * @returns Signature and signed payload, as returned by the wallet.
+ *
+ * @sample docs/examples/src/appkit/actions/signing#SIGN_BINARY
+ * @expand parameters
+ *
+ * @public
+ * @category Action
+ * @section Signing
  */
 export const signBinary = async (appKit: AppKit, parameters: SignBinaryParameters): Promise<SignBinaryReturnType> => {
     const wallet = getSelectedWallet(appKit);

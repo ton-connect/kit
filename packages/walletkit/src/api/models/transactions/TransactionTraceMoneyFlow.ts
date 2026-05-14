@@ -15,19 +15,19 @@ import type { AssetType } from '../core/AssetType';
  */
 export interface TransactionTraceMoneyFlow {
     /**
-     * Total token amounts output by the transaction
+     * Total token amounts output by the transaction.
      */
     outputs: TokenAmount;
     /**
-     * Total token amounts input to the transaction
+     * Total token amounts input to the transaction.
      */
     inputs: TokenAmount;
     /**
-     * List of all token transfers involved in the transaction
+     * List of all token transfers involved in the transaction.
      */
     allJettonTransfers: TransactionTraceMoneyFlowItem[];
     /**
-     * List of token transfers involving our address
+     * List of token transfers involving our address.
      */
     ourTransfers: TransactionTraceMoneyFlowItem[];
     /**
@@ -41,7 +41,7 @@ export interface TransactionTraceMoneyFlow {
  */
 export interface TransactionTraceMoneyFlowItem {
     /**
-     * Type of asset being transferred
+     * Type of asset being transferred.
      */
     assetType: AssetType;
 
@@ -56,12 +56,12 @@ export interface TransactionTraceMoneyFlowItem {
     tokenAddress?: UserFriendlyAddress;
 
     /**
-     * Sender address
+     * Sender address.
      */
     fromAddress?: UserFriendlyAddress;
 
     /**
-     * Recipient address
+     * Recipient address.
      */
     toAddress?: UserFriendlyAddress;
 }

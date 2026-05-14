@@ -41,7 +41,6 @@ export * from './actions';
 
 // Types
 export * from './types/connector';
-export * from './types/balance';
 export * from './types/wallet';
 export * from './types/query';
 export * from './types/utils';
@@ -51,6 +50,8 @@ export * from './types/nft';
 export * from './types/transaction';
 export * from './types/primitives';
 export * from './types/signing';
+export * from './types/provider';
+export * from './types/client';
 
 // Utils
 export * from './utils';

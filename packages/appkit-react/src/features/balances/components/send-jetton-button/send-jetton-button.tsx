@@ -14,17 +14,37 @@ import { useI18n, useAppKit } from '../../../settings';
 import type { SendProps } from '../../../transaction';
 import { Send } from '../../../transaction';
 
+/**
+ * Props accepted by {@link SendJettonButton} — extends the base `Send` button props (button text, sizing, callbacks) with the jetton-transfer details.
+ *
+ * @public
+ * @category Type
+ * @section Balances
+ */
 export interface SendJettonButtonProps extends Omit<SendProps, 'request'> {
+    /** Recipient address. */
     recipientAddress: string;
+    /** Amount in jetton units as a human-readable decimal string. Converted to raw smallest units via `jetton.decimals`. */
     amount: string;
+    /** Jetton master metadata — `address` (master contract), `symbol` (rendered in the button label) and `decimals` (used to format `amount`). */
     jetton: {
         address: string;
         symbol: string;
         decimals: number;
     };
+    /** Optional human-readable comment attached to the transfer. */
     comment?: string;
 }
 
+/**
+ * Pre-wired button that builds a jetton transfer with {@link appkit:createTransferJettonTransaction} and dispatches it through the standard `Send` flow on click — disabled until `recipientAddress`, `amount`, `jetton.address` and `jetton.decimals` are all set. Throws inside the click handler when `jetton.address` or `jetton.decimals` is missing.
+ *
+ * @sample docs/examples/src/appkit/components/balances#SEND_JETTON_BUTTON
+ *
+ * @public
+ * @category Component
+ * @section Balances
+ */
 export const SendJettonButton: FC<SendJettonButtonProps> = ({
     recipientAddress,
     amount,

@@ -118,4 +118,4 @@ const appKit = new AppKit({
 });
 ```
 
-Multiple providers can be registered. AppKit uses the first provider by default; pass `providerId` to hooks to target a specific one.
+Multiple providers can be registered. AppKit uses the first provider by default. Pass `providerId` to hooks to target a specific one.

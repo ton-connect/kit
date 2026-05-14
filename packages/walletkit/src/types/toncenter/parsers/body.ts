@@ -8,7 +8,7 @@
 
 /**
  * Common helpers for extracting decoded body and operation types from messages
- * Refactored to use centralized opcode registry and message decoder
+ * Refactored to use centralized opcode registry and message decoder.
  */
 
 import type { EmulationMessage } from '../emulation';
@@ -35,7 +35,7 @@ export function extractOpFromBody(msg?: EmulationMessage | null): string | null 
 
 /**
  * Match operation code with type mapping
- * Now uses centralized opcode registry
+ * Now uses centralized opcode registry.
  */
 export function matchOpWithMap(op: string, types: string[], mapping: Record<string, string>): string | '' {
     if (!op) return '';
@@ -55,7 +55,7 @@ export function matchOpWithMap(op: string, types: string[], mapping: Record<stri
 }
 
 /**
- * Match decoded @type with expected types
+ * Match decoded @type with expected types.
  */
 export function matchDecodedType(decodedType: string, types: string[]): string | '' {
     const matched = matchesDecodedType(decodedType, types as MessageType[]);

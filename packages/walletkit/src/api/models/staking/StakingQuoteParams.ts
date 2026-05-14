@@ -12,7 +12,7 @@ import type { StakingQuoteDirection } from './StakingQuoteDirection';
 import type { UnstakeModes } from './UnstakeMode';
 
 /**
- * Parameters for getting a staking quote
+ * Parameters for getting a staking quote.
  */
 export interface StakingQuoteParams<TProviderOptions = unknown> {
     /**
@@ -21,22 +21,22 @@ export interface StakingQuoteParams<TProviderOptions = unknown> {
     direction: StakingQuoteDirection;
 
     /**
-     * Amount of tokens to stake or unstake
+     * Amount of tokens to stake or unstake.
      */
     amount: string;
 
     /**
-     * Address of the user
+     * Address of the user.
      */
     userAddress?: UserFriendlyAddress;
 
     /**
-     * Network on which the staking will be executed
+     * Network on which the staking will be executed.
      */
     network?: Network;
 
     /**
-     * Requested mode of unstaking
+     * Unstake-timing mode the quote should target — see {@link UnstakeMode} for the supported flavours (`'INSTANT'`, `'WHEN_AVAILABLE'`, `'ROUND_END'`). Only meaningful when `direction === 'unstake'` and the provider lists the mode in `supportedUnstakeModes`.
      */
     unstakeMode?: UnstakeModes;
 
@@ -47,7 +47,7 @@ export interface StakingQuoteParams<TProviderOptions = unknown> {
     isReversed?: boolean;
 
     /**
-     * Provider-specific options
+     * Provider-specific options.
      */
     providerOptions?: TProviderOptions;
 }

@@ -15,22 +15,22 @@ import type { TokenInfo } from '../core/TokenInfo';
  */
 export interface Jetton {
     /**
-     * The Jetton contract address
+     * The jetton master contract address (the token itself).
      */
     address: UserFriendlyAddress;
 
     /**
-     * The Jetton wallet address
+     * The owner's jetton-wallet contract address — the per-owner contract that actually holds this balance.
      */
     walletAddress: UserFriendlyAddress;
 
     /**
-     * The current jetton balance
+     * The current jetton balance.
      */
     balance: TokenAmount;
 
     /**
-     * Information about the token
+     * Information about the token.
      */
     info: TokenInfo;
 
@@ -41,17 +41,17 @@ export interface Jetton {
     decimalsNumber?: number;
 
     /**
-     * Indicates if the jetton is verified
+     * Indicates if the jetton is verified.
      */
     isVerified: boolean;
 
     /**
-     * Current prices of the jetton in various currencies
+     * Current prices of the jetton in various currencies.
      */
     prices: JettonPrice[];
 
     /**
-     * Additional arbitrary data related to the jetton
+     * Additional arbitrary data related to the jetton.
      */
     extra?: { [key: string]: unknown };
 }

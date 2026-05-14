@@ -43,8 +43,11 @@ import { useDebounceValue } from '../../../../hooks/use-debounce-value';
 import { useStakingValidation } from './use-staking-validation';
 
 /**
- * Context type for the StakingWidget.
- * Provides all necessary state and actions for building custom staking UIs.
+ * Shape of the staking context exposed by {@link StakingWidgetProvider} and read via {@link useStakingContext}. Aggregates inputs (amount, direction, unstake mode), fetched data (balances, quote, provider info/metadata), derived flags (`canSubmit`, `error`, loading states), and the actions used by {@link StakingWidgetUI} (send transaction, switch provider, max, low-balance handling).
+ *
+ * @public
+ * @category Type
+ * @section Staking
  */
 export interface StakingContextType {
     /** Amount the user wants to stake (string to preserve input UX) */
@@ -81,7 +84,7 @@ export interface StakingContextType {
     stakedBalance: StakingBalance | undefined;
     /** True while staked balance is being fetched */
     isStakedBalanceLoading: boolean;
-    /** Selected unstake mode (e.g. instant or delayed) */
+    /** Selected unstake-timing mode — `'INSTANT'`, `'WHEN_AVAILABLE'`, or `'ROUND_END'`. See {@link appkit:UnstakeMode}. */
     unstakeMode: UnstakeModes;
     /** Sets the input amount */
     setAmount: (amount: string) => void;
@@ -107,9 +110,9 @@ export interface StakingContextType {
     lowBalanceMode: 'reduce' | 'topup';
     /** Required TON amount for the pending operation, formatted as a decimal string. Empty when no pending op. */
     lowBalanceRequiredTon: string;
-    /** Replace the input with a value that fits into the current TON balance and close the warning */
+    /** Replace the input with a value that fits within the current TON balance and close the warning. */
     onLowBalanceChange: () => void;
-    /** Dismiss the low-balance warning without changing the input */
+    /** Dismiss the low-balance warning without changing the input. */
     onLowBalanceCancel: () => void;
 }
 
@@ -149,24 +152,35 @@ export const StakingContext = createContext<StakingContextType>({
 });
 
 /**
- * Hook to access the staking context.
- * Must be used within a StakingWidgetProvider (or StakingWidget).
+ * Reads the {@link StakingContextType} from the nearest {@link StakingWidgetProvider} (or {@link StakingWidget}). Outside a provider, returns the default context (empty inputs, no-op actions) so a custom UI can still mount without crashing.
+ *
+ * @public
+ * @category Hook
+ * @section Staking
  */
 export const useStakingContext = () => {
     return useContext(StakingContext);
 };
 
 /**
- * Props for the StakingWidgetProvider.
+ * Props accepted by {@link StakingWidgetProvider}.
+ *
+ * @public
+ * @category Type
+ * @section Staking
  */
 export interface StakingProviderProps extends PropsWithChildren {
-    /**
-     * Network to use for quote fetching and transactions.
-     * When omitted, uses the selected wallet's network.
-     */
+    /** Network used for quote fetching, balance reads, and transactions. Falls back to the connected wallet's network when omitted. */
     network?: Network;
 }
 
+/**
+ * Headless provider that drives the staking-widget flow — owns the input state (amount, direction, unstake mode, reverse-input toggle), fetches quotes and balances, validates the input, and builds + submits the transaction with a low-balance guard. Children read everything through {@link useStakingContext}; pair with {@link StakingWidgetUI} (or pass a custom UI to {@link StakingWidget}'s `children`).
+ *
+ * @public
+ * @category Component
+ * @section Staking
+ */
 export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, network: networkProp }) => {
     const [amount, setAmountRaw] = useState('');
     const [unstakeMode, setUnstakeMode] = useState<UnstakeModes>(UnstakeMode.INSTANT);

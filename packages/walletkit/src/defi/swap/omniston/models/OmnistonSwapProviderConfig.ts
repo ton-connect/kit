@@ -10,7 +10,7 @@ import type { SwapProviderMetadataOverride } from '../../../../api/models';
 import type { OmnistonReferrerOptions } from './OmnistonReferrerOptions';
 
 /**
- * Configuration for the Omniston Swap Provider
+ * Configuration for the Omniston Swap Provider.
  */
 export interface OmnistonSwapProviderConfig extends OmnistonReferrerOptions {
     /**
@@ -32,12 +32,12 @@ export interface OmnistonSwapProviderConfig extends OmnistonReferrerOptions {
     quoteTimeoutMs?: number;
 
     /**
-     * Identifier for the provider
+     * Identifier for the provider.
      */
     providerId?: string;
 
     /**
-     * Custom metadata for the provider
+     * Custom metadata for the provider.
      */
     metadata?: SwapProviderMetadataOverride;
 }

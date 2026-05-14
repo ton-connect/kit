@@ -11,6 +11,9 @@ import type { FC } from 'react';
 import { DEFAULT_ICON_SIZE } from './types';
 import type { IconProps } from './types';
 
+/**
+ * Verified badge icon — scalloped seal with an inner checkmark.
+ */
 export const VerifiedIcon: FC<IconProps> = ({ size = DEFAULT_ICON_SIZE, ...props }) => (
     <svg
         width={size}

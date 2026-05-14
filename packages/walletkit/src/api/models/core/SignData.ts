@@ -21,7 +21,7 @@ export type SignData =
  */
 export interface SignDataBinary {
     /**
-     * Raw binary content encoded as bytes in Base64
+     * Raw binary content encoded as bytes in Base64.
      */
     content: Base64String;
 }
@@ -31,11 +31,11 @@ export interface SignDataBinary {
  */
 export interface SignDataCell {
     /**
-     * Schema describing the cell structure for parsing
+     * Schema describing the cell structure for parsing.
      */
     schema: string;
     /**
-     * Cell content encoded in Base64
+     * Cell content encoded in Base64.
      */
     content: Base64String;
 }
@@ -45,7 +45,7 @@ export interface SignDataCell {
  */
 export interface SignDataText {
     /**
-     * Text content to be signed
+     * Text content to be signed.
      */
     content: string;
 }

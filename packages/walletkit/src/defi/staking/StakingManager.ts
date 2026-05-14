@@ -30,6 +30,7 @@ const log = globalLogger.createChild('StakingManager');
  * for staking operations. Providers can be switched dynamically.
  */
 export class StakingManager extends DefiManager<StakingProviderInterface> implements StakingAPI {
+    /** @param createFactoryContext - Lazy provider of the {@link ProviderFactoryContext} the manager passes into provider factories at registration time. */
     constructor(createFactoryContext: () => ProviderFactoryContext) {
         super(createFactoryContext);
     }

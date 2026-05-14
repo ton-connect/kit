@@ -14,11 +14,11 @@ import type { Jetton } from './Jetton';
  */
 export interface JettonsResponse {
     /**
-     * Address book mapping
+     * Address book mapping.
      */
     addressBook: AddressBook;
     /**
-     * List of Jettons
+     * List of Jettons.
      */
     jettons: Jetton[];
 }

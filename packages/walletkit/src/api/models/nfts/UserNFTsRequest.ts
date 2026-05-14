@@ -13,11 +13,11 @@ import type { Pagination, UserFriendlyAddress } from '../core/Primitives';
  */
 export interface UserNFTsRequest {
     /**
-     * Owner address of the NFTs
+     * Owner address of the NFTs.
      */
     ownerAddress: UserFriendlyAddress;
     /**
-     * Pagination information
+     * Pagination information.
      */
     pagination?: Pagination;
 }

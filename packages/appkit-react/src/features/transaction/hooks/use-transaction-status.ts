@@ -19,33 +19,38 @@ import type { UseQueryReturnType } from '../../../libs/query';
 import { useAppKit } from '../../settings';
 import { useNetwork } from '../../network';
 
+/**
+ * Parameters accepted by {@link useTransactionStatus} — `boc` xor `normalizedHash` plus optional network and TanStack Query overrides. Pair with `query.refetchInterval` to poll until the transaction completes.
+ *
+ * @public
+ * @category Type
+ * @section Transactions
+ */
 export type UseTransactionStatusParameters<selectData = GetTransactionStatusData> = GetTransactionStatusParameters &
     GetTransactionStatusQueryConfig<selectData>;
 
+/**
+ * Return type of {@link useTransactionStatus} — TanStack Query result for the status read.
+ *
+ * @public
+ * @category Type
+ * @section Transactions
+ */
 export type UseTransactionStatusReturnType<selectData = GetTransactionStatusData> = UseQueryReturnType<
     selectData,
     GetTransactionStatusErrorType
 >;
 
 /**
- * Hook to get the status of a transaction trace by BOC.
+ * Poll the status of a sent transaction by its BoC or normalized hash. In TON a single external message triggers a tree of internal messages, so the transaction is `'completed'` only once the entire trace finishes — pair with `refetchInterval` to keep polling until `data.status` is `'completed'` or `'failed'`. Pass either `boc` or `normalizedHash` (not both). The underlying action throws `Error('Either boc or normalizedHash must be provided')` when neither is supplied — TanStack Query surfaces it via the query's `error`.
  *
- * This hook polls the toncenter API to track the progress of a transaction trace.
- * It is useful for tracking complex operations like swaps or multi-step flows.
+ * @param parameters - {@link UseTransactionStatusParameters} `boc` xor `normalizedHash`, optional network and TanStack Query overrides.
+ * @expand parameters
+ * @returns TanStack Query result for the status read.
  *
- * @example
- * ```ts
- * const { data: status } = useTransactionStatus({
- *   boc: 'te6cc...',
- *   query: {
- *     refetchInterval: 2000, // Poll every 2 seconds
- *   }
- * });
- *
- * if (status?.status === 'pending') {
- *   console.log(`Progress: ${status.completedMessages}/${status.totalMessages}`);
- * }
- * ```
+ * @public
+ * @category Hook
+ * @section Transactions
  */
 export const useTransactionStatus = <selectData = GetTransactionStatusData>(
     parameters: UseTransactionStatusParameters<selectData>,

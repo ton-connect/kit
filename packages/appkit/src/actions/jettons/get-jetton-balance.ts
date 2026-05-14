@@ -6,23 +6,54 @@
  *
  */
 
-import { getJettonBalanceFromClient, formatUnits } from '@ton/walletkit';
-import type { TokenAmount, UserFriendlyAddress } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
-import { getJettonWalletAddress } from './get-jetton-wallet-address';
-import { resolveNetwork } from '../../utils/network/resolve-network';
+import type { TokenAmount, UserFriendlyAddress } from '../../types/primitives';
 import type { Network } from '../../types/network';
+import { getJettonBalanceFromClient, formatUnits } from '../../utils';
+import { resolveNetwork } from '../../utils/network/resolve-network';
+import { getJettonWalletAddress } from './get-jetton-wallet-address';
 
+/**
+ * Options for {@link getJettonBalance}.
+ *
+ * @public
+ * @category Type
+ * @section Jettons
+ */
 export interface GetJettonBalanceOptions {
+    /** Jetton master contract address (the token, not the user's wallet for it). */
     jettonAddress: UserFriendlyAddress;
+    /** Owner of the jetton wallet — typically the connected user's address. */
     ownerAddress: UserFriendlyAddress;
+    /** Decimals declared by the jetton master. Used to format the raw balance into a human-readable string. */
     jettonDecimals: number;
+    /** Network to read the balance from. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
     network?: Network;
 }
 
+/**
+ * Return type of {@link getJettonBalance}.
+ *
+ * @public
+ * @category Type
+ * @section Jettons
+ */
 export type GetJettonBalanceReturnType = TokenAmount;
 
+/**
+ * Read a jetton balance for a given owner — derives the owner's jetton-wallet address from the master, then fetches and formats the balance using the supplied decimals.
+ *
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param options - {@link GetJettonBalanceOptions} Jetton master, owner address, decimals and optional network override.
+ * @returns Balance as a human-readable decimal string in the jetton's units.
+ *
+ * @sample docs/examples/src/appkit/actions/jettons#GET_JETTON_BALANCE
+ * @expand options
+ *
+ * @public
+ * @category Action
+ * @section Jettons
+ */
 export const getJettonBalance = async (
     appKit: AppKit,
     options: GetJettonBalanceOptions,

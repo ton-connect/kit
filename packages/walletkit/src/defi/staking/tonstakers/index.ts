@@ -7,4 +7,4 @@
  */
 
 export { TonStakersStakingProvider, createTonstakersProvider } from './TonStakersStakingProvider';
-export type { TonStakersProviderConfig } from './models/TonStakersProviderConfig';
+export type { TonStakersProviderConfig, TonStakersChainConfig } from './models/TonStakersProviderConfig';

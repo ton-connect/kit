@@ -16,14 +16,15 @@ import type { CryptoOnrampProviderProps, CryptoOnrampContextType } from '../cryp
 type DivExtras = Omit<ComponentProps<'div'>, 'children' | keyof CryptoOnrampContextType>;
 
 /**
- * Props for the CryptoOnrampWidget component.
- * Inherits all configuration from CryptoOnrampProviderProps.
+ * Props for {@link CryptoOnrampWidget} — extends {@link CryptoOnrampProviderProps} (tokens, payment methods, defaults, chain overrides) plus the native `<div>` props the widget root forwards.
+ *
+ * @public
+ * @category Type
+ * @section Crypto Onramp
  */
 export interface CryptoOnrampWidgetProps extends Omit<CryptoOnrampProviderProps, 'children'>, DivExtras {
     /**
-     * Custom render function.
-     * When provided, it replaces the default widget UI and gives full control over the rendering.
-     * Accesses all state and actions from the crypto onramp context.
+     * Custom render function. When provided, replaces the default {@link CryptoOnrampWidgetUI} and is called with the full {@link CryptoOnrampWidgetRenderProps} (context state, actions and forwarded `<div>` props), so callers can build a fully custom UI on top of the same provider.
      */
     children?: (props: CryptoOnrampWidgetRenderProps) => ReactNode;
 }
@@ -42,11 +43,13 @@ const CryptoOnrampWidgetContent: FC<{ children?: (props: CryptoOnrampWidgetRende
 };
 
 /**
- * A high-level component that provides a complete crypto-to-crypto onramp interface.
+ * Drop-in widget for buying TON-side tokens with a crypto payment from another chain — wraps {@link CryptoOnrampWidgetProvider} (which drives token/method selection, quote fetching, deposit creation and status polling) around {@link CryptoOnrampWidgetUI}. Pass a `children` render function to swap in a fully custom UI while keeping the same provider state.
  *
- * It manages payment method selection, quote fetching, deposit creation, and
- * deposit status tracking. It can be used as a standalone widget with default UI
- * or customized using a render function.
+ * @sample docs/examples/src/appkit/components/crypto-onramp#CRYPTO_ONRAMP_WIDGET
+ *
+ * @public
+ * @category Component
+ * @section Crypto Onramp
  */
 export const CryptoOnrampWidget: FC<CryptoOnrampWidgetProps> = ({
     children,

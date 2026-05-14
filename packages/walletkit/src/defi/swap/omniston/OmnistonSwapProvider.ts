@@ -30,20 +30,7 @@ const log = globalLogger.createChild('OmnistonSwapProvider');
  * Uses the Omniston SDK to get quotes and build swap transactions
  * across multiple DEXs on TON blockchain.
  *
- * @example
- * ```typescript
- * // Import from a separate entry point to avoid bundling the Omniston SDK
- * import { createOmnistonProvider } from '@ton/walletkit/swap/omniston';
- *
- * kit.swap.registerProvider(
- *     createOmnistonProvider({
- *         apiUrl: 'wss://omni-ws.ston.fi',
- *         defaultSlippageBps: 100, // 1%
- *         referrerAddress: 'EQ...',
- *         referrerFeeBps: 10, // 0.1%
- *     }),
- * );
- * ```
+ * @sample docs/examples/src/appkit/swap#OMNISTON_QUICK_START
  */
 export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> {
     private readonly apiUrl: string;
@@ -60,6 +47,10 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
 
     readonly providerId: string;
 
+    /**
+     * @param config - Optional {@link OmnistonSwapProviderConfig}. Defaults are filled in for any field left undefined.
+     * @expand config
+     */
     constructor(config?: OmnistonSwapProviderConfig) {
         super();
         this.providerId = config?.providerId ?? 'omniston';
@@ -339,6 +330,9 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
 /**
  * Returns an AppKit / `ProviderInput` factory for {@link OmnistonSwapProvider}:
  * pass to `providers: [createOmnistonProvider(config)]`.
+ *
+ * @param config - Optional {@link OmnistonSwapProviderConfig}. Defaults are filled in for any field left undefined.
+ * @expand config
  */
 export const createOmnistonProvider = (
     config: OmnistonSwapProviderConfig = {},

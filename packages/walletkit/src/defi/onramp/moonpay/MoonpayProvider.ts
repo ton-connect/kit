@@ -12,7 +12,7 @@ import { OnrampProvider } from '../OnrampProvider';
 import { OnrampError, OnrampErrorCode } from '../errors';
 
 /**
- * Custom options for Moonpay requests
+ * Custom options for Moonpay requests.
  */
 export interface MoonpayQuoteOptions {
     /**
@@ -23,7 +23,7 @@ export interface MoonpayQuoteOptions {
 
 export interface MoonpayOnrampOptions {
     /**
-     * E.g. dark or light color theme for the widget
+     * E.g. dark or light color theme for the widget.
      */
     theme?: 'dark' | 'light';
 }

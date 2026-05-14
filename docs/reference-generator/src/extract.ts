@@ -1,0 +1,982 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+import { Node, TypeFormatFlags } from 'ts-morph';
+import type {
+    ClassDeclaration,
+    EnumDeclaration,
+    FunctionDeclaration,
+    InterfaceDeclaration,
+    JSDoc,
+    JSDocParameterTag,
+    ObjectLiteralExpression,
+    ParameterDeclaration,
+    Type,
+    TypeAliasDeclaration,
+    VariableDeclaration,
+} from 'ts-morph';
+
+import { getJsDocs } from './collect';
+import type { CollectedSymbol } from './collect';
+
+export type SymbolKind = 'function' | 'component' | 'componentNamespace' | 'type' | 'class';
+
+export const VALID_CATEGORIES = ['Class', 'Action', 'Hook', 'Component', 'Type', 'Constants'] as const;
+export type ValidCategory = (typeof VALID_CATEGORIES)[number];
+
+export interface ParamRow {
+    name: string;
+    typeText: string;
+    /** When set, the renderer uses this name (link if documented) instead of `typeText`. */
+    typeOverride: string | null;
+    required: boolean;
+    description: string | null;
+}
+
+export interface ExtractedFunction {
+    kind: 'function';
+    name: string;
+    sourcePath: string;
+    section: string;
+    category: string;
+    summary: string | null;
+    params: ParamRow[];
+    returnTypeText: string;
+    returnTypeOverride: string | null;
+    returnDescription: string | null;
+    examples: string[];
+    samples: string[];
+}
+
+export interface ExtractedComponent {
+    kind: 'component';
+    name: string;
+    sourcePath: string;
+    section: string;
+    category: string;
+    summary: string | null;
+    props: ParamRow[];
+    examples: string[];
+    samples: string[];
+}
+
+export interface ExtractedNamespaceComponent {
+    kind: 'componentNamespace';
+    name: string;
+    sourcePath: string;
+    section: string;
+    category: string;
+    summary: string | null;
+    members: { name: string; props: ParamRow[]; summary: string | null }[];
+    examples: string[];
+    samples: string[];
+}
+
+export interface ExtractedType {
+    kind: 'type';
+    name: string;
+    sourcePath: string;
+    section: string;
+    category: string;
+    summary: string | null;
+    fields: ParamRow[] | null;
+    typeText: string | null;
+    /** True for `const X = ...` declarations; renderer uses `const`-form code block. */
+    isConstant: boolean;
+}
+
+export interface ExtractedClass {
+    kind: 'class';
+    name: string;
+    sourcePath: string;
+    section: string;
+    category: string;
+    summary: string | null;
+    constructorParams: ParamRow[] | null;
+    examples: string[];
+    samples: string[];
+}
+
+export type Extracted =
+    | ExtractedFunction
+    | ExtractedComponent
+    | ExtractedNamespaceComponent
+    | ExtractedType
+    | ExtractedClass;
+
+const FORMAT_FLAGS =
+    TypeFormatFlags.NoTruncation |
+    TypeFormatFlags.UseAliasDefinedOutsideCurrentScope |
+    TypeFormatFlags.WriteArrayAsGenericType;
+
+type ExtractedWithoutMeta =
+    | Omit<ExtractedFunction, 'section' | 'category'>
+    | Omit<ExtractedComponent, 'section' | 'category'>
+    | Omit<ExtractedNamespaceComponent, 'section' | 'category'>
+    | Omit<ExtractedType, 'section' | 'category'>
+    | Omit<ExtractedClass, 'section' | 'category'>;
+
+export function extract(collected: CollectedSymbol): Extracted {
+    const { name, declaration, metadataDeclaration, sourcePath } = collected;
+    const category = collected.category ?? '';
+
+    if (!isValidCategory(category)) {
+        throw new Error(`[${name}] Invalid @category "${category}". Allowed values: ${VALID_CATEGORIES.join(', ')}.`);
+    }
+
+    const inner = extractByCategory(category, name, declaration, sourcePath);
+    const section = collected.section ?? '';
+
+    // For @extract re-exports, prefer the JSDoc summary from the local export comment
+    // over (often missing) JSDoc on the imported declaration in the other package.
+    const metadataSummary =
+        metadataDeclaration !== declaration ? readSummary(pickJsDoc(getJsDocs(metadataDeclaration))) : null;
+    if (metadataSummary && 'summary' in inner) {
+        return { ...inner, section, category, summary: metadataSummary } as Extracted;
+    }
+
+    return { ...inner, section, category } as Extracted;
+}
+
+function isValidCategory(value: string): value is ValidCategory {
+    return (VALID_CATEGORIES as readonly string[]).includes(value);
+}
+
+function extractByCategory(
+    category: ValidCategory,
+    name: string,
+    declaration: Node,
+    sourcePath: string,
+): ExtractedWithoutMeta {
+    switch (category) {
+        case 'Type':
+            if (Node.isInterfaceDeclaration(declaration) || Node.isTypeAliasDeclaration(declaration)) {
+                return extractType(name, declaration, sourcePath);
+            }
+            throw mismatch(name, category, 'interface or type alias');
+
+        case 'Constants':
+            if (Node.isVariableDeclaration(declaration) || Node.isEnumDeclaration(declaration)) {
+                return extractType(name, declaration, sourcePath);
+            }
+            throw mismatch(name, category, 'const or enum declaration');
+
+        case 'Class':
+            if (Node.isClassDeclaration(declaration)) {
+                return extractClass(name, declaration, sourcePath);
+            }
+            if (Node.isTypeAliasDeclaration(declaration) && hasExtractTag(declaration)) {
+                const expanded = expandClassThroughExtract(name, declaration, sourcePath);
+                if (expanded) return expanded;
+            }
+            throw mismatch(name, category, 'class declaration or @extract type alias targeting a class');
+
+        case 'Action':
+        case 'Hook':
+            if (Node.isFunctionDeclaration(declaration)) {
+                return extractFunctionLike(declaration, name, sourcePath);
+            }
+            if (Node.isVariableDeclaration(declaration)) {
+                return extractVariableFunction(declaration, name, sourcePath);
+            }
+            throw mismatch(name, category, 'function declaration or arrow/function variable');
+
+        case 'Component':
+            if (Node.isVariableDeclaration(declaration)) {
+                const init = declaration.getInitializer();
+                const membersLiteral = resolveNamespaceMembersLiteral(init);
+                if (membersLiteral) {
+                    return extractNamespaceComponent(name, declaration, membersLiteral, sourcePath);
+                }
+                return extractVariableAsComponent(declaration, name, sourcePath);
+            }
+            if (Node.isFunctionDeclaration(declaration)) {
+                return extractFunctionAsComponent(declaration, name, sourcePath);
+            }
+            throw mismatch(name, category, 'function or variable declaration');
+    }
+}
+
+/**
+ * Returns the object-literal carrying compound members, or null when the
+ * initializer doesn't look like a compound. Two shapes are recognized:
+ *  - bare `{ Member: ... }` literal (the simple compound pattern)
+ *  - `Object.assign(Root, { Member: ... })` — used when the root needs to also be
+ *    callable as a React component (e.g. `Input`, `CurrencyItem`).
+ */
+function resolveNamespaceMembersLiteral(init: Node | undefined): ObjectLiteralExpression | null {
+    if (!init) return null;
+    if (Node.isObjectLiteralExpression(init)) return init;
+    if (Node.isCallExpression(init)) {
+        const expr = init.getExpression();
+        const callee = expr.getText();
+        if (callee !== 'Object.assign') return null;
+        const args = init.getArguments();
+        const literal = args.find((arg) => Node.isObjectLiteralExpression(arg));
+        return literal && Node.isObjectLiteralExpression(literal) ? literal : null;
+    }
+    return null;
+}
+
+function mismatch(name: string, category: ValidCategory, expected: string): Error {
+    return new Error(`[${name}] @category ${category} requires the symbol to be a ${expected}.`);
+}
+
+function extractFunctionLike(
+    decl: FunctionDeclaration,
+    name: string,
+    sourcePath: string,
+): Omit<ExtractedFunction, 'section' | 'category'> {
+    const jsdoc = pickJsDoc(decl.getJsDocs());
+    const summary = readSummary(jsdoc);
+    const paramTags = readParamTags(jsdoc);
+    const returnInfo = readReturnInfo(jsdoc);
+    const examples = readExamples(jsdoc);
+    const samples = readSamples(jsdoc);
+    const expandNames = readExpandNames(jsdoc);
+
+    const params = expandParameters(decl.getParameters(), decl, paramTags, expandNames);
+    const fnTypeParams = collectTypeParamDefaults(decl);
+    const rawReturnNode = decl.getReturnTypeNode()?.getText();
+    const returnTypeText = rawReturnNode
+        ? collapseWhitespace(substituteTypeParams(rawReturnNode, fnTypeParams))
+        : formatType(decl.getReturnType(), decl);
+
+    return {
+        kind: 'function',
+        name,
+        sourcePath,
+        summary,
+        params,
+        returnTypeText,
+        returnTypeOverride: returnInfo.typeOverride,
+        returnDescription: returnInfo.description,
+        examples,
+        samples,
+    };
+}
+
+function extractVariableFunction(
+    decl: VariableDeclaration,
+    name: string,
+    sourcePath: string,
+): Omit<ExtractedFunction, 'section' | 'category'> {
+    const stmt = decl.getVariableStatement();
+    const jsdoc = pickJsDoc(stmt?.getJsDocs() ?? []);
+    const summary = readSummary(jsdoc);
+    const paramTags = readParamTags(jsdoc);
+    const returnInfo = readReturnInfo(jsdoc);
+    const examples = readExamples(jsdoc);
+    const samples = readSamples(jsdoc);
+    const expandNames = readExpandNames(jsdoc);
+
+    const init = decl.getInitializer();
+
+    // Inline arrow / function-expression: read parameters and return type
+    // straight from the AST so authors get @sample-based examples and `@expand`
+    // flattening.
+    if (init && (Node.isArrowFunction(init) || Node.isFunctionExpression(init))) {
+        const params = expandParameters(init.getParameters(), decl, paramTags, expandNames);
+        const fnTypeParams = collectTypeParamDefaults(init);
+        const rawReturnNode = init.getReturnTypeNode()?.getText();
+        const returnTypeText = rawReturnNode
+            ? collapseWhitespace(substituteTypeParams(rawReturnNode, fnTypeParams))
+            : formatType(init.getReturnType(), decl);
+
+        return {
+            kind: 'function',
+            name,
+            sourcePath,
+            summary,
+            params,
+            returnTypeText,
+            returnTypeOverride: returnInfo.typeOverride,
+            returnDescription: returnInfo.description,
+            examples,
+            samples,
+        };
+    }
+
+    // No inline initializer (e.g., `declare const fn: (...) => ...` re-exported
+    // from walletkit through `@extract`). Fall back to the variable's call
+    // signature — we lose parameter-name accuracy in some edge cases but it's
+    // the only signal available.
+    const callSig = decl.getType().getCallSignatures()[0];
+    if (callSig) {
+        const sigParams = callSig.getParameters();
+        const params: ParamRow[] = sigParams.map((p) => {
+            const valueDecl = p.getValueDeclaration();
+            const paramName = p.getName();
+            const tagInfo = paramTags.get(paramName);
+            const required =
+                valueDecl && Node.isParameterDeclaration(valueDecl)
+                    ? !valueDecl.hasQuestionToken() && !valueDecl.hasInitializer() && !valueDecl.isRestParameter()
+                    : true;
+            const typeText =
+                valueDecl && Node.isParameterDeclaration(valueDecl)
+                    ? collapseWhitespace(
+                          valueDecl.getTypeNode()?.getText() ?? formatType(p.getTypeAtLocation(decl), decl),
+                      )
+                    : formatType(p.getTypeAtLocation(decl), decl);
+            return {
+                name: paramName,
+                typeText,
+                typeOverride: tagInfo?.typeOverride ?? null,
+                required,
+                description: tagInfo?.description ?? null,
+            };
+        });
+        const returnTypeText = formatType(callSig.getReturnType(), decl);
+        return {
+            kind: 'function',
+            name,
+            sourcePath,
+            summary,
+            params,
+            returnTypeText,
+            returnTypeOverride: returnInfo.typeOverride,
+            returnDescription: returnInfo.description,
+            examples,
+            samples,
+        };
+    }
+
+    return {
+        kind: 'function',
+        name,
+        sourcePath,
+        summary,
+        params: [],
+        returnTypeText: 'unknown',
+        returnTypeOverride: returnInfo.typeOverride,
+        returnDescription: returnInfo.description,
+        examples,
+        samples,
+    };
+}
+
+function extractFunctionAsComponent(
+    decl: FunctionDeclaration,
+    name: string,
+    sourcePath: string,
+): Omit<ExtractedComponent, 'section' | 'category'> {
+    const jsdoc = pickJsDoc(decl.getJsDocs());
+    const summary = readSummary(jsdoc);
+    const examples = readExamples(jsdoc);
+    const samples = readSamples(jsdoc);
+    const props = expandComponentProps(decl.getParameters(), decl);
+    return { kind: 'component', name, sourcePath, summary, props, examples, samples };
+}
+
+function extractVariableAsComponent(
+    decl: VariableDeclaration,
+    name: string,
+    sourcePath: string,
+): Omit<ExtractedComponent, 'section' | 'category'> {
+    const stmt = decl.getVariableStatement();
+    const jsdoc = pickJsDoc(stmt?.getJsDocs() ?? []);
+    const summary = readSummary(jsdoc);
+    const examples = readExamples(jsdoc);
+    const samples = readSamples(jsdoc);
+
+    const init = decl.getInitializer();
+    let propsType: Type | null = null;
+
+    if (init && (Node.isArrowFunction(init) || Node.isFunctionExpression(init))) {
+        const params = init.getParameters();
+        if (params.length > 0) propsType = params[0].getType();
+    } else if (init && Node.isCallExpression(init)) {
+        // Wrappers like `forwardRef((props, ref) => ...)` or `memo((props) => ...)` —
+        // the variable's resolved type buries the real props inside React's helper
+        // types, so read the props from the render function arg instead.
+        propsType = readPropsFromComponentWrapper(init);
+    } else {
+        const callSig = decl.getType().getCallSignatures()[0];
+        const propsParam = callSig?.getParameters()[0];
+        if (propsParam) {
+            propsType = propsParam.getValueDeclaration()?.getType() ?? null;
+        }
+    }
+
+    const props = propsType ? readPropsFromType(propsType, decl) : [];
+    return { kind: 'component', name, sourcePath, summary, props, examples, samples };
+}
+
+function readPropsFromComponentWrapper(call: Node): Type | null {
+    if (!Node.isCallExpression(call)) return null;
+    const firstArg = call.getArguments()[0];
+    if (!firstArg) return null;
+    if (Node.isArrowFunction(firstArg) || Node.isFunctionExpression(firstArg)) {
+        const params = firstArg.getParameters();
+        if (params.length > 0) return params[0].getType();
+    }
+    return null;
+}
+
+function extractNamespaceComponent(
+    name: string,
+    decl: VariableDeclaration,
+    init: ObjectLiteralExpression,
+    sourcePath: string,
+): Omit<ExtractedNamespaceComponent, 'section' | 'category'> {
+    const stmt = decl.getVariableStatement();
+    const jsdoc = pickJsDoc(stmt?.getJsDocs() ?? []);
+    const summary = readSummary(jsdoc);
+    const examples = readExamples(jsdoc);
+    const samples = readSamples(jsdoc);
+
+    const members: ExtractedNamespaceComponent['members'] = [];
+    for (const prop of init.getProperties()) {
+        if (!Node.isPropertyAssignment(prop) && !Node.isShorthandPropertyAssignment(prop)) continue;
+        const memberName = prop.getName();
+        const memberType = prop.getType();
+        const callSig = memberType.getCallSignatures()[0];
+        const propsParam = callSig?.getParameters()[0];
+        const propsType = propsParam?.getValueDeclaration()?.getType() ?? null;
+        const props = propsType ? readPropsFromType(propsType, decl) : [];
+        const memberSummary = readLeadingJsDocSummary(prop);
+        members.push({ name: memberName, props, summary: memberSummary });
+    }
+
+    return { kind: 'componentNamespace', name, sourcePath, summary, members, examples, samples };
+}
+
+function extractType(
+    name: string,
+    decl: InterfaceDeclaration | TypeAliasDeclaration | VariableDeclaration | EnumDeclaration,
+    sourcePath: string,
+): Omit<ExtractedType, 'section' | 'category'> {
+    if (Node.isVariableDeclaration(decl)) {
+        const stmt = decl.getVariableStatement();
+        const jsdoc = pickJsDoc(stmt?.getJsDocs() ?? []);
+        const summary = readSummary(jsdoc);
+        const init = decl.getInitializer();
+        const typeText = init ? init.getText() : decl.getType().getText(decl, FORMAT_FLAGS);
+        return { kind: 'type', name, sourcePath, summary, fields: null, typeText, isConstant: true };
+    }
+
+    if (Node.isEnumDeclaration(decl)) {
+        const summary = readSummary(pickJsDoc(decl.getJsDocs()));
+        const fields: ParamRow[] = decl.getMembers().map((member) => {
+            const init = member.getInitializer();
+            const valueText = init ? init.getText() : 'auto';
+            const desc = readSummary(pickJsDoc(member.getJsDocs()));
+            return {
+                name: member.getName(),
+                typeText: valueText,
+                typeOverride: null,
+                required: true,
+                description: desc,
+            };
+        });
+        return { kind: 'type', name, sourcePath, summary, fields, typeText: null, isConstant: true };
+    }
+
+    const jsdoc = pickJsDoc(decl.getJsDocs());
+    const summary = readSummary(jsdoc);
+
+    if (Node.isTypeAliasDeclaration(decl) && hasExtractTag(decl)) {
+        const expanded = expandThroughExtract(name, decl, sourcePath);
+        if (expanded) {
+            return { ...expanded, summary: summary ?? expanded.summary };
+        }
+    }
+
+    if (Node.isInterfaceDeclaration(decl)) {
+        const fields = readPropsFromType(decl.getType(), decl);
+        return { kind: 'type', name, sourcePath, summary, fields, typeText: null, isConstant: false };
+    }
+
+    const typeNode = decl.getTypeNode();
+    if (typeNode && Node.isTypeLiteral(typeNode)) {
+        const fields = readPropsFromType(decl.getType(), decl);
+        if (fields.length > 0) {
+            return { kind: 'type', name, sourcePath, summary, fields, typeText: null, isConstant: false };
+        }
+        // Type literal without named props (e.g. only an index signature) — fall back to the source text.
+        return {
+            kind: 'type',
+            name,
+            sourcePath,
+            summary,
+            fields: null,
+            typeText: typeNode.getText(),
+            isConstant: false,
+        };
+    }
+
+    // Resolved-shape intersection — `type X = A & B` or `type X = SomeAlias`
+    // that itself resolves to one. Flatten into a fields table when the merged
+    // properties form a clean object bag (catches our own `address`/`network`
+    // plus the `query` / `mutation` catch-all from `QueryParameter` /
+    // `MutationParameter` without hand-rolling a mirror interface).
+    const resolvedType = decl.getType();
+    if (resolvedType.isIntersection() && !resolvedType.isUnion()) {
+        const fields = readPropsFromType(resolvedType, decl);
+        if (fields.length > 0) {
+            return { kind: 'type', name, sourcePath, summary, fields, typeText: null, isConstant: false };
+        }
+    }
+
+    const typeText = typeNode ? typeNode.getText() : resolvedType.getText(decl, FORMAT_FLAGS);
+    return { kind: 'type', name, sourcePath, summary, fields: null, typeText, isConstant: false };
+}
+
+function hasExtractTag(decl: Node): boolean {
+    if (!Node.isJSDocable(decl)) return false;
+    for (const doc of decl.getJsDocs()) {
+        for (const tag of doc.getTags()) {
+            if (tag.getTagName() === 'extract') return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Resolves a `@extract`-tagged type alias to its underlying interface or type
+ * declaration (typically in another package) and reuses its shape. Returns
+ * null if the alias does not point at something extractable.
+ */
+function expandClassThroughExtract(
+    name: string,
+    decl: TypeAliasDeclaration,
+    sourcePath: string,
+): Omit<ExtractedClass, 'section' | 'category'> | null {
+    const targetDecl = resolveExtractTarget(decl);
+    if (!targetDecl || !Node.isClassDeclaration(targetDecl)) return null;
+    const aliasJsDoc = pickJsDoc(decl.getJsDocs());
+    const aliasSummary = readSummary(aliasJsDoc);
+    const inner = extractClass(name, targetDecl, sourcePath);
+    return { ...inner, summary: aliasSummary ?? inner.summary };
+}
+
+function expandThroughExtract(
+    name: string,
+    decl: TypeAliasDeclaration,
+    sourcePath: string,
+): Omit<ExtractedType, 'section' | 'category'> | null {
+    const targetDecl = resolveExtractTarget(decl);
+    if (targetDecl && (Node.isInterfaceDeclaration(targetDecl) || Node.isTypeAliasDeclaration(targetDecl))) {
+        return extractType(name, targetDecl, sourcePath);
+    }
+    // No named target outside this declaration — fall back to the structural form.
+    const typeText = decl.getType().getText(decl, FORMAT_FLAGS);
+    return { kind: 'type', name, sourcePath, summary: null, fields: null, typeText, isConstant: false };
+}
+
+/**
+ * Resolves a `@extract`-tagged type alias to the underlying declaration.
+ * Returns null if the resolution would loop back to the alias itself
+ * (which can happen when ts-morph's symbol resolver returns the alias node
+ * for re-exported types — guarding here prevents infinite recursion).
+ */
+function resolveExtractTarget(decl: TypeAliasDeclaration): Node | null {
+    // Prefer the type-node's identifier when the alias is `type X = Y` or
+    // `type X = Y<…>` — `getDefinitionNodes()` follows TypeScript's resolver
+    // through `import type` aliases all the way to the original class /
+    // interface / type declaration, even across packages.
+    const typeNode = decl.getTypeNode();
+    if (typeNode && Node.isTypeReference(typeNode)) {
+        const typeName = typeNode.getTypeName();
+        if (Node.isIdentifier(typeName)) {
+            for (const definition of typeName.getDefinitionNodes()) {
+                if (definition === decl) continue;
+                if (
+                    Node.isClassDeclaration(definition) ||
+                    Node.isInterfaceDeclaration(definition) ||
+                    Node.isTypeAliasDeclaration(definition)
+                ) {
+                    return definition;
+                }
+            }
+        }
+    }
+    // Fallback: use the resolved type's symbol chain (works for inline types).
+    const aliasedType = decl.getType();
+    let symbol = aliasedType.getAliasSymbol() ?? aliasedType.getSymbol();
+    if (!symbol) return null;
+    let next = symbol.getAliasedSymbol();
+    while (next) {
+        symbol = next;
+        next = symbol.getAliasedSymbol();
+    }
+    const targetDecl = symbol.getDeclarations()[0];
+    if (!targetDecl || targetDecl === decl) return null;
+    return targetDecl;
+}
+
+function extractClass(
+    name: string,
+    decl: ClassDeclaration,
+    sourcePath: string,
+): Omit<ExtractedClass, 'section' | 'category'> {
+    const jsdoc = pickJsDoc(decl.getJsDocs());
+    const summary = readSummary(jsdoc);
+    const examples = readExamples(jsdoc);
+    const samples = readSamples(jsdoc);
+    const ctor = decl.getConstructors()[0];
+    if (!ctor) {
+        return { kind: 'class', name, sourcePath, summary, constructorParams: null, examples, samples };
+    }
+    const ctorJsDoc = pickJsDoc(ctor.getJsDocs());
+    const ctorParamTags = readParamTags(ctorJsDoc);
+    const ctorExpandNames = readExpandNames(ctorJsDoc);
+    const constructorParams = expandParameters(ctor.getParameters(), decl, ctorParamTags, ctorExpandNames);
+    return { kind: 'class', name, sourcePath, summary, constructorParams, examples, samples };
+}
+
+function expandParameters(
+    params: ParameterDeclaration[],
+    contextNode: Node,
+    paramTags: Map<string, ParamTagInfo>,
+    expandNames: Set<string>,
+): ParamRow[] {
+    const rows: ParamRow[] = [];
+
+    const fnTypeParams = collectTypeParamDefaults(contextNode);
+
+    for (const param of params) {
+        const paramName = param.getName();
+        const rawParamType = param.getType();
+        // Optional params surface as `T | undefined` in their resolved type — peel that
+        // back to `T` so `@expand` flattening sees the underlying object shape.
+        const paramType = stripUndefinedFromUnion(rawParamType);
+        const required = !param.hasQuestionToken() && !param.hasInitializer() && !param.isRestParameter();
+        const tagInfo = paramTags.get(paramName);
+        const rawSyntactic = param.getTypeNode()?.getText();
+        const paramSyntactic = rawSyntactic
+            ? collapseWhitespace(substituteTypeParams(rawSyntactic, fnTypeParams))
+            : formatType(paramType, contextNode);
+
+        const shouldFlatten = expandNames.has(paramName) && isFlattenableObjectType(paramType);
+
+        if (shouldFlatten) {
+            rows.push({
+                name: paramName,
+                typeText: paramSyntactic,
+                typeOverride: tagInfo?.typeOverride ?? null,
+                required,
+                description: tagInfo?.description ?? null,
+            });
+            const declaredFields = readPropsFromType(paramType, contextNode);
+            for (const field of declaredFields) {
+                const tagKey = `${paramName}.${field.name}`;
+                const fieldTagInfo = paramTags.get(tagKey);
+                rows.push({
+                    ...field,
+                    name: `${paramName}.${field.name}`,
+                    typeOverride: fieldTagInfo?.typeOverride ?? field.typeOverride,
+                    description: field.description ?? fieldTagInfo?.description ?? null,
+                });
+            }
+            continue;
+        }
+
+        rows.push({
+            name: paramName,
+            typeText: paramSyntactic,
+            typeOverride: tagInfo?.typeOverride ?? null,
+            required,
+            description: tagInfo?.description ?? null,
+        });
+    }
+
+    return rows;
+}
+
+function expandComponentProps(params: ParameterDeclaration[], contextNode: Node): ParamRow[] {
+    if (params.length === 0) return [];
+    const propsParam = params[0];
+    return readPropsFromType(propsParam.getType(), contextNode);
+}
+
+function readPropsFromType(type: Type, contextNode: Node): ParamRow[] {
+    const rows: ParamRow[] = [];
+    for (const prop of type.getProperties()) {
+        const propName = prop.getName();
+        if (propName.startsWith('__@')) continue;
+
+        const valueDecl = prop.getValueDeclaration() ?? prop.getDeclarations()[0];
+        if (!valueDecl) continue;
+
+        const declPath = valueDecl.getSourceFile().getFilePath();
+        if (declPath.includes('/node_modules/')) continue;
+        if (declPath.includes('/typescript/lib/lib.')) continue;
+
+        const propType = prop.getTypeAtLocation(contextNode);
+        const optional = (prop.getFlags() & 16777216) !== 0; // ts.SymbolFlags.Optional
+        const description = readPropertyJsDoc(valueDecl);
+        // Opt-in property-level type override: `@typeAs Name` on the field's JSDoc swaps the rendered
+        // Type cell for a chip pointing at `Name`. Useful when the inferred type is a noisy generic
+        // alias that already has its own short documented name (e.g. `QueryOptionsOverride`).
+        const typeOverride = readPropertyTypeAs(valueDecl);
+        const rawSyntactic =
+            Node.isPropertySignature(valueDecl) || Node.isPropertyDeclaration(valueDecl)
+                ? valueDecl.getTypeNode()?.getText()
+                : undefined;
+        const syntacticType = rawSyntactic
+            ? collapseWhitespace(substituteTypeParams(rawSyntactic, collectTypeParamDefaults(valueDecl)))
+            : formatType(propType, contextNode);
+        rows.push({
+            name: prop.getName(),
+            typeText: syntacticType,
+            typeOverride,
+            required: !optional,
+            description,
+        });
+    }
+    return rows;
+}
+
+function readPropertyTypeAs(node: Node): string | null {
+    if (!Node.isJSDocable(node)) return null;
+    for (const doc of node.getJsDocs()) {
+        for (const tag of doc.getTags()) {
+            if (tag.getTagName() !== 'typeAs') continue;
+            const text = tag.getCommentText()?.trim();
+            if (text) return text;
+        }
+    }
+    return null;
+}
+
+/**
+ * Walks up to the nearest declaration with type parameters (interface, type
+ * alias, class, function) and returns a map from each parameter's name to its
+ * `Name = Default` annotation — falling back to `Name = any` when no default
+ * was declared.
+ *
+ * Used to expand generics in property and parameter type texts so readers see
+ * both the original placeholder and what it falls back to. `metadata: TMetadata`
+ * becomes `metadata: TMetadata = unknown`, and `Promise<TMetadata>` becomes
+ * `Promise<TMetadata = unknown>` — preserving the slot name the user can
+ * substitute by passing an explicit type argument.
+ */
+function collectTypeParamDefaults(start: Node): Map<string, string> {
+    const map = new Map<string, string>();
+    let cursor: Node | undefined = start;
+    while (cursor) {
+        if (
+            Node.isInterfaceDeclaration(cursor) ||
+            Node.isTypeAliasDeclaration(cursor) ||
+            Node.isClassDeclaration(cursor) ||
+            Node.isFunctionDeclaration(cursor) ||
+            Node.isMethodSignature(cursor) ||
+            Node.isMethodDeclaration(cursor) ||
+            Node.isFunctionExpression(cursor) ||
+            Node.isArrowFunction(cursor)
+        ) {
+            for (const tp of cursor.getTypeParameters()) {
+                const name = tp.getName();
+                if (map.has(name)) continue;
+                const def = tp.getDefault()?.getText() ?? 'any';
+                map.set(name, `${name} = ${def}`);
+            }
+        }
+        cursor = cursor.getParent();
+    }
+    return map;
+}
+
+function substituteTypeParams(typeText: string, params: Map<string, string>): string {
+    if (params.size === 0) return typeText;
+    const names = [...params.keys()].sort((a, b) => b.length - a.length);
+    const pattern = new RegExp(`\\b(${names.map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`, 'g');
+    return typeText.replace(pattern, (m) => params.get(m) ?? m);
+}
+
+function isFlattenableObjectType(type: Type): boolean {
+    if (type.isUnion()) return false;
+    // Intersections like `Params & { providerId?: string }` resolve to a clean property bag —
+    // flattening them is fine as long as `getProperties()` returns something usable.
+    if (type.isIntersection()) return type.getProperties().length > 0;
+    if (!type.isObject()) return false;
+    if (type.getCallSignatures().length > 0) return false;
+    if (type.getConstructSignatures().length > 0) return false;
+    return type.getProperties().length > 0;
+}
+
+function stripUndefinedFromUnion(type: Type): Type {
+    if (!type.isUnion()) return type;
+    const nonUndefined = type.getUnionTypes().filter((t) => !t.isUndefined() && !t.isNull());
+    return nonUndefined.length === 1 ? nonUndefined[0] : type;
+}
+
+function formatType(type: Type, contextNode: Node): string {
+    return type.getText(contextNode, FORMAT_FLAGS).replace(/\s+/g, ' ');
+}
+
+/**
+ * Collapses runs of whitespace in a syntactic type text — turns indented inline object literals
+ * (e.g. `{          [key: string]: unknown;     }`) into single-line readable chips.
+ */
+function collapseWhitespace(text: string): string {
+    return text.replace(/\s+/g, ' ');
+}
+
+function pickJsDoc(jsDocs: JSDoc[]): JSDoc | null {
+    return jsDocs.length > 0 ? jsDocs[jsDocs.length - 1] : null;
+}
+
+/**
+ * Read the leading `/** ... *\/` JSDoc-style comment attached to a property
+ * assignment inside an object literal. ts-morph's `PropertyAssignment` is not
+ * JSDocable, so we walk the raw leading-comment trivia.
+ */
+function readLeadingJsDocSummary(prop: Node): string | null {
+    for (const cr of prop.getLeadingCommentRanges()) {
+        const text = cr.getText();
+        if (!text.startsWith('/**')) continue;
+        const inner = text
+            .replace(/^\/\*\*+/, '')
+            .replace(/\*+\/$/, '')
+            .split('\n')
+            .map((line) => line.replace(/^\s*\*\s?/, ''))
+            .join('\n')
+            .trim();
+        if (inner) return sanitizeJsDocText(inner);
+    }
+    return null;
+}
+
+function readSummary(jsdoc: JSDoc | null): string | null {
+    if (!jsdoc) return null;
+    const desc = sanitizeJsDocText(jsdoc.getDescription());
+    if (!desc) return null;
+    // ts-morph occasionally attaches the file-level license header to the first
+    // declaration in a file when nothing else sits between them. Skip those —
+    // there is never a real description that begins with "Copyright (c)".
+    if (/^\s*Copyright\s*\(c\)/i.test(desc)) return null;
+    return desc;
+}
+
+interface ParamTagInfo {
+    description: string | null;
+    typeOverride: string | null;
+}
+
+function readParamTags(jsdoc: JSDoc | null): Map<string, ParamTagInfo> {
+    const map = new Map<string, ParamTagInfo>();
+    if (!jsdoc) return map;
+    for (const tag of jsdoc.getTags()) {
+        if (tag.getTagName() !== 'param') continue;
+        const paramTag = tag as JSDocParameterTag;
+        const nameNode = paramTag.getNameNode();
+        if (!nameNode) continue;
+        const name = nameNode.getText();
+        const raw = sanitizeJsDocText(stripTsDocDash(paramTag.getCommentText() ?? ''));
+        map.set(name, splitLeadingLink(raw));
+    }
+    return map;
+}
+
+/**
+ * If the text starts with a `{@link X}` marker (planted by sanitizeJsDocText),
+ * extracts X as a type-override and returns the rest as the description.
+ */
+function splitLeadingLink(text: string): ParamTagInfo {
+    if (text.startsWith(LINK_MARKER_OPEN)) {
+        const end = text.indexOf(LINK_MARKER_CLOSE, LINK_MARKER_OPEN.length);
+        if (end !== -1) {
+            const target = text.slice(LINK_MARKER_OPEN.length, end).trim();
+            const remaining = text.slice(end + LINK_MARKER_CLOSE.length).trim();
+            return { typeOverride: target, description: remaining || null };
+        }
+    }
+    return { typeOverride: null, description: text || null };
+}
+
+/** TSDoc writes `@param name - description`; strip the leading dash. */
+function stripTsDocDash(text: string): string {
+    return text.replace(/^\s*[-–—]\s*/, '');
+}
+
+function readExamples(jsdoc: JSDoc | null): string[] {
+    if (!jsdoc) return [];
+    const out: string[] = [];
+    for (const tag of jsdoc.getTags()) {
+        if (tag.getTagName() !== 'example') continue;
+        const text = tag.getCommentText()?.trim();
+        if (text) out.push(text);
+    }
+    return out;
+}
+
+function readExpandNames(jsdoc: JSDoc | null): Set<string> {
+    const out = new Set<string>();
+    if (!jsdoc) return out;
+    for (const tag of jsdoc.getTags()) {
+        if (tag.getTagName() !== 'expand') continue;
+        const text = tag.getCommentText()?.trim();
+        if (text) out.add(text);
+    }
+    return out;
+}
+
+function readSamples(jsdoc: JSDoc | null): string[] {
+    if (!jsdoc) return [];
+    const out: string[] = [];
+    for (const tag of jsdoc.getTags()) {
+        if (tag.getTagName() !== 'sample') continue;
+        const text = tag.getCommentText()?.trim();
+        if (!text) continue;
+        if (!text.includes('#')) {
+            throw new Error(`Invalid @sample value: "${text}". Expected format \`dir/path#SAMPLE_NAME\`.`);
+        }
+        out.push(text);
+    }
+    return out;
+}
+
+function readReturnInfo(jsdoc: JSDoc | null): ParamTagInfo {
+    const empty: ParamTagInfo = { description: null, typeOverride: null };
+    if (!jsdoc) return empty;
+    for (const tag of jsdoc.getTags()) {
+        const tagName = tag.getTagName();
+        if (tagName !== 'returns' && tagName !== 'return') continue;
+        const raw = sanitizeJsDocText(stripTsDocDash(tag.getCommentText() ?? ''));
+        return splitLeadingLink(raw);
+    }
+    return empty;
+}
+
+function readPropertyJsDoc(node: Node): string | null {
+    if (!Node.isJSDocable(node)) return null;
+    const docs = node.getJsDocs();
+    if (docs.length === 0) return null;
+    const desc = sanitizeJsDocText(docs[docs.length - 1].getDescription());
+    return desc || null;
+}
+
+export const LINK_MARKER_OPEN = ' LINK:';
+export const LINK_MARKER_CLOSE = '';
+
+/**
+ * Replaces JSDoc inline tags with sanitized text. {@link Foo} survives as a
+ * sentinel marker (LINK_MARKER_OPEN…LINK_MARKER_CLOSE) so the renderer can
+ * later turn it into a markdown link if `Foo` is itself documented in the
+ * same reference. Other inline tags ({@linkcode}, {@see}, …) collapse to
+ * their target/label text. Loose `{`/`}` are escaped so MDX doesn't treat
+ * them as JS expressions.
+ */
+function sanitizeJsDocText(text: string): string {
+    let result = text.replace(
+        /\{@link\s+([^}|]+?)(?:\s*\|\s*[^}]*)?\}/g,
+        (_, target: string) => `${LINK_MARKER_OPEN}${target.trim()}${LINK_MARKER_CLOSE}`,
+    );
+    result = result.replace(
+        /\{@(linkcode|linkplain|inheritDoc|see|tutorial|label)\s+([^}]*)\}/g,
+        (_, _tag: string, body: string) => {
+            const trimmed = body.trim();
+            const pipeIdx = trimmed.indexOf('|');
+            if (pipeIdx >= 0) return trimmed.slice(pipeIdx + 1).trim();
+            return trimmed;
+        },
+    );
+    return result.replace(/[{}]/g, (m) => `\\${m}`).trim();
+}

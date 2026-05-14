@@ -20,11 +20,57 @@ export type {
     StreamingAPI,
     TonCenterStreamingProviderConfig,
     TonApiStreamingProviderConfig,
-    BalanceUpdate,
-    TransactionsUpdate,
-    Transaction,
-    JettonUpdate,
     StreamingUpdate,
     StreamingWatchType,
     StreamingEvents,
 } from '@ton/walletkit';
+
+/**
+ * Update payload delivered to {@link watchTransactions} / {@link watchTransactionsByAddress} subscribers when transactions land for the watched address.
+ *
+ * @extract
+ * @public
+ * @category Type
+ * @section Transactions
+ */
+export type { TransactionsUpdate } from '@ton/walletkit';
+
+/**
+ * Single transaction record carried inside {@link TransactionsUpdate}'s `transactions` — account, lt/hash, in/out messages and emulation result.
+ *
+ * @extract
+ * @public
+ * @category Type
+ * @section Transactions
+ */
+export type { Transaction } from '@ton/walletkit';
+
+/**
+ * Update payload delivered to {@link watchJettons} / {@link watchJettonsByAddress} subscribers when the watched owner's jetton balance changes.
+ *
+ * @extract
+ * @public
+ * @category Type
+ * @section Jettons
+ */
+export type { JettonUpdate } from '@ton/walletkit';
+
+/**
+ * Finality stage carried by every streaming update — `'pending'` (in mempool), `'confirmed'` (included in a block), `'finalized'` (irreversible), or `'invalidated'` (rolled back).
+ *
+ * @extract
+ * @public
+ * @category Type
+ * @section Balances
+ */
+export type { StreamingUpdateStatus } from '@ton/walletkit';
+
+/**
+ * Update payload delivered to {@link watchBalance} / {@link watchBalanceByAddress} subscribers when the watched address's TON balance changes.
+ *
+ * @extract
+ * @public
+ * @category Type
+ * @section Balances
+ */
+export type { BalanceUpdate } from '@ton/walletkit';

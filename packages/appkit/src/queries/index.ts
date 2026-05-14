@@ -37,7 +37,7 @@ export {
     type DisconnectVariables,
 } from './connectors/disconnect';
 
-// Crypto onramp
+// Crypto Onramp
 export {
     getCryptoOnrampQuoteQueryOptions,
     type GetCryptoOnrampQuoteQueryConfig,

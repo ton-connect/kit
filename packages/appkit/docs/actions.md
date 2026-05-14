@@ -1,7 +1,7 @@
 <!--
 This file is auto-generated. Do not edit manually.
 Changes will be overwritten when running the docs update script.
-Source template: template/packages/appkit/docs/actions.md
+Source template: docs/templates/packages/appkit/docs/actions.md
 -->
 
 # Actions
@@ -17,7 +17,7 @@ Get the TON balance of the currently selected wallet.
 ```ts
 const balance = await getBalance(appKit);
 if (balance) {
-    console.log('Balance:', balance.toString());
+    console.log('Balance:', balance);
 }
 ```
 
@@ -27,9 +27,9 @@ Fetch the TON balance of a specific address.
 
 ```ts
 const balanceByAddress = await getBalanceByAddress(appKit, {
-    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c', // Zero Address
+    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
 });
-console.log('Balance by address:', balanceByAddress.toString());
+console.log('Balance by address:', balanceByAddress);
 ```
 
 ### `watchBalance`
@@ -78,7 +78,7 @@ await connect(appKit, {
 Add a wallet connector to AppKit (e.g., TonConnect).
 
 ```ts
-const stopWatching = addConnector(
+const unregister = addConnector(
     appKit,
     createTonConnectConnector({
         tonConnectOptions: {
@@ -87,7 +87,7 @@ const stopWatching = addConnector(
     }),
 );
 
-// Later: stopWatching();
+// Later: unregister();
 ```
 
 ### `disconnect`
@@ -167,7 +167,7 @@ if (!response) {
     return;
 }
 console.log('Jettons:', response.jettons.length);
-response.jettons.forEach((j) => console.log(`- ${j.info.name}: ${j.balance.toString()}`));
+response.jettons.forEach((j) => console.log(`- ${j.info.name}: ${j.balance}`));
 ```
 
 ### `getJettonsByAddress`
@@ -185,7 +185,7 @@ const response = await getJettonsByAddress(appKit, {
     address: selectedWallet.getAddress(),
 });
 console.log('Jettons by Address:', response.jettons.length);
-response.jettons.forEach((j) => console.log(`- ${j.info.name}: ${j.balance.toString()}`));
+response.jettons.forEach((j) => console.log(`- ${j.info.name}: ${j.balance}`));
 ```
 
 ### `getJettonBalance`
@@ -204,7 +204,7 @@ const balance = await getJettonBalance(appKit, {
     ownerAddress: selectedWallet.getAddress(),
     jettonDecimals: 6,
 });
-console.log('Jetton Balance:', balance.toString());
+console.log('Jetton Balance:', balance);
 ```
 
 ### `getJettonInfo`
@@ -390,7 +390,7 @@ Get all NFTs owned by a specific address.
 
 ```ts
 const response = await getNftsByAddress(appKit, {
-    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c', // Zero Address
+    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
 });
 
 console.log('NFTs by address:', response.nfts.length);
@@ -563,7 +563,7 @@ Sign a TON Cell with the connected wallet. Used for on-chain signature verificat
 
 ```ts
 const result = await signCell(appKit, {
-    cell: 'te6ccgEBAQEAAgAAGA==' as Base64String, // Example BOC
+    cell: 'te6ccgEBAQEAAgAAGA==' as Base64String, // Example BoC
     schema: 'transfer#abc123 amount:uint64 = Transfer',
 });
 
@@ -657,7 +657,7 @@ console.log('Swap Transaction:', transactionResponse);
 Get all available staking provider IDs.
 
 ```ts
-const providers = await getStakingProviders(appKit);
+const providers = getStakingProviders(appKit);
 console.log('Available Staking Providers:', providers);
 ```
 
@@ -725,7 +725,7 @@ console.log('Staked Balance:', balance);
 Create a TON transfer transaction request without sending it.
  
 ```ts
-const tx = await createTransferTonTransaction(appKit, {
+const tx = createTransferTonTransaction(appKit, {
     recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
     amount: '0.1', // 0.1 TON (human-readable format)
     comment: 'Draft transaction',

@@ -30,25 +30,31 @@ const DEFAULT_CURRENCIES: OnrampCurrency[] = ONRAMP_CURRENCIES.filter((c) => c.i
 
 const DEFAULT_PRESET_AMOUNTS = ['50', '100', '250', '500'];
 
+/**
+ * Props for `TonPayWidget`. Internal: TonPay widget is not part of the public API yet.
+ */
 export interface TonPayWidgetProps {
-    /** Tokens available to buy — only TON and USDT are supported by TonPay */
+    /** Tokens available to buy — filtered down to TON and USDT (the only assets TonPay supports). */
     tokens: AppkitUIToken[];
-    /** Optional section configs for grouping tokens in the selector */
+    /** Optional section configs for grouping tokens in the picker. */
     tokenSections?: TokenSectionConfig[];
-    /** Id of the token pre-selected for purchase */
+    /** ID of the token pre-selected for purchase. */
     defaultTokenId?: string;
-    /** Fiat currencies to show in the selector. Defaults to USD only. */
+    /** Fiat currencies offered in the picker. Defaults to USD only. */
     currencies?: OnrampCurrency[];
-    /** Optional section configs for grouping currencies in the selector */
+    /** Optional section configs for grouping currencies in the picker. */
     currencySections?: CurrencySectionConfig[];
-    /** Id of the fiat currency pre-selected */
+    /** ID of the fiat currency pre-selected. */
     defaultCurrencyId?: string;
-    /** Pre-filled amount */
+    /** Pre-filled crypto amount as a decimal string. */
     defaultAmount?: string;
-    /** Preset amount buttons (crypto amounts). Defaults to 50/100/250/500 with the token ticker. */
+    /** Preset amount buttons. Defaults to `50` / `100` / `250` / `500`. */
     presetAmounts?: OnrampAmountPreset[];
 }
 
+/**
+ * Widget that funnels users into the TonPay (MoonPay) checkout — collects a target asset (TON or USDT), fiat currency and amount, requests a transfer link from `pay.ton.org` for the active wallet's address, and opens the hosted checkout in a new tab. Internal: TonPay widget is not part of the public API yet.
+ */
 export const TonPayWidget: FC<TonPayWidgetProps> = ({
     tokens,
     tokenSections,

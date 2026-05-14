@@ -1,7 +1,7 @@
 <!--
 This file is auto-generated. Do not edit manually.
 Changes will be overwritten when running the docs update script.
-Source template: template/packages/walletkit/README.md
+Source template: docs/templates/packages/walletkit/README.md
 -->
 
 # TonWalletKit
@@ -213,7 +213,7 @@ if (!wallet) {
 }
 // Query balance
 const balance = await wallet.getBalance();
-console.log('WalletBalance', wallet.getAddress(), balance.toString());
+console.log('WalletBalance', wallet.getAddress(), balance);
 ```
 
 ### Rendering previews (reference)

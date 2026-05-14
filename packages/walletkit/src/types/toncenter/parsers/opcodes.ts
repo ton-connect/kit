@@ -8,7 +8,7 @@
 
 /**
  * Registry of known operation codes for TON blockchain messages
- * Provides type-safe opcode definitions and utilities for matching messages
+ * Provides type-safe opcode definitions and utilities for matching messages.
  */
 
 export enum OpCode {
@@ -42,7 +42,7 @@ export enum OpCode {
 }
 
 /**
- * Message type names corresponding to opcodes
+ * Message type names corresponding to opcodes.
  */
 export enum MessageType {
     JettonTransfer = 'jetton_transfer',
@@ -65,7 +65,7 @@ export enum MessageType {
 }
 
 /**
- * Bidirectional mapping between opcodes and message types
+ * Bidirectional mapping between opcodes and message types.
  */
 export const OpCodeMapping: Record<OpCode, MessageType> = {
     [OpCode.JettonTransfer]: MessageType.JettonTransfer,
@@ -90,7 +90,7 @@ export const OpCodeMapping: Record<OpCode, MessageType> = {
 };
 
 /**
- * Reverse mapping for quick lookup
+ * Reverse mapping for quick lookup.
  */
 export const MessageTypeToOpCode: Record<MessageType, OpCode | undefined> = {
     [MessageType.JettonTransfer]: OpCode.JettonTransfer,
@@ -112,7 +112,7 @@ export const MessageTypeToOpCode: Record<MessageType, OpCode | undefined> = {
 };
 
 /**
- * Legacy mapping for backwards compatibility
+ * Legacy mapping for backwards compatibility.
  */
 export const LegacyOpCodeMap: Record<string, string> = {
     '0x0f8a7ea5': 'jetton_transfer',
@@ -126,7 +126,7 @@ export const LegacyOpCodeMap: Record<string, string> = {
 };
 
 /**
- * Resolves an opcode string to a MessageType
+ * Resolves an opcode string to a MessageType.
  */
 export function resolveOpCode(opcode: string): MessageType {
     const normalized = opcode.toLowerCase();
@@ -148,7 +148,7 @@ export function resolveOpCode(opcode: string): MessageType {
 }
 
 /**
- * Checks if an opcode matches any of the given message types
+ * Checks if an opcode matches any of the given message types.
  */
 export function matchesMessageType(opcode: string, types: MessageType[]): MessageType | null {
     const resolved = resolveOpCode(opcode);
@@ -156,7 +156,7 @@ export function matchesMessageType(opcode: string, types: MessageType[]): Messag
 }
 
 /**
- * Checks if decoded message matches a message type
+ * Checks if decoded message matches a message type.
  */
 export function matchesDecodedType(decodedType: string, types: MessageType[]): MessageType | null {
     // Try direct match with decoded @type

@@ -14,13 +14,23 @@ import styles from './onramp-provider-select.module.css';
 import { OnrampProviderItem } from '../onramp-provider-item';
 import { useI18n } from '../../../settings/hooks/use-i18n';
 
+/**
+ * Props for `OnrampProviderSelect`. Internal: fiat onramp is not part of the public API yet.
+ */
 export interface OnrampProviderSelectProps {
+    /** Whether the modal is open. */
     open: boolean;
+    /** Called when the modal requests to close (selection made or dismissed). */
     onClose: () => void;
+    /** Onramp providers the user can pick from. */
     providers: OnrampProvider[];
+    /** Called with the picked provider before the modal closes. */
     onSelect: (provider: OnrampProvider) => void;
 }
 
+/**
+ * Modal listing available onramp providers as `OnrampProviderItem` rows — used to let users pick a checkout provider. Internal: fiat onramp is not part of the public API yet.
+ */
 export const OnrampProviderSelect: FC<OnrampProviderSelectProps> = ({ open, onClose, providers, onSelect }) => {
     const { t } = useI18n();
 

@@ -58,7 +58,7 @@ export const mapStatus = (status: LayerswapSwapStatus | string): CryptoOnrampSta
 
 /**
  * Format a base-units integer string into a decimal token-units string.
- * e.g. formatBaseUnits('2000000', 6) === '2'
+ * e.g. formatBaseUnits('2000000', 6) === '2'.
  */
 export const formatBaseUnits = (base: string, decimals: number): string => {
     if (!/^\d+$/.test(base)) {

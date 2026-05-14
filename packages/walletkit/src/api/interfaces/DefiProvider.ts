@@ -17,6 +17,7 @@ export type DefiProviderType = 'swap' | 'staking' | 'onramp' | 'crypto-onramp';
  * Base interface for all DeFi providers
  */
 export interface DefiProvider extends BaseProvider {
+    /** Provider kind discriminator narrowed to the DeFi-domain literals so the right manager picks it up at registration time. */
     readonly type: DefiProviderType;
 
     /**

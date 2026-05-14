@@ -13,8 +13,22 @@ import type { SignTextData, SignTextErrorType, SignTextOptions, SignTextVariable
 import { useAppKit } from '../../settings';
 import { useMutation } from '../../../libs/query';
 
+/**
+ * Parameters accepted by {@link useSignText} — TanStack Query mutation options.
+ *
+ * @public
+ * @category Type
+ * @section Signing
+ */
 export type UseSignTextParameters<context = unknown> = SignTextOptions<context>;
 
+/**
+ * Return type of {@link useSignText} — TanStack Query mutation result.
+ *
+ * @public
+ * @category Type
+ * @section Signing
+ */
 export type UseSignTextReturnType<context = unknown> = UseMutationResult<
     SignTextData,
     SignTextErrorType,
@@ -23,16 +37,15 @@ export type UseSignTextReturnType<context = unknown> = UseMutationResult<
 >;
 
 /**
- * Hook to sign text messages with the connected wallet.
+ * Ask the selected wallet to sign a plain-text message — useful for off-chain login proofs and signed challenges. Call `mutate` from an event handler with the `text` to sign and an optional `network` override. On success, `data` carries the signature plus the canonicalized signer address, timestamp and dApp domain the wallet bound to the signature. Throws `Error('Wallet not connected')` if no wallet is currently selected — TanStack Query surfaces it via the mutation's `error`.
  *
- * @example
- * ```tsx
- * const { mutate: signText, isPending } = useSignText();
+ * @param parameters - {@link UseSignTextParameters} TanStack Query mutation overrides.
+ * @expand parameters
+ * @returns Mutation result for the signing call.
  *
- * const handleSign = () => {
- *   signText({ text: "Hello World" });
- * };
- * ```
+ * @public
+ * @category Hook
+ * @section Signing
  */
 export const useSignText = <context = unknown>(
     parameters: UseSignTextParameters<context> = {},

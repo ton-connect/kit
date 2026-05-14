@@ -19,23 +19,9 @@ import type {
 import type { CryptoOnrampProviderInterface } from '../../api/interfaces';
 
 /**
- * Abstract base class for crypto onramp providers
+ * Abstract base class for crypto onramp providers.
  *
- * Provides a common interface for implementing crypto-to-TON onramp functionality
- * across different gateways.
- *
- * @example
- * ```typescript
- * class MyCryptoOnrampProvider extends CryptoOnrampProvider {
- *   async getQuote(params: CryptoOnrampQuoteParams): Promise<CryptoOnrampQuote> {
- *     // Implementation
- *   }
- *
- *   async createDeposit(params: CryptoOnrampDepositParams): Promise<CryptoOnrampDeposit> {
- *     // Implementation
- *   }
- * }
- * ```
+ * Provides a common interface for implementing crypto-to-TON onramp functionality across different gateways. Apps don't typically subclass it directly — use the bundled factories ({@link createLayerswapProvider}, {@link createSwapsXyzProvider}) or build a custom provider through `createProvider`.
  */
 export abstract class CryptoOnrampProvider<
     TQuoteOptions = undefined,

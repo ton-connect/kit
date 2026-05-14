@@ -13,33 +13,37 @@ import { Dialog } from '../dialog';
 import { CloseIcon } from '../icons';
 import styles from './modal.module.css';
 
+/**
+ * Props accepted by {@link Modal}.
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export interface ModalProps {
-    /**
-     * Controlled open state.
-     */
+    /** Controlled open state. */
     open?: boolean;
-    /**
-     * Event handler called when the open state changes.
-     */
+    /** Called whenever the open state changes (e.g., via the close button, overlay click, or `Escape`). */
     onOpenChange?: (open: boolean) => void;
-    /**
-     * Modal title.
-     */
+    /** Optional title rendered in the modal header. */
     title?: string;
-    /**
-     * Modal content.
-     */
+    /** Modal body content. */
     children?: ReactNode;
-    /**
-     * Additional class name for the content container.
-     */
+    /** Additional class name applied to the content container. */
     className?: string;
-    /**
-     * Additional class name for the body container.
-     */
+    /** Additional class name applied to the body container. */
     bodyClassName?: string;
 }
 
+/**
+ * Centered modal dialog with a header (optional title + close button) and a scrollable body. Clicking the overlay closes the modal. Clicks on the content do not bubble through.
+ *
+ * @sample docs/examples/src/appkit/components/ui#MODAL
+ *
+ * @public
+ * @category Component
+ * @section UI
+ */
 export const Modal: FC<ModalProps> = ({ open, onOpenChange, title, children, className, bodyClassName }) => {
     return (
         <Dialog.Root open={open} onOpenChange={onOpenChange}>

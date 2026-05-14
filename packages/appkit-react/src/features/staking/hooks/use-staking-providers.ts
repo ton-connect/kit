@@ -12,10 +12,23 @@ import type { GetStakingProvidersReturnType } from '@ton/appkit';
 
 import { useAppKit } from '../../settings';
 
+/**
+ * Return type of {@link useStakingProviders} — array of registered staking providers.
+ *
+ * @public
+ * @category Type
+ * @section Staking
+ */
 export type UseStakingProvidersReturnType = GetStakingProvidersReturnType;
 
 /**
- * Hook to get all registered staking providers.
+ * React hook returning every staking provider registered on the AppKit instance (both those passed via config and those added later). Subscribes to provider-registry changes via {@link appkit:watchStakingProviders}.
+ *
+ * @returns Array of registered staking providers.
+ *
+ * @public
+ * @category Hook
+ * @section Staking
  */
 export const useStakingProviders = (): UseStakingProvidersReturnType => {
     const appKit = useAppKit();

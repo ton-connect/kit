@@ -20,17 +20,17 @@ export interface TransactionEmulatedPreview {
     result: Result;
 
     /**
-     * Error details if the emulation failed
+     * Error details if the emulation failed.
      */
     error?: ResultError;
 
     /**
-     * Full execution trace if emulation succeeded
+     * Full execution trace if emulation succeeded.
      */
     trace?: TransactionEmulatedTrace;
 
     /**
-     * Summary of token flows (incoming/outgoing) for the transaction
+     * Summary of token flows (incoming/outgoing) for the transaction.
      */
     moneyFlow?: TransactionTraceMoneyFlow;
 }

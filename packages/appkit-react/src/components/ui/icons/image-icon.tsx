@@ -11,6 +11,9 @@ import type { FC } from 'react';
 import { DEFAULT_ICON_SIZE } from './types';
 import type { IconProps } from './types';
 
+/**
+ * Image / picture placeholder icon — used as a fallback for missing media.
+ */
 export const ImageIcon: FC<IconProps> = ({ size = DEFAULT_ICON_SIZE, ...props }) => (
     <svg
         width={size}

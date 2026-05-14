@@ -6,23 +6,52 @@
  *
  */
 
-import { createNftTransferPayload, createTransferTransaction, DEFAULT_NFT_GAS_FEE } from '@ton/walletkit';
-
-import type { TransactionRequest } from '../../types/transaction';
 import type { AppKit } from '../../core/app-kit';
+import type { TransactionRequest } from '../../types/transaction';
+import type { UserFriendlyAddress } from '../../types/primitives';
+import { createNftTransferPayload, createTransferTransaction, DEFAULT_NFT_GAS_FEE } from '../../utils';
 import { getSelectedWallet } from '../wallets/get-selected-wallet';
 
+/**
+ * Parameters accepted by {@link createTransferNftTransaction} and {@link transferNft}.
+ *
+ * @public
+ * @category Type
+ * @section NFTs
+ */
 export interface CreateTransferNftTransactionParameters {
-    nftAddress: string;
-    recipientAddress: string;
+    /** NFT contract address to transfer. */
+    nftAddress: UserFriendlyAddress;
+    /** New owner address. */
+    recipientAddress: UserFriendlyAddress;
+    /** Amount of TON to attach to the transfer for gas. Defaults to AppKit's NFT gas-fee constant when omitted. */
     amount?: string;
+    /** Optional human-readable comment attached to the transfer. */
     comment?: string;
 }
 
+/**
+ * Return type of {@link createTransferNftTransaction}.
+ *
+ * @public
+ * @category Type
+ * @section NFTs
+ */
 export type CreateTransferNftTransactionReturnType = TransactionRequest;
 
 /**
- * Create a NFT transfer transaction request
+ * Build an NFT transfer {@link TransactionRequest} for the selected wallet without sending it — useful when the UI needs to inspect or batch transactions before signing. Throws `Error('Wallet not connected')` if no wallet is currently selected.
+ *
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param parameters - {@link CreateTransferNftTransactionParameters} NFT, recipient, optional gas amount and comment.
+ * @returns Transaction request ready to pass to `sendTransaction`.
+ *
+ * @sample docs/examples/src/appkit/actions/nft#CREATE_TRANSFER_NFT_TRANSACTION
+ * @expand parameters
+ *
+ * @public
+ * @category Action
+ * @section NFTs
  */
 export const createTransferNftTransaction = async (
     appKit: AppKit,

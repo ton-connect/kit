@@ -26,9 +26,23 @@ import { formatOnrampAmount } from '../utils/format-onramp-amount';
 import { useI18n } from '../../../../settings/hooks/use-i18n';
 import styles from './crypto-onramp-widget-ui.module.css';
 
+/**
+ * Props for {@link CryptoOnrampWidgetUI} (and for the custom render callback on {@link CryptoOnrampWidget}) — the full {@link CryptoOnrampContextType} state and actions, plus the native `<div>` props the widget root forwards (`className`, `style`, etc.).
+ *
+ * @public
+ * @category Type
+ * @section Crypto Onramp
+ */
 export type CryptoOnrampWidgetRenderProps = CryptoOnrampContextType &
     Omit<ComponentProps<'div'>, keyof CryptoOnrampContextType>;
 
+/**
+ * Presentational UI for the crypto-to-TON onramp widget — renders the from/to selectors, amount input with presets, continue button, info block (you-get / balance / provider) and the token-pick / method-pick / refund-address / deposit modals. All state and actions come from props ({@link CryptoOnrampWidgetRenderProps}). Typically rendered inside {@link CryptoOnrampWidgetProvider} via {@link CryptoOnrampWidget}.
+ *
+ * @public
+ * @category Component
+ * @section Crypto Onramp
+ */
 export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
     tokens,
     tokenSections,

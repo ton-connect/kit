@@ -13,29 +13,44 @@ import { getSelectedWallet } from '../wallets/get-selected-wallet';
 import type { Base64String } from '../../types/primitives';
 import { getDefaultNetwork } from '../network/get-default-network';
 
+/**
+ * Parameters accepted by {@link signCell}.
+ *
+ * @public
+ * @category Type
+ * @section Signing
+ */
 export interface SignCellParameters {
-    /** Base64 encoded Bag of Cells */
+    /** TON cell content encoded as Base64 (BoC). */
     cell: Base64String;
-    /** TL-B schema for the cell structure */
+    /** TL-B-style schema describing the cell layout so the wallet can render the payload to the user. */
     schema: string;
-    /** Optional network (mainnet/testnet) */
+    /** Network to issue the sign request against. Defaults to AppKit's configured default network. When none is set, the wallet falls back to its current network. */
     network?: Network;
 }
 
+/**
+ * Return type of {@link signCell}.
+ *
+ * @public
+ * @category Type
+ * @section Signing
+ */
 export type SignCellReturnType = SignDataResponse;
 
 /**
- * Sign a TON Cell with the connected wallet.
- * Used for on-chain signature verification.
+ * Ask the selected wallet to sign a TON cell — typically used so the signature can later be verified on-chain. Throws `Error('Wallet not connected')` if no wallet is currently selected.
  *
- * @example
- * ```ts
- * const result = await signCell(appKit, {
- *   cell: bocBase64,
- *   schema: "transfer#abc123 amount:uint64 = Transfer"
- * });
- * console.log(result.signature);
- * ```
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param parameters - {@link SignCellParameters} Cell content, TL-B schema and optional network override.
+ * @returns Signature and signed payload, as returned by the wallet.
+ *
+ * @sample docs/examples/src/appkit/actions/signing#SIGN_CELL
+ * @expand parameters
+ *
+ * @public
+ * @category Action
+ * @section Signing
  */
 export const signCell = async (appKit: AppKit, parameters: SignCellParameters): Promise<SignCellReturnType> => {
     const wallet = getSelectedWallet(appKit);

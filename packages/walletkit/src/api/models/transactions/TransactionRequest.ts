@@ -17,17 +17,17 @@ import type { TokenAmount } from '../core/TokenAmount';
  */
 export interface TransactionRequest {
     /**
-     * List of messages to include in the transaction
+     * List of messages to include in the transaction.
      */
     messages: TransactionRequestMessage[];
 
     /**
-     * Network to execute the transaction on
+     * Network to execute the transaction on.
      */
     network?: Network;
 
     /**
-     * Unix timestamp after which the transaction becomes invalid
+     * Unix timestamp after which the transaction becomes invalid.
      */
     validUntil?: number;
 
@@ -47,27 +47,27 @@ export interface TransactionRequestMessage {
     address: string;
 
     /**
-     * Amount to transfer in nanos
+     * Amount to transfer in nanos.
      */
     amount: TokenAmount;
 
     /**
-     * Send mode flags controlling message behavior
+     * Send mode flags controlling message behavior.
      */
     mode?: SendMode;
 
     /**
-     * Additional currencies to include in the transfer
+     * Additional currencies to include in the transfer.
      */
     extraCurrency?: ExtraCurrencies;
 
     /**
-     * Initial state for deploying a new contract, encoded in Base64
+     * Initial state for deploying a new contract, encoded in Base64.
      */
     stateInit?: Base64String;
 
     /**
-     * Message payload data encoded in Base64
+     * Message payload data encoded in Base64.
      */
     payload?: Base64String;
 }

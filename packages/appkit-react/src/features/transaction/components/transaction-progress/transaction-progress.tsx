@@ -27,7 +27,7 @@ export interface TransactionProgressRenderProps extends TransactionProgressConte
 }
 
 export interface TransactionProgressProps extends Omit<ComponentProps<'div'>, 'children'> {
-    /** BOC of the transaction to strictly track status */
+    /** BoC of the transaction to strictly track status */
     boc: string;
     /** Render props function for full control over rendering */
     children?: (props: TransactionProgressRenderProps) => ReactNode;

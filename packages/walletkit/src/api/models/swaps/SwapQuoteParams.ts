@@ -10,7 +10,7 @@ import type { Network } from '../core/Network';
 import type { SwapToken } from './SwapToken';
 
 /**
- * Base parameters for requesting a swap quote
+ * Base parameters for requesting a swap quote.
  */
 export interface SwapQuoteParams<TProviderOptions = unknown> {
     /**
@@ -19,17 +19,17 @@ export interface SwapQuoteParams<TProviderOptions = unknown> {
     amount: string;
 
     /**
-     * Token to swap from
+     * Token to swap from.
      */
     from: SwapToken;
 
     /**
-     * Token to swap to
+     * Token to swap to.
      */
     to: SwapToken;
 
     /**
-     * Network on which the swap will be executed
+     * Network on which the swap will be executed.
      */
     network: Network;
 
@@ -46,7 +46,7 @@ export interface SwapQuoteParams<TProviderOptions = unknown> {
     maxOutgoingMessages?: number;
 
     /**
-     * Provider-specific options
+     * Provider-specific options.
      */
     providerOptions?: TProviderOptions;
 

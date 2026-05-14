@@ -102,7 +102,7 @@ export type { OnrampQuoteParams } from './onramp/OnrampQuoteParams';
 export type { OnrampLimits } from './onramp/OnrampLimits';
 export type { OnrampLimitParams } from './onramp/OnrampLimitParams';
 
-// Crypto onramp models
+// Crypto Onramp models
 export type { CryptoOnrampQuote } from './crypto-onramp/CryptoOnrampQuote';
 export type { CryptoOnrampQuoteParams } from './crypto-onramp/CryptoOnrampQuoteParams';
 export type { CryptoOnrampDepositParams } from './crypto-onramp/CryptoOnrampDepositParams';

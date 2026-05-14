@@ -8,14 +8,39 @@
 
 import type { AppKit } from '../../core/app-kit';
 
+/**
+ * Parameters accepted by {@link watchCryptoOnrampProviders}.
+ *
+ * @public
+ * @category Type
+ * @section Crypto Onramp
+ */
 export interface WatchCryptoOnrampProvidersParameters {
+    /** Callback fired whenever a crypto-onramp provider is registered or the default crypto-onramp provider changes. */
     onChange: () => void;
 }
 
+/**
+ * Return type of {@link watchCryptoOnrampProviders} — call to stop receiving updates.
+ *
+ * @public
+ * @category Type
+ * @section Crypto Onramp
+ */
 export type WatchCryptoOnrampProvidersReturnType = () => void;
 
 /**
- * Watch for new crypto-onramp providers registration and default-provider changes.
+ * Subscribe to crypto-onramp provider lifecycle — fires `onChange` whenever a new provider is registered or the default crypto-onramp provider switches.
+ *
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param parameters - {@link WatchCryptoOnrampProvidersParameters} Update callback.
+ * @returns Unsubscribe function — call it to stop receiving updates.
+ *
+ * @expand parameters
+ *
+ * @public
+ * @category Action
+ * @section Crypto Onramp
  */
 export const watchCryptoOnrampProviders = (
     appKit: AppKit,

@@ -7,7 +7,7 @@
  */
 
 /**
- * Crypto onramp quote response with pricing information
+ * Crypto onramp quote response with pricing information.
  */
 export interface CryptoOnrampQuote<TMetadata = unknown> {
     /**
@@ -28,12 +28,12 @@ export interface CryptoOnrampQuote<TMetadata = unknown> {
     targetCurrencyAddress: string;
 
     /**
-     * Amount of source crypto to send
+     * Amount of source crypto to send.
      */
     sourceAmount: string;
 
     /**
-     * Amount of target crypto to receive
+     * Amount of target crypto to receive.
      */
     targetAmount: string;
 
@@ -43,12 +43,12 @@ export interface CryptoOnrampQuote<TMetadata = unknown> {
     rate: string;
 
     /**
-     * TON address that will receive the target crypto
+     * TON address that will receive the target crypto.
      */
     recipientAddress: string;
 
     /**
-     * Identifier of the crypto onramp provider
+     * Identifier of the crypto onramp provider.
      */
     providerId: string;
 

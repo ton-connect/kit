@@ -11,51 +11,51 @@ import type { TokenAmount } from '../core/TokenAmount';
 import type { SwapToken } from './SwapToken';
 
 /**
- * Swap quote response with pricing information
+ * Swap quote response with pricing information.
  */
 export interface SwapQuote {
     /**
-     * Token being sold
+     * Token being sold.
      */
     fromToken: SwapToken;
 
     /**
-     * Token being bought
+     * Token being bought.
      */
     toToken: SwapToken;
 
     /**
-     * Amount of tokens to sell
+     * Amount of `fromToken` to sell, in raw smallest units (e.g., nano-TON).
      */
     rawFromAmount: TokenAmount;
 
     /**
-     * Amount of tokens to buy
+     * Amount of `toToken` to buy, in raw smallest units (e.g., nano-TON).
      */
     rawToAmount: TokenAmount;
 
     /**
-     * Amount of tokens to sell
+     * Amount of `fromToken` to sell, formatted to the token's decimals as a human-readable decimal string (e.g., `"1.5"`).
      */
     fromAmount: string;
 
     /**
-     * Amount of tokens to buy
+     * Amount of `toToken` to buy, formatted to the token's decimals as a human-readable decimal string (e.g., `"1.5"`).
      */
     toAmount: string;
 
     /**
-     * Minimum amount of tokens to receive (after slippage)
+     * Minimum amount of `toToken` to receive after slippage, in raw smallest units (e.g., nano-TON).
      */
     rawMinReceived: TokenAmount;
 
     /**
-     * Minimum amount of tokens to receive (after slippage)
+     * Minimum amount of `toToken` to receive after slippage, formatted to the token's decimals as a human-readable decimal string (e.g., `"1.5"`).
      */
     minReceived: string;
 
     /**
-     * Network on which the swap will be executed
+     * Network on which the swap will be executed.
      */
     network: Network;
 
@@ -66,7 +66,7 @@ export interface SwapQuote {
     priceImpact?: number;
 
     /**
-     * Identifier of the swap provider
+     * Identifier of the swap provider.
      */
     providerId: string;
 
@@ -77,7 +77,7 @@ export interface SwapQuote {
     expiresAt?: number;
 
     /**
-     * Provider-specific metadata for the quote
+     * Provider-specific metadata for the quote.
      */
     metadata?: unknown;
 }

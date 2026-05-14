@@ -11,6 +11,9 @@ import type { FC } from 'react';
 import { DEFAULT_ICON_SIZE } from './types';
 import type { IconProps } from './types';
 
+/**
+ * Sliders / settings icon — two horizontal tracks with adjustable handles.
+ */
 export const SlidersIcon: FC<IconProps> = ({ size = DEFAULT_ICON_SIZE, ...props }) => (
     <svg
         width={size}

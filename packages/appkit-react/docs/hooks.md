@@ -1,7 +1,7 @@
 <!--
 This file is auto-generated. Do not edit manually.
 Changes will be overwritten when running the docs update script.
-Source template: template/packages/appkit-react/docs/hooks.md
+Source template: docs/templates/packages/appkit-react/docs/hooks.md
 -->
 
 # Hooks
@@ -51,7 +51,7 @@ if (error) {
     return <div>Error: {error.message}</div>;
 }
 
-return <div>Balance: {balance?.toString()}</div>;
+return <div>Balance: {balance}</div>;
 ```
 
 ### `useBalanceByAddress`
@@ -75,7 +75,7 @@ if (error) {
     return <div>Error: {error.message}</div>;
 }
 
-return <div>Balance: {balance?.toString()}</div>;
+return <div>Balance: {balance}</div>;
 ```
 
 ### `useWatchBalance`
@@ -248,7 +248,7 @@ if (error) {
     return <div>Error: {error.message}</div>;
 }
 
-return <div>Jetton Wallet Address: {walletAddress?.toString()}</div>;
+return <div>Jetton Wallet Address: {walletAddress}</div>;
 ```
 
 ### `useTransferJetton`
@@ -413,7 +413,7 @@ return (
         <h3>NFT Details</h3>
         <p>Name: {nft?.info?.name}</p>
         <p>Collection: {nft?.collection?.name}</p>
-        <p>Owner: {nft?.ownerAddress?.toString()}</p>
+        <p>Owner: {nft?.ownerAddress}</p>
     </div>
 );
 ```
@@ -444,7 +444,7 @@ return (
         <h3>My NFTs</h3>
         <ul>
             {nfts?.nfts.map((nft) => (
-                <li key={nft.address.toString()}>
+                <li key={nft.address}>
                     {nft.info?.name} ({nft.collection?.name})
                 </li>
             ))}
@@ -480,7 +480,7 @@ return (
         <h3>NFTs</h3>
         <ul>
             {nfts?.nfts.map((nft) => (
-                <li key={nft.address.toString()}>
+                <li key={nft.address}>
                     {nft.info?.name} ({nft.collection?.name})
                 </li>
             ))}
@@ -1063,7 +1063,7 @@ return (
         <ul>
             {connectedWallets.map((wallet) => (
                 <li key={wallet.getAddress()}>
-                    {wallet.getAddress()} ({wallet.getNetwork().toString()})
+                    {wallet.getAddress()} ({wallet.getNetwork().chainId})
                 </li>
             ))}
         </ul>

@@ -6,29 +6,34 @@
  *
  */
 
-import { SwapManager, StreamingManager, OnrampManager, CryptoOnrampManager } from '@ton/walletkit';
-import type {
-    ProviderInput,
-    SwapProviderInterface,
-    StakingProviderInterface,
-    OnrampProviderInterface,
-    CryptoOnrampProviderInterface,
-} from '@ton/walletkit';
-
-import type { AppKitConfig } from '../types/config';
-import { CONNECTOR_EVENTS, WALLETS_EVENTS } from '../constants/events';
+import { CryptoOnrampManager } from '../../../crypto-onramp';
+import type { CryptoOnrampProviderInterface } from '../../../crypto-onramp';
+import { OnrampManager } from '../../../onramp';
+import type { OnrampProviderInterface } from '../../../onramp';
 import { StakingManager } from '../../../staking';
+import type { StakingProviderInterface } from '../../../staking';
+import { SwapManager } from '../../../swap';
+import type { SwapProviderInterface } from '../../../swap';
 import type { Connector, ConnectorFactoryContext, ConnectorInput } from '../../../types/connector';
-import { EventEmitter } from '../../emitter';
-import type { AppKitEmitter, AppKitEvents } from '../types/events';
-import type { WalletInterface } from '../../../types/wallet';
-import { WalletsManager } from '../../wallets-manager';
-import { AppKitNetworkManager } from '../../network';
 import { Network } from '../../../types/network';
+import type { ProviderInput } from '../../../types/provider';
+import type { WalletInterface } from '../../../types/wallet';
+import { EventEmitter } from '../../emitter';
+import { AppKitNetworkManager } from '../../network';
+import { StreamingManager } from '../../streaming';
+import { WalletsManager } from '../../wallets-manager';
+import { CONNECTOR_EVENTS, WALLETS_EVENTS } from '../constants/events';
+import type { AppKitEmitter, AppKitEvents } from '../types/events';
+import type { AppKitConfig } from '../types/config';
 
 /**
- * Central hub for wallet management.
- * Stores emitter, providers, and manages wallet connections.
+ * Runtime that wires connectors, networks, providers and the event emitter for a TON dApp. Construct once at startup and reuse for the app's lifetime.
+ *
+ * @sample docs/examples/src/appkit#APPKIT_INIT
+ *
+ * @public
+ * @category Class
+ * @section Core
  */
 export class AppKit {
     readonly emitter: AppKitEmitter;
@@ -43,6 +48,10 @@ export class AppKit {
     readonly streamingManager: StreamingManager;
     readonly config: AppKitConfig;
 
+    /**
+     * @param config - {@link AppKitConfig} Networks, connectors, providers and runtime flags.
+     * @expand config
+     */
     constructor(config: AppKitConfig) {
         this.config = config;
 
@@ -55,6 +64,9 @@ export class AppKit {
         };
 
         this.networkManager = new AppKitNetworkManager({ networks }, this.emitter);
+        if (config.defaultNetwork) {
+            this.networkManager.setDefaultNetwork(config.defaultNetwork);
+        }
         this.walletsManager = new WalletsManager(this.emitter);
 
         this.swapManager = new SwapManager(() => this.createFactoryContext());
@@ -77,11 +89,11 @@ export class AppKit {
     }
 
     createFactoryContext(): ConnectorFactoryContext {
-        return { eventEmitter: this.emitter, networkManager: this.networkManager, ssr: this.config?.ssr };
+        return { eventEmitter: this.emitter, networkManager: this.networkManager };
     }
 
     /**
-     * Add a wallet connector
+     * Add a wallet connector.
      */
     addConnector(input: ConnectorInput): () => void {
         const connector = typeof input === 'function' ? input(this.createFactoryContext()) : input;
@@ -102,7 +114,7 @@ export class AppKit {
     }
 
     /**
-     * Remove a wallet connector
+     * Remove a wallet connector.
      */
     removeConnector(connector: Connector): void {
         const id = connector.id;
@@ -117,7 +129,7 @@ export class AppKit {
     }
 
     /**
-     * Add a provider
+     * Add a provider.
      */
     registerProvider(input: ProviderInput): void {
         const provider = typeof input === 'function' ? input(this.createFactoryContext()) : input;
@@ -140,7 +152,7 @@ export class AppKit {
     }
 
     /**
-     * Get all connected wallets from all connectors
+     * Get all connected wallets from all connectors.
      */
     private updateWalletsFromConnectors(): void {
         const allWallets: WalletInterface[] = [];

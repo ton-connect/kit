@@ -2,6 +2,7 @@ packages:
   - packages/*
   - apps/*
   - demo/*
+  - docs/*
 
 catalog:
   '@tanstack/query-core': 5.99.0

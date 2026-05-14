@@ -34,7 +34,7 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
     }
 
     /**
-     * Initialize manager and load persisted sessions
+     * Initialize manager and load persisted sessions.
      */
     async initialize(): Promise<void> {
         await this.loadSessions();
@@ -93,7 +93,7 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
     }
 
     /**
-     * Get session by ID
+     * Get session by ID.
      */
     async getSession(sessionId: string): Promise<TONConnectSession | undefined> {
         return this.sessions.get(sessionId);
@@ -139,7 +139,7 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
     }
 
     /**
-     * Remove session by ID
+     * Remove session by ID.
      */
     async removeSession(sessionId: string): Promise<void> {
         const removed = this.sessions.delete(sessionId);
@@ -165,7 +165,7 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
     }
 
     /**
-     * Clear all sessions
+     * Clear all sessions.
      */
     async clearSessions(): Promise<void> {
         this.sessions.clear();
@@ -173,14 +173,14 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
     }
 
     /**
-     * Get session count
+     * Get session count.
      */
     getSessionCount(): number {
         return this.sessions.size;
     }
 
     /**
-     * Check if session exists
+     * Check if session exists.
      */
     hasSession(sessionId: string): boolean {
         return this.sessions.has(sessionId);
@@ -214,7 +214,7 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
     }
 
     /**
-     * Load sessions from storage
+     * Load sessions from storage.
      */
     private async loadSessions(): Promise<void> {
         try {
@@ -241,7 +241,7 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
     }
 
     /**
-     * Persist session metadata to storage
+     * Persist session metadata to storage.
      */
     private async persistSessions(): Promise<void> {
         try {
