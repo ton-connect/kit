@@ -11,6 +11,7 @@ import { describe, expect, it } from 'vitest';
 import type { ToncenterEmulationResponse } from '../types/raw-emulation';
 import { mapToncenterEmulationResponse } from './map-emulation';
 import { computeMoneyFlow } from '../../../utils/computeMoneyFlow';
+import type { ApiClient } from '../../../api/interfaces';
 
 // 32 bytes of 0x00 in base64
 const TX_HASH_B64 = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
@@ -193,7 +194,7 @@ describe('mapToncenterEmulationResponse', () => {
         expect(tx.outMsgs[0].destination).toMatch(/^EQ|UQ/);
     });
 
-    it('maps top-level fields correctly', () => {
+    it('maps top-level fields correctly', async () => {
         const mapped = mapToncenterEmulationResponse(RAW_RESPONSE);
 
         expect(mapped.mcBlockSeqno).toBe(42);
@@ -203,7 +204,7 @@ describe('mapToncenterEmulationResponse', () => {
         expect(mapped.codeCells).toEqual({});
         expect(mapped.dataCells).toEqual({});
 
-        const moneyFlow = computeMoneyFlow(mapped);
+        const moneyFlow = await computeMoneyFlow({} as unknown as ApiClient, mapped);
         expect(moneyFlow).toBeDefined();
         expect(moneyFlow.outputs).toBe('1000000000');
         expect(moneyFlow.inputs).toBe('0');

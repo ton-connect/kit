@@ -15,3 +15,4 @@ export * from './TracePage';
 export * from './TransactionDetail';
 export * from './Swap';
 export * from './Staking';
+export * from './TonConnectRoute';

@@ -8,16 +8,13 @@
 
 // Sign data request handler
 
-import type { SignDataPayload as TonConnectSignDataPayload } from '@tonconnect/protocol';
-
 import type { RawBridgeEvent, EventHandler, RawBridgeEventSignData } from '../types/internal';
+import { parseConnectSignDataParamContent } from '../types/internal';
 import { BasicHandler } from './BasicHandler';
 import { globalLogger } from '../core/Logger';
-import { validateSignDataPayload } from '../validation/signData';
 import { WalletKitError, ERROR_CODES } from '../errors';
 import type { WalletManager } from '../core/WalletManager';
-import type { SignDataPayload, SignData, SignDataRequestEvent, SignDataPreview, Base64String } from '../api/models';
-import { Network } from '../api/models';
+import type { SignDataPayload, SignData, SignDataRequestEvent, SignDataPreview } from '../api/models';
 import type { Analytics, AnalyticsManager } from '../analytics';
 import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 
@@ -113,57 +110,7 @@ export class SignDataHandler
      * Parse data to sign from bridge event
      */
     private parseDataToSign(event: RawBridgeEventSignData): SignDataPayload | undefined {
-        try {
-            const parsed = JSON.parse(event.params[0]) as TonConnectSignDataPayload;
-
-            const validationResult = validateSignDataPayload(parsed);
-
-            if (validationResult) {
-                log.error('Invalid data to sign found in request', { validationResult });
-                return undefined;
-            }
-
-            if (parsed === undefined) {
-                return undefined;
-            }
-
-            let signData: SignData;
-
-            if (parsed.type === 'text') {
-                signData = {
-                    type: 'text',
-                    value: {
-                        content: parsed.text,
-                    },
-                };
-            } else if (parsed.type === 'binary') {
-                signData = {
-                    type: 'binary',
-                    value: {
-                        content: parsed.bytes as Base64String,
-                    },
-                };
-            } else if (parsed.type === 'cell') {
-                signData = {
-                    type: 'cell',
-                    value: {
-                        schema: parsed.schema,
-                        content: parsed.cell as Base64String,
-                    },
-                };
-            } else {
-                return undefined;
-            }
-
-            return {
-                network: parsed.network ? Network.custom(parsed.network) : undefined,
-                fromAddress: parsed.from,
-                data: signData,
-            };
-        } catch (error) {
-            log.error('Invalid data to sign found in request', { error });
-            return undefined;
-        }
+        return parseConnectSignDataParamContent(event);
     }
 
     /**

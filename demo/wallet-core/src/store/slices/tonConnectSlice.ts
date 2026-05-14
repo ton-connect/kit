@@ -12,6 +12,7 @@ import type {
     SendTransactionRequestEvent,
     ConnectionRequestEvent,
     SignDataRequestEvent,
+    SignMessageRequestEvent,
     DisconnectionEvent,
 } from '@ton/walletkit';
 
@@ -39,6 +40,8 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
         isTransactionModalOpen: false,
         pendingSignDataRequestEvent: undefined,
         isSignDataModalOpen: false,
+        pendingSignMessageRequestEvent: undefined,
+        isSignMessageModalOpen: false,
         disconnectedSessions: [],
     },
 
@@ -85,17 +88,40 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
                 walletId: selectedWallet.getWalletId(),
             };
 
-            await state.walletCore.walletKit.approveConnectRequest(event);
+            const embeddedRequest = await state.walletCore.walletKit.approveConnectRequest(event);
 
+            state.clearCurrentRequestFromQueue();
             set((state) => {
                 state.tonConnect.pendingConnectRequestEvent = undefined;
                 state.tonConnect.isConnectModalOpen = false;
             });
+
+            if (embeddedRequest) {
+                switch (embeddedRequest.type) {
+                    case 'sendTransaction':
+                        get().enqueueRequest({
+                            type: 'transaction',
+                            request: embeddedRequest,
+                        });
+                        break;
+                    case 'signMessage':
+                        get().enqueueRequest({
+                            type: 'signMessage',
+                            request: embeddedRequest,
+                        });
+                        break;
+                    case 'signData':
+                        get().enqueueRequest({
+                            type: 'signData',
+                            request: embeddedRequest,
+                        });
+                        break;
+                }
+            }
         } catch (error) {
             log.error('Failed to approve connect request:', error);
-            throw error;
-        } finally {
             state.clearCurrentRequestFromQueue();
+            throw error;
         }
     },
 
@@ -298,6 +324,77 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
         get().clearCurrentRequestFromQueue();
     },
 
+    // Sign message request actions
+    showSignMessageRequest: (request: SignMessageRequestEvent) => {
+        set((state) => {
+            state.tonConnect.pendingSignMessageRequestEvent = request;
+            state.tonConnect.isSignMessageModalOpen = true;
+        });
+    },
+
+    approveSignMessageRequest: async () => {
+        const state = get();
+        if (!state.tonConnect.pendingSignMessageRequestEvent) {
+            log.error('No pending sign message request to approve');
+            return;
+        }
+        if (!state.walletCore.walletKit) {
+            throw new Error('WalletKit not initialized');
+        }
+        try {
+            await state.walletCore.walletKit.approveSignMessageRequest(state.tonConnect.pendingSignMessageRequestEvent);
+            setTimeout(() => {
+                set((state) => {
+                    state.tonConnect.pendingSignMessageRequestEvent = undefined;
+                    state.tonConnect.isSignMessageModalOpen = false;
+                });
+                state.clearCurrentRequestFromQueue();
+            }, 3000);
+        } catch (error) {
+            log.error('Failed to approve sign message request:', error);
+            state.clearCurrentRequestFromQueue();
+            throw error;
+        }
+    },
+
+    rejectSignMessageRequest: async (reason?: string) => {
+        const state = get();
+        if (!state.tonConnect.pendingSignMessageRequestEvent) {
+            log.error('No pending sign message request to reject');
+            return;
+        }
+        if (!state.walletCore.walletKit) {
+            set((state) => {
+                state.tonConnect.pendingSignMessageRequestEvent = undefined;
+                state.tonConnect.isSignMessageModalOpen = false;
+            });
+            state.clearCurrentRequestFromQueue();
+            return;
+        }
+        try {
+            await state.walletCore.walletKit.rejectSignMessageRequest(
+                state.tonConnect.pendingSignMessageRequestEvent,
+                reason,
+            );
+        } catch (error) {
+            log.error('Failed to reject sign message request:', error);
+        } finally {
+            set((state) => {
+                state.tonConnect.pendingSignMessageRequestEvent = undefined;
+                state.tonConnect.isSignMessageModalOpen = false;
+            });
+            state.clearCurrentRequestFromQueue();
+        }
+    },
+
+    closeSignMessageModal: () => {
+        set((state) => {
+            state.tonConnect.isSignMessageModalOpen = false;
+            state.tonConnect.pendingSignMessageRequestEvent = undefined;
+        });
+        get().clearCurrentRequestFromQueue();
+    },
+
     // Disconnect events
     handleDisconnectEvent: (event: DisconnectionEvent) => {
         log.info('Disconnect event received:', event);
@@ -395,6 +492,8 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
             get().showTransactionRequest(nextRequest.request);
         } else if (nextRequest.type === 'signData') {
             get().showSignDataRequest(nextRequest.request);
+        } else if (nextRequest.type === 'signMessage') {
+            get().showSignMessageRequest(nextRequest.request);
         }
     },
 
@@ -490,6 +589,14 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
             log.info('Sign data request received:', event);
             get().enqueueRequest({
                 type: 'signData',
+                request: event,
+            });
+        });
+
+        walletKit.onSignMessageRequest((event) => {
+            log.info('Sign message request received:', event);
+            get().enqueueRequest({
+                type: 'signMessage',
                 request: event,
             });
         });

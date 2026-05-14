@@ -30,6 +30,7 @@ export { StreamingStatus } from './StreamingStatus';
 export { ProtectedRoute } from './ProtectedRoute';
 export { RecentTransactions } from './RecentTransactions';
 export { SignDataRequestModal } from './SignDataRequestModal';
+export { SignMessageRequestModal } from './SignMessageRequestModal';
 export { TraceRow } from './TraceRow';
 export { TransactionRequestModal } from './TransactionRequestModal';
 export { WalletPreview } from './WalletPreview';

@@ -9,7 +9,7 @@
 import React from 'react';
 
 import { SettingsDropdown } from './SettingsDropdown';
-import { StreamingStatus } from './StreamingStatus';
+// import { StreamingStatus } from './StreamingStatus';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -53,7 +53,7 @@ export const Layout: React.FC<LayoutProps> = ({
                         {headerAction}
                         {showLogout && (
                             <>
-                                <StreamingStatus />
+                                {/* <StreamingStatus /> */}
                                 <SettingsDropdown />
                             </>
                         )}

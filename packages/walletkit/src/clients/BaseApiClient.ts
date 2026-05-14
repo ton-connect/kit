@@ -6,7 +6,7 @@
  *
  */
 
-import type { Network } from '../api/models';
+import { Network } from '../api/models';
 import { TonClientError } from './TonClientError';
 
 export interface BaseApiClientConfig {
@@ -23,11 +23,11 @@ export abstract class BaseApiClient {
     protected readonly apiKey?: string;
     protected readonly timeout: number;
     protected readonly fetchApi: typeof fetch;
-    protected readonly network?: Network;
+    protected network: Network;
     protected readonly disableNetworkSend?: boolean;
 
     constructor(config: BaseApiClientConfig, defaultEndpoint: string) {
-        this.network = config.network;
+        this.network = config.network ?? Network.testnet();
         this.endpoint = config.endpoint ?? defaultEndpoint;
         this.apiKey = config.apiKey;
         this.timeout = config.timeout ?? 30000;

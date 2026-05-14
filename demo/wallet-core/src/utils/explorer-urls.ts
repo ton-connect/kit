@@ -22,3 +22,11 @@ export function getTransactionExplorerUrls(hash: string, network: NetworkType): 
         tonViewer: `https://${prefix}tonviewer.com/transaction/${hashClean}`,
     };
 }
+
+export function getAddressExplorerUrls(address: string, network: NetworkType): { tonScan: string; tonViewer: string } {
+    const prefix = getPrefix(network);
+    return {
+        tonScan: `https://${prefix}tonscan.org/address/${address}`,
+        tonViewer: `https://${prefix}tonviewer.com/${address}`,
+    };
+}

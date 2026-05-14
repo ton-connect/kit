@@ -82,7 +82,7 @@
     "@types/node": "^25.6.0",
     "@vitest/coverage-v8": "^4.1.4",
     "rimraf": "^6.1.0",
-    "rolldown": "1.0.0-rc.15",
+    "rolldown": "1.0.0",
     "typescript": "~5.9.3",
     "vitest": "^4.1.4"
   },
