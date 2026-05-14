@@ -21,13 +21,13 @@ export interface ProviderFactoryContext<Events extends SharedKitEvents = SharedK
     eventEmitter: EventEmitter<Events>;
 }
 
-/** Factory function that creates a provider from context */
+/** Factory function that creates a provider from context. */
 export type ProviderFactory<T extends BaseProvider = BaseProvider> = (ctx: ProviderFactoryContext) => T;
 
-/** A provider instance or a factory that creates one */
+/** A provider instance or a factory that creates one. */
 export type ProviderInput<T extends BaseProvider = BaseProvider> = T | ProviderFactory<T>;
 
-/** Helper for creating typed provider factories */
+/** Helper for creating typed provider factories. */
 export function createProvider<T extends BaseProvider = BaseProvider>(factory: ProviderFactory<T>): ProviderFactory<T> {
     return factory;
 }

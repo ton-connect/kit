@@ -109,7 +109,7 @@ export function toExtraCurrencies(extraCurrency: ConnectExtraCurrency | undefine
 }
 
 /**
- * Raw transaction params as received from TON Connect protocol
+ * Raw transaction params as received from TON Connect protocol.
  */
 export interface RawConnectTransactionParamContent {
     messages: ConnectTransactionParamMessage[];
@@ -126,7 +126,7 @@ export interface ConnectTransactionParamContent {
 }
 
 /**
- * Parse raw TON Connect transaction params to internal format
+ * Parse raw TON Connect transaction params to internal format.
  */
 export function parseConnectTransactionParamContent(
     raw: RawConnectTransactionParamContent,
@@ -177,7 +177,7 @@ export function toTransactionRequest(params: ConnectTransactionParamContent): Tr
 }
 
 /**
- * Convert internal TransactionRequest to raw TON Connect protocol
+ * Convert internal TransactionRequest to raw TON Connect protocol.
  */
 export function toConnectTransactionParamContent(request: TransactionRequest): RawConnectTransactionParamContent {
     return {

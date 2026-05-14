@@ -46,8 +46,6 @@ export interface SwapFieldProps extends Omit<ComponentProps<typeof Input.Contain
     onMaxClick?: () => void;
     /** Called when the user clicks the token selector chip — typically opens a `SwapTokenSelectModal`. */
     onTokenSelectorClick?: () => void;
-    /** Reserved flag indicating whether a wallet is connected — currently accepted for API symmetry. */
-    isWalletConnected?: boolean;
 }
 
 /**
@@ -69,7 +67,6 @@ export const SwapField: FC<SwapFieldProps> = ({
     loading,
     onMaxClick,
     onTokenSelectorClick,
-    isWalletConnected,
     fiatSymbol = '$',
     className,
     ...props

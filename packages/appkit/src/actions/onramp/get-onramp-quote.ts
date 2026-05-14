@@ -17,7 +17,7 @@ export type GetOnrampQuoteOptions<T = unknown> = OnrampQuoteParams<T> & {
 export type GetOnrampQuoteReturnType = Promise<OnrampQuote>;
 
 /**
- * Get onramp quote
+ * Get onramp quote.
  */
 export const getOnrampQuote = async <T = unknown>(
     appKit: AppKit,

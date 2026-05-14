@@ -14,22 +14,22 @@ import type { TokenAmount } from '../core/TokenAmount';
  */
 export interface JettonsTransferRequest {
     /**
-     * Jetton master contract address
+     * Jetton master contract address.
      */
     jettonAddress: UserFriendlyAddress;
 
     /**
-     * Amount to transfer in Jetton's smallest unit
+     * Amount to transfer in Jetton's smallest unit.
      */
     transferAmount: TokenAmount;
 
     /**
-     * Recipient wallet address
+     * Recipient wallet address.
      */
     recipientAddress: UserFriendlyAddress;
 
     /**
-     * Human-readable comment attached to the transfer
+     * Human-readable comment attached to the transfer.
      */
     comment?: string;
 }

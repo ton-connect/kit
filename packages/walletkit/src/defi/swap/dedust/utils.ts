@@ -13,7 +13,7 @@ import type { DeDustQuoteMetadata } from './models';
 import type { SwapToken } from '../../../api/models';
 
 /**
- * Native TON identifier used by DeDust Router API
+ * Native TON identifier used by DeDust Router API.
  */
 export const NATIVE_TON_MINTER = 'native';
 
@@ -30,7 +30,7 @@ export const tokenToMinter = (token: SwapToken): string => {
 };
 
 /**
- * Convert DeDust minter address string to SwapToken
+ * Convert DeDust minter address string to SwapToken.
  */
 export const minterToToken = (minter: string, decimals: number = 9): SwapToken => {
     if (minter === NATIVE_TON_MINTER) {
@@ -45,7 +45,7 @@ export const minterToToken = (minter: string, decimals: number = 9): SwapToken =
 };
 
 /**
- * Check if token is native TON
+ * Check if token is native TON.
  */
 export const isNativeTon = (token: SwapToken): boolean => {
     return token.address === 'ton';
@@ -61,7 +61,7 @@ export const validateNetwork = (network: Network): void => {
 };
 
 /**
- * Type guard for DeDustQuoteMetadata
+ * Type guard for DeDustQuoteMetadata.
  */
 export const isDeDustQuoteMetadata = (metadata: unknown): metadata is DeDustQuoteMetadata => {
     if (!metadata || typeof metadata !== 'object') {

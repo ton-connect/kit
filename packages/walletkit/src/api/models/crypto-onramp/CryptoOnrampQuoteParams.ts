@@ -37,12 +37,12 @@ export interface CryptoOnrampQuoteParams<TProviderOptions = unknown> {
     targetCurrencyAddress: string;
 
     /**
-     * TON address that will receive the target crypto
+     * TON address that will receive the target crypto.
      */
     recipientAddress: string;
 
     /**
-     * Refund address for the source crypto
+     * Refund address for the source crypto.
      */
     refundAddress?: string;
 
@@ -54,7 +54,7 @@ export interface CryptoOnrampQuoteParams<TProviderOptions = unknown> {
     isSourceAmount?: boolean;
 
     /**
-     * Provider-specific options
+     * Provider-specific options.
      */
     providerOptions?: TProviderOptions;
 }

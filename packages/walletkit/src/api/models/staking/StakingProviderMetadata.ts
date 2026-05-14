@@ -22,13 +22,13 @@ export interface StakingTokenInfo {
 }
 
 /**
- * Static metadata for a staking provider
+ * Static metadata for a staking provider.
  */
 export interface StakingProviderMetadata {
     /** Human-readable provider name (e.g. "Tonstakers") */
     name: string;
 
-    /** Supported unstake modes for this provider */
+    /** Supported unstake modes for this provider. */
     supportedUnstakeModes: UnstakeModes[];
 
     /** Whether provider supports reversed quote format (e.g., passing TON instead of tsTON for unstake) */

@@ -26,7 +26,7 @@ export const toTonConnectTransaction = (request: TransactionRequest): SendTransa
 };
 
 /**
- * Convert a single TransactionRequestMessage to TonConnect message format
+ * Convert a single TransactionRequestMessage to TonConnect message format.
  */
 export const toTonConnectMessage = (
     msg: TransactionRequestMessage,
@@ -45,7 +45,7 @@ export const toTonConnectMessage = (
 };
 
 /**
- * Get current timestamp plus validity duration
+ * Get current timestamp plus validity duration.
  */
 export const getValidUntil = (validitySeconds = DEFAULT_TRANSACTION_VALIDITY_SECONDS): number => {
     return Math.floor(Date.now() / 1000) + validitySeconds;

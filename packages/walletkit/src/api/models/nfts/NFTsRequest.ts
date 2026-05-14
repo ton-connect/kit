@@ -13,11 +13,11 @@ import type { Pagination, UserFriendlyAddress } from '../core/Primitives';
  */
 export interface NFTsRequest {
     /**
-     * NFT address to filter by
+     * NFT address to filter by.
      */
     address?: UserFriendlyAddress;
     /**
-     * Pagination information
+     * Pagination information.
      */
     pagination?: Pagination;
 }

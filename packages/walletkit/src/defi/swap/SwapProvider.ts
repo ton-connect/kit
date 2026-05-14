@@ -49,7 +49,7 @@ export abstract class SwapProvider<
     abstract buildSwapTransaction(params: SwapParams<TSwapOptions>): Promise<TransactionRequest>;
 
     /**
-     * Get provider metadata
+     * Get provider metadata.
      */
     abstract getMetadata(): SwapProviderMetadata;
 }

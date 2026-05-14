@@ -12,7 +12,7 @@ import type { OnrampProviderInterface } from '../../onramp';
 export type GetOnrampProvidersReturnType = OnrampProviderInterface[];
 
 /**
- * Get all registered onramp providers
+ * Get all registered onramp providers.
  */
 export const getOnrampProviders = (appKit: AppKit): GetOnrampProvidersReturnType => {
     return appKit.onrampManager.getProviders();

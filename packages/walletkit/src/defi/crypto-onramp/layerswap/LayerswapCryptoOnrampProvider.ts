@@ -44,7 +44,7 @@ export interface LayerswapProviderConfig {
     apiKey?: string;
 
     /**
-     * Override the base API URL. Defaults to https://api.layerswap.io/api/v2
+     * Override the base API URL. Defaults to https://api.layerswap.io/api/v2.
      */
     apiUrl?: string;
 }

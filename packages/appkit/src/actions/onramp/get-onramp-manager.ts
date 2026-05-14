@@ -12,7 +12,7 @@ import type { OnrampManager } from '../../onramp';
 export type GetOnrampManagerReturnType = OnrampManager;
 
 /**
- * Get onramp manager instance
+ * Get onramp manager instance.
  */
 export const getOnrampManager = (appKit: AppKit): GetOnrampManagerReturnType => {
     return appKit.onrampManager;

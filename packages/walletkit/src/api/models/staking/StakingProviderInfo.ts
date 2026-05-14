@@ -9,7 +9,7 @@
 import type { TokenAmount } from '../core/TokenAmount';
 
 /**
- * Dynamic staking information for a provider
+ * Dynamic staking information for a provider.
  */
 export interface StakingProviderInfo {
     /**

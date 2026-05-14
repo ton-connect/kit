@@ -175,6 +175,6 @@ export interface JettonsAPI {
     getAddressJettons(userAddress: string, network: Network, offset?: number, limit?: number): Promise<Jetton[]>;
 
     // === Validation ===
-    /** Validate jetton address format */
+    /** Validate jetton address format. */
     validateJettonAddress(address: string): boolean;
 }

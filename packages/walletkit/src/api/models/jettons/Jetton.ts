@@ -25,12 +25,12 @@ export interface Jetton {
     walletAddress: UserFriendlyAddress;
 
     /**
-     * The current jetton balance
+     * The current jetton balance.
      */
     balance: TokenAmount;
 
     /**
-     * Information about the token
+     * Information about the token.
      */
     info: TokenInfo;
 
@@ -41,17 +41,17 @@ export interface Jetton {
     decimalsNumber?: number;
 
     /**
-     * Indicates if the jetton is verified
+     * Indicates if the jetton is verified.
      */
     isVerified: boolean;
 
     /**
-     * Current prices of the jetton in various currencies
+     * Current prices of the jetton in various currencies.
      */
     prices: JettonPrice[];
 
     /**
-     * Additional arbitrary data related to the jetton
+     * Additional arbitrary data related to the jetton.
      */
     extra?: { [key: string]: unknown };
 }

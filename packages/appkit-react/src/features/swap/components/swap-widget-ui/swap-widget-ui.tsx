@@ -11,7 +11,6 @@ import type { FC, ComponentProps } from 'react';
 import clsx from 'clsx';
 
 import { useI18n } from '../../../settings/hooks/use-i18n';
-import { useSelectedWallet } from '../../../wallets';
 import { SwapField } from '../swap-field';
 import { SwapFlipButton } from '../swap-flip-button';
 import { SwapInfo } from '../swap-info';
@@ -75,9 +74,6 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     className,
     ...props
 }) => {
-    const [wallet] = useSelectedWallet();
-    const isWalletConnected = wallet !== null;
-
     const { t } = useI18n();
 
     const [activeField, setActiveField] = useState<'from' | 'to' | null>(null);
@@ -110,7 +106,6 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                     isBalanceLoading={isFromBalanceLoading}
                     onMaxClick={onMaxClick}
                     onTokenSelectorClick={() => setActiveField('from')}
-                    isWalletConnected={isWalletConnected}
                 />
 
                 <div className={styles.flipButtonWrapper}>
@@ -127,7 +122,6 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                     isBalanceLoading={isToBalanceLoading}
                     onTokenSelectorClick={() => setActiveField('to')}
                     loading={isQuoteLoading}
-                    isWalletConnected={isWalletConnected}
                 />
             </div>
 

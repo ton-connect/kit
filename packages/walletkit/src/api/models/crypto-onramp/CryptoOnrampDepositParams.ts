@@ -20,12 +20,12 @@ export interface CryptoOnrampDepositParams<TQuoteMetadata = unknown, TProviderOp
     quote: CryptoOnrampQuote<TQuoteMetadata>;
 
     /**
-     * Address to refund the crypto to in case of failure
+     * Address to refund the crypto to in case of failure.
      */
     refundAddress: string;
 
     /**
-     * Provider-specific options
+     * Provider-specific options.
      */
     providerOptions?: TProviderOptions;
 }

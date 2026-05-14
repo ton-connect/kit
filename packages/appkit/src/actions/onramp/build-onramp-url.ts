@@ -16,7 +16,7 @@ export type BuildOnrampUrlOptions<T = unknown> = OnrampParams<T> & {
 export type BuildOnrampUrlReturnType = Promise<string>;
 
 /**
- * Build onramp URL
+ * Build onramp URL.
  */
 export const buildOnrampUrl = async <T = unknown>(
     appKit: AppKit,

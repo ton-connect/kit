@@ -13,7 +13,7 @@ import type { Pagination } from '../core/Primitives';
  */
 export interface JettonsRequest {
     /**
-     * Pagination information
+     * Pagination information.
      */
     pagination: Pagination;
 }

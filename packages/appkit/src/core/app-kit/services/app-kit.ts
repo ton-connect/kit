@@ -93,7 +93,7 @@ export class AppKit {
     }
 
     /**
-     * Add a wallet connector
+     * Add a wallet connector.
      */
     addConnector(input: ConnectorInput): () => void {
         const connector = typeof input === 'function' ? input(this.createFactoryContext()) : input;
@@ -114,7 +114,7 @@ export class AppKit {
     }
 
     /**
-     * Remove a wallet connector
+     * Remove a wallet connector.
      */
     removeConnector(connector: Connector): void {
         const id = connector.id;
@@ -129,7 +129,7 @@ export class AppKit {
     }
 
     /**
-     * Add a provider
+     * Add a provider.
      */
     registerProvider(input: ProviderInput): void {
         const provider = typeof input === 'function' ? input(this.createFactoryContext()) : input;
@@ -152,7 +152,7 @@ export class AppKit {
     }
 
     /**
-     * Get all connected wallets from all connectors
+     * Get all connected wallets from all connectors.
      */
     private updateWalletsFromConnectors(): void {
         const allWallets: WalletInterface[] = [];

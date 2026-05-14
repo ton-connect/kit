@@ -33,7 +33,7 @@ export class AppKitNetworkManager extends KitNetworkManager {
     }
 
     /**
-     * Get the current default network
+     * Get the current default network.
      */
     getDefaultNetwork(): Network | undefined {
         return this.defaultNetwork;

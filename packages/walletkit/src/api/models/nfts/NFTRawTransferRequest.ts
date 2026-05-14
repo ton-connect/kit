@@ -14,7 +14,7 @@ import type { TokenAmount } from '../core/TokenAmount';
  */
 export interface NFTRawTransferRequest {
     /**
-     * Contract address of the NFT to transfer
+     * Contract address of the NFT to transfer.
      */
     nftAddress: UserFriendlyAddress;
 
@@ -24,7 +24,7 @@ export interface NFTRawTransferRequest {
     transferAmount: TokenAmount;
 
     /**
-     * Transfer message details
+     * Transfer message details.
      */
     message: NFTRawTransferRequestMessage;
 }

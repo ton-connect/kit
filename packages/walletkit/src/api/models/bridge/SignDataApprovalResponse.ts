@@ -13,7 +13,7 @@ import type { Hex } from '../core/Primitives';
  */
 export interface SignDataApprovalResponse {
     /**
-     * Cryptographic signature of the signed data in hexadecimal format
+     * Cryptographic signature of the signed data in hexadecimal format.
      */
     signature: Hex;
     /**
@@ -22,7 +22,7 @@ export interface SignDataApprovalResponse {
      */
     timestamp: number;
     /**
-     * Domain associated with the sign request
+     * Domain associated with the sign request.
      */
     domain: string;
 }

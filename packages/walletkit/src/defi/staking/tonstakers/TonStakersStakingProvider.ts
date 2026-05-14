@@ -40,7 +40,7 @@ const log = globalLogger.createChild('TonStakersStakingProvider');
  * - Unstake: Burn tsTON to withdraw TON with {@link UnstakeMode} values:
  *   - `INSTANT` – immediate withdrawal if the pool has liquidity (`fillOrKill`)
  *   - `WHEN_AVAILABLE` – withdraw when liquidity is available (non–fill-or-kill)
- *   - `ROUND_END` – wait until round end for the projected rate
+ *   - `ROUND_END` – wait until round end for the projected rate.
  */
 export class TonStakersStakingProvider extends StakingProvider {
     private readonly networkManager: NetworkManager;

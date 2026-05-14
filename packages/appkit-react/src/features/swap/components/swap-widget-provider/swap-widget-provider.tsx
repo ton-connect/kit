@@ -102,9 +102,9 @@ export interface SwapContextType {
     lowBalanceMode: 'reduce' | 'topup';
     /** Required TON amount for the pending operation, formatted as a decimal string. Empty when no pending op. */
     lowBalanceRequiredTon: string;
-    /** Replace the input with a value that fits into the current TON balance and close the warning */
+    /** Replace the input with a value that fits within the current TON balance and close the warning. */
     onLowBalanceChange: () => void;
-    /** Dismiss the low-balance warning without changing the input */
+    /** Dismiss the low-balance warning without changing the input. */
     onLowBalanceCancel: () => void;
 }
 

@@ -74,9 +74,9 @@ export interface OnrampAmountPreset {
 export interface CryptoPaymentMethod {
     /** Stable identifier for the method — used for selection state and `methodSections.ids` */
     id: string;
-    /** Token symbol, e.g. "USDC", "USDT" */
+    /** Token symbol, e.g. "USDC", "USDT". */
     symbol: string;
-    /** Full token name shown in the picker, e.g. "USD Coin", "Tether" */
+    /** Full token name shown in the picker, e.g. "USD Coin", "Tether". */
     name: string;
     /**
      * Source chain in CAIP-2 format, e.g. "eip155:8453", "eip155:56" — passed
@@ -88,7 +88,7 @@ export interface CryptoPaymentMethod {
     decimals: number;
     /** Token contract address on the source network (empty string / zero address for native) */
     address: string;
-    /** Token logo URL shown in the picker and selectors */
+    /** Token logo URL shown in the picker and selectors. */
     logo?: string;
 }
 

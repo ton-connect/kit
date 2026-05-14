@@ -7,7 +7,7 @@
  */
 
 /**
- * Public API for message parsing with extensible architecture
+ * Public API for message parsing with extensible architecture.
  */
 
 // Core modules

@@ -21,7 +21,7 @@ declare const hashBrand: unique symbol;
 export type Hex = `0x${string}` & { readonly [hashBrand]: never };
 
 /**
- * Base64-encoded string representation
+ * Base64-encoded string representation.
  */
 
 declare const base64StringBrand: unique symbol;
@@ -29,7 +29,7 @@ declare const base64StringBrand: unique symbol;
 export type Base64String = string & { readonly [base64StringBrand]: never };
 
 /**
- * Logical time value used for ordering transactions on the TON blockchain
+ * Logical time value used for ordering transactions on the TON blockchain.
  */
 export type LogicalTime = string;
 
@@ -38,11 +38,11 @@ export type LogicalTime = string;
  */
 export enum Result {
     /**
-     * Operation completed successfully
+     * Operation completed successfully.
      */
     success = 'success',
     /**
-     * Operation failed
+     * Operation failed.
      */
     failure = 'failure',
 }
@@ -58,12 +58,12 @@ export interface ResultError {
     code?: number;
 
     /**
-     * Human-readable error message
+     * Human-readable error message.
      */
     message?: string;
 
     /**
-     * Additional error data
+     * Additional error data.
      */
     data?: unknown;
 }

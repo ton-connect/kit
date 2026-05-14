@@ -35,7 +35,7 @@ import { SettingsButton } from '../../../../components/shared/settings-button';
 export type StakingWidgetRenderProps = StakingContextType & ComponentProps<'div'>;
 
 /**
- * Default staking-widget UI. Renders a stake/unstake tabbed layout: a centered amount input with optional reversed input, a {@link StakingBalanceBlock} for the relevant balance, the submit button (wired through `ButtonWithConnect` so a disconnected user is prompted to connect first), a settings button that opens {@link StakingSettingsModal}, the unstake-mode picker ({@link SelectUnstakeMode}, unstake tab only), and a {@link StakingInfo} summary. A {@link LowBalanceModal} surfaces when the built transaction would exceed the user's TON balance. All state is consumed from props (typically supplied by {@link StakingWidgetProvider}). This component owns only the local `settings modal open` flag.
+ * Default staking-widget UI. Renders a stake/unstake tabbed layout: a centered amount input with optional reversed input, a {@link StakingBalanceBlock} for the relevant balance, the submit button (wired through `ButtonWithConnect` so a disconnected user is prompted to connect first), a settings button that opens {@link StakingSettingsModal}, the unstake-mode picker ({@link SelectUnstakeMode}, unstake tab only), and a {@link StakingInfo} summary. A {@link LowBalanceModal} surfaces when the built transaction would exceed the user's TON balance. All state is consumed from props — typically supplied by {@link StakingWidgetProvider}.
  *
  * @public
  * @category Component

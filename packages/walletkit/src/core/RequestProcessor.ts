@@ -56,7 +56,7 @@ import type { Analytics, AnalyticsManager } from '../analytics';
 const log = globalLogger.createChild('RequestProcessor');
 
 /**
- * Handles approval and rejection of various request types
+ * Handles approval and rejection of various request types.
  */
 export class RequestProcessor {
     private analytics?: Analytics;
@@ -72,7 +72,7 @@ export class RequestProcessor {
     }
 
     /**
-     * Helper to get wallet from event, supporting both walletId and walletAddress
+     * Helper to get wallet from event, supporting both walletId and walletAddress.
      */
     private getWalletFromEvent(event: { walletId?: string }): Wallet | undefined {
         if (event.walletId) {
@@ -82,7 +82,7 @@ export class RequestProcessor {
     }
 
     /**
-     * Helper to get wallet address from event
+     * Helper to get wallet address from event.
      */
     private getWalletAddressFromEvent(event: { walletId?: string; walletAddress?: string }): string | undefined {
         if (event.walletAddress) {
@@ -95,7 +95,7 @@ export class RequestProcessor {
     }
 
     /**
-     * Process connect request approval
+     * Process connect request approval.
      */
     async approveConnectRequest(event: ConnectionRequestEvent, response?: ConnectionApprovalResponse): Promise<void> {
         try {
@@ -182,7 +182,7 @@ export class RequestProcessor {
     }
 
     /**
-     * Process connect request rejection
+     * Process connect request rejection.
      */
     async rejectConnectRequest(
         event: ConnectionRequestEvent,
@@ -251,7 +251,7 @@ export class RequestProcessor {
     }
 
     /**
-     * Process transaction request approval
+     * Process transaction request approval.
      */
     async approveTransactionRequest(
         event: SendTransactionRequestEvent,
@@ -299,7 +299,7 @@ export class RequestProcessor {
     }
 
     /**
-     * Send transaction analytics events
+     * Send transaction analytics events.
      */
     private sendTransactionAnalytics(event: SendTransactionRequestEvent, signedBoc: string): void {
         if (!this.analytics) return;
@@ -315,7 +315,7 @@ export class RequestProcessor {
     }
 
     /**
-     * Process transaction request rejection
+     * Process transaction request rejection.
      */
     async rejectTransactionRequest(
         event: SendTransactionRequestEvent,
@@ -361,7 +361,7 @@ export class RequestProcessor {
     }
 
     /**
-     * Process sign data request approval
+     * Process sign data request approval.
      */
     async approveSignDataRequest(
         event: SignDataRequestEvent,
@@ -517,7 +517,7 @@ export class RequestProcessor {
     }
 
     /**
-     * Process sign data request rejection
+     * Process sign data request rejection.
      */
     async rejectSignDataRequest(event: SignDataRequestEvent, reason?: string): Promise<void> {
         try {
@@ -559,7 +559,7 @@ export class RequestProcessor {
     }
 
     /**
-     * Create connect approval response
+     * Create connect approval response.
      */
     private async createConnectApprovalResponse(
         event: ConnectionRequestEvent,
@@ -627,7 +627,7 @@ export class RequestProcessor {
     }
 
     /**
-     * Sign transaction and return BOC
+     * Sign transaction and return BOC.
      */
     private async signTransaction(event: SendTransactionRequestEvent): Promise<Base64String> {
         const walletId = event.walletId;
@@ -669,7 +669,7 @@ export class RequestProcessor {
 
     /**
      * Get API client for a wallet's network
-     * Uses the wallet's network to get the appropriate client from NetworkManager
+     * Uses the wallet's network to get the appropriate client from NetworkManager.
      */
     private getClientForWallet(walletId: string | undefined) {
         if (!walletId) {
@@ -686,7 +686,7 @@ export class RequestProcessor {
 }
 
 /**
- * Internal helper to sign transaction
+ * Internal helper to sign transaction.
  */
 export async function signTransactionInternal(wallet: Wallet, request: TransactionRequest): Promise<Base64String> {
     const signedBoc = await wallet.getSignedSendTransaction(request, {

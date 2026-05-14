@@ -16,12 +16,12 @@ import type { NFTCollection } from './NFTCollection';
  */
 export interface NFT {
     /**
-     * Contract address of the NFT item
+     * Contract address of the NFT item.
      */
     address: UserFriendlyAddress;
 
     /**
-     * Index of the item within its collection
+     * Index of the item within its collection.
      */
     index?: string;
 
@@ -36,27 +36,27 @@ export interface NFT {
     attributes?: NFTAttribute[];
 
     /**
-     * Information about the collection this item belongs to
+     * Information about the collection this item belongs to.
      */
     collection?: NFTCollection;
 
     /**
-     * Address of the auction contract, if the NFT is being auctioned
+     * Address of the auction contract, if the NFT is being auctioned.
      */
     auctionContractAddress?: UserFriendlyAddress;
 
     /**
-     * Hash of the NFT smart contract code
+     * Hash of the NFT smart contract code.
      */
     codeHash?: Hex;
 
     /**
-     * Hash of the NFT's on-chain data
+     * Hash of the NFT's on-chain data.
      */
     dataHash?: Hex;
 
     /**
-     * Whether the NFT contract has been initialized
+     * Whether the NFT contract has been initialized.
      */
     isInited?: boolean;
 
@@ -66,12 +66,12 @@ export interface NFT {
     isSoulbound?: boolean;
 
     /**
-     * Whether the NFT is currently listed for sale
+     * Whether the NFT is currently listed for sale.
      */
     isOnSale?: boolean;
 
     /**
-     * Current owner address of the NFT
+     * Current owner address of the NFT.
      */
     ownerAddress?: UserFriendlyAddress;
 
@@ -81,7 +81,7 @@ export interface NFT {
     realOwnerAddress?: UserFriendlyAddress;
 
     /**
-     * Address of the sale contract, if the NFT is listed for sale
+     * Address of the sale contract, if the NFT is listed for sale.
      */
     saleContractAddress?: UserFriendlyAddress;
 

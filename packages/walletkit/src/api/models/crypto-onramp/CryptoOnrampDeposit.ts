@@ -14,17 +14,17 @@
  */
 export interface CryptoOnrampDeposit {
     /**
-     * Deposit id
+     * Deposit id.
      */
     depositId: string;
 
     /**
-     * Deposit address on the source chain
+     * Deposit address on the source chain.
      */
     address: string;
 
     /**
-     * Exact amount of source crypto the user must send
+     * Exact amount of source crypto the user must send.
      */
     amount: string;
 
@@ -46,7 +46,7 @@ export interface CryptoOnrampDeposit {
     memo?: string;
 
     /**
-     * Unix timestamp (ms) after which the deposit offer is no longer valid
+     * Unix timestamp (ms) after which the deposit offer is no longer valid.
      */
     expiresAt?: number;
 
@@ -56,7 +56,7 @@ export interface CryptoOnrampDeposit {
     chainWarning?: string;
 
     /**
-     * Identifier of the provider that issued this deposit
+     * Identifier of the provider that issued this deposit.
      */
     providerId: string;
 }

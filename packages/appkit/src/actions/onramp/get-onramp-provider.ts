@@ -16,7 +16,7 @@ export interface GetOnrampProviderOptions {
 export type GetOnrampProviderReturnType = OnrampProviderInterface;
 
 /**
- * Get onramp provider
+ * Get onramp provider.
  */
 export const getOnrampProvider = (
     appKit: AppKit,

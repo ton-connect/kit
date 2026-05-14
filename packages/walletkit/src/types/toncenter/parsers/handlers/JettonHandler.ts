@@ -8,7 +8,7 @@
 
 /**
  * Jetton message handler
- * Processes jetton transfer and internal transfer messages
+ * Processes jetton transfer and internal transfer messages.
  */
 
 import type { MessageHandlerContext } from '../messageHandler';
@@ -30,7 +30,7 @@ import type { Hex, UserFriendlyAddress } from '../../../../api/models';
 import { asMaybeAddressFriendly, asAddressFriendly } from '../../../../utils';
 
 /**
- * Jetton Transfer Handler
+ * Jetton Transfer Handler.
  */
 export class JettonTransferHandler extends BaseMessageHandler {
     messageType = MessageType.JettonTransfer;

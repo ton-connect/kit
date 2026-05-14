@@ -9,7 +9,7 @@
 import type { DeDustReferralOptions } from './DeDustReferralOptions';
 
 /**
- * Provider-specific options for DeDust swap operations
+ * Provider-specific options for DeDust swap operations.
  */
 export interface DeDustProviderOptions extends DeDustReferralOptions {
     /**
@@ -18,12 +18,12 @@ export interface DeDustProviderOptions extends DeDustReferralOptions {
     protocols?: string[];
 
     /**
-     * Protocols to exclude from routing
+     * Protocols to exclude from routing.
      */
     excludeProtocols?: string[];
 
     /**
-     * Only use verified pools
+     * Only use verified pools.
      */
     onlyVerifiedPools?: boolean;
 
@@ -40,7 +40,7 @@ export interface DeDustProviderOptions extends DeDustReferralOptions {
     maxLength?: number;
 
     /**
-     * Exclude volatile pools
+     * Exclude volatile pools.
      */
     excludeVolatilePools?: boolean;
 }

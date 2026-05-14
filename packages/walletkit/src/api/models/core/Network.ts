@@ -34,7 +34,7 @@ export const Network = {
     tetra: (): Network => ({ chainId: '662387' }),
 
     /**
-     * Custom network with specified chain ID
+     * Custom network with specified chain ID.
      */
     custom: (chainId: string): Network => ({ chainId }),
 };

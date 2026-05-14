@@ -12,7 +12,7 @@ import { OnrampProvider } from '../OnrampProvider';
 import { OnrampError, OnrampErrorCode } from '../errors';
 
 /**
- * Custom options for Mercuryo requests
+ * Custom options for Mercuryo requests.
  */
 export interface MercuryoQuoteOptions {
     /**
@@ -24,18 +24,18 @@ export interface MercuryoQuoteOptions {
 
 export interface MercuryoOnrampOptions {
     /**
-     * E.g. The exact widget ID assigned by Mercuryo to the partner
+     * E.g. The exact widget ID assigned by Mercuryo to the partner.
      */
     widgetId?: string;
 
     /**
-     * E.g. The user's email to pre-fill the widget
+     * E.g. The user's email to pre-fill the widget.
      */
     merchantUserEmail?: string;
 }
 
 /**
- * Provider implementation for Mercuryo onramp
+ * Provider implementation for Mercuryo onramp.
  */
 export class MercuryoProvider extends OnrampProvider<MercuryoQuoteOptions, MercuryoOnrampOptions> {
     readonly providerId = 'mercuryo';
@@ -48,7 +48,7 @@ export class MercuryoProvider extends OnrampProvider<MercuryoQuoteOptions, Mercu
     private readonly apiUrl = 'https://api.mercuryo.io/v1.6';
 
     /**
-     * Optional default widget ID
+     * Optional default widget ID.
      */
     private readonly widgetId?: string;
 

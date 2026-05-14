@@ -17,7 +17,7 @@ import type { AnalyticsManagerOptions } from '../analytics';
 import type { TONConnectSessionManager } from '../api/interfaces';
 
 /**
- * API client configuration options
+ * API client configuration options.
  */
 export interface ApiClientConfig {
     /** Base URL of the indexer endpoint. Defaults to `'https://toncenter.com'` for mainnet, `'https://testnet.toncenter.com'` for testnet. */
@@ -27,10 +27,10 @@ export interface ApiClientConfig {
 }
 
 /**
- * Network configuration for a specific chain
+ * Network configuration for a specific chain.
  */
 export interface NetworkConfig {
-    /** API client configuration or instance */
+    /** API client configuration or instance. */
     apiClient?: ApiClientConfig | ApiClient;
 }
 
@@ -42,7 +42,7 @@ export type NetworkAdapters = {
 };
 
 /**
- * Main configuration options for TonWalletKit
+ * Main configuration options for TonWalletKit.
  */
 export interface TonWalletKitOptions {
     /** TonConnect wallet manifest published by the dApp. Required for the wallet to recognize the integration. */
@@ -57,20 +57,20 @@ export interface TonWalletKitOptions {
     sessionManager?: TONConnectSessionManager;
 
     /**
-     * Network configuration
+     * Network configuration.
      */
     networks?: NetworkAdapters;
 
-    /** Bridge settings */
+    /** Bridge settings. */
     bridge?: BridgeConfig;
-    /** Storage settings */
+    /** Storage settings. */
     storage?: StorageConfig | StorageAdapter;
-    /** Validation settings */
+    /** Validation settings. */
     validation?: {
         strictMode?: boolean;
         allowUnknownWalletVersions?: boolean;
     };
-    /** Event processor settings */
+    /** Event processor settings. */
     eventProcessor?: EventProcessorConfig;
 
     /** Analytics manager options merged with an `enabled` toggle. Off by default. */

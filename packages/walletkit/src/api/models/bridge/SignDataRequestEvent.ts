@@ -16,11 +16,11 @@ import type { SignDataBinary, SignDataCell, SignDataText } from '../core/SignDat
  */
 export interface SignDataRequestEvent extends BridgeEvent {
     /**
-     * Payload containing the data to be signed
+     * Payload containing the data to be signed.
      */
     payload: SignDataPayload;
     /**
-     * Preview information for UI display
+     * Preview information for UI display.
      */
     preview: SignDataRequestEventPreview;
 }
@@ -30,12 +30,12 @@ export interface SignDataRequestEvent extends BridgeEvent {
  */
 export interface SignDataRequestEventPreview {
     /**
-     * Information about the requesting dApp
+     * Information about the requesting dApp.
      */
     dAppInfo?: DAppInfo;
 
     /**
-     * Array of sign data previews
+     * Array of sign data previews.
      */
     data: SignDataPreview;
 }

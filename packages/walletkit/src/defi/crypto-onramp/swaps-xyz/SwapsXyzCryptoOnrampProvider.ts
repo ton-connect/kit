@@ -33,7 +33,7 @@ export interface SwapsXyzProviderConfig {
     apiKey: string;
 
     /**
-     * Override the base API URL. Defaults to https://api-v2.swaps.xyz/api
+     * Override the base API URL. Defaults to https://api-v2.swaps.xyz/api.
      */
     apiUrl?: string;
 

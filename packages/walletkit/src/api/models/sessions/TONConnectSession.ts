@@ -20,12 +20,12 @@ export interface TONConnectSession {
     domain: string;
 
     /**
-     * Display name of the dApp
+     * Display name of the dApp.
      */
     dAppName?: string;
 
     /**
-     * Brief description of the dApp's purpose
+     * Brief description of the dApp's purpose.
      */
     dAppDescription?: string;
 

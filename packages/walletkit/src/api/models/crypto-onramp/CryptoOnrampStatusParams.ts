@@ -11,12 +11,12 @@
  */
 export interface CryptoOnrampStatusParams {
     /**
-     * Deposit id
+     * Deposit id.
      */
     depositId: string;
 
     /**
-     * Identifier of the provider that issued this deposit
+     * Identifier of the provider that issued this deposit.
      */
     providerId: string;
 }

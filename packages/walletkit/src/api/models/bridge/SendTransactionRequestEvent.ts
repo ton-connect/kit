@@ -15,11 +15,11 @@ import type { BridgeEvent } from './BridgeEvent';
  */
 export interface SendTransactionRequestEvent extends BridgeEvent {
     /**
-     * Preview information for UI display
+     * Preview information for UI display.
      */
     preview: SendTransactionRequestEventPreview;
     /**
-     * Raw transaction request data
+     * Raw transaction request data.
      */
     request: TransactionRequest;
 }
@@ -29,7 +29,7 @@ export interface SendTransactionRequestEvent extends BridgeEvent {
  */
 export interface SendTransactionRequestEventPreview {
     /**
-     * Emulated transaction preview with actions and traces
+     * Emulated transaction preview with actions and traces.
      */
     data?: TransactionEmulatedPreview;
 }

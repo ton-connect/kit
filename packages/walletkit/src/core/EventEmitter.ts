@@ -68,7 +68,7 @@ export class EventEmitter<Events> {
     }
 
     /**
-     * Unsubscribe from an event
+     * Unsubscribe from an event.
      */
     off<K extends keyof Events>(eventName: K, listener: EventListener<Events[K]>): void {
         this.listeners[eventName]?.delete(listener);
@@ -95,7 +95,7 @@ export class EventEmitter<Events> {
     }
 
     /**
-     * Remove all listeners for a specific event or all events
+     * Remove all listeners for a specific event or all events.
      */
     removeAllListeners(eventName?: keyof Events): void {
         if (eventName) {
@@ -108,14 +108,14 @@ export class EventEmitter<Events> {
     }
 
     /**
-     * Get the number of listeners for an event
+     * Get the number of listeners for an event.
      */
     listenerCount(eventName: keyof Events): number {
         return this.listeners[eventName]?.size || 0;
     }
 
     /**
-     * Get all event names that have listeners
+     * Get all event names that have listeners.
      */
     eventNames(): string[] {
         return Object.keys(this.listeners) as string[];

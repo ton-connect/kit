@@ -25,21 +25,21 @@ export class WalletsManager {
     }
 
     /**
-     * All connected wallets
+     * All connected wallets.
      */
     get wallets(): WalletInterface[] {
         return this._wallets;
     }
 
     /**
-     * Selected wallet id
+     * Selected wallet id.
      */
     get selectedWalletId(): string | null {
         return this._selectedWalletId;
     }
 
     /**
-     * Selected wallet
+     * Selected wallet.
      */
     get selectedWallet(): WalletInterface | null {
         if (!this._selectedWalletId) {
@@ -50,7 +50,7 @@ export class WalletsManager {
     }
 
     /**
-     * Set selected wallet id
+     * Set selected wallet id.
      */
     setSelectedWalletId(id: string | null): void {
         this._selectedWalletId = id;
@@ -59,7 +59,7 @@ export class WalletsManager {
 
     /**
      * Set connected wallets
-     * Automatically handles selected wallet state
+     * Automatically handles selected wallet state.
      */
     setWallets(wallets: WalletInterface[]): void {
         this._wallets = wallets;

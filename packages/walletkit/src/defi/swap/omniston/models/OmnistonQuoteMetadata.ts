@@ -9,7 +9,7 @@
 import type { Quote } from '@ston-fi/omniston-sdk';
 
 /**
- * Metadata associated with an Omniston quote
+ * Metadata associated with an Omniston quote.
  */
 export interface OmnistonQuoteMetadata {
     /**

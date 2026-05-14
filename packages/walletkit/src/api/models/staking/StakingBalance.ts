@@ -9,7 +9,7 @@
 import type { TokenAmount } from '../core/TokenAmount';
 
 /**
- * Staking balance information for a user
+ * Staking balance information for a user.
  */
 export interface StakingBalance {
     /**
@@ -33,7 +33,7 @@ export interface StakingBalance {
     instantUnstakeAvailable: string;
 
     /**
-     * Identifier of the staking provider
+     * Identifier of the staking provider.
      */
     providerId: string;
 }

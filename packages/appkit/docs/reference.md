@@ -4422,7 +4422,7 @@ Event names AppKit emits for connector-list and connector-wallet changes. Payloa
 const CONNECTOR_EVENTS = {
     /** A connector was registered via {@link addConnector} (or AppKit's constructor). */
     ADDED: 'connector:added',
-    /** A connector was unregistered via `removeConnector` or its own teardown. */
+    /** A connector was unregistered — typically by calling the unregister function returned from {@link addConnector}, or as part of the connector's own teardown. */
     REMOVED: 'connector:removed',
     /** A connector's connected-wallets list changed (connect, disconnect, or account switch inside the wallet). */
     WALLETS_UPDATED: 'connector:wallets-updated',

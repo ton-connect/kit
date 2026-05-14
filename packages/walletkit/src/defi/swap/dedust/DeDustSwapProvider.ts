@@ -29,12 +29,12 @@ import type { ProviderFactoryContext } from '../../../types/factory';
 const log = globalLogger.createChild('DeDustSwapProvider');
 
 /**
- * Default API URL for DeDust Router
+ * Default API URL for DeDust Router.
  */
 const DEFAULT_API_URL = 'https://api-mainnet.dedust.io';
 
 /**
- * Default protocols to use for routing
+ * Default protocols to use for routing.
  */
 const DEFAULT_PROTOCOLS = [
     'dedust',

@@ -10,6 +10,6 @@ import type { OmnistonReferrerOptions } from './OmnistonReferrerOptions';
 import type { OmnistonSwapOptions } from './OmnistonSwapOptions';
 
 /**
- * Provider-specific options for Omniston swap operations
+ * Provider-specific options for Omniston swap operations.
  */
 export type OmnistonProviderOptions = OmnistonSwapOptions & OmnistonReferrerOptions;

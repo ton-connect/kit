@@ -13,7 +13,7 @@ export type TransactionStatus =
     | 'failed'; // transaction trace is fully processed onchain and has errors
 
 export interface TransactionStatusResponse {
-    /** Overall status of the transaction trace */
+    /** Overall status of the transaction trace. */
     status: TransactionStatus;
     /**
      * Total messages in the trace

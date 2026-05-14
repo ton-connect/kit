@@ -14,7 +14,7 @@ import type { DAppInfo } from '../core/DAppInfo';
  */
 export interface DisconnectionEvent extends BridgeEvent {
     /**
-     * Preview information for UI display
+     * Preview information for UI display.
      */
     preview: DisconnectionEventPreview;
 }
@@ -24,11 +24,11 @@ export interface DisconnectionEvent extends BridgeEvent {
  */
 export interface DisconnectionEventPreview {
     /**
-     * Human-readable reason for the disconnection
+     * Human-readable reason for the disconnection.
      */
     reason?: string;
     /**
-     * Information about the disconnected dApp
+     * Information about the disconnected dApp.
      */
     dAppInfo?: DAppInfo;
 }

@@ -14,11 +14,11 @@ import type { NFT } from './NFT';
  */
 export interface NFTsResponse {
     /**
-     * Address book entries related to the NFTs
+     * Address book entries related to the NFTs.
      */
     addressBook?: AddressBook;
     /**
-     * List of NFTs
+     * List of NFTs.
      */
     nfts: NFT[];
 }

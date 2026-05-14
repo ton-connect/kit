@@ -7,11 +7,11 @@
  */
 
 /**
- * Options for configuring the referrer in Omniston swap operations
+ * Options for configuring the referrer in Omniston swap operations.
  */
 export interface OmnistonReferrerOptions {
     /**
-     * The address of the referrer
+     * The address of the referrer.
      */
     referrerAddress?: string;
 
@@ -22,7 +22,7 @@ export interface OmnistonReferrerOptions {
     referrerFeeBps?: number;
 
     /**
-     * Whether a flexible referrer fee is allowed
+     * Whether a flexible referrer fee is allowed.
      */
     flexibleReferrerFee?: boolean;
 }

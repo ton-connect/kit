@@ -15,11 +15,11 @@ import type { SignData } from './SignData';
  */
 export interface PreparedSignData {
     /**
-     * Wallet address that will sign the data
+     * Wallet address that will sign the data.
      */
     address: UserFriendlyAddress;
     /**
-     * Unix timestamp when the sign request was created
+     * Unix timestamp when the sign request was created.
      */
     timestamp: number;
     /**
@@ -27,11 +27,11 @@ export interface PreparedSignData {
      */
     domain: string;
     /**
-     * Payload containing the data to be signed
+     * Payload containing the data to be signed.
      */
     payload: SignDataPayload;
     /**
-     * Hash of the prepared sign data for verification
+     * Hash of the prepared sign data for verification.
      */
     hash: Hex;
 }
@@ -41,7 +41,7 @@ export interface PreparedSignData {
  */
 export interface SignDataPayload {
     /**
-     * Network where the signing will occur
+     * Network where the signing will occur.
      */
     network?: Network;
     /**
@@ -49,22 +49,22 @@ export interface SignDataPayload {
      */
     fromAddress?: string;
     /**
-     * Sign data content to be signed
+     * Sign data content to be signed.
      */
     data: SignData;
 }
 
 export interface UnpreparedSignData {
     /**
-     * Payload containing the data to be signed
+     * Payload containing the data to be signed.
      */
     payload: SignDataPayload;
     /**
-     * Requesting domain for the signature
+     * Requesting domain for the signature.
      */
     domain: string;
     /**
-     * Wallet address that will sign the data
+     * Wallet address that will sign the data.
      */
     address: UserFriendlyAddress;
 }

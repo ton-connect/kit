@@ -84,7 +84,7 @@ export interface StakingContextType {
     stakedBalance: StakingBalance | undefined;
     /** True while staked balance is being fetched */
     isStakedBalanceLoading: boolean;
-    /** Selected unstake mode (e.g. instant or delayed) */
+    /** Selected unstake-timing mode — `'INSTANT'`, `'WHEN_AVAILABLE'`, or `'ROUND_END'`. See {@link appkit:UnstakeMode}. */
     unstakeMode: UnstakeModes;
     /** Sets the input amount */
     setAmount: (amount: string) => void;
@@ -110,9 +110,9 @@ export interface StakingContextType {
     lowBalanceMode: 'reduce' | 'topup';
     /** Required TON amount for the pending operation, formatted as a decimal string. Empty when no pending op. */
     lowBalanceRequiredTon: string;
-    /** Replace the input with a value that fits into the current TON balance and close the warning */
+    /** Replace the input with a value that fits within the current TON balance and close the warning. */
     onLowBalanceChange: () => void;
-    /** Dismiss the low-balance warning without changing the input */
+    /** Dismiss the low-balance warning without changing the input. */
     onLowBalanceCancel: () => void;
 }
 
@@ -175,7 +175,7 @@ export interface StakingProviderProps extends PropsWithChildren {
 }
 
 /**
- * Headless provider that owns all staking-widget state. Tracks the input amount, direction (stake/unstake), unstake mode, and reverse-input toggle. Resolves the selected provider via {@link useStakingProvider} and its info/metadata via {@link useStakingProviderInfo} and {@link useStakingProviderMetadata}. Reads the user's wallet balance (native TON or jetton) and staked balance. Debounces inputs into {@link useStakingQuote}. And submits via {@link useBuildStakeTransaction} + `useSendTransaction`, gating on a TON-shortfall check to surface a low-balance warning. Validation flags (`error`, `canSubmit`) come from `useStakingValidation`. Exposes everything through `StakingContext` for {@link useStakingContext} consumers.
+ * Headless provider that drives the staking-widget flow — owns the input state (amount, direction, unstake mode, reverse-input toggle), fetches quotes and balances, validates the input, and builds + submits the transaction with a low-balance guard. Children read everything through {@link useStakingContext}; pair with {@link StakingWidgetUI} (or pass a custom UI to {@link StakingWidget}'s `children`).
  *
  * @public
  * @category Component

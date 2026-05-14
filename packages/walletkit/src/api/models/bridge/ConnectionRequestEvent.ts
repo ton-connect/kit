@@ -18,7 +18,7 @@ export interface ConnectionRequestEvent extends BridgeEvent {
      */
     requestedItems: ConnectionRequestEventRequestedItem[];
     /**
-     * Preview information for UI display
+     * Preview information for UI display.
      */
     preview: ConnectionRequestEventPreview;
 }
@@ -28,11 +28,11 @@ export interface ConnectionRequestEvent extends BridgeEvent {
  */
 export interface ConnectionRequestEventPreview {
     /**
-     * Permissions requested by the dApp
+     * Permissions requested by the dApp.
      */
     permissions: ConnectionRequestEventPreviewPermission[];
     /**
-     * Information about the requesting dApp
+     * Information about the requesting dApp.
      */
     dAppInfo?: DAppInfo;
     /**
@@ -62,15 +62,15 @@ export interface ConnectionRequestTonProofRequestedItem {
  */
 export interface ConnectionRequestEventPreviewPermission {
     /**
-     * Identifier name of the permission
+     * Identifier name of the permission.
      */
     name?: string;
     /**
-     * Human-readable title of the permission
+     * Human-readable title of the permission.
      */
     title?: string;
     /**
-     * Detailed description of what the permission allows
+     * Detailed description of what the permission allows.
      */
     description?: string;
 }

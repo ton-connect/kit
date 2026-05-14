@@ -1003,9 +1003,9 @@ Ready-made token picker modal — renders a search field and a sectioned list of
 | --- | --- | --- |
 | `open`\* | `boolean` | Controls modal visibility. |
 | `onClose`\* | `() => void` | Called when the modal is dismissed (selection, backdrop click, or escape). |
-| `tokens`\* | `T = AppkitUIToken[]` | Full set of tokens available for selection and search. |
+| `tokens`\* | <code>T = <a href="#appkituitoken">AppkitUIToken</a>[]</code> | Full set of tokens available for selection and search. |
 | `tokenSections` | <code><a href="#tokensectionconfig">TokenSectionConfig</a>[]</code> | Optional sectioning rules. When omitted, all tokens render as a single untitled section. |
-| `onSelect`\* | `(token: T = AppkitUIToken) => void` | Called with the picked token. The modal closes and resets its search on selection. |
+| `onSelect`\* | <code>(token: T = <a href="#appkituitoken">AppkitUIToken</a>) =&gt; void</code> | Called with the picked token. The modal closes and resets its search on selection. |
 | `title`\* | `string` | Modal header title. |
 | `searchPlaceholder` | `string` | Placeholder shown inside the search input. |
 
@@ -1114,7 +1114,7 @@ High-level staking widget that wires the full stake/unstake flow: pick a provide
 
 #### StakingWidgetProvider
 
-Headless provider that owns all staking-widget state. Tracks the input amount, direction (stake/unstake), unstake mode, and reverse-input toggle. Resolves the selected provider via [`useStakingProvider`](#usestakingprovider) and its info/metadata via [`useStakingProviderInfo`](#usestakingproviderinfo) and [`useStakingProviderMetadata`](#usestakingprovidermetadata). Reads the user's wallet balance (native TON or jetton) and staked balance. Debounces inputs into [`useStakingQuote`](#usestakingquote). And submits via [`useBuildStakeTransaction`](#usebuildstaketransaction) + `useSendTransaction`, gating on a TON-shortfall check to surface a low-balance warning. Validation flags (`error`, `canSubmit`) come from `useStakingValidation`. Exposes everything through `StakingContext` for [`useStakingContext`](#usestakingcontext) consumers.
+Headless provider that drives the staking-widget flow — owns the input state (amount, direction, unstake mode, reverse-input toggle), fetches quotes and balances, validates the input, and builds + submits the transaction with a low-balance guard. Children read everything through [`useStakingContext`](#usestakingcontext); pair with [`StakingWidgetUI`](#stakingwidgetui) (or pass a custom UI to [`StakingWidget`](#stakingwidget)'s `children`).
 
 | Prop | Type | Description |
 | --- | --- | --- |
@@ -1122,7 +1122,7 @@ Headless provider that owns all staking-widget state. Tracks the input amount, d
 
 #### StakingWidgetUI
 
-Default staking-widget UI. Renders a stake/unstake tabbed layout: a centered amount input with optional reversed input, a [`StakingBalanceBlock`](#stakingbalanceblock) for the relevant balance, the submit button (wired through `ButtonWithConnect` so a disconnected user is prompted to connect first), a settings button that opens [`StakingSettingsModal`](#stakingsettingsmodal), the unstake-mode picker ([`SelectUnstakeMode`](#selectunstakemode), unstake tab only), and a [`StakingInfo`](#stakinginfo) summary. A [`LowBalanceModal`](#lowbalancemodal) surfaces when the built transaction would exceed the user's TON balance. All state is consumed from props (typically supplied by [`StakingWidgetProvider`](#stakingwidgetprovider)). This component owns only the local `settings modal open` flag.
+Default staking-widget UI. Renders a stake/unstake tabbed layout: a centered amount input with optional reversed input, a [`StakingBalanceBlock`](#stakingbalanceblock) for the relevant balance, the submit button (wired through `ButtonWithConnect` so a disconnected user is prompted to connect first), a settings button that opens [`StakingSettingsModal`](#stakingsettingsmodal), the unstake-mode picker ([`SelectUnstakeMode`](#selectunstakemode), unstake tab only), and a [`StakingInfo`](#stakinginfo) summary. A [`LowBalanceModal`](#lowbalancemodal) surfaces when the built transaction would exceed the user's TON balance. All state is consumed from props — typically supplied by [`StakingWidgetProvider`](#stakingwidgetprovider).
 
 | Prop | Type | Description |
 | --- | --- | --- |
@@ -1143,7 +1143,7 @@ Default staking-widget UI. Renders a stake/unstake tabbed layout: a centered amo
 | `isBalanceLoading`\* | `boolean` | True while base balance is being fetched |
 | `stakedBalance`\* | <code><a href="/ecosystem/appkit/reference/appkit#stakingbalance">StakingBalance</a> \| undefined</code> | User's currently staked balance |
 | `isStakedBalanceLoading`\* | `boolean` | True while staked balance is being fetched |
-| `unstakeMode`\* | <code><a href="/ecosystem/appkit/reference/appkit#unstakemodes">UnstakeModes</a></code> | Selected unstake mode (e.g. instant or delayed) |
+| `unstakeMode`\* | <code><a href="/ecosystem/appkit/reference/appkit#unstakemodes">UnstakeModes</a></code> | Selected unstake-timing mode — `'INSTANT'`, `'WHEN_AVAILABLE'`, or `'ROUND_END'`. See [`UnstakeMode`](/ecosystem/appkit/reference/appkit#unstakemode). |
 | `setAmount`\* | `(amount: string) => void` | Sets the input amount |
 | `setUnstakeMode`\* | <code>(mode: <a href="/ecosystem/appkit/reference/appkit#unstakemodes">UnstakeModes</a>) =&gt; void</code> | Sets the unstake mode |
 | `sendTransaction`\* | `() => Promise<void>` | Triggers the staking/unstaking transaction |
@@ -1156,8 +1156,8 @@ Default staking-widget UI. Renders a stake/unstake tabbed layout: a centered amo
 | `isLowBalanceWarningOpen`\* | `boolean` | True when the built transaction outflow exceeds the user's TON balance |
 | `lowBalanceMode`\* | `'reduce' \| 'topup'` | `reduce` when the outgoing token is TON (user can fix by changing amount), `topup` otherwise. |
 | `lowBalanceRequiredTon`\* | `string` | Required TON amount for the pending operation, formatted as a decimal string. Empty when no pending op. |
-| `onLowBalanceChange`\* | `() => void` | Replace the input with a value that fits into the current TON balance and close the warning |
-| `onLowBalanceCancel`\* | `() => void` | Dismiss the low-balance warning without changing the input |
+| `onLowBalanceChange`\* | `() => void` | Replace the input with a value that fits within the current TON balance and close the warning. |
+| `onLowBalanceCancel`\* | `() => void` | Dismiss the low-balance warning without changing the input. |
 
 ### Swap
 
@@ -1170,14 +1170,13 @@ One row of the swap form. Renders the amount input, fiat conversion, balance lin
 | `type`\* | `'pay' \| 'receive'` | `pay` renders the editable source row with a "max" shortcut. `receive` renders the read-only target row. |
 | `amount`\* | `string` | Current amount shown in the input as a human-readable decimal string. |
 | `fiatSymbol` | `string` | Fiat currency symbol displayed in front of the converted value. Defaults to `"$"`. |
-| `token` | `AppkitUIToken` | Currently selected token. Controls the token selector label, balance formatting and fiat conversion. |
+| `token` | <code><a href="#appkituitoken">AppkitUIToken</a></code> | Currently selected token. Controls the token selector label, balance formatting and fiat conversion. |
 | `onAmountChange` | `(value: string) => void` | Called with the raw input value when the user edits the amount. Only fired for `type: "pay"`. |
 | `balance` | `string` | Formatted balance of `token` for the active wallet, as a human-readable decimal string. Rendered in the balance line beneath the input. |
 | `isBalanceLoading` | `boolean` | When true, the balance area renders a skeleton placeholder instead of the value. |
 | `loading` | `boolean` | When true, the underlying input renders its loading state — used while a fresh quote is in flight. |
 | `onMaxClick` | `() => void` | Called when the user clicks the "max" shortcut to fill the maximum spendable amount. |
 | `onTokenSelectorClick` | `() => void` | Called when the user clicks the token selector chip — typically opens a `SwapTokenSelectModal`. |
-| `isWalletConnected` | `boolean` | Reserved flag indicating whether a wallet is connected — currently accepted for API symmetry. |
 | `size` | `InputSize` | Size token applied to the input control(s) inside: `'s' | 'm' | 'l'`. Defaults to `'m'`. |
 | `variant` | `InputVariant` | Visual variant: `'default'` paints a filled field. `'unstyled'` drops the chrome. |
 | `disabled` | `boolean` | When true, descendant input controls are disabled. |
@@ -1207,7 +1206,7 @@ Summary block rendered under the swap form. Shows the minimum amount the user is
 
 | Prop | Type | Description |
 | --- | --- | --- |
-| `toToken`\* | `AppkitUIToken \| null` | Target token the user is receiving. Used to format `minReceived` with the right decimals and symbol. |
+| `toToken`\* | <code><a href="#appkituitoken">AppkitUIToken</a> \| null</code> | Target token the user is receiving. Used to format `minReceived` with the right decimals and symbol. |
 | `slippage`\* | `number` | Slippage tolerance in basis points (`100` = 1%). Rendered as a percentage. |
 | `provider` | <code><a href="/ecosystem/appkit/reference/appkit#swapprovider">SwapProvider</a></code> | Current [`SwapProvider`](/ecosystem/appkit/reference/appkit#swapprovider). Its display name is shown in the provider row. |
 | `quote` | <code><a href="/ecosystem/appkit/reference/appkit#swapquote">SwapQuote</a></code> | Quote whose `minReceived` value is displayed. When undefined the value falls back to `0` (still suffixed with the token symbol). |
@@ -1225,7 +1224,7 @@ Drop-in swap UI that walks the user through picking the source/target tokens, en
 | --- | --- | --- |
 | `children` | <code>(props: <a href="#swapwidgetrenderprops">SwapWidgetRenderProps</a>) =&gt; ReactNode</code> | Optional render-prop receiving the full swap context plus the forwarded `<div>` props. When supplied it replaces the default [`SwapWidgetUI`](#swapwidgetui). |
 | `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network used for quote fetching and balance reads. When omitted, falls back to the selected wallet's network via [`useNetwork`](#usenetwork). |
-| `tokens`\* | `AppkitUIToken[]` | Full list of tokens available for swapping in the UI. Filtered to the active network internally. |
+| `tokens`\* | <code><a href="#appkituitoken">AppkitUIToken</a>[]</code> | Full list of tokens available for swapping in the UI. Filtered to the active network internally. |
 | `tokenSections` | <code><a href="#tokensectionconfig">TokenSectionConfig</a>[]</code> | Optional section configs for grouping tokens inside the `SwapTokenSelectModal`. |
 | `defaultFromSymbol` | `string` | Symbol of the token pre-selected as the source on first mount (e.g. `"TON"`). |
 | `defaultToSymbol` | `string` | Symbol of the token pre-selected as the target on first mount. |
@@ -1242,7 +1241,7 @@ Provider that wires up the full swap state machine — debounces the entered amo
 
 | Prop | Type | Description |
 | --- | --- | --- |
-| `tokens`\* | `AppkitUIToken[]` | Full list of tokens available for swapping in the UI. Filtered to the active network internally. |
+| `tokens`\* | <code><a href="#appkituitoken">AppkitUIToken</a>[]</code> | Full list of tokens available for swapping in the UI. Filtered to the active network internally. |
 | `tokenSections` | <code><a href="#tokensectionconfig">TokenSectionConfig</a>[]</code> | Optional section configs for grouping tokens inside the `SwapTokenSelectModal`. |
 | `defaultFromSymbol` | `string` | Symbol of the token pre-selected as the source on first mount (e.g. `"TON"`). |
 | `defaultToSymbol` | `string` | Symbol of the token pre-selected as the target on first mount. |
@@ -1256,10 +1255,10 @@ Default visual implementation of the swap widget — composes [`SwapField`](#swa
 
 | Prop | Type | Description |
 | --- | --- | --- |
-| `tokens`\* | `AppkitUIToken[]` | Full list of available tokens for swapping |
+| `tokens`\* | <code><a href="#appkituitoken">AppkitUIToken</a>[]</code> | Full list of available tokens for swapping |
 | `tokenSections` | <code><a href="#tokensectionconfig">TokenSectionConfig</a>[]</code> | Optional section configs for grouping tokens in the selector |
-| `fromToken`\* | `AppkitUIToken \| null` | Currently selected source token |
-| `toToken`\* | `AppkitUIToken \| null` | Currently selected target token |
+| `fromToken`\* | <code><a href="#appkituitoken">AppkitUIToken</a> \| null</code> | Currently selected source token |
+| `toToken`\* | <code><a href="#appkituitoken">AppkitUIToken</a> \| null</code> | Currently selected target token |
 | `fromAmount`\* | `string` | Amount the user wants to swap (string to preserve input UX) |
 | `toAmount`\* | `string` | Calculated receive amount from the current quote |
 | `fiatSymbol`\* | `string` | Fiat currency symbol for price display, e.g. "$" |
@@ -1275,8 +1274,8 @@ Default visual implementation of the swap widget — composes [`SwapField`](#swa
 | `swapProvider`\* | <code><a href="/ecosystem/appkit/reference/appkit#swapprovider">SwapProvider</a> \| undefined</code> | Currently selected swap provider (defaults to the first registered one) |
 | `swapProviders`\* | <code><a href="/ecosystem/appkit/reference/appkit#swapprovider">SwapProvider</a>[]</code> | All registered swap providers |
 | `setSwapProviderId`\* | `(providerId: string) => void` | Updates the selected swap provider |
-| `setFromToken`\* | `(token: AppkitUIToken) => void` | Updates the source token |
-| `setToToken`\* | `(token: AppkitUIToken) => void` | Updates the target token |
+| `setFromToken`\* | <code>(token: <a href="#appkituitoken">AppkitUIToken</a>) =&gt; void</code> | Updates the source token |
+| `setToToken`\* | <code>(token: <a href="#appkituitoken">AppkitUIToken</a>) =&gt; void</code> | Updates the target token |
 | `setFromAmount`\* | `(amount: string) => void` | Updates the swap amount |
 | `setSlippage`\* | `(slippage: number) => void` | Updates the slippage tolerance |
 | `onFlip`\* | `() => void` | Swaps source and target tokens |
@@ -1286,8 +1285,8 @@ Default visual implementation of the swap widget — composes [`SwapField`](#swa
 | `isLowBalanceWarningOpen`\* | `boolean` | True when the built transaction outflow exceeds the user's TON balance |
 | `lowBalanceMode`\* | `'reduce' \| 'topup'` | `reduce` when the outgoing token is TON (user can fix by changing amount), `topup` otherwise. |
 | `lowBalanceRequiredTon`\* | `string` | Required TON amount for the pending operation, formatted as a decimal string. Empty when no pending op. |
-| `onLowBalanceChange`\* | `() => void` | Replace the input with a value that fits into the current TON balance and close the warning |
-| `onLowBalanceCancel`\* | `() => void` | Dismiss the low-balance warning without changing the input |
+| `onLowBalanceChange`\* | `() => void` | Replace the input with a value that fits within the current TON balance and close the warning. |
+| `onLowBalanceCancel`\* | `() => void` | Dismiss the low-balance warning without changing the input. |
 
 ### UI
 
@@ -1793,12 +1792,12 @@ Source crypto payment method (what the user pays with on another chain) in the c
 | Field | Type | Description |
 | --- | --- | --- |
 | `id`\* | `string` | Stable identifier for the method — used for selection state and `methodSections.ids` |
-| `symbol`\* | `string` | Token symbol, e.g. "USDC", "USDT" |
-| `name`\* | `string` | Full token name shown in the picker, e.g. "USD Coin", "Tether" |
+| `symbol`\* | `string` | Token symbol, e.g. "USDC", "USDT". |
+| `name`\* | `string` | Full token name shown in the picker, e.g. "USD Coin", "Tether". |
 | `chain`\* | `string` | Source chain in CAIP-2 format, e.g. "eip155:8453", "eip155:56" — passed as `sourceChain` to the onramp provider. The widget resolves a display name and logo for it via the `chains` map (see `CryptoOnrampWidgetProvider`). |
 | `decimals`\* | `number` | Number of decimals for the token (used to convert between display and base units) |
 | `address`\* | `string` | Token contract address on the source network (empty string / zero address for native) |
-| `logo` | `string` | Token logo URL shown in the picker and selectors |
+| `logo` | `string` | Token logo URL shown in the picker and selectors. |
 
 #### OnrampAmountPreset
 
@@ -2266,6 +2265,21 @@ Props accepted by [`AmountPresets`](#amountpresets).
 | `currencySymbol` | `string` | Optional symbol (e.g., `"$"`) prepended to each preset label. |
 | `onPresetSelect`\* | `(value: string) => void` | Called with the selected preset's `amount` unless the preset defines its own `onSelect`. |
 
+#### AppkitUIToken
+
+UI-side token descriptor consumed by appkit-react widgets ([`SwapWidget`](#swapwidget), [`SwapField`](#swapfield), currency selectors, etc.) — identifies the token in the picker UI and carries display + on-chain fields the widget needs to render and quote.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id`\* | `string` | Stable id used for picker selection state and section grouping. |
+| `symbol`\* | `string` | Ticker symbol shown in the picker and selector chip (e.g., `"TON"`, `"USDT"`). |
+| `name`\* | `string` | Full token name shown in the picker (e.g., `"Toncoin"`). |
+| `decimals`\* | `number` | Number of decimal places used to format raw amounts. |
+| `address`\* | `string` | Token contract address. Pass `'ton'` for native TON; otherwise the jetton master's user-friendly address. |
+| `logo` | `string` | Optional URL of the token logo shown in the picker and selector chip. |
+| `rate` | `string` | Optional fiat exchange rate (`1 token = rate fiat units`). Used by widgets to render fiat conversions next to amounts. |
+| `network`\* | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | [`Network`](/ecosystem/appkit/reference/appkit#network) the token lives on. Widgets filter their token universe by the active network. |
+
 #### CopyButtonProps
 
 Props accepted by [`CopyButton`](#copybutton).
@@ -2396,9 +2410,9 @@ Props accepted by [`TokenSelectModal`](#tokenselectmodal).
 | --- | --- | --- |
 | `open`\* | `boolean` | Controls modal visibility. |
 | `onClose`\* | `() => void` | Called when the modal is dismissed (selection, backdrop click, or escape). |
-| `tokens`\* | `T = AppkitUIToken[]` | Full set of tokens available for selection and search. |
+| `tokens`\* | <code>T = <a href="#appkituitoken">AppkitUIToken</a>[]</code> | Full set of tokens available for selection and search. |
 | `tokenSections` | <code><a href="#tokensectionconfig">TokenSectionConfig</a>[]</code> | Optional sectioning rules. When omitted, all tokens render as a single untitled section. |
-| `onSelect`\* | `(token: T = AppkitUIToken) => void` | Called with the picked token. The modal closes and resets its search on selection. |
+| `onSelect`\* | <code>(token: T = <a href="#appkituitoken">AppkitUIToken</a>) =&gt; void</code> | Called with the picked token. The modal closes and resets its search on selection. |
 | `title`\* | `string` | Modal header title. |
 | `searchPlaceholder` | `string` | Placeholder shown inside the search input. |
 
@@ -2534,7 +2548,7 @@ Shape of the staking context exposed by [`StakingWidgetProvider`](#stakingwidget
 | `isBalanceLoading`\* | `boolean` | True while base balance is being fetched |
 | `stakedBalance`\* | <code><a href="/ecosystem/appkit/reference/appkit#stakingbalance">StakingBalance</a> \| undefined</code> | User's currently staked balance |
 | `isStakedBalanceLoading`\* | `boolean` | True while staked balance is being fetched |
-| `unstakeMode`\* | <code><a href="/ecosystem/appkit/reference/appkit#unstakemodes">UnstakeModes</a></code> | Selected unstake mode (e.g. instant or delayed) |
+| `unstakeMode`\* | <code><a href="/ecosystem/appkit/reference/appkit#unstakemodes">UnstakeModes</a></code> | Selected unstake-timing mode — `'INSTANT'`, `'WHEN_AVAILABLE'`, or `'ROUND_END'`. See [`UnstakeMode`](/ecosystem/appkit/reference/appkit#unstakemode). |
 | `setAmount`\* | `(amount: string) => void` | Sets the input amount |
 | `setUnstakeMode`\* | <code>(mode: <a href="/ecosystem/appkit/reference/appkit#unstakemodes">UnstakeModes</a>) =&gt; void</code> | Sets the unstake mode |
 | `sendTransaction`\* | `() => Promise<void>` | Triggers the staking/unstaking transaction |
@@ -2547,8 +2561,8 @@ Shape of the staking context exposed by [`StakingWidgetProvider`](#stakingwidget
 | `isLowBalanceWarningOpen`\* | `boolean` | True when the built transaction outflow exceeds the user's TON balance |
 | `lowBalanceMode`\* | `'reduce' \| 'topup'` | `reduce` when the outgoing token is TON (user can fix by changing amount), `topup` otherwise. |
 | `lowBalanceRequiredTon`\* | `string` | Required TON amount for the pending operation, formatted as a decimal string. Empty when no pending op. |
-| `onLowBalanceChange`\* | `() => void` | Replace the input with a value that fits into the current TON balance and close the warning |
-| `onLowBalanceCancel`\* | `() => void` | Dismiss the low-balance warning without changing the input |
+| `onLowBalanceChange`\* | `() => void` | Replace the input with a value that fits within the current TON balance and close the warning. |
+| `onLowBalanceCancel`\* | `() => void` | Dismiss the low-balance warning without changing the input. |
 
 #### StakingInfoProps
 
@@ -2616,7 +2630,7 @@ Props accepted by [`StakingWidgetUI`](#stakingwidgetui) (also the argument type 
 | `isBalanceLoading`\* | `boolean` | True while base balance is being fetched |
 | `stakedBalance`\* | <code><a href="/ecosystem/appkit/reference/appkit#stakingbalance">StakingBalance</a> \| undefined</code> | User's currently staked balance |
 | `isStakedBalanceLoading`\* | `boolean` | True while staked balance is being fetched |
-| `unstakeMode`\* | <code><a href="/ecosystem/appkit/reference/appkit#unstakemodes">UnstakeModes</a></code> | Selected unstake mode (e.g. instant or delayed) |
+| `unstakeMode`\* | <code><a href="/ecosystem/appkit/reference/appkit#unstakemodes">UnstakeModes</a></code> | Selected unstake-timing mode — `'INSTANT'`, `'WHEN_AVAILABLE'`, or `'ROUND_END'`. See [`UnstakeMode`](/ecosystem/appkit/reference/appkit#unstakemode). |
 | `setAmount`\* | `(amount: string) => void` | Sets the input amount |
 | `setUnstakeMode`\* | <code>(mode: <a href="/ecosystem/appkit/reference/appkit#unstakemodes">UnstakeModes</a>) =&gt; void</code> | Sets the unstake mode |
 | `sendTransaction`\* | `() => Promise<void>` | Triggers the staking/unstaking transaction |
@@ -2629,8 +2643,8 @@ Props accepted by [`StakingWidgetUI`](#stakingwidgetui) (also the argument type 
 | `isLowBalanceWarningOpen`\* | `boolean` | True when the built transaction outflow exceeds the user's TON balance |
 | `lowBalanceMode`\* | `'reduce' \| 'topup'` | `reduce` when the outgoing token is TON (user can fix by changing amount), `topup` otherwise. |
 | `lowBalanceRequiredTon`\* | `string` | Required TON amount for the pending operation, formatted as a decimal string. Empty when no pending op. |
-| `onLowBalanceChange`\* | `() => void` | Replace the input with a value that fits into the current TON balance and close the warning |
-| `onLowBalanceCancel`\* | `() => void` | Dismiss the low-balance warning without changing the input |
+| `onLowBalanceChange`\* | `() => void` | Replace the input with a value that fits within the current TON balance and close the warning. |
+| `onLowBalanceCancel`\* | `() => void` | Dismiss the low-balance warning without changing the input. |
 
 #### UseBuildStakeTransactionReturnType
 
@@ -2763,10 +2777,10 @@ Shape of the value exposed by [`useSwapContext`](#useswapcontext). Holds the sel
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `tokens`\* | `AppkitUIToken[]` | Full list of available tokens for swapping |
+| `tokens`\* | <code><a href="#appkituitoken">AppkitUIToken</a>[]</code> | Full list of available tokens for swapping |
 | `tokenSections` | <code><a href="#tokensectionconfig">TokenSectionConfig</a>[]</code> | Optional section configs for grouping tokens in the selector |
-| `fromToken`\* | `AppkitUIToken \| null` | Currently selected source token |
-| `toToken`\* | `AppkitUIToken \| null` | Currently selected target token |
+| `fromToken`\* | <code><a href="#appkituitoken">AppkitUIToken</a> \| null</code> | Currently selected source token |
+| `toToken`\* | <code><a href="#appkituitoken">AppkitUIToken</a> \| null</code> | Currently selected target token |
 | `fromAmount`\* | `string` | Amount the user wants to swap (string to preserve input UX) |
 | `toAmount`\* | `string` | Calculated receive amount from the current quote |
 | `fiatSymbol`\* | `string` | Fiat currency symbol for price display, e.g. "$" |
@@ -2782,8 +2796,8 @@ Shape of the value exposed by [`useSwapContext`](#useswapcontext). Holds the sel
 | `swapProvider`\* | <code><a href="/ecosystem/appkit/reference/appkit#swapprovider">SwapProvider</a> \| undefined</code> | Currently selected swap provider (defaults to the first registered one) |
 | `swapProviders`\* | <code><a href="/ecosystem/appkit/reference/appkit#swapprovider">SwapProvider</a>[]</code> | All registered swap providers |
 | `setSwapProviderId`\* | `(providerId: string) => void` | Updates the selected swap provider |
-| `setFromToken`\* | `(token: AppkitUIToken) => void` | Updates the source token |
-| `setToToken`\* | `(token: AppkitUIToken) => void` | Updates the target token |
+| `setFromToken`\* | <code>(token: <a href="#appkituitoken">AppkitUIToken</a>) =&gt; void</code> | Updates the source token |
+| `setToToken`\* | <code>(token: <a href="#appkituitoken">AppkitUIToken</a>) =&gt; void</code> | Updates the target token |
 | `setFromAmount`\* | `(amount: string) => void` | Updates the swap amount |
 | `setSlippage`\* | `(slippage: number) => void` | Updates the slippage tolerance |
 | `onFlip`\* | `() => void` | Swaps source and target tokens |
@@ -2793,8 +2807,8 @@ Shape of the value exposed by [`useSwapContext`](#useswapcontext). Holds the sel
 | `isLowBalanceWarningOpen`\* | `boolean` | True when the built transaction outflow exceeds the user's TON balance |
 | `lowBalanceMode`\* | `'reduce' \| 'topup'` | `reduce` when the outgoing token is TON (user can fix by changing amount), `topup` otherwise. |
 | `lowBalanceRequiredTon`\* | `string` | Required TON amount for the pending operation, formatted as a decimal string. Empty when no pending op. |
-| `onLowBalanceChange`\* | `() => void` | Replace the input with a value that fits into the current TON balance and close the warning |
-| `onLowBalanceCancel`\* | `() => void` | Dismiss the low-balance warning without changing the input |
+| `onLowBalanceChange`\* | `() => void` | Replace the input with a value that fits within the current TON balance and close the warning. |
+| `onLowBalanceCancel`\* | `() => void` | Dismiss the low-balance warning without changing the input. |
 
 #### SwapFieldProps
 
@@ -2805,14 +2819,13 @@ Props accepted by [`SwapField`](#swapfield) — a single source/target row insid
 | `type`\* | `'pay' \| 'receive'` | `pay` renders the editable source row with a "max" shortcut. `receive` renders the read-only target row. |
 | `amount`\* | `string` | Current amount shown in the input as a human-readable decimal string. |
 | `fiatSymbol` | `string` | Fiat currency symbol displayed in front of the converted value. Defaults to `"$"`. |
-| `token` | `AppkitUIToken` | Currently selected token. Controls the token selector label, balance formatting and fiat conversion. |
+| `token` | <code><a href="#appkituitoken">AppkitUIToken</a></code> | Currently selected token. Controls the token selector label, balance formatting and fiat conversion. |
 | `onAmountChange` | `(value: string) => void` | Called with the raw input value when the user edits the amount. Only fired for `type: "pay"`. |
 | `balance` | `string` | Formatted balance of `token` for the active wallet, as a human-readable decimal string. Rendered in the balance line beneath the input. |
 | `isBalanceLoading` | `boolean` | When true, the balance area renders a skeleton placeholder instead of the value. |
 | `loading` | `boolean` | When true, the underlying input renders its loading state — used while a fresh quote is in flight. |
 | `onMaxClick` | `() => void` | Called when the user clicks the "max" shortcut to fill the maximum spendable amount. |
 | `onTokenSelectorClick` | `() => void` | Called when the user clicks the token selector chip — typically opens a `SwapTokenSelectModal`. |
-| `isWalletConnected` | `boolean` | Reserved flag indicating whether a wallet is connected — currently accepted for API symmetry. |
 | `size` | `InputSize` | Size token applied to the input control(s) inside: `'s' | 'm' | 'l'`. Defaults to `'m'`. |
 | `variant` | `InputVariant` | Visual variant: `'default'` paints a filled field. `'unstyled'` drops the chrome. |
 | `disabled` | `boolean` | When true, descendant input controls are disabled. |
@@ -2834,7 +2847,7 @@ Props accepted by [`SwapInfo`](#swapinfo) — the summary block under the swap f
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `toToken`\* | `AppkitUIToken \| null` | Target token the user is receiving. Used to format `minReceived` with the right decimals and symbol. |
+| `toToken`\* | <code><a href="#appkituitoken">AppkitUIToken</a> \| null</code> | Target token the user is receiving. Used to format `minReceived` with the right decimals and symbol. |
 | `slippage`\* | `number` | Slippage tolerance in basis points (`100` = 1%). Rendered as a percentage. |
 | `provider` | <code><a href="/ecosystem/appkit/reference/appkit#swapprovider">SwapProvider</a></code> | Current [`SwapProvider`](/ecosystem/appkit/reference/appkit#swapprovider). Its display name is shown in the provider row. |
 | `quote` | <code><a href="/ecosystem/appkit/reference/appkit#swapquote">SwapQuote</a></code> | Quote whose `minReceived` value is displayed. When undefined the value falls back to `0` (still suffixed with the token symbol). |
@@ -2846,7 +2859,7 @@ Props accepted by [`SwapWidgetProvider`](#swapwidgetprovider) — the inputs tha
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `tokens`\* | `AppkitUIToken[]` | Full list of tokens available for swapping in the UI. Filtered to the active network internally. |
+| `tokens`\* | <code><a href="#appkituitoken">AppkitUIToken</a>[]</code> | Full list of tokens available for swapping in the UI. Filtered to the active network internally. |
 | `tokenSections` | <code><a href="#tokensectionconfig">TokenSectionConfig</a>[]</code> | Optional section configs for grouping tokens inside the `SwapTokenSelectModal`. |
 | `defaultFromSymbol` | `string` | Symbol of the token pre-selected as the source on first mount (e.g. `"TON"`). |
 | `defaultToSymbol` | `string` | Symbol of the token pre-selected as the target on first mount. |
@@ -2862,7 +2875,7 @@ Props accepted by [`SwapWidget`](#swapwidget) — extend [`SwapProviderProps`](#
 | --- | --- | --- |
 | `children` | <code>(props: <a href="#swapwidgetrenderprops">SwapWidgetRenderProps</a>) =&gt; ReactNode</code> | Optional render-prop receiving the full swap context plus the forwarded `<div>` props. When supplied it replaces the default [`SwapWidgetUI`](#swapwidgetui). |
 | `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network used for quote fetching and balance reads. When omitted, falls back to the selected wallet's network via [`useNetwork`](#usenetwork). |
-| `tokens`\* | `AppkitUIToken[]` | Full list of tokens available for swapping in the UI. Filtered to the active network internally. |
+| `tokens`\* | <code><a href="#appkituitoken">AppkitUIToken</a>[]</code> | Full list of tokens available for swapping in the UI. Filtered to the active network internally. |
 | `tokenSections` | <code><a href="#tokensectionconfig">TokenSectionConfig</a>[]</code> | Optional section configs for grouping tokens inside the `SwapTokenSelectModal`. |
 | `defaultFromSymbol` | `string` | Symbol of the token pre-selected as the source on first mount (e.g. `"TON"`). |
 | `defaultToSymbol` | `string` | Symbol of the token pre-selected as the target on first mount. |
@@ -2875,10 +2888,10 @@ Props accepted by [`SwapWidgetUI`](#swapwidgetui) (and the `children` render-pro
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `tokens`\* | `AppkitUIToken[]` | Full list of available tokens for swapping |
+| `tokens`\* | <code><a href="#appkituitoken">AppkitUIToken</a>[]</code> | Full list of available tokens for swapping |
 | `tokenSections` | <code><a href="#tokensectionconfig">TokenSectionConfig</a>[]</code> | Optional section configs for grouping tokens in the selector |
-| `fromToken`\* | `AppkitUIToken \| null` | Currently selected source token |
-| `toToken`\* | `AppkitUIToken \| null` | Currently selected target token |
+| `fromToken`\* | <code><a href="#appkituitoken">AppkitUIToken</a> \| null</code> | Currently selected source token |
+| `toToken`\* | <code><a href="#appkituitoken">AppkitUIToken</a> \| null</code> | Currently selected target token |
 | `fromAmount`\* | `string` | Amount the user wants to swap (string to preserve input UX) |
 | `toAmount`\* | `string` | Calculated receive amount from the current quote |
 | `fiatSymbol`\* | `string` | Fiat currency symbol for price display, e.g. "$" |
@@ -2894,8 +2907,8 @@ Props accepted by [`SwapWidgetUI`](#swapwidgetui) (and the `children` render-pro
 | `swapProvider`\* | <code><a href="/ecosystem/appkit/reference/appkit#swapprovider">SwapProvider</a> \| undefined</code> | Currently selected swap provider (defaults to the first registered one) |
 | `swapProviders`\* | <code><a href="/ecosystem/appkit/reference/appkit#swapprovider">SwapProvider</a>[]</code> | All registered swap providers |
 | `setSwapProviderId`\* | `(providerId: string) => void` | Updates the selected swap provider |
-| `setFromToken`\* | `(token: AppkitUIToken) => void` | Updates the source token |
-| `setToToken`\* | `(token: AppkitUIToken) => void` | Updates the target token |
+| `setFromToken`\* | <code>(token: <a href="#appkituitoken">AppkitUIToken</a>) =&gt; void</code> | Updates the source token |
+| `setToToken`\* | <code>(token: <a href="#appkituitoken">AppkitUIToken</a>) =&gt; void</code> | Updates the target token |
 | `setFromAmount`\* | `(amount: string) => void` | Updates the swap amount |
 | `setSlippage`\* | `(slippage: number) => void` | Updates the slippage tolerance |
 | `onFlip`\* | `() => void` | Swaps source and target tokens |
@@ -2905,8 +2918,8 @@ Props accepted by [`SwapWidgetUI`](#swapwidgetui) (and the `children` render-pro
 | `isLowBalanceWarningOpen`\* | `boolean` | True when the built transaction outflow exceeds the user's TON balance |
 | `lowBalanceMode`\* | `'reduce' \| 'topup'` | `reduce` when the outgoing token is TON (user can fix by changing amount), `topup` otherwise. |
 | `lowBalanceRequiredTon`\* | `string` | Required TON amount for the pending operation, formatted as a decimal string. Empty when no pending op. |
-| `onLowBalanceChange`\* | `() => void` | Replace the input with a value that fits into the current TON balance and close the warning |
-| `onLowBalanceCancel`\* | `() => void` | Dismiss the low-balance warning without changing the input |
+| `onLowBalanceChange`\* | `() => void` | Replace the input with a value that fits within the current TON balance and close the warning. |
+| `onLowBalanceCancel`\* | `() => void` | Dismiss the low-balance warning without changing the input. |
 
 #### UseBuildSwapTransactionParameters
 

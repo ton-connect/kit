@@ -18,7 +18,7 @@ export interface ProofMessage {
      */
     workchain: number;
     /**
-     * Wallet address hash in hexadecimal format
+     * Wallet address hash in hexadecimal format.
      */
     addressHash: Hex;
     /**
@@ -27,19 +27,19 @@ export interface ProofMessage {
      */
     timestamp: number;
     /**
-     * Domain information for the proof request
+     * Domain information for the proof request.
      */
     domain: ProofMessageDomain;
     /**
-     * Payload string to be signed
+     * Payload string to be signed.
      */
     payload: string;
     /**
-     * Initial state of the wallet contract encoded in Base64
+     * Initial state of the wallet contract encoded in Base64.
      */
     stateInit: Base64String;
     /**
-     * Cryptographic signature of the proof message
+     * Cryptographic signature of the proof message.
      */
     signature?: Hex;
 }

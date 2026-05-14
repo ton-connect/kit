@@ -16,12 +16,12 @@ import type { SendMode } from '../core/SendMode';
  */
 export interface TONTransferRequest {
     /**
-     * Amount to transfer in nanotons
+     * Amount to transfer in nanotons.
      */
     transferAmount: TokenAmount;
 
     /**
-     * Recipient address in user-friendly format
+     * Recipient address in user-friendly format.
      */
     recipientAddress: UserFriendlyAddress;
 
@@ -31,12 +31,12 @@ export interface TONTransferRequest {
     mode?: SendMode;
 
     /**
-     * Additional currencies to include in the transfer
+     * Additional currencies to include in the transfer.
      */
     extraCurrency?: ExtraCurrencies;
 
     /**
-     * Initial state for deploying a new contract, encoded in Base64
+     * Initial state for deploying a new contract, encoded in Base64.
      */
     stateInit?: Base64String;
 
@@ -46,7 +46,7 @@ export interface TONTransferRequest {
     payload?: Base64String;
 
     /**
-     * Human-readable text comment attached to the transfer
+     * Human-readable text comment attached to the transfer.
      */
     comment?: string;
 }

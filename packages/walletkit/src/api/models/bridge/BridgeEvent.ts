@@ -14,21 +14,21 @@ import type { UserFriendlyAddress } from '../core/Primitives';
  */
 export interface BridgeEvent {
     /**
-     * Unique identifier for the bridge event
+     * Unique identifier for the bridge event.
      */
     id: string;
 
     from?: string;
     /**
-     * Wallet address associated with the event
+     * Wallet address associated with the event.
      */
     walletAddress?: UserFriendlyAddress;
     /**
-     * Wallet identifier associated with the event
+     * Wallet identifier associated with the event.
      */
     walletId?: string;
     /**
-     * Domain of the dApp that initiated the event
+     * Domain of the dApp that initiated the event.
      */
     domain?: string;
     /**
@@ -36,11 +36,11 @@ export interface BridgeEvent {
      */
     isJsBridge?: boolean;
     /**
-     * Browser tab ID for JS Bridge events
+     * Browser tab ID for JS Bridge events.
      */
     tabId?: string;
     /**
-     * Session identifier for the connection
+     * Session identifier for the connection.
      */
     sessionId?: string;
     isLocal?: boolean;

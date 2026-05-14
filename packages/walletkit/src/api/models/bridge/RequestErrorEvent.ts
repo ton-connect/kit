@@ -10,16 +10,16 @@ import type { ResultError } from '../core/Primitives';
 
 export interface RequestErrorEvent {
     /**
-     * Unique identifier for the request that resulted in an error
+     * Unique identifier for the request that resulted in an error.
      */
     id: string;
     /**
-     * Error details for the request failure
+     * Error details for the request failure.
      */
     error: ResultError;
 
     /**
-     * Additional data related to the error event
+     * Additional data related to the error event.
      */
     data: { [k: string]: unknown };
 }

@@ -24,7 +24,7 @@ import { asMaybeAddressFriendly } from '../utils';
 const log = globalLogger.createChild('JettonsManager');
 
 /**
- * Creates a cache key that includes the network ID
+ * Creates a cache key that includes the network ID.
  */
 function createCacheKey(network: Network, address: string): string {
     return `${network.chainId}:${address}`;
@@ -32,7 +32,7 @@ function createCacheKey(network: Network, address: string): string {
 
 /**
  * JettonsManager - manages jetton information with LRU caching and TonCenter API integration
- * Jettons are cached per network to support multi-network scenarios
+ * Jettons are cached per network to support multi-network scenarios.
  */
 export class JettonsManager implements JettonsAPI {
     private cache: LRUCache<string, JettonInfo>;
@@ -70,7 +70,7 @@ export class JettonsManager implements JettonsAPI {
     }
 
     /**
-     * Add TON native token to cache for a specific network
+     * Add TON native token to cache for a specific network.
      */
     private addTonToCache(network: Network): void {
         const cacheKey = createCacheKey(network, 'TON');
@@ -211,7 +211,7 @@ export class JettonsManager implements JettonsAPI {
     }
 
     /**
-     * Add jetton info to cache from emulation data for a specific network
+     * Add jetton info to cache from emulation data for a specific network.
      */
     addJettonFromEmulation(network: Network, jettonAddress: string, emulationInfo: EmulationTokenInfoMasters): void {
         try {
@@ -243,7 +243,7 @@ export class JettonsManager implements JettonsAPI {
     }
 
     /**
-     * Add multiple jettons from emulation metadata for a specific network
+     * Add multiple jettons from emulation metadata for a specific network.
      */
     addJettonsFromEmulationMetadata(
         network: Network,
@@ -287,7 +287,7 @@ export class JettonsManager implements JettonsAPI {
     }
 
     /**
-     * Normalize jetton address for consistent caching
+     * Normalize jetton address for consistent caching.
      */
     private normalizedCacheKey(network: Network, address: string): string {
         if (address === 'TON') {
@@ -297,7 +297,7 @@ export class JettonsManager implements JettonsAPI {
     }
 
     /**
-     * Get cache statistics
+     * Get cache statistics.
      */
     getCacheStats(): { size: number; capacity: number } {
         return {
@@ -307,7 +307,7 @@ export class JettonsManager implements JettonsAPI {
     }
 
     /**
-     * Validate jetton address format
+     * Validate jetton address format.
      */
     validateJettonAddress(address: string): boolean {
         try {
@@ -324,7 +324,7 @@ export class JettonsManager implements JettonsAPI {
     }
 
     /**
-     * Clear the jetton cache for all networks or a specific network
+     * Clear the jetton cache for all networks or a specific network.
      */
     clearCache(network?: Network): void {
         if (network) {

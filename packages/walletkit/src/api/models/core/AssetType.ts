@@ -11,7 +11,7 @@
  */
 export enum AssetType {
     /**
-     * Native TON cryptocurrency
+     * Native TON cryptocurrency.
      */
     ton = 'ton',
     /**

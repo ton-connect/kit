@@ -90,7 +90,7 @@ export interface TonConnectBridge {
 }
 
 /**
- * Options for JS Bridge injection
+ * Options for JS Bridge injection.
  */
 export interface JSBridgeInjectOptions {
     deviceInfo?: Partial<DeviceInfo>;
@@ -101,7 +101,7 @@ export interface JSBridgeInjectOptions {
 }
 
 /**
- * Internal message types for communication between injected bridge and extension
+ * Internal message types for communication between injected bridge and extension.
  */
 export interface InjectedToExtensionBridgeRequest {
     type: typeof TONCONNECT_BRIDGE_REQUEST;

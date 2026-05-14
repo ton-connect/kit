@@ -10,16 +10,16 @@ import type { UserFriendlyAddress } from '../core/Primitives';
 import type { OnrampQuote } from './OnrampQuote';
 
 /**
- * Parameters for building an onramp URL
+ * Parameters for building an onramp URL.
  */
 export interface OnrampParams<TProviderOptions = unknown> {
     /**
-     * The onramp quote to base the transaction on
+     * The onramp quote to base the transaction on.
      */
     quote: OnrampQuote;
 
     /**
-     * Address of the user receiving the crypto
+     * Address of the user receiving the crypto.
      */
     userAddress: UserFriendlyAddress;
 
@@ -29,7 +29,7 @@ export interface OnrampParams<TProviderOptions = unknown> {
     redirectUrl?: string;
 
     /**
-     * Provider-specific options
+     * Provider-specific options.
      */
     providerOptions?: TProviderOptions;
 }
