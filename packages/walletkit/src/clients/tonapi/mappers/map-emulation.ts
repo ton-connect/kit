@@ -19,10 +19,12 @@ import type {
     EmulationAddressBookEntry,
     EmulationAccountStatus,
     Hex,
+    Base64String,
 } from '../../../api/models';
 import { parseBlockRef, toHex } from './map-transactions';
 import { asHex } from '../../../utils/hex';
 import { asAddressFriendly, asMaybeAddressFriendly } from '../../../utils/address';
+import { HexToBase64 } from '../../../utils';
 
 function mapTraceNode(trace: TonApiTrace): EmulationTraceNode {
     return {
@@ -59,7 +61,7 @@ function mapMessage(raw: TonApiMessage, kind: 'in' | 'out'): EmulationMessage {
             kind === 'out' || !isExternal ? undefined : raw.import_fee != null ? String(raw.import_fee) : undefined,
         messageContent: {
             hash: undefined,
-            body: undefined,
+            body: HexToBase64(('0x' + raw.raw_body) as Hex) as Base64String,
             decoded: raw.decoded_body ?? undefined,
         },
         initState: undefined,
@@ -229,7 +231,7 @@ function normalizeJettonTransferDetails(payload: Record<string, unknown>): Recor
     };
 }
 
-function mapAction(action: TonApiAction, event: TonApiAccountEvent, rootHash: Hex): EmulationAction {
+function _mapAction(action: TonApiAction, event: TonApiAccountEvent, rootHash: Hex): EmulationAction {
     const lt = String(event.lt ?? 0);
     const utime = Number(event.timestamp ?? 0);
     const actionId = toHex(String(action.base_transactions?.[0] ?? event.event_id));
@@ -333,22 +335,37 @@ function mapAction(action: TonApiAction, event: TonApiAccountEvent, rootHash: He
 }
 
 export function mapTonApiEmulationResponse(result: TonApiMessageConsequences): EmulationResponse {
-    const rootTxHash = toHex(result.trace.transaction.hash);
+    const rootTxHash = toHex(result.transaction.hash);
     // Use the external in_msg hash as the trace identifier — matches Toncenter's traceExternalHash convention.
-    const externalHash = result.trace.transaction.in_msg?.hash
-        ? toHex(result.trace.transaction.in_msg.hash)
-        : rootTxHash;
-    const allTraces = flattenTrace(result.trace);
+    const externalHash = result.transaction.in_msg?.hash ? toHex(result.transaction.in_msg.hash) : rootTxHash;
+    const allTraces = flattenTrace(result);
     const transactions = Object.fromEntries(
-        allTraces.map((traceNode) => [toHex(traceNode.transaction.hash), mapTransaction(traceNode, externalHash)]),
+        allTraces.map((traceNode) => {
+            const hash = toHex(traceNode.transaction.hash);
+            const mappedTransaction = mapTransaction(traceNode, externalHash);
+
+            if (traceNode.children) {
+                for (const child of traceNode.children) {
+                    const childTransaction = mapTransaction(child, externalHash);
+                    if (childTransaction.inMsg) {
+                        // avoid duplicate outMsgs
+                        if (!mappedTransaction.outMsgs.some((m) => m.hash === childTransaction?.inMsg?.hash)) {
+                            mappedTransaction.outMsgs.push(childTransaction.inMsg);
+                        }
+                    }
+                }
+            }
+
+            return [hash, mappedTransaction];
+        }),
     );
-    const actions = (result.event.actions ?? []).map((a) => mapAction(a, result.event, externalHash));
+    // const actions = (result.event.actions ?? []).map((a) => mapAction(a, result.event, externalHash));
 
     return {
         mcBlockSeqno: transactions[rootTxHash]?.mcBlockSeqno ?? 0,
-        trace: mapTraceNode(result.trace),
+        trace: mapTraceNode(result),
         transactions,
-        actions,
+        actions: [],
         randSeed: asHex('0x' + '0'.repeat(64)),
         isIncomplete: false,
         codeCells: {},

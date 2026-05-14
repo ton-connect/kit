@@ -6,8 +6,8 @@
  *
  */
 
-import { Cell, loadMessage } from '@ton/core';
-import type { CommonMessageInfoExternalIn } from '@ton/core/src/types/CommonMessageInfo';
+import { Cell, loadMessage, loadMessageRelaxed } from '@ton/core';
+import type { CommonMessageInfoInternal } from '@ton/core/src/types/CommonMessageInfo';
 import { describe, it, expect, beforeEach } from 'vitest';
 
 import { clearAllMocks, mocked } from '../../../mock.config';
@@ -141,6 +141,25 @@ describe('WalletV5R1Adapter', () => {
             { fakeSignature: false },
         );
         const message = loadMessage(Cell.fromBase64(boc).asSlice());
-        expect((message.info as CommonMessageInfoExternalIn).dest.toString()).toEqual(addressV5r1.bounceable);
+        expect(message.info?.dest?.toString()).toEqual(addressV5r1.bounceable);
+    });
+
+    it('should create signed internal sign message', async () => {
+        const boc = await wallet.getSignedSignMessage(
+            {
+                messages: [
+                    {
+                        address: addressV5r1.bounceableNot,
+                        amount: '1',
+                    },
+                ],
+            },
+            { fakeSignature: false },
+        );
+        const message = loadMessageRelaxed(Cell.fromBase64(boc).asSlice());
+        const info = message.info as unknown as CommonMessageInfoInternal;
+
+        expect(info.type).toEqual('internal');
+        expect(info.dest.toString()).toEqual(addressV5r1.bounceable);
     });
 });

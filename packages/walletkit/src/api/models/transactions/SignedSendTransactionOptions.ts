@@ -8,6 +8,4 @@
 
 export interface SignedSendTransactionOptions {
     fakeSignature?: boolean;
-    /** Use internal message opcode (0x73696e74) instead of external (0x7369676e) for gasless relaying */
-    internal?: boolean;
 }

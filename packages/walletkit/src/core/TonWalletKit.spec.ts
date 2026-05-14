@@ -45,6 +45,7 @@ describe('TonWalletKit', () => {
             },
             eventProcessor: {
                 disableEvents: true,
+                disableTransactionEmulation: true,
             },
             // Ensure we have storage in node env
             storage: {

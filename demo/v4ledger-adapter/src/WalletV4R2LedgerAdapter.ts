@@ -186,6 +186,10 @@ export class WalletV4R2LedgerAdapter implements WalletAdapter {
         }
     }
 
+    async getSignedSignMessage(): Promise<Base64String> {
+        throw new Error('WalletV4R2 does not support sign message signing. Use WalletV5R1.');
+    }
+
     /**
      * Get state init for wallet deployment
      */

@@ -65,6 +65,15 @@ export class SwiftWalletAdapter implements WalletAdapter {
         return this.swiftWalletAdapter.getSignedSendTransaction(input, options);
     }
 
+    getSignedSignMessage(
+        input: TransactionRequest,
+        options?: {
+            fakeSignature: boolean;
+        },
+    ): Promise<Base64String> {
+        return this.swiftWalletAdapter.getSignedSignMessage(input, options);
+    }
+
     getSignedSignData(
         input: PreparedSignData,
         options?: {

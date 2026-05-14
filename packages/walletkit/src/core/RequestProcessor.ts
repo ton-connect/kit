@@ -621,7 +621,7 @@ export class RequestProcessor {
                         { eventId: event.id },
                     );
                 }
-                const internalBoc = await wallet.getSignedSendTransaction(event.request, { internal: true });
+                const internalBoc = await wallet.getSignedSignMessage(event.request);
                 const actionResult = { internalBoc: internalBoc };
 
                 const tonConnectResponse = {

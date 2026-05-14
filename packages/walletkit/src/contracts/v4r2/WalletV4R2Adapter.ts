@@ -47,6 +47,7 @@ import type {
     Base64String,
     SignedSendTransactionOptions,
 } from '../../api/models';
+import { FakeSignature } from '../../utils';
 
 const log = globalLogger.createChild('WalletV4R2Adapter');
 
@@ -145,9 +146,6 @@ export class WalletV4R2Adapter implements WalletAdapter {
         input: TransactionRequest,
         options?: SignedSendTransactionOptions,
     ): Promise<Base64String> {
-        if (options?.internal) {
-            throw new Error('WalletV4R2 does not support internal message signing (gasless). Use WalletV5R1.');
-        }
         if (input.messages.length === 0) {
             throw new Error('Ledger does not support empty messages');
         }
@@ -198,7 +196,9 @@ export class WalletV4R2Adapter implements WalletAdapter {
 
             const domainPrefix = this.domain ? signatureDomainPrefix(this.domain) : null;
             const signingData = domainPrefix ? Buffer.concat([domainPrefix, data.hash()]) : data.hash();
-            const signature = await this.sign(Uint8Array.from(signingData));
+            const signature = options?.fakeSignature
+                ? FakeSignature(signingData)
+                : await this.sign(Uint8Array.from(signingData));
             const signedCell = beginCell()
                 .storeBuffer(Buffer.from(HexToUint8Array(signature)))
                 .storeSlice(data.asSlice())
@@ -215,6 +215,10 @@ export class WalletV4R2Adapter implements WalletAdapter {
             log.warn('Failed to get signed send transaction', { error });
             throw error;
         }
+    }
+
+    async getSignedSignMessage(): Promise<Base64String> {
+        throw new Error('WalletV4R2 does not support sign message signing. Use WalletV5R1.');
     }
 
     /**

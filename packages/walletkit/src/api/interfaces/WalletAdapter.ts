@@ -39,6 +39,10 @@ export interface WalletAdapter {
 
     /** Get the signed send transaction */
     getSignedSendTransaction(input: TransactionRequest, options?: SignedSendTransactionOptions): Promise<Base64String>;
+
+    /** Get the signed sign message */
+    getSignedSignMessage(input: TransactionRequest, options?: SignedSendTransactionOptions): Promise<Base64String>;
+
     getSignedSignData(
         input: PreparedSignData,
         options?: {

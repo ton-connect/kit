@@ -21,14 +21,14 @@ const config: ViteUserConfig = defineConfig({
         include: ['src/**/*.spec.ts', 'src/**/*.test.ts'],
         exclude: ['node_modules', 'dist', 'build', 'coverage', '.stryker-tmp', '**/*.config.ts', '**/*.config.js'],
         // WebStorm compatibility
-        reporter: process.env.JETBRAINS_IDE ? ['verbose'] : ['default'],
+        // reporter: process.env.JETBRAINS_IDE ? ['verbose'] : ['default'],
         // Disable WebStorm-specific reporter
         onConsoleLog: () => false,
         coverage: {
             provider: 'v8',
             reporter: ['text', 'json', 'html'],
-            all: true,
-            perFile: true,
+            // all: true,
+            // perFile: true,
             reportOnFailure: true,
             thresholds: {
                 statements: target.coverage,

@@ -174,10 +174,12 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
     }
 
     async fetchEmulation(messageBoc: Base64String, ignoreSignature?: boolean): Promise<EmulationResult> {
-        const result = await this.postJson<TonApiMessageConsequences>('/v2/wallet/emulate', {
-            boc: messageBoc,
-            ignore_signature_check: ignoreSignature === true,
-        });
+        const result = await this.postJson<TonApiMessageConsequences>(
+            `/v2/traces/emulate?ignore_signature_check=${ignoreSignature === true ? 'true' : 'false'}`,
+            {
+                boc: messageBoc,
+            },
+        );
         return {
             result: 'success',
             emulationResult: mapTonApiEmulationResponse(result),
