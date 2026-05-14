@@ -40,7 +40,7 @@ export const SendJettonButton: FC<SendJettonButtonProps> = ({
             throw new Error('Jetton address is required');
         }
 
-        if (!jetton.decimals) {
+        if (jetton.decimals === undefined) {
             throw new Error('Jetton decimals is required');
         }
 
@@ -54,7 +54,7 @@ export const SendJettonButton: FC<SendJettonButtonProps> = ({
     }, [appKit, recipientAddress, amount, comment, jetton]);
 
     const text = useMemo(() => {
-        if (amount && jetton.decimals) {
+        if (amount && jetton.decimals !== undefined) {
             return t('balances.sendJettonWithAmount', {
                 amount: formatUnits(parseUnits(amount, jetton.decimals), jetton.decimals).toString(),
                 symbol: jetton.symbol,
@@ -68,7 +68,7 @@ export const SendJettonButton: FC<SendJettonButtonProps> = ({
         <Send
             request={createTransferTransaction}
             text={text}
-            disabled={!recipientAddress || !amount || !jetton.address || !jetton.decimals}
+            disabled={!recipientAddress || !amount || !jetton.address || jetton.decimals === undefined}
             {...props}
         />
     );

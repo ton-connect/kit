@@ -8,4 +8,4 @@
 
 export { SwapProvider } from './SwapProvider';
 export { SwapManager } from './SwapManager';
-export { SwapError } from './errors';
+export { SwapError, SwapErrorCode } from './errors';

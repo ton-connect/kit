@@ -6,19 +6,24 @@
  *
  */
 
+import type { Connector } from '../../../types/connector';
 import type { Network } from '../../../types/network';
 import type { CONNECTOR_EVENTS, WALLETS_EVENTS, NETWORKS_EVENTS } from '../constants/events';
 import type { SharedKitEvents } from '../../emitter';
 import type { EventEmitter } from '../../emitter';
 import type { WalletInterface } from '../../../types/wallet';
 
-export interface WalletConnectedPayload {
-    wallets: WalletInterface[];
-    connectorId: string;
+export interface ConnectorAddedPayload {
+    connector: Connector;
 }
 
-export interface WalletDisconnectedPayload {
+export interface ConnectorRemovedPayload {
+    connector: Connector;
+}
+
+export interface ConnectorWalletsUpdatedPayload {
     connectorId: string;
+    wallets: WalletInterface[];
 }
 
 export interface DefaultNetworkChangedPayload {
@@ -27,8 +32,9 @@ export interface DefaultNetworkChangedPayload {
 
 export type AppKitEvents = {
     // Connector events
-    [CONNECTOR_EVENTS.CONNECTED]: WalletConnectedPayload;
-    [CONNECTOR_EVENTS.DISCONNECTED]: WalletDisconnectedPayload;
+    [CONNECTOR_EVENTS.ADDED]: ConnectorAddedPayload;
+    [CONNECTOR_EVENTS.REMOVED]: ConnectorRemovedPayload;
+    [CONNECTOR_EVENTS.WALLETS_UPDATED]: ConnectorWalletsUpdatedPayload;
 
     // Wallets events
     [WALLETS_EVENTS.UPDATED]: { wallets: WalletInterface[] };

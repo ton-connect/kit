@@ -27,9 +27,15 @@ export const watchConnectorById = (
 ): WatchConnectorByIdReturnType => {
     const { id, onChange } = parameters;
 
-    const unsubscribe = appKit.emitter.on(CONNECTOR_EVENTS.CONNECTED, () => {
+    const handler = (): void => {
         onChange(getConnectorById(appKit, { id }));
-    });
+    };
 
-    return unsubscribe;
+    const unsubscribeAdded = appKit.emitter.on(CONNECTOR_EVENTS.ADDED, handler);
+    const unsubscribeRemoved = appKit.emitter.on(CONNECTOR_EVENTS.REMOVED, handler);
+
+    return () => {
+        unsubscribeAdded();
+        unsubscribeRemoved();
+    };
 };

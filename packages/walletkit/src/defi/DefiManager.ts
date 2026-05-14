@@ -11,7 +11,8 @@ import type { DefiProvider } from '../api/interfaces';
 import { resolveProvider } from '../types';
 import type { ProviderInput } from '../types';
 import type { ProviderFactoryContext } from '../types/factory';
-import { DefiError } from './errors';
+import type { DefiError } from './errors';
+import { DefiErrorCode } from './errors';
 import type { SharedKitEvents } from '../types/emitter';
 import type { EventEmitter } from '../core/EventEmitter';
 
@@ -43,7 +44,7 @@ export abstract class DefiManager<
         const providerId = provider.providerId;
 
         if (!providerId) {
-            throw this.createError('Provider must have a providerId', DefiError.INVALID_PROVIDER);
+            throw this.createError('Provider must have a providerId', DefiErrorCode.InvalidProvider);
         }
 
         const oldProvider = this.providers.find((p) => p.providerId === providerId);
@@ -83,7 +84,7 @@ export abstract class DefiManager<
         const provider = this.providers.find((p) => p.providerId === providerId);
 
         if (!provider) {
-            throw this.createError(`Provider '${providerId}' not found`, DefiError.PROVIDER_NOT_FOUND, {
+            throw this.createError(`Provider '${providerId}' not found`, DefiErrorCode.ProviderNotFound, {
                 provider: providerId,
                 registered: this.providers.map((p) => p.providerId),
             });
@@ -105,13 +106,13 @@ export abstract class DefiManager<
         if (!providerName) {
             throw this.createError(
                 'No default provider set. Register a provider first.',
-                DefiError.NO_DEFAULT_PROVIDER,
+                DefiErrorCode.NoDefaultProvider,
             );
         }
 
         const provider = this.providers.find((p) => p.providerId === providerName);
         if (!provider) {
-            throw this.createError(`Provider '${providerName}' not found`, DefiError.PROVIDER_NOT_FOUND, {
+            throw this.createError(`Provider '${providerName}' not found`, DefiErrorCode.ProviderNotFound, {
                 provider: providerName,
                 registered: this.providers.map((p) => p.providerId),
             });

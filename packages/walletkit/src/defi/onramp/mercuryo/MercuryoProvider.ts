@@ -9,7 +9,7 @@
 import type { OnrampParams, OnrampQuote, OnrampQuoteParams } from '../../../api/models';
 import { Network } from '../../../api/models';
 import { OnrampProvider } from '../OnrampProvider';
-import { OnrampError } from '../errors';
+import { OnrampError, OnrampErrorCode } from '../errors';
 
 /**
  * Custom options for Mercuryo requests
@@ -101,7 +101,7 @@ export class MercuryoProvider extends OnrampProvider<MercuryoQuoteOptions, Mercu
                 metadata: data.data,
             };
         } catch (error) {
-            throw new OnrampError('Failed to get Mercuryo quote', OnrampError.QUOTE_FAILED, error);
+            throw new OnrampError('Failed to get Mercuryo quote', OnrampErrorCode.QuoteFailed, error);
         }
     }
 
@@ -134,7 +134,7 @@ export class MercuryoProvider extends OnrampProvider<MercuryoQuoteOptions, Mercu
 
             return url.toString();
         } catch (error) {
-            throw new OnrampError('Failed to build Mercuryo URL', OnrampError.URL_BUILD_FAILED, error);
+            throw new OnrampError('Failed to build Mercuryo URL', OnrampErrorCode.UrlBuildFailed, error);
         }
     }
 }

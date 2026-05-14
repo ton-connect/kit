@@ -10,8 +10,9 @@
  * Connector events
  */
 export const CONNECTOR_EVENTS = {
-    CONNECTED: 'connector:connected',
-    DISCONNECTED: 'connector:disconnected',
+    ADDED: 'connector:added',
+    REMOVED: 'connector:removed',
+    WALLETS_UPDATED: 'connector:wallets-updated',
 } as const;
 
 /**

@@ -9,7 +9,7 @@
 import type { OnrampParams, OnrampQuote, OnrampQuoteParams } from '../../../api/models';
 import { Network } from '../../../api/models';
 import { OnrampProvider } from '../OnrampProvider';
-import { OnrampError } from '../errors';
+import { OnrampError, OnrampErrorCode } from '../errors';
 
 /**
  * Custom options for TonPay requests
@@ -79,7 +79,7 @@ export class TonPayProvider extends OnrampProvider<TonPayQuoteOptions, TonPayOnr
                 metadata: data,
             };
         } catch (error) {
-            throw new OnrampError('Failed to get TonPay quote', OnrampError.QUOTE_FAILED, error);
+            throw new OnrampError('Failed to get TonPay quote', OnrampErrorCode.QuoteFailed, error);
         }
     }
 
@@ -117,7 +117,7 @@ export class TonPayProvider extends OnrampProvider<TonPayQuoteOptions, TonPayOnr
 
             return data.link;
         } catch (error) {
-            throw new OnrampError('Failed to build TonPay URL', OnrampError.URL_BUILD_FAILED, error);
+            throw new OnrampError('Failed to build TonPay URL', OnrampErrorCode.UrlBuildFailed, error);
         }
     }
 }
