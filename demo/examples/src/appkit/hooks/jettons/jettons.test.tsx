@@ -179,7 +179,6 @@ describe('Jetton Hooks Examples', () => {
                 recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
                 amount: '100',
                 jettonAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
-                jettonDecimals: 6,
             });
         });
 

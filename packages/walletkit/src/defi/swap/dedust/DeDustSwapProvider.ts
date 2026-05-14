@@ -31,7 +31,7 @@ const log = globalLogger.createChild('DeDustSwapProvider');
 /**
  * Default API URL for DeDust Router
  */
-const DEFAULT_API_URL = 'https://api-mainnet.dedust.io';
+const DEFAULT_API_URL = 'https://mainnet.api.dedust.io/v4/router';
 
 /**
  * Default protocols to use for routing
@@ -86,7 +86,7 @@ export class DeDustSwapProvider extends SwapProvider<DeDustProviderOptions, DeDu
     constructor(config?: DeDustSwapProviderConfig) {
         super();
         this.providerId = config?.providerId ?? 'dedust';
-        this.apiUrl = config?.apiUrl ?? DEFAULT_API_URL;
+        this.apiUrl = (config?.apiUrl ?? DEFAULT_API_URL).replace(/\/+$/, '');
         this.defaultSlippageBps = config?.defaultSlippageBps ?? 100; // 1% default
         this.referralAddress = config?.referralAddress;
         this.referralFeeBps = config?.referralFeeBps;
@@ -153,7 +153,7 @@ export class DeDustSwapProvider extends SwapProvider<DeDustProviderOptions, DeDu
                 exclude_volatile_pools: params.providerOptions?.excludeVolatilePools,
             };
 
-            const response = await fetch(`${this.apiUrl}/v1/router/quote`, {
+            const response = await fetch(`${this.apiUrl}/quote`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -254,7 +254,7 @@ export class DeDustSwapProvider extends SwapProvider<DeDustProviderOptions, DeDu
                 referral_fee: referralFeeBps,
             };
 
-            const response = await fetch(`${this.apiUrl}/v1/router/swap`, {
+            const response = await fetch(`${this.apiUrl}/swap`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

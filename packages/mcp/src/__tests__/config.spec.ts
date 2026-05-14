@@ -24,12 +24,13 @@ import {
     getActiveWallet,
     getAgenticCollectionAddress,
     listPendingAgenticDeployments,
-    loadConfig,
     loadConfigWithMigration,
+    persistAgenticWalletNftIndex,
     removePendingAgenticDeployment,
     removeWallet,
     saveConfig,
     setActiveWallet,
+    updateAgenticWalletNftIndex,
     upsertPendingAgenticDeployment,
     upsertWallet,
 } from '../registry/config.js';
@@ -54,7 +55,7 @@ describe('mcp config registry', () => {
         rmSync(tempDir, { recursive: true, force: true });
     });
 
-    it('saves config with strict permissions and reads it back', () => {
+    it('saves config with strict permissions and reads it back', async () => {
         const standard = createStandardWalletRecord({
             name: 'Main wallet',
             network: 'mainnet',
@@ -66,7 +67,7 @@ describe('mcp config registry', () => {
 
         saveConfig(config);
 
-        const loaded = loadConfig();
+        const loaded = await loadConfigWithMigration();
         expect(loaded?.version).toBe(2);
         expect(loaded?.wallets).toHaveLength(1);
         expect(loaded?.active_wallet_id).toBe(standard.id);
@@ -173,7 +174,7 @@ describe('mcp config registry', () => {
         expect(getAgenticCollectionAddress(createEmptyConfig(), 'testnet')).toBeDefined();
     });
 
-    it('persists pending agentic deployment drafts in config', () => {
+    it('persists pending agentic deployment drafts in config', async () => {
         const draft = createPendingAgenticDeployment({
             name: 'Pending agent',
             network: 'testnet',
@@ -186,7 +187,7 @@ describe('mcp config registry', () => {
 
         saveConfig(config);
 
-        const loaded = loadConfig();
+        const loaded = await loadConfigWithMigration();
         expect(listPendingAgenticDeployments(loaded ?? createEmptyConfig())).toEqual([
             expect.objectContaining({
                 id: draft.id,
@@ -210,7 +211,7 @@ describe('mcp config registry', () => {
         expect(listPendingAgenticDeployments(nextConfig)).toEqual([]);
     });
 
-    it('throws for unsupported config version', () => {
+    it('throws for unsupported config version', async () => {
         writeFileSync(
             process.env.TON_CONFIG_PATH!,
             JSON.stringify({
@@ -220,7 +221,103 @@ describe('mcp config registry', () => {
             'utf-8',
         );
 
-        expect(() => loadConfig()).toThrow(ConfigError);
+        expect(async () => await loadConfigWithMigration()).toThrow(ConfigError);
+    });
+
+    it('persists the agentic wallet NFT index on createAgenticWalletRecord', () => {
+        const record = createAgenticWalletRecord({
+            name: 'Agent wallet',
+            network: 'testnet',
+            address: baseAddress,
+            ownerAddress: DEFAULT_AGENTIC_COLLECTION_ADDRESS,
+            walletNftIndex: '42',
+        });
+
+        expect(record).toMatchObject({
+            type: 'agentic',
+            wallet_nft_index: '42',
+        });
+    });
+
+    it('omits wallet_nft_index from the stored record when not provided', () => {
+        const record = createAgenticWalletRecord({
+            name: 'Agent wallet',
+            network: 'testnet',
+            address: baseAddress,
+            ownerAddress: DEFAULT_AGENTIC_COLLECTION_ADDRESS,
+        });
+
+        expect(record).not.toHaveProperty('wallet_nft_index');
+    });
+
+    it('updateAgenticWalletNftIndex sets the field without touching other wallets', () => {
+        const agent = createAgenticWalletRecord({
+            name: 'Agent wallet',
+            network: 'mainnet',
+            address: baseAddress,
+            ownerAddress: DEFAULT_AGENTIC_COLLECTION_ADDRESS,
+        });
+        const standard = createStandardWalletRecord({
+            name: 'Main wallet',
+            network: 'testnet',
+            walletVersion: 'v5r1',
+            address: baseAddress,
+        });
+        let config = upsertWallet(createEmptyConfig(), agent);
+        config = upsertWallet(config, standard);
+
+        const updated = updateAgenticWalletNftIndex(config, agent.id, '7');
+
+        expect(updated).not.toBe(config);
+        expect(updated.wallets.find((w) => w.id === agent.id)).toMatchObject({ wallet_nft_index: '7' });
+        expect(updated.wallets.find((w) => w.id === standard.id)).toEqual(
+            config.wallets.find((w) => w.id === standard.id),
+        );
+    });
+
+    it('updateAgenticWalletNftIndex is a no-op when the value is unchanged', () => {
+        const agent = createAgenticWalletRecord({
+            name: 'Agent wallet',
+            network: 'mainnet',
+            address: baseAddress,
+            ownerAddress: DEFAULT_AGENTIC_COLLECTION_ADDRESS,
+            walletNftIndex: '5',
+        });
+        const config = upsertWallet(createEmptyConfig(), agent);
+
+        const result = updateAgenticWalletNftIndex(config, agent.id, '5');
+
+        expect(result).toBe(config);
+    });
+
+    it('persistAgenticWalletNftIndex writes the value to disk and skips when already set', async () => {
+        const agent = createAgenticWalletRecord({
+            name: 'Agent wallet',
+            network: 'mainnet',
+            address: baseAddress,
+            ownerAddress: DEFAULT_AGENTIC_COLLECTION_ADDRESS,
+        });
+        saveConfig({
+            ...createEmptyConfig(),
+            active_wallet_id: agent.id,
+            wallets: [agent],
+        });
+
+        const firstWrite = await persistAgenticWalletNftIndex(agent.id, '9');
+        expect(firstWrite).toBe(true);
+        const persisted = await loadConfigWithMigration();
+        expect(persisted?.wallets[0]).toMatchObject({ id: agent.id, wallet_nft_index: '9' });
+
+        const secondWrite = await persistAgenticWalletNftIndex(agent.id, '9');
+        expect(secondWrite).toBe(false);
+    });
+
+    it('persistAgenticWalletNftIndex returns false for unknown wallet ids', async () => {
+        saveConfig(createEmptyConfig());
+
+        const result = await persistAgenticWalletNftIndex('does-not-exist', '1');
+
+        expect(result).toBe(false);
     });
 });
 

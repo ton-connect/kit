@@ -8,7 +8,9 @@
 
 export { formatUnits, parseUnits, compareAddress } from '@ton/walletkit';
 
-export * from './address/format';
+export * from './address/is-valid-address';
+export * from './address/to-bounceble-address';
+export * from './address/to-non-bounceble-address';
 export * from './amount/calc-fiat-value';
 export * from './amount/format-large-value';
 export * from './amount/truncate-decimals';
@@ -23,6 +25,7 @@ export * from './functions/noop';
 export * from './jetton/jetton-info';
 export * from './nft/nft-info';
 export * from './object/map-values';
+export * from './predicate/is-number';
 export * from './predicate/is-string';
 export * from './promise/cancel-promise';
 export * from './promise/sleep';

@@ -8,12 +8,12 @@
 
 import type {
     EmulationTraceNode,
-    ToncenterEmulationResponse,
     ToncenterTraceItem,
     ToncenterTransaction,
     EmulationTokenInfoMasters,
     EmulationTokenInfoWallets,
 } from './emulation';
+import type { ToncenterEmulationResponse } from '../../clients/toncenter/types/raw-emulation';
 import { asAddressFriendly, asMaybeAddressFriendly } from '../../utils/address';
 import { Base64NormalizeUrl, Base64ToHex } from '../../utils/base64';
 import { computeStatus, parseIncomingTonTransfers, parseOutgoingTonTransfers } from './parsers/TonTransfer';

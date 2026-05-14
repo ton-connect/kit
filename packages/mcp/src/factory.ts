@@ -34,6 +34,7 @@ import {
     createMcpTransactionTools,
     createMcpTransferTools,
     createMcpWalletManagementTools,
+    createMcpTonProofTools,
 } from './tools/index.js';
 import { createMcpDnsTools } from './tools/dns-tools.js';
 
@@ -116,6 +117,7 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
         const transactionTools = createMcpTransactionTools(walletService);
         const agenticTools = createMcpAgenticTools(walletService);
         const addressTools = createMcpAddressTools(walletService);
+        const tonProofTools = createMcpTonProofTools(walletService);
 
         registerTool('get_wallet', balanceTools.get_wallet);
         registerTool('get_balance', balanceTools.get_balance);
@@ -138,6 +140,7 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
         registerTool('send_nft', nftTools.send_nft);
         registerTool('resolve_dns', dnsTools.resolve_dns);
         registerTool('back_resolve_dns', dnsTools.back_resolve_dns);
+        registerTool('generate_ton_proof', tonProofTools.generate_ton_proof);
 
         if (config.walletVersion === 'agentic') {
             registerTool('agentic_deploy_subwallet', agenticTools.deploy_agentic_subwallet);
@@ -155,6 +158,7 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
     const transactionToolDefs = createMcpTransactionTools(staticService);
     const agenticToolDefs = createMcpAgenticTools(staticService);
     const addressToolDefs = createMcpAddressTools(staticService);
+    const tonProofToolDefs = createMcpTonProofTools(staticService);
     const walletManagementTools = createMcpWalletManagementTools(registry);
     const ownsAgenticSessionManager = !config.agenticSessionManager;
     const agenticSessionManager =
@@ -304,6 +308,12 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
         'back_resolve_dns',
         dnsToolDefs.back_resolve_dns,
         (service) => createMcpDnsTools(service).back_resolve_dns,
+    );
+    registerRegistryWalletTool(
+        'generate_ton_proof',
+        tonProofToolDefs.generate_ton_proof,
+        (service) => createMcpTonProofTools(service).generate_ton_proof,
+        { requiresSigning: true },
     );
     // registerRegistryWalletTool(
     //     'agentic_deploy_subwallet',

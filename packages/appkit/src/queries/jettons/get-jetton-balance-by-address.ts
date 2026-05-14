@@ -14,7 +14,7 @@ import { getJettonBalance } from '../../actions/jettons/get-jetton-balance';
 import type { GetJettonBalanceOptions as GetJettonBalanceParameters } from '../../actions/jettons/get-jetton-balance';
 import type { QueryOptions, QueryParameter } from '../../types/query';
 import type { Compute, ExactPartial } from '../../types/utils';
-import { filterQueryOptions, resolveNetwork, sleep } from '../../utils';
+import { filterQueryOptions, resolveNetwork, sleep, tryToBounceableAddress } from '../../utils';
 import type { JettonUpdate } from '../../core/streaming';
 import type { Network } from '../../types/network';
 
@@ -37,7 +37,12 @@ export const getJettonBalanceByAddressQueryOptions = <selectData = GetJettonBala
     initialOptions: GetJettonBalanceByAddressQueryConfig<selectData> = {},
 ): GetJettonBalanceByAddressQueryOptions<selectData> => {
     const network = resolveNetwork(appKit, initialOptions.network);
-    const options = { ...initialOptions, network };
+    const options = {
+        ...initialOptions,
+        network,
+        jettonAddress: tryToBounceableAddress(initialOptions.jettonAddress) ?? initialOptions.jettonAddress,
+        ownerAddress: tryToBounceableAddress(initialOptions.ownerAddress) ?? initialOptions.ownerAddress,
+    };
 
     return {
         ...options.query,
@@ -82,22 +87,18 @@ export const handleJettonBalanceUpdate = (
     { ownerAddress, jettonAddress, network }: { ownerAddress: string; jettonAddress: string; network: Network },
     update: JettonUpdate,
 ) => {
+    const queryKey = getJettonBalanceByAddressQueryKey({
+        ownerAddress: tryToBounceableAddress(ownerAddress) ?? ownerAddress,
+        jettonAddress: tryToBounceableAddress(jettonAddress) ?? jettonAddress,
+        network,
+    });
+
     if (update.status === 'finalized') {
-        const queryKey = getJettonBalanceByAddressQueryKey({
-            ownerAddress,
-            jettonAddress,
-            network,
-        });
         queryClient.setQueryData(queryKey, update.balance);
         sleep(5000).then(() => queryClient.invalidateQueries({ queryKey }));
     }
 
     if (update.status === 'invalidated') {
-        const queryKey = getJettonBalanceByAddressQueryKey({
-            ownerAddress,
-            jettonAddress,
-            network,
-        });
         queryClient.invalidateQueries({ queryKey });
     }
 };

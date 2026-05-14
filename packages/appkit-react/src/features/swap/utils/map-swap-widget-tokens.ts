@@ -6,7 +6,7 @@
  *
  */
 
-import { toNonBounceableAddress } from '@ton/appkit';
+import { tryToNonBounceableAddress } from '@ton/appkit';
 
 import type { AppkitUIToken } from '../../../types/appkit-ui-token';
 
@@ -18,16 +18,14 @@ export const mapSwapWidgetTokens = (tokens: AppkitUIToken[]): AppkitUIToken[] =>
             return acc;
         }
 
-        const friendlyAddress = toNonBounceableAddress(token.address);
+        const friendlyAddress = tryToNonBounceableAddress(token.address);
 
         if (!friendlyAddress) return acc;
 
-        const mappedToken = {
+        acc.push({
             ...token,
             address: friendlyAddress,
-        };
-
-        acc.push(mappedToken);
+        });
 
         return acc;
     }, [] as AppkitUIToken[]);

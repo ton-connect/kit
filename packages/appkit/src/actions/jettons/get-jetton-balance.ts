@@ -11,13 +11,14 @@ import type { TokenAmount, UserFriendlyAddress } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
 import { getJettonWalletAddress } from './get-jetton-wallet-address';
-import { resolveNetwork } from '../../utils/network/resolve-network';
+import { getJettonInfo } from './get-jetton-info';
+import { isNumber, resolveNetwork } from '../../utils';
 import type { Network } from '../../types/network';
 
 export interface GetJettonBalanceOptions {
     jettonAddress: UserFriendlyAddress;
     ownerAddress: UserFriendlyAddress;
-    jettonDecimals: number;
+    jettonDecimals?: number;
     network?: Network;
 }
 
@@ -38,5 +39,11 @@ export const getJettonBalance = async (
     });
     const balance = await getJettonBalanceFromClient(client, jettonWalletAddress);
 
-    return formatUnits(balance, jettonDecimals);
+    if (isNumber(jettonDecimals)) {
+        return formatUnits(balance, jettonDecimals);
+    }
+
+    const jettonInfo = await getJettonInfo(appKit, { address: jettonAddress, network });
+
+    return formatUnits(balance, jettonInfo?.decimals ?? 0);
 };

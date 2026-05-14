@@ -17,6 +17,7 @@ import type {
 } from '../../../api/models';
 import { Base64ToHex } from '../../../utils/base64';
 import { asAddressFriendly, asMaybeAddressFriendly } from '../../../utils/address';
+import { parseMsgSizeCount } from '../../../clients/toncenter/utils';
 import type { StreamingV2AccountState, StreamingV2TransactionRaw, StreamingV2TransactionDescription } from '../types';
 import type { EmulationBlockRef, EmulationMessage } from '../../../types/toncenter/emulation';
 
@@ -131,7 +132,12 @@ const toTransactionDescription = (desc: StreamingV2TransactionDescription): Tran
                   skippedActionsNumber: action.skipped_actions,
                   messagesCreatedNumber: action.msgs_created,
                   actionListHash: action.action_list_hash ? Base64ToHex(action.action_list_hash) : undefined,
-                  totalMessagesSize: action.tot_msg_size,
+                  totalMessagesSize: action.tot_msg_size
+                      ? {
+                            cells: parseMsgSizeCount(action.tot_msg_size.cells),
+                            bits: parseMsgSizeCount(action.tot_msg_size.bits),
+                        }
+                      : undefined,
               }
             : undefined,
     };

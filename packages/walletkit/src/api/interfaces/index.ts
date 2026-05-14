@@ -23,3 +23,19 @@ export type { TONConnectSessionManager } from './TONConnectSessionManager';
 // Streaming interfaces
 export type { StreamingProvider, StreamingProviderFactory } from './StreamingProvider';
 export type { StreamingAPI } from './StreamingAPI';
+
+export type {
+    LimitRequest,
+    NftItemsRequest,
+    NftItemsByOwnerRequest,
+    TransactionsByAddressRequest,
+    GetTransactionByHashRequest,
+    GetPendingTransactionsRequest,
+    GetTraceRequest,
+    GetPendingTraceRequest,
+    GetJettonsByOwnerRequest,
+    GetJettonsByAddressRequest,
+    GetEventsRequest,
+    GetEventsResponse,
+    ApiClient,
+} from './ApiClient';

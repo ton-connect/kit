@@ -1,6 +1,6 @@
 {
   "name": "@ton/mcp",
-  "version": "0.1.15-alpha.13",
+  "version": "0.1.15-alpha.15",
   "description": "TON MCP Server - Model Context Protocol server for TON blockchain wallet operations",
   "license": "MIT",
   "type": "module",
@@ -42,7 +42,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "pnpm build:clean && rolldown -c && pnpm build:types && pnpm build:chmod",
+    "build": "pnpm build:clean && rolldown -c && pnpm build:types",
     "build:clean": "rimraf dist",
     "build:types": "tsc -p tsconfig.json --emitDeclarationOnly",
     "build:chmod": "chmod +x dist/cli.js",
@@ -70,8 +70,8 @@
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@ston-fi/omniston-sdk": "^0.7.9",
     "@ton/walletkit": "workspace:*",
-    "https-proxy-agent": "^7.0.6",
-    "undici": "^7.16.0",
+    "https-proxy-agent": "^9.0.0",
+    "undici": "8.0.2",
     "ws": "^8.20.0",
     "zod": "^3.25.76"
   },
@@ -82,7 +82,7 @@
     "@types/node": "^25.6.0",
     "@vitest/coverage-v8": "^4.1.4",
     "rimraf": "^6.1.0",
-    "rolldown": "1.0.0-rc.9",
+    "rolldown": "1.0.0-rc.15",
     "typescript": "~5.9.3",
     "vitest": "^4.1.4"
   },

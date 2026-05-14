@@ -8,7 +8,7 @@
 
 // Network management for multi-network support
 
-import type { ApiClient } from '../types/toncenter/ApiClient';
+import type { ApiClient } from '../api/interfaces';
 import type { ApiClientConfig, TonWalletKitOptions } from '../types/config';
 import { ApiClientToncenter } from '../clients/toncenter';
 import { globalLogger } from './Logger';

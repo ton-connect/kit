@@ -15,8 +15,7 @@
     "walletkit-android-bridge",
     "walletkit-ios-bridge",
     "@ton/walletkit-examples",
-    "appkit-minter",
-    "@ton/mcp-telegram"
+    "appkit-minter"
   ]
 }
 
