@@ -1,6 +1,6 @@
 {
   "name": "@ton/walletkit",
-  "version": "0.0.12-alpha.3",
+  "version": "1.0.0-alpha.0",
   "description": "Wallet kit for TON Connect",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -85,7 +85,6 @@
     "build:esm": "tsc -p tsconfig.esm.json",
     "dev": "tsc -p tsconfig.esm.json --watch",
     "test": "vitest run",
-
     "test:coverage": "vitest run --coverage",
     "test:mutation": "stryker run stryker.config.js",
     "quality": "pnpm test",
