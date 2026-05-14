@@ -345,8 +345,8 @@ Create a crypto-onramp deposit from a quote previously obtained via [`getCryptoO
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options`\* | [`CreateCryptoOnrampDepositOptions`](#createcryptoonrampdepositoptions) | Quote, refund address, and optional provider override. |
 | `options.quote`\* | <code><a href="#cryptoonrampquote">CryptoOnrampQuote</a>&lt;TQuoteMetadata = unknown&gt;</code> | Quote to execute the deposit against (contains recipientAddress and provider metadata) |
-| `options.refundAddress`\* | `string` | Address to refund the crypto to in case of failure |
-| `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `options.refundAddress`\* | `string` | Address to refund the crypto to in case of failure. |
+| `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 | `options.providerId` | `string` | Provider to create the deposit through. Defaults to `quote.providerId`, then to the default provider. |
 
 Returns: <code><a href="#createcryptoonrampdepositreturntype">CreateCryptoOnrampDepositReturnType</a></code> — Deposit details the UI should show to the user (address, amount, optional `memo`/`expiresAt`).
@@ -422,10 +422,10 @@ Quote a crypto-to-TON onramp — given a source asset/chain and target TON asset
 | `options.sourceCurrencyAddress`\* | `string` | Source crypto currency address (contract address or 0x0... for native) |
 | `options.sourceChain`\* | `string` | Source chain identifier in CAIP-2 format (e.g. 'eip155:1' for Ethereum mainnet, 'eip155:42161' for Arbitrum One). Providers map this to their own chain identifiers internally. |
 | `options.targetCurrencyAddress`\* | `string` | Target crypto currency address on TON (contract address or 0x0... for native) |
-| `options.recipientAddress`\* | `string` | TON address that will receive the target crypto |
-| `options.refundAddress` | `string` | Refund address for the source crypto |
+| `options.recipientAddress`\* | `string` | TON address that will receive the target crypto. |
+| `options.refundAddress` | `string` | Refund address for the source crypto. |
 | `options.isSourceAmount` | `boolean` | If true, `amount` is the source amount to spend. If false, `amount` is the target amount to receive. Defaults to true when omitted. |
-| `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 | `options.providerId` | `string` | Provider to quote against. Defaults to the registered default provider. |
 
 Returns: <code><a href="#getcryptoonrampquotereturntype">GetCryptoOnrampQuoteReturnType</a></code> — Quote with pricing details and the provider metadata required to create a deposit.
@@ -438,8 +438,8 @@ Read the current status of a crypto-onramp deposit by id — typically polled un
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options`\* | [`GetCryptoOnrampStatusOptions`](#getcryptoonrampstatusoptions) | Deposit id, originating provider id and optional provider override. |
-| `options.depositId`\* | `string` | Deposit id |
-| `options.providerId`\* | `string` | Identifier of the provider that issued this deposit |
+| `options.depositId`\* | `string` | Deposit id. |
+| `options.providerId`\* | `string` | Identifier of the provider that issued this deposit. |
 
 Returns: <code><a href="#getcryptoonrampstatusreturntype">GetCryptoOnrampStatusReturnType</a></code> — Current [`CryptoOnrampStatus`](#cryptoonrampstatus) of the deposit.
 
@@ -1086,9 +1086,9 @@ Build a [`TransactionRequest`](#transactionrequest) that executes a stake or uns
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options`\* | [`BuildStakeTransactionOptions`](#buildstaketransactionoptions) | Quote and optional provider override. |
-| `options.quote`\* | <code><a href="#stakingquote">StakingQuote</a></code> | The staking quote based on which the transaction is built |
-| `options.userAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user performing the staking |
-| `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `options.quote`\* | <code><a href="#stakingquote">StakingQuote</a></code> | The staking quote based on which the transaction is built. |
+| `options.userAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user performing the staking. |
+| `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 | `options.providerId` | `string` | Provider to stake/unstake through. Defaults to the registered default staking provider. |
 
 Returns: <code><a href="#buildstaketransactionreturntype">BuildStakeTransactionReturnType</a></code> — Transaction request ready to pass to `sendTransaction`.
@@ -1228,12 +1228,12 @@ Quote a stake or unstake — given the amount, direction and target asset, retur
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options`\* | [`GetStakingQuoteOptions`](#getstakingquoteoptions) | Quote parameters and optional provider override. |
 | `options.direction`\* | <code><a href="#stakingquotedirection">StakingQuoteDirection</a></code> | Direction of the quote (stake or unstake) |
-| `options.amount`\* | `string` | Amount of tokens to stake or unstake |
-| `options.userAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user |
-| `options.network` | <code><a href="#network">Network</a></code> | Network on which the staking will be executed |
+| `options.amount`\* | `string` | Amount of tokens to stake or unstake. |
+| `options.userAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user. |
+| `options.network` | <code><a href="#network">Network</a></code> | Network on which the staking will be executed. |
 | `options.unstakeMode` | <code><a href="#unstakemodes">UnstakeModes</a></code> | Unstake-timing mode the quote should target — see [`UnstakeMode`](#unstakemode) for the supported flavours (`'INSTANT'`, `'WHEN_AVAILABLE'`, `'ROUND_END'`). Only meaningful when `direction === 'unstake'` and the provider lists the mode in `supportedUnstakeModes`. |
 | `options.isReversed` | `boolean` | If true, for unstake requests the amount is specified in the staking coin (e.g. TON) instead of the Liquid Staking Token (e.g. tsTON). |
-| `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 | `options.providerId` | `string` | Provider to quote against. Defaults to the registered default staking provider. |
 
 Returns: <code><a href="#getstakingquotereturntype">GetStakingQuoteReturnType</a></code> — Quote with pricing details and provider metadata.
@@ -1282,12 +1282,12 @@ Build a [`TransactionRequest`](#transactionrequest) that executes a swap previou
 | --- | --- | --- |
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options`\* | [`BuildSwapTransactionOptions`](#buildswaptransactionoptions) | Quote and provider-specific options. |
-| `options.quote`\* | <code><a href="#swapquote">SwapQuote</a></code> | The swap quote based on which the transaction is built |
-| `options.userAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user performing the swap |
+| `options.quote`\* | <code><a href="#swapquote">SwapQuote</a></code> | The swap quote based on which the transaction is built. |
+| `options.userAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user performing the swap. |
 | `options.destinationAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address to receive the swapped tokens (defaults to userAddress) |
 | `options.slippageBps` | `number` | Slippage tolerance in basis points (1 bp = 0.01%) |
 | `options.deadline` | `number` | Unix timestamp (in seconds) after which the swap transaction must not be executed. |
-| `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 
 Returns: <code><a href="#buildswaptransactionreturntype">BuildSwapTransactionReturnType</a></code> — Transaction request ready to pass to `sendTransaction`.
 
@@ -1386,12 +1386,12 @@ Quote a swap — given source/target tokens and an amount, returns the rate, exp
 | `appKit`\* | [`AppKit`](#appkit) | Runtime instance. |
 | `options`\* | [`GetSwapQuoteOptions`](#getswapquoteoptions) | Source and target tokens, amount, optional network and provider override. |
 | `options.amount`\* | `string` | Amount of tokens to swap (incoming or outgoing depending on isReverseSwap) |
-| `options.from`\* | <code><a href="#swaptoken">SwapToken</a></code> | Token to swap from |
-| `options.to`\* | <code><a href="#swaptoken">SwapToken</a></code> | Token to swap to |
-| `options.network`\* | <code><a href="#network">Network</a></code> | Network on which the swap will be executed |
+| `options.from`\* | <code><a href="#swaptoken">SwapToken</a></code> | Token to swap from. |
+| `options.to`\* | <code><a href="#swaptoken">SwapToken</a></code> | Token to swap to. |
+| `options.network`\* | <code><a href="#network">Network</a></code> | Network on which the swap will be executed. |
 | `options.slippageBps` | `number` | Slippage tolerance in basis points (1 bp = 0.01%) |
 | `options.maxOutgoingMessages` | `number` | Maximum number of outgoing messages |
-| `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `options.providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 | `options.isReverseSwap` | `boolean` | If true, amount is the amount to receive (buy). If false, amount is the amount to spend (sell). |
 | `options.providerId` | `string` | Provider to quote against. Defaults to the registered default swap provider. |
 
@@ -1811,7 +1811,7 @@ Constructor: `new LayerswapCryptoOnrampProvider(config)`
 | --- | --- | --- |
 | `config` | <code><a href="#layerswapproviderconfig">LayerswapProviderConfig</a></code> | Optional [`LayerswapProviderConfig`](#layerswapproviderconfig). Defaults are filled in for any field left undefined. |
 | `config.apiKey` | `string` | Optional API key. Forwarded as `X-LS-APIKEY` when provided. |
-| `config.apiUrl` | `string` | Override the base API URL. Defaults to https://api.layerswap.io/api/v2 |
+| `config.apiUrl` | `string` | Override the base API URL. Defaults to https://api.layerswap.io/api/v2. |
 
 #### SwapsXyzCryptoOnrampProvider
 
@@ -1823,7 +1823,7 @@ Constructor: `new SwapsXyzCryptoOnrampProvider(config)`
 | --- | --- | --- |
 | `config`\* | [`SwapsXyzProviderConfig`](#swapsxyzproviderconfig) | Configuration carrying the required `apiKey` plus optional URL/sender overrides. |
 | `config.apiKey`\* | `string` | API key issued by swaps.xyz (passed as `x-api-key`) |
-| `config.apiUrl` | `string` | Override the base API URL. Defaults to https://api-v2.swaps.xyz/api |
+| `config.apiUrl` | `string` | Override the base API URL. Defaults to https://api-v2.swaps.xyz/api. |
 | `config.defaultSender` | `string` | EVM address used as `sender` on getAction requests. Required by the API even for deposit flows where the actual payer is unknown. Defaults to a null address when omitted. |
 
 ### DeFi
@@ -1921,8 +1921,8 @@ Constructor: `new DeDustSwapProvider(config)`
 | `config.maxSplits` | `number` | Maximum number of route splits |
 | `config.maxLength` | `number` | Maximum route length (hops) |
 | `config.minPoolUsdTvl` | `string` | Minimum pool TVL in USD |
-| `config.metadata` | `SwapProviderMetadataOverride` | Custom metadata for the provider |
-| `config.referralAddress` | `string` | The address of the referrer |
+| `config.metadata` | `SwapProviderMetadataOverride` | Custom metadata for the provider. |
+| `config.referralAddress` | `string` | The address of the referrer. |
 | `config.referralFeeBps` | `number` | Referral fee in basis points (max 100 = 1%) |
 
 **Example**
@@ -1949,11 +1949,11 @@ Constructor: `new OmnistonSwapProvider(config)`
 | `config.apiUrl` | `string` | Optional URL for the Omniston API |
 | `config.defaultSlippageBps` | `number` | Default slippage tolerance in basis points (1 bp = 0.01%) |
 | `config.quoteTimeoutMs` | `number` | Timeout for quote requests in milliseconds |
-| `config.providerId` | `string` | Identifier for the provider |
-| `config.metadata` | `SwapProviderMetadataOverride` | Custom metadata for the provider |
-| `config.referrerAddress` | `string` | The address of the referrer |
+| `config.providerId` | `string` | Identifier for the provider. |
+| `config.metadata` | `SwapProviderMetadataOverride` | Custom metadata for the provider. |
+| `config.referrerAddress` | `string` | The address of the referrer. |
 | `config.referrerFeeBps` | `number` | Referrer fee in basis points (1 bp = 0.01%) |
-| `config.flexibleReferrerFee` | `boolean` | Whether a flexible referrer fee is allowed |
+| `config.flexibleReferrerFee` | `boolean` | Whether a flexible referrer fee is allowed. |
 
 **Example**
 
@@ -2019,11 +2019,11 @@ Update payload delivered to [`watchBalance`](#watchbalance) / [`watchBalanceByAd
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `type`\* | `'balance'` | The update type field |
-| `address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | The account address |
-| `rawBalance`\* | <code><a href="#tokenamount">TokenAmount</a></code> | The account balance in nano units |
-| `balance`\* | `string` | The formatted balance |
-| `status`\* | <code><a href="#streamingupdatestatus">StreamingUpdateStatus</a></code> | The finality of the update |
+| `type`\* | `'balance'` | The update type field. |
+| `address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | The account address. |
+| `rawBalance`\* | <code><a href="#tokenamount">TokenAmount</a></code> | The account balance in nano units. |
+| `balance`\* | `string` | The formatted balance. |
+| `status`\* | <code><a href="#streamingupdatestatus">StreamingUpdateStatus</a></code> | Finality stage of the update — see [`StreamingUpdateStatus`](#streamingupdatestatus). |
 
 #### GetBalanceByAddressOptions
 
@@ -2119,9 +2119,9 @@ Single entry inside an [`AddressBook`](#addressbook) — pairs the user-friendly
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `address` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | The human-readable representation of the blockchain address |
-| `domain` | `string` | The domain name associated with the address if available |
-| `interfaces`\* | `string[]` | List of supported interfaces by the address |
+| `address` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | The human-readable representation of the blockchain address. |
+| `domain` | `string` | The domain name associated with the address if available. |
+| `interfaces`\* | `string[]` | List of supported interfaces by the address. |
 
 #### ApiClient
 
@@ -2206,10 +2206,10 @@ Display metadata for a token (TON, jetton, or NFT) — name, symbol, image and a
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `name` | `string` | Display name of the token |
-| `description` | `string` | Human-readable description of the token |
-| `image` | `TokenImage` | Token image in various sizes |
-| `animation` | `TokenAnimation` | Animated media associated with the token |
+| `name` | `string` | Display name of the token. |
+| `description` | `string` | Human-readable description of the token. |
+| `image` | `TokenImage` | Token image in various sizes. |
+| `animation` | `TokenAnimation` | Animated media associated with the token. |
 | `symbol` | `string` | Ticker symbol of the token (e.g., "TON", "USDT") |
 
 ### Connectors
@@ -2523,8 +2523,8 @@ Options for [`createCryptoOnrampDeposit`](#createcryptoonrampdeposit) — extend
 | Field | Type | Description |
 | --- | --- | --- |
 | `quote`\* | <code><a href="#cryptoonrampquote">CryptoOnrampQuote</a>&lt;TQuoteMetadata = unknown&gt;</code> | Quote to execute the deposit against (contains recipientAddress and provider metadata) |
-| `refundAddress`\* | `string` | Address to refund the crypto to in case of failure |
-| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `refundAddress`\* | `string` | Address to refund the crypto to in case of failure. |
+| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 | `providerId` | `string` | Provider to create the deposit through. Defaults to `quote.providerId`, then to the default provider. |
 
 #### CreateCryptoOnrampDepositReturnType
@@ -2544,15 +2544,15 @@ to complete the onramp. The provider then delivers the target crypto to the user
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `depositId`\* | `string` | Deposit id |
-| `address`\* | `string` | Deposit address on the source chain |
-| `amount`\* | `string` | Exact amount of source crypto the user must send |
+| `depositId`\* | `string` | Deposit id. |
+| `address`\* | `string` | Deposit address on the source chain. |
+| `amount`\* | `string` | Exact amount of source crypto the user must send. |
 | `sourceCurrencyAddress`\* | `string` | Source crypto currency address (contract address or 0x0... for native) |
 | `sourceChain`\* | `string` | Source chain identifier in CAIP-2 format (e.g. 'eip155:42161'). |
 | `memo` | `string` | Optional memo / tag required by some chains (e.g. XRP, TON comment) |
-| `expiresAt` | `number` | Unix timestamp (ms) after which the deposit offer is no longer valid |
+| `expiresAt` | `number` | Unix timestamp (ms) after which the deposit offer is no longer valid. |
 | `chainWarning` | `string` | Chain-specific warning to show the user (e.g. "send only on Solana") |
-| `providerId`\* | `string` | Identifier of the provider that issued this deposit |
+| `providerId`\* | `string` | Identifier of the provider that issued this deposit. |
 
 #### CryptoOnrampDepositParams
 
@@ -2563,8 +2563,8 @@ The recipient is taken from `quote.recipientAddress` set at quote time.
 | Field | Type | Description |
 | --- | --- | --- |
 | `quote`\* | <code><a href="#cryptoonrampquote">CryptoOnrampQuote</a>&lt;TQuoteMetadata = unknown&gt;</code> | Quote to execute the deposit against (contains recipientAddress and provider metadata) |
-| `refundAddress`\* | `string` | Address to refund the crypto to in case of failure |
-| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `refundAddress`\* | `string` | Address to refund the crypto to in case of failure. |
+| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 
 #### CryptoOnrampProviderInterface
 
@@ -2587,8 +2587,8 @@ Static metadata for a crypto-onramp provider.
 | Field | Type | Description |
 | --- | --- | --- |
 | `name`\* | `string` | Human-readable provider name (e.g. 'Swaps.xyz') |
-| `logo` | `string` | URL to the provider's logo image |
-| `url` | `string` | URL to the provider's website |
+| `logo` | `string` | URL to the provider's logo image. |
+| `url` | `string` | URL to the provider's website. |
 | `isRefundAddressRequired` | `boolean` | Whether this provider requires a refund address on the source chain. When true, the UI must collect a refund address before creating a deposit. |
 | `isReversedAmountSupported` | `boolean` | Whether this provider supports reversed (target-amount) quotes. When false, the UI should hide the direction toggle and only allow source-amount input. |
 
@@ -2598,24 +2598,24 @@ Used in provider configuration to override fields of the provider's metadata.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `name` | `string` | Override the provider's display name |
-| `logo` | `string` | Override the provider's logo URL |
-| `url` | `string` | Override the provider's website URL |
+| `name` | `string` | Override the provider's display name. |
+| `logo` | `string` | Override the provider's logo URL. |
+| `url` | `string` | Override the provider's website URL. |
 
 #### CryptoOnrampQuote
 
-Crypto onramp quote response with pricing information
+Crypto onramp quote response with pricing information.
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `sourceCurrencyAddress`\* | `string` | Source crypto currency address (contract address or 0x0... for native) |
 | `sourceChain`\* | `string` | Source chain identifier in CAIP-2 format (e.g. 'eip155:42161'). |
 | `targetCurrencyAddress`\* | `string` | Target crypto currency address on TON (contract address or 0x0... for native) |
-| `sourceAmount`\* | `string` | Amount of source crypto to send |
-| `targetAmount`\* | `string` | Amount of target crypto to receive |
+| `sourceAmount`\* | `string` | Amount of source crypto to send. |
+| `targetAmount`\* | `string` | Amount of target crypto to receive. |
 | `rate`\* | `string` | Exchange rate (amount of target per 1 unit of source) |
-| `recipientAddress`\* | `string` | TON address that will receive the target crypto |
-| `providerId`\* | `string` | Identifier of the crypto onramp provider |
+| `recipientAddress`\* | `string` | TON address that will receive the target crypto. |
+| `providerId`\* | `string` | Identifier of the crypto onramp provider. |
 | `metadata` | `TMetadata = unknown` | Provider-specific metadata for the quote (e.g. raw response needed to execute) |
 
 #### CryptoOnrampQuoteParams
@@ -2630,10 +2630,10 @@ The target network is always TON, so only the source side is parameterised.
 | `sourceCurrencyAddress`\* | `string` | Source crypto currency address (contract address or 0x0... for native) |
 | `sourceChain`\* | `string` | Source chain identifier in CAIP-2 format (e.g. 'eip155:1' for Ethereum mainnet, 'eip155:42161' for Arbitrum One). Providers map this to their own chain identifiers internally. |
 | `targetCurrencyAddress`\* | `string` | Target crypto currency address on TON (contract address or 0x0... for native) |
-| `recipientAddress`\* | `string` | TON address that will receive the target crypto |
-| `refundAddress` | `string` | Refund address for the source crypto |
+| `recipientAddress`\* | `string` | TON address that will receive the target crypto. |
+| `refundAddress` | `string` | Refund address for the source crypto. |
 | `isSourceAmount` | `boolean` | If true, `amount` is the source amount to spend. If false, `amount` is the target amount to receive. Defaults to true when omitted. |
-| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 
 #### CryptoOnrampStatus
 
@@ -2649,8 +2649,8 @@ Parameters accepted by [`getCryptoOnrampStatus`](#getcryptoonrampstatus) — ide
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `depositId`\* | `string` | Deposit id |
-| `providerId`\* | `string` | Identifier of the provider that issued this deposit |
+| `depositId`\* | `string` | Deposit id. |
+| `providerId`\* | `string` | Identifier of the provider that issued this deposit. |
 
 #### GetCryptoOnrampProviderOptions
 
@@ -2686,10 +2686,10 @@ Options for [`getCryptoOnrampQuote`](#getcryptoonrampquote) — extends [`Crypto
 | `sourceCurrencyAddress`\* | `string` | Source crypto currency address (contract address or 0x0... for native) |
 | `sourceChain`\* | `string` | Source chain identifier in CAIP-2 format (e.g. 'eip155:1' for Ethereum mainnet, 'eip155:42161' for Arbitrum One). Providers map this to their own chain identifiers internally. |
 | `targetCurrencyAddress`\* | `string` | Target crypto currency address on TON (contract address or 0x0... for native) |
-| `recipientAddress`\* | `string` | TON address that will receive the target crypto |
-| `refundAddress` | `string` | Refund address for the source crypto |
+| `recipientAddress`\* | `string` | TON address that will receive the target crypto. |
+| `refundAddress` | `string` | Refund address for the source crypto. |
 | `isSourceAmount` | `boolean` | If true, `amount` is the source amount to spend. If false, `amount` is the target amount to receive. Defaults to true when omitted. |
-| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 | `providerId` | `string` | Provider to quote against. Defaults to the registered default provider. |
 
 #### GetCryptoOnrampQuoteReturnType
@@ -2706,8 +2706,8 @@ Options for [`getCryptoOnrampStatus`](#getcryptoonrampstatus) — extends [`Cryp
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `depositId`\* | `string` | Deposit id |
-| `providerId`\* | `string` | Identifier of the provider that issued this deposit |
+| `depositId`\* | `string` | Deposit id. |
+| `providerId`\* | `string` | Identifier of the provider that issued this deposit. |
 
 #### GetCryptoOnrampStatusReturnType
 
@@ -2724,7 +2724,7 @@ Configuration accepted by [`createLayerswapProvider`](#createlayerswapprovider).
 | Field | Type | Description |
 | --- | --- | --- |
 | `apiKey` | `string` | Optional API key. Forwarded as `X-LS-APIKEY` when provided. |
-| `apiUrl` | `string` | Override the base API URL. Defaults to https://api.layerswap.io/api/v2 |
+| `apiUrl` | `string` | Override the base API URL. Defaults to https://api.layerswap.io/api/v2. |
 
 #### LayerswapQuoteMetadata
 
@@ -2744,7 +2744,7 @@ Configuration accepted by [`createSwapsXyzProvider`](#createswapsxyzprovider).
 | Field | Type | Description |
 | --- | --- | --- |
 | `apiKey`\* | `string` | API key issued by swaps.xyz (passed as `x-api-key`) |
-| `apiUrl` | `string` | Override the base API URL. Defaults to https://api-v2.swaps.xyz/api |
+| `apiUrl` | `string` | Override the base API URL. Defaults to https://api-v2.swaps.xyz/api. |
 | `defaultSender` | `string` | EVM address used as `sender` on getAction requests. Required by the API even for deposit flows where the actual payer is unknown. Defaults to a null address when omitted. |
 
 #### SwapsXyzQuoteMetadata
@@ -2960,12 +2960,12 @@ Fungible TEP-74 token held in the user's TON wallet — carries the master contr
 | --- | --- | --- |
 | `address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | The jetton master contract address (the token itself). |
 | `walletAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | The owner's jetton-wallet contract address — the per-owner contract that actually holds this balance. |
-| `balance`\* | <code><a href="#tokenamount">TokenAmount</a></code> | The current jetton balance |
-| `info`\* | <code><a href="#tokeninfo">TokenInfo</a></code> | Information about the token |
+| `balance`\* | <code><a href="#tokenamount">TokenAmount</a></code> | The current jetton balance. |
+| `info`\* | <code><a href="#tokeninfo">TokenInfo</a></code> | Information about the token. |
 | `decimalsNumber` | `number` | The number of decimal places used by the token |
-| `isVerified`\* | `boolean` | Indicates if the jetton is verified |
-| `prices`\* | `JettonPrice[]` | Current prices of the jetton in various currencies |
-| `extra` | `{ [key: string]: unknown; }` | Additional arbitrary data related to the jetton |
+| `isVerified`\* | `boolean` | Indicates if the jetton is verified. |
+| `prices`\* | `JettonPrice[]` | Current prices of the jetton in various currencies. |
+| `extra` | `{ [key: string]: unknown; }` | Additional arbitrary data related to the jetton. |
 
 #### JettonInfo
 
@@ -2991,14 +2991,14 @@ Update payload delivered to [`watchJettons`](#watchjettons) / [`watchJettonsByAd
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `type`\* | `'jettons'` | The update type field |
-| `masterAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | The master jetton contract address |
-| `walletAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | The jetton wallet contract address |
-| `ownerAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | The owner of the jetton wallet |
+| `type`\* | `'jettons'` | The update type field. |
+| `masterAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | The master jetton contract address. |
+| `walletAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | The jetton wallet contract address. |
+| `ownerAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | The owner of the jetton wallet. |
 | `rawBalance`\* | <code><a href="#tokenamount">TokenAmount</a></code> | Balance in raw smallest units (e.g. nano) |
 | `decimals` | `number` | Decimals mapped from metadata if available |
-| `balance` | `string` | Human readable formatted balance if decimals are known |
-| `status`\* | <code><a href="#streamingupdatestatus">StreamingUpdateStatus</a></code> | The finality of the update |
+| `balance` | `string` | Human readable formatted balance if decimals are known. |
+| `status`\* | <code><a href="#streamingupdatestatus">StreamingUpdateStatus</a></code> | Finality stage of the update — see [`StreamingUpdateStatus`](#streamingupdatestatus). |
 
 #### JettonVerification
 
@@ -3016,8 +3016,8 @@ Response payload of [`getJettons`](#getjettons) / [`getJettonsByAddress`](#getje
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `addressBook`\* | <code><a href="#addressbook">AddressBook</a></code> | Address book mapping |
-| `jettons`\* | <code><a href="#jetton">Jetton</a>[]</code> | List of Jettons |
+| `addressBook`\* | <code><a href="#addressbook">AddressBook</a></code> | Address book mapping. |
+| `jettons`\* | <code><a href="#jetton">Jetton</a>[]</code> | List of Jettons. |
 
 #### TransferJettonParameters
 
@@ -3151,20 +3151,20 @@ Non-fungible TEP-62 token held in the user's TON wallet — carries the contract
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Contract address of the NFT item |
-| `index` | `string` | Index of the item within its collection |
+| `address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Contract address of the NFT item. |
+| `index` | `string` | Index of the item within its collection. |
 | `info` | <code><a href="#tokeninfo">TokenInfo</a></code> | Display information about the NFT (name, description, images) |
 | `attributes` | <code><a href="#nftattribute">NFTAttribute</a>[]</code> | Custom attributes/traits of the NFT (e.g., rarity, properties) |
-| `collection` | <code><a href="#nftcollection">NFTCollection</a></code> | Information about the collection this item belongs to |
-| `auctionContractAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the auction contract, if the NFT is being auctioned |
-| `codeHash` | <code><a href="#hex">Hex</a></code> | Hash of the NFT smart contract code |
-| `dataHash` | <code><a href="#hex">Hex</a></code> | Hash of the NFT's on-chain data |
-| `isInited` | `boolean` | Whether the NFT contract has been initialized |
+| `collection` | <code><a href="#nftcollection">NFTCollection</a></code> | Information about the collection this item belongs to. |
+| `auctionContractAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the auction contract, if the NFT is being auctioned. |
+| `codeHash` | <code><a href="#hex">Hex</a></code> | Hash of the NFT smart contract code. |
+| `dataHash` | <code><a href="#hex">Hex</a></code> | Hash of the NFT's on-chain data. |
+| `isInited` | `boolean` | Whether the NFT contract has been initialized. |
 | `isSoulbound` | `boolean` | Whether the NFT is soulbound (non-transferable) |
-| `isOnSale` | `boolean` | Whether the NFT is currently listed for sale |
-| `ownerAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Current owner address of the NFT |
+| `isOnSale` | `boolean` | Whether the NFT is currently listed for sale. |
+| `ownerAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Current owner address of the NFT. |
 | `realOwnerAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Real owner address when NFT is on sale (sale contract becomes temporary owner) |
-| `saleContractAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the sale contract, if the NFT is listed for sale |
+| `saleContractAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the sale contract, if the NFT is listed for sale. |
 | `extra` | `{ [key: string]: unknown; }` | Additional arbitrary data related to the NFT. |
 
 #### NFTAttribute
@@ -3183,15 +3183,15 @@ NFT collection (TEP-62) — surfaced as [`NFT`](#nft)'s `collection` and carries
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | The blockchain address of the NFT collection contract |
-| `name` | `string` | The name of the NFT collection |
-| `image` | `TokenImage` | The image representing the NFT collection |
-| `description` | `string` | A brief description of the NFT collection |
-| `nextItemIndex` | `string` | The index value for the next item to be minted in the collection |
-| `codeHash` | <code><a href="#hex">Hex</a></code> | The hash of the collection's smart contract code |
-| `dataHash` | <code><a href="#hex">Hex</a></code> | The hash of the collection's data in the blockchain |
-| `ownerAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | The blockchain address of the collection owner |
-| `extra` | `{ [key: string]: unknown; }` | Additional arbitrary data related to the NFT collection |
+| `address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | The blockchain address of the NFT collection contract. |
+| `name` | `string` | The name of the NFT collection. |
+| `image` | `TokenImage` | The image representing the NFT collection. |
+| `description` | `string` | A brief description of the NFT collection. |
+| `nextItemIndex` | `string` | The index value for the next item to be minted in the collection. |
+| `codeHash` | <code><a href="#hex">Hex</a></code> | The hash of the collection's smart contract code. |
+| `dataHash` | <code><a href="#hex">Hex</a></code> | The hash of the collection's data in the blockchain. |
+| `ownerAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | The blockchain address of the collection owner. |
+| `extra` | `{ [key: string]: unknown; }` | Additional arbitrary data related to the NFT collection. |
 
 #### NFTsResponse
 
@@ -3199,8 +3199,8 @@ Response payload of [`getNfts`](#getnfts) / [`getNftsByAddress`](#getnftsbyaddre
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `addressBook` | <code><a href="#addressbook">AddressBook</a></code> | Address book entries related to the NFTs |
-| `nfts`\* | <code><a href="#nft">NFT</a>[]</code> | List of NFTs |
+| `addressBook` | <code><a href="#addressbook">AddressBook</a></code> | Address book entries related to the NFTs. |
+| `nfts`\* | <code><a href="#nft">NFT</a>[]</code> | List of NFTs. |
 
 #### TransferNftParameters
 
@@ -3288,11 +3288,11 @@ type NetworkAdapters = {
 
 #### NetworkConfig
 
-Network configuration for a specific chain
+Network configuration for a specific chain.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `apiClient` | <code><a href="#apiclientconfig">ApiClientConfig</a> \| <a href="#apiclient">ApiClient</a></code> | API client configuration or instance |
+| `apiClient` | <code><a href="#apiclientconfig">ApiClientConfig</a> \| <a href="#apiclient">ApiClient</a></code> | API client configuration or instance. |
 
 #### SetDefaultNetworkParameters
 
@@ -3319,11 +3319,11 @@ Walletkit-side options shape consumed by [`KitNetworkManager`](#kitnetworkmanage
 | `walletManifest` | `WalletInfo` | TonConnect wallet manifest published by the dApp. Required for the wallet to recognize the integration. |
 | `deviceInfo` | `DeviceInfo` | Device fingerprint forwarded with TonConnect requests so wallets can recognize the host. |
 | `sessionManager` | `TONConnectSessionManager` | Custom session manager implementation. If not provided, TONConnectStoredSessionManager will be used. |
-| `networks` | <code><a href="#networkadapters">NetworkAdapters</a></code> | Network configuration |
-| `bridge` | `BridgeConfig` | Bridge settings |
-| `storage` | `StorageConfig \| StorageAdapter` | Storage settings |
-| `validation` | `{ strictMode?: boolean; allowUnknownWalletVersions?: boolean; }` | Validation settings |
-| `eventProcessor` | `EventProcessorConfig` | Event processor settings |
+| `networks` | <code><a href="#networkadapters">NetworkAdapters</a></code> | Network configuration. |
+| `bridge` | `BridgeConfig` | Bridge settings. |
+| `storage` | `StorageConfig \| StorageAdapter` | Storage settings. |
+| `validation` | `{ strictMode?: boolean; allowUnknownWalletVersions?: boolean; }` | Validation settings. |
+| `eventProcessor` | `EventProcessorConfig` | Event processor settings. |
 | `analytics` | `AnalyticsManagerOptions & { enabled?: boolean; }` | Analytics manager options merged with an `enabled` toggle. Off by default. |
 | `dev` | `{ disableNetworkSend?: boolean; disableManifestDomainCheck?: boolean; }` | Diagnostic toggles useful during local development. Should not be set in production builds. |
 
@@ -3545,9 +3545,9 @@ Options for [`buildStakeTransaction`](#buildstaketransaction) — extends [`Stak
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `quote`\* | <code><a href="#stakingquote">StakingQuote</a></code> | The staking quote based on which the transaction is built |
-| `userAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user performing the staking |
-| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `quote`\* | <code><a href="#stakingquote">StakingQuote</a></code> | The staking quote based on which the transaction is built. |
+| `userAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user performing the staking. |
+| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 | `providerId` | `string` | Provider to stake/unstake through. Defaults to the registered default staking provider. |
 
 #### BuildStakeTransactionReturnType
@@ -3649,12 +3649,12 @@ Options for [`getStakingQuote`](#getstakingquote) — extends [`StakingQuotePara
 | Field | Type | Description |
 | --- | --- | --- |
 | `direction`\* | <code><a href="#stakingquotedirection">StakingQuoteDirection</a></code> | Direction of the quote (stake or unstake) |
-| `amount`\* | `string` | Amount of tokens to stake or unstake |
-| `userAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user |
-| `network` | <code><a href="#network">Network</a></code> | Network on which the staking will be executed |
+| `amount`\* | `string` | Amount of tokens to stake or unstake. |
+| `userAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user. |
+| `network` | <code><a href="#network">Network</a></code> | Network on which the staking will be executed. |
 | `unstakeMode` | <code><a href="#unstakemodes">UnstakeModes</a></code> | Unstake-timing mode the quote should target — see [`UnstakeMode`](#unstakemode) for the supported flavours (`'INSTANT'`, `'WHEN_AVAILABLE'`, `'ROUND_END'`). Only meaningful when `direction === 'unstake'` and the provider lists the mode in `supportedUnstakeModes`. |
 | `isReversed` | `boolean` | If true, for unstake requests the amount is specified in the staking coin (e.g. TON) instead of the Liquid Staking Token (e.g. tsTON). |
-| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 | `providerId` | `string` | Provider to quote against. Defaults to the registered default staking provider. |
 
 #### GetStakingQuoteReturnType
@@ -3683,13 +3683,13 @@ type SetDefaultStakingProviderReturnType = void;
 
 #### StakeParams
 
-Parameters for staking TON
+Parameters for staking TON.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `quote`\* | <code><a href="#stakingquote">StakingQuote</a></code> | The staking quote based on which the transaction is built |
-| `userAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user performing the staking |
-| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `quote`\* | <code><a href="#stakingquote">StakingQuote</a></code> | The staking quote based on which the transaction is built. |
+| `userAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user performing the staking. |
+| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 
 #### StakingAPI
 
@@ -3712,7 +3712,7 @@ Staking API interface exposed by StakingManager
 
 #### StakingBalance
 
-Staking balance information for a user
+Staking balance information for a user.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -3720,11 +3720,11 @@ Staking balance information for a user
 | `stakedBalance`\* | `string` | Amount currently staked, formatted to the stake token's decimals as a human-readable decimal string (e.g., `"12.5"`). |
 | `rawInstantUnstakeAvailable`\* | <code><a href="#tokenamount">TokenAmount</a></code> | Amount available for instant unstake, in raw smallest units of the stake token (e.g., nano-TON). |
 | `instantUnstakeAvailable`\* | `string` | Amount available for instant unstake, formatted to the stake token's decimals as a human-readable decimal string (e.g., `"12.5"`). |
-| `providerId`\* | `string` | Identifier of the staking provider |
+| `providerId`\* | `string` | Identifier of the staking provider. |
 
 #### StakingProviderInfo
 
-Dynamic staking information for a provider
+Dynamic staking information for a provider.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -3735,12 +3735,12 @@ Dynamic staking information for a provider
 
 #### StakingProviderMetadata
 
-Static metadata for a staking provider
+Static metadata for a staking provider.
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `name`\* | `string` | Human-readable provider name (e.g. "Tonstakers") |
-| `supportedUnstakeModes`\* | <code><a href="#unstakemodes">UnstakeModes</a>[]</code> | Supported unstake modes for this provider |
+| `supportedUnstakeModes`\* | <code><a href="#unstakemodes">UnstakeModes</a>[]</code> | Supported unstake modes for this provider. |
 | `supportsReversedQuote`\* | `boolean` | Whether provider supports reversed quote format (e.g., passing TON instead of tsTON for unstake) |
 | `stakeToken`\* | <code><a href="#stakingtokeninfo">StakingTokenInfo</a></code> | Token that the user sends when staking (e.g. TON) |
 | `receiveToken` | <code><a href="#stakingtokeninfo">StakingTokenInfo</a></code> | Token that the user receives when staking (e.g. tsTON for liquid staking). Absent for direct/custodial staking. |
@@ -3761,23 +3761,23 @@ Partial overrides applied on top of a provider's built-in [`StakingProviderMetad
 
 #### StakingQuote
 
-Staking quote response with pricing information
+Staking quote response with pricing information.
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `direction`\* | <code><a href="#stakingquotedirection">StakingQuoteDirection</a></code> | Direction of the quote (stake or unstake) |
-| `rawAmountIn`\* | <code><a href="#tokenamount">TokenAmount</a></code> | Amount of tokens being provided |
-| `rawAmountOut`\* | <code><a href="#tokenamount">TokenAmount</a></code> | Estimated amount of tokens to be received |
-| `amountIn`\* | `string` | Formatted amount of tokens being provided |
-| `amountOut`\* | `string` | Formatted estimated amount of tokens to be received |
-| `network`\* | <code><a href="#network">Network</a></code> | Network on which the staking will be executed |
-| `providerId`\* | `string` | Identifier of the staking provider |
+| `rawAmountIn`\* | <code><a href="#tokenamount">TokenAmount</a></code> | Amount of tokens being provided. |
+| `rawAmountOut`\* | <code><a href="#tokenamount">TokenAmount</a></code> | Estimated amount of tokens to be received. |
+| `amountIn`\* | `string` | Formatted amount of tokens being provided. |
+| `amountOut`\* | `string` | Formatted estimated amount of tokens to be received. |
+| `network`\* | <code><a href="#network">Network</a></code> | Network on which the staking will be executed. |
+| `providerId`\* | `string` | Identifier of the staking provider. |
 | `unstakeMode` | <code><a href="#unstakemodes">UnstakeModes</a></code> | Unstake-timing mode the quote was produced for. Only meaningful when `direction === 'unstake'` — for `'stake'` it is ignored. |
-| `metadata` | `unknown` | Provider-specific metadata for the quote |
+| `metadata` | `unknown` | Provider-specific metadata for the quote. |
 
 #### StakingQuoteDirection
 
-Direction of the staking quote
+Direction of the staking quote.
 
 ```ts
 type StakingQuoteDirection = 'stake' | 'unstake';
@@ -3785,17 +3785,17 @@ type StakingQuoteDirection = 'stake' | 'unstake';
 
 #### StakingQuoteParams
 
-Parameters for getting a staking quote
+Parameters for getting a staking quote.
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `direction`\* | <code><a href="#stakingquotedirection">StakingQuoteDirection</a></code> | Direction of the quote (stake or unstake) |
-| `amount`\* | `string` | Amount of tokens to stake or unstake |
-| `userAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user |
-| `network` | <code><a href="#network">Network</a></code> | Network on which the staking will be executed |
+| `amount`\* | `string` | Amount of tokens to stake or unstake. |
+| `userAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user. |
+| `network` | <code><a href="#network">Network</a></code> | Network on which the staking will be executed. |
 | `unstakeMode` | <code><a href="#unstakemodes">UnstakeModes</a></code> | Unstake-timing mode the quote should target — see [`UnstakeMode`](#unstakemode) for the supported flavours (`'INSTANT'`, `'WHEN_AVAILABLE'`, `'ROUND_END'`). Only meaningful when `direction === 'unstake'` and the provider lists the mode in `supportedUnstakeModes`. |
 | `isReversed` | `boolean` | If true, for unstake requests the amount is specified in the staking coin (e.g. TON) instead of the Liquid Staking Token (e.g. tsTON). |
-| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 
 #### StakingTokenInfo
 
@@ -3875,12 +3875,12 @@ DeDust-specific options forwarded through `providerOptions` on [`SwapQuoteParams
 | Field | Type | Description |
 | --- | --- | --- |
 | `protocols` | `string[]` | Protocols to use for routing. Available values: `'dedust'`, `'dedust_v3'`, `'dedust_v3_memepad'`, `'stonfi_v1'`, `'stonfi_v2'`, `'tonco'`, `'memeslab'`, `'tonfun'`. Defaults to all protocols when omitted. |
-| `excludeProtocols` | `string[]` | Protocols to exclude from routing |
-| `onlyVerifiedPools` | `boolean` | Only use verified pools |
+| `excludeProtocols` | `string[]` | Protocols to exclude from routing. |
+| `onlyVerifiedPools` | `boolean` | Only use verified pools. |
 | `maxSplits` | `number` | Maximum number of route splits |
 | `maxLength` | `number` | Maximum route length (hops) |
-| `excludeVolatilePools` | `boolean` | Exclude volatile pools |
-| `referralAddress` | `string` | The address of the referrer |
+| `excludeVolatilePools` | `boolean` | Exclude volatile pools. |
+| `referralAddress` | `string` | The address of the referrer. |
 | `referralFeeBps` | `number` | Referral fee in basis points (max 100 = 1%) |
 
 #### DeDustQuoteMetadata
@@ -3898,7 +3898,7 @@ Optional referral metadata attached to DeDust swaps so the provider can attribut
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `referralAddress` | `string` | The address of the referrer |
+| `referralAddress` | `string` | The address of the referrer. |
 | `referralFeeBps` | `number` | Referral fee in basis points (max 100 = 1%) |
 
 #### DeDustSwapProviderConfig
@@ -3914,8 +3914,8 @@ Configuration accepted by [`createDeDustProvider`](#creatededustprovider).
 | `maxSplits` | `number` | Maximum number of route splits |
 | `maxLength` | `number` | Maximum route length (hops) |
 | `minPoolUsdTvl` | `string` | Minimum pool TVL in USD |
-| `metadata` | `SwapProviderMetadataOverride` | Custom metadata for the provider |
-| `referralAddress` | `string` | The address of the referrer |
+| `metadata` | `SwapProviderMetadataOverride` | Custom metadata for the provider. |
+| `referralAddress` | `string` | The address of the referrer. |
 | `referralFeeBps` | `number` | Referral fee in basis points (max 100 = 1%) |
 
 #### GetSwapManagerReturnType
@@ -3957,12 +3957,12 @@ Options for [`getSwapQuote`](#getswapquote) — extends [`SwapQuoteParams`](#swa
 | Field | Type | Description |
 | --- | --- | --- |
 | `amount`\* | `string` | Amount of tokens to swap (incoming or outgoing depending on isReverseSwap) |
-| `from`\* | <code><a href="#swaptoken">SwapToken</a></code> | Token to swap from |
-| `to`\* | <code><a href="#swaptoken">SwapToken</a></code> | Token to swap to |
-| `network`\* | <code><a href="#network">Network</a></code> | Network on which the swap will be executed |
+| `from`\* | <code><a href="#swaptoken">SwapToken</a></code> | Token to swap from. |
+| `to`\* | <code><a href="#swaptoken">SwapToken</a></code> | Token to swap to. |
+| `network`\* | <code><a href="#network">Network</a></code> | Network on which the swap will be executed. |
 | `slippageBps` | `number` | Slippage tolerance in basis points (1 bp = 0.01%) |
 | `maxOutgoingMessages` | `number` | Maximum number of outgoing messages |
-| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 | `isReverseSwap` | `boolean` | If true, amount is the amount to receive (buy). If false, amount is the amount to spend (sell). |
 | `providerId` | `string` | Provider to quote against. Defaults to the registered default swap provider. |
 
@@ -3980,10 +3980,10 @@ Omniston-specific options forwarded through `providerOptions` on [`SwapQuotePara
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `settlementMethods` | `SettlementMethodValue[]` | Settlement methods to use for the swap |
-| `referrerAddress` | `string` | The address of the referrer |
+| `settlementMethods` | `SettlementMethodValue[]` | Settlement methods to use for the swap. |
+| `referrerAddress` | `string` | The address of the referrer. |
 | `referrerFeeBps` | `number` | Referrer fee in basis points (1 bp = 0.01%) |
-| `flexibleReferrerFee` | `boolean` | Whether a flexible referrer fee is allowed |
+| `flexibleReferrerFee` | `boolean` | Whether a flexible referrer fee is allowed. |
 
 #### OmnistonQuoteMetadata
 
@@ -3999,9 +3999,9 @@ Optional referrer metadata attached to Omniston swaps so the provider can attrib
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `referrerAddress` | `string` | The address of the referrer |
+| `referrerAddress` | `string` | The address of the referrer. |
 | `referrerFeeBps` | `number` | Referrer fee in basis points (1 bp = 0.01%) |
-| `flexibleReferrerFee` | `boolean` | Whether a flexible referrer fee is allowed |
+| `flexibleReferrerFee` | `boolean` | Whether a flexible referrer fee is allowed. |
 
 #### OmnistonSwapProviderConfig
 
@@ -4012,11 +4012,11 @@ Configuration accepted by [`createOmnistonProvider`](#createomnistonprovider).
 | `apiUrl` | `string` | Optional URL for the Omniston API |
 | `defaultSlippageBps` | `number` | Default slippage tolerance in basis points (1 bp = 0.01%) |
 | `quoteTimeoutMs` | `number` | Timeout for quote requests in milliseconds |
-| `providerId` | `string` | Identifier for the provider |
-| `metadata` | `SwapProviderMetadataOverride` | Custom metadata for the provider |
-| `referrerAddress` | `string` | The address of the referrer |
+| `providerId` | `string` | Identifier for the provider. |
+| `metadata` | `SwapProviderMetadataOverride` | Custom metadata for the provider. |
+| `referrerAddress` | `string` | The address of the referrer. |
 | `referrerFeeBps` | `number` | Referrer fee in basis points (1 bp = 0.01%) |
-| `flexibleReferrerFee` | `boolean` | Whether a flexible referrer fee is allowed |
+| `flexibleReferrerFee` | `boolean` | Whether a flexible referrer fee is allowed. |
 
 #### SetDefaultSwapProviderParameters
 
@@ -4056,12 +4056,12 @@ Parameters consumed by [`buildSwapTransaction`](#buildswaptransaction) — the p
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `quote`\* | <code><a href="#swapquote">SwapQuote</a></code> | The swap quote based on which the transaction is built |
-| `userAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user performing the swap |
+| `quote`\* | <code><a href="#swapquote">SwapQuote</a></code> | The swap quote based on which the transaction is built. |
+| `userAddress`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user performing the swap. |
 | `destinationAddress` | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Address to receive the swapped tokens (defaults to userAddress) |
 | `slippageBps` | `number` | Slippage tolerance in basis points (1 bp = 0.01%) |
 | `deadline` | `number` | Unix timestamp (in seconds) after which the swap transaction must not be executed. |
-| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 
 #### SwapQuote
 
@@ -4069,19 +4069,19 @@ Quote returned by [`getSwapQuote`](#getswapquote) — source/target tokens, expe
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `fromToken`\* | <code><a href="#swaptoken">SwapToken</a></code> | Token being sold |
-| `toToken`\* | <code><a href="#swaptoken">SwapToken</a></code> | Token being bought |
-| `rawFromAmount`\* | <code><a href="#tokenamount">TokenAmount</a></code> | Amount of tokens to sell |
-| `rawToAmount`\* | <code><a href="#tokenamount">TokenAmount</a></code> | Amount of tokens to buy |
-| `fromAmount`\* | `string` | Amount of tokens to sell |
-| `toAmount`\* | `string` | Amount of tokens to buy |
-| `rawMinReceived`\* | <code><a href="#tokenamount">TokenAmount</a></code> | Minimum amount of tokens to receive (after slippage) |
-| `minReceived`\* | `string` | Minimum amount of tokens to receive (after slippage) |
-| `network`\* | <code><a href="#network">Network</a></code> | Network on which the swap will be executed |
+| `fromToken`\* | <code><a href="#swaptoken">SwapToken</a></code> | Token being sold. |
+| `toToken`\* | <code><a href="#swaptoken">SwapToken</a></code> | Token being bought. |
+| `rawFromAmount`\* | <code><a href="#tokenamount">TokenAmount</a></code> | Amount of `fromToken` to sell, in raw smallest units (e.g., nano-TON). |
+| `rawToAmount`\* | <code><a href="#tokenamount">TokenAmount</a></code> | Amount of `toToken` to buy, in raw smallest units (e.g., nano-TON). |
+| `fromAmount`\* | `string` | Amount of `fromToken` to sell, formatted to the token's decimals as a human-readable decimal string (e.g., `"1.5"`). |
+| `toAmount`\* | `string` | Amount of `toToken` to buy, formatted to the token's decimals as a human-readable decimal string (e.g., `"1.5"`). |
+| `rawMinReceived`\* | <code><a href="#tokenamount">TokenAmount</a></code> | Minimum amount of `toToken` to receive after slippage, in raw smallest units (e.g., nano-TON). |
+| `minReceived`\* | `string` | Minimum amount of `toToken` to receive after slippage, formatted to the token's decimals as a human-readable decimal string (e.g., `"1.5"`). |
+| `network`\* | <code><a href="#network">Network</a></code> | Network on which the swap will be executed. |
 | `priceImpact` | `number` | Price impact of the swap in basis points (100 = 1%) |
-| `providerId`\* | `string` | Identifier of the swap provider |
+| `providerId`\* | `string` | Identifier of the swap provider. |
 | `expiresAt` | `number` | Unix timestamp in seconds when the quote expires |
-| `metadata` | `unknown` | Provider-specific metadata for the quote |
+| `metadata` | `unknown` | Provider-specific metadata for the quote. |
 
 #### SwapQuoteParams
 
@@ -4090,12 +4090,12 @@ Parameters consumed by [`getSwapQuote`](#getswapquote) — source/target tokens 
 | Field | Type | Description |
 | --- | --- | --- |
 | `amount`\* | `string` | Amount of tokens to swap (incoming or outgoing depending on isReverseSwap) |
-| `from`\* | <code><a href="#swaptoken">SwapToken</a></code> | Token to swap from |
-| `to`\* | <code><a href="#swaptoken">SwapToken</a></code> | Token to swap to |
-| `network`\* | <code><a href="#network">Network</a></code> | Network on which the swap will be executed |
+| `from`\* | <code><a href="#swaptoken">SwapToken</a></code> | Token to swap from. |
+| `to`\* | <code><a href="#swaptoken">SwapToken</a></code> | Token to swap to. |
+| `network`\* | <code><a href="#network">Network</a></code> | Network on which the swap will be executed. |
 | `slippageBps` | `number` | Slippage tolerance in basis points (1 bp = 0.01%) |
 | `maxOutgoingMessages` | `number` | Maximum number of outgoing messages |
-| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 | `isReverseSwap` | `boolean` | If true, amount is the amount to receive (buy). If false, amount is the amount to spend (sell). |
 
 #### SwapToken
@@ -4193,9 +4193,9 @@ Wallet response carrying the BoC (bag of cells) of the external message that was
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `boc`\* | <code><a href="#base64string">Base64String</a></code> | BoC of the sent transaction |
-| `normalizedBoc`\* | <code><a href="#base64string">Base64String</a></code> | Normalized BoC of the external-in message |
-| `normalizedHash`\* | <code><a href="#hex">Hex</a></code> | Hash of the normalized external-in message |
+| `boc`\* | <code><a href="#base64string">Base64String</a></code> | BoC of the sent transaction. |
+| `normalizedBoc`\* | <code><a href="#base64string">Base64String</a></code> | Normalized BoC of the external-in message. |
+| `normalizedHash`\* | <code><a href="#hex">Hex</a></code> | Hash of the normalized external-in message. |
 
 #### SendTransactionReturnType
 
@@ -4211,26 +4211,26 @@ Single transaction record carried inside [`TransactionsUpdate`](#transactionsupd
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `account`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Account of the transaction |
-| `accountStateBefore` | `AccountState` | The state of the account before the transaction was executed |
-| `accountStateAfter` | `AccountState` | The state of the account after the transaction has been applied |
-| `description` | `TransactionDescription` | The detailed breakdown of the transaction execution |
-| `hash`\* | <code><a href="#hex">Hex</a></code> | Hash of the transaction |
-| `logicalTime`\* | `LogicalTime` | The logical time of the transaction |
-| `now`\* | `number` | Unix timestamp of the transaction |
+| `account`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Account of the transaction. |
+| `accountStateBefore` | `AccountState` | The state of the account before the transaction was executed. |
+| `accountStateAfter` | `AccountState` | The state of the account after the transaction has been applied. |
+| `description` | `TransactionDescription` | The detailed breakdown of the transaction execution. |
+| `hash`\* | <code><a href="#hex">Hex</a></code> | Hash of the transaction. |
+| `logicalTime`\* | `LogicalTime` | The logical time of the transaction. |
+| `now`\* | `number` | Unix timestamp of the transaction. |
 | `mcBlockSeqno`\* | `number` | Masterchain block sequence number |
-| `traceExternalHash`\* | <code><a href="#hex">Hex</a></code> | External hash of the trace |
-| `traceId` | `string` | ID of the trace |
-| `previousTransactionHash` | `string` | The hash of the previous transaction |
-| `previousTransactionLogicalTime` | `LogicalTime` | The logical time of the previous transaction |
-| `origStatus` | `AccountStatus` | Original status of the transaction |
-| `endStatus` | `AccountStatus` | End status of the transaction |
-| `totalFees` | <code><a href="#tokenamount">TokenAmount</a></code> | Total fees of the transaction |
-| `totalFeesExtraCurrencies` | <code><a href="#extracurrencies">ExtraCurrencies</a></code> | Extra currencies in the total fees |
-| `blockRef` | `TransactionBlockRef` | The reference to the block in which the transaction was included |
-| `inMessage` | `TransactionMessage` | The incoming message associated with the transaction |
-| `outMessages`\* | `TransactionMessage[]` | The list of outgoing messages produced by the transaction |
-| `isEmulated`\* | `boolean` | Emulated state of the transaction |
+| `traceExternalHash`\* | <code><a href="#hex">Hex</a></code> | External hash of the trace. |
+| `traceId` | `string` | ID of the trace. |
+| `previousTransactionHash` | `string` | The hash of the previous transaction. |
+| `previousTransactionLogicalTime` | `LogicalTime` | The logical time of the previous transaction. |
+| `origStatus` | `AccountStatus` | Original status of the transaction. |
+| `endStatus` | `AccountStatus` | End status of the transaction. |
+| `totalFees` | <code><a href="#tokenamount">TokenAmount</a></code> | Total fees of the transaction. |
+| `totalFeesExtraCurrencies` | <code><a href="#extracurrencies">ExtraCurrencies</a></code> | Extra currencies in the total fees. |
+| `blockRef` | `TransactionBlockRef` | The reference to the block in which the transaction was included. |
+| `inMessage` | `TransactionMessage` | The incoming message associated with the transaction. |
+| `outMessages`\* | `TransactionMessage[]` | The list of outgoing messages produced by the transaction. |
+| `isEmulated`\* | `boolean` | Emulated state of the transaction. |
 
 #### TransactionRequest
 
@@ -4261,13 +4261,13 @@ Update payload delivered to [`watchTransactions`](#watchtransactions) / [`watchT
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `type`\* | `'transactions'` | The update type field |
-| `address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | The account address |
-| `transactions`\* | <code><a href="#transaction">Transaction</a>[]</code> | The array of transactions |
-| `traceHash`\* | <code><a href="#hex">Hex</a></code> | The hash of the trace |
-| `addressBook` | <code><a href="#addressbook">AddressBook</a></code> | Address book from streaming v2 notification |
-| `metadata` | `TransactionAddressMetadata` | Metadata from streaming v2 notification |
-| `status`\* | <code><a href="#streamingupdatestatus">StreamingUpdateStatus</a></code> | The finality of the update |
+| `type`\* | `'transactions'` | Discriminator pinned to `'transactions'` — identifies this update as a transactions stream payload. |
+| `address`\* | <code><a href="#userfriendlyaddress">UserFriendlyAddress</a></code> | Account address the transactions belong to (the watched address). |
+| `transactions`\* | <code><a href="#transaction">Transaction</a>[]</code> | Transactions that landed for `address` in this update. |
+| `traceHash`\* | <code><a href="#hex">Hex</a></code> | Hash of the trace that produced these transactions — the root external-message hash that spawned them. |
+| `addressBook` | <code><a href="#addressbook">AddressBook</a></code> | Pre-resolved address-book entries for raw addresses referenced inside `transactions`, so the UI can render labels without extra lookups. |
+| `metadata` | `TransactionAddressMetadata` | Pre-fetched address metadata (interfaces, domain) for the watched `address`. |
+| `status`\* | <code><a href="#streamingupdatestatus">StreamingUpdateStatus</a></code> | Finality stage of the update — see [`StreamingUpdateStatus`](#streamingupdatestatus). |
 
 #### TransferTonParameters
 

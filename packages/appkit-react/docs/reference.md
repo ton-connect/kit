@@ -184,10 +184,10 @@ Quote a crypto-to-TON onramp — given a source asset/chain and the target TON a
 | `parameters.sourceCurrencyAddress` | `string` | Source crypto currency address (contract address or 0x0... for native) |
 | `parameters.sourceChain` | `string` | Source chain identifier in CAIP-2 format (e.g. 'eip155:1' for Ethereum mainnet, 'eip155:42161' for Arbitrum One). Providers map this to their own chain identifiers internally. |
 | `parameters.targetCurrencyAddress` | `string` | Target crypto currency address on TON (contract address or 0x0... for native) |
-| `parameters.recipientAddress` | `string` | TON address that will receive the target crypto |
-| `parameters.refundAddress` | `string` | Refund address for the source crypto |
+| `parameters.recipientAddress` | `string` | TON address that will receive the target crypto. |
+| `parameters.refundAddress` | `string` | Refund address for the source crypto. |
 | `parameters.isSourceAmount` | `boolean` | If true, `amount` is the source amount to spend. If false, `amount` is the target amount to receive. Defaults to true when omitted. |
-| `parameters.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `parameters.providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 | `parameters.providerId` | `string` | Provider to quote against. Defaults to the registered default provider. |
 | `parameters.query` | [`QueryOptionsOverride`](/ecosystem/appkit/reference/appkit#queryoptionsoverride) | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
@@ -200,8 +200,8 @@ Read the current status of a crypto-onramp deposit previously created via [`useC
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `parameters` | [`UseCryptoOnrampStatusParameters`](#usecryptoonrampstatusparameters) | Deposit id, originating provider id and TanStack Query overrides. |
-| `parameters.depositId` | `string` | Deposit id |
-| `parameters.providerId` | `string` | Identifier of the provider that issued this deposit |
+| `parameters.depositId` | `string` | Deposit id. |
+| `parameters.providerId` | `string` | Identifier of the provider that issued this deposit. |
 | `parameters.query` | [`QueryOptionsOverride`](/ecosystem/appkit/reference/appkit#queryoptionsoverride) | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
 Returns: <code><a href="#usecryptoonrampstatusreturntype">UseCryptoOnrampStatusReturnType</a>&lt;selectData = GetCryptoOnrampStatusData&gt;</code> — TanStack Query result for the status read.
@@ -858,12 +858,12 @@ Quote a stake or unstake — given an amount, direction (`'stake'` / `'unstake'`
 | --- | --- | --- |
 | `parameters` | [`UseStakingQuoteParameters`](#usestakingquoteparameters) | Quote parameters, optional `providerId`, optional network override, and TanStack Query overrides. |
 | `parameters.direction` | <code><a href="/ecosystem/appkit/reference/appkit#stakingquotedirection">StakingQuoteDirection</a></code> | Direction of the quote (stake or unstake) |
-| `parameters.amount` | `string` | Amount of tokens to stake or unstake |
-| `parameters.userAddress` | <code><a href="/ecosystem/appkit/reference/appkit#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user |
-| `parameters.network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network on which the staking will be executed |
+| `parameters.amount` | `string` | Amount of tokens to stake or unstake. |
+| `parameters.userAddress` | <code><a href="/ecosystem/appkit/reference/appkit#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user. |
+| `parameters.network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network on which the staking will be executed. |
 | `parameters.unstakeMode` | <code><a href="/ecosystem/appkit/reference/appkit#unstakemodes">UnstakeModes</a></code> | Unstake-timing mode the quote should target — see [`UnstakeMode`](/ecosystem/appkit/reference/appkit#unstakemode) for the supported flavours (`'INSTANT'`, `'WHEN_AVAILABLE'`, `'ROUND_END'`). Only meaningful when `direction === 'unstake'` and the provider lists the mode in `supportedUnstakeModes`. |
 | `parameters.isReversed` | `boolean` | If true, for unstake requests the amount is specified in the staking coin (e.g. TON) instead of the Liquid Staking Token (e.g. tsTON). |
-| `parameters.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `parameters.providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 | `parameters.providerId` | `string` | Provider to quote against. Defaults to the registered default staking provider. |
 | `parameters.query` | [`QueryOptionsOverride`](/ecosystem/appkit/reference/appkit#queryoptionsoverride) | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
@@ -908,12 +908,12 @@ Quote a swap — given source/target tokens and an amount, returns the rate, exp
 | --- | --- | --- |
 | `parameters` | [`UseSwapQuoteParameters`](#useswapquoteparameters) | Source and target tokens, amount, optional network/provider override, and TanStack Query overrides. |
 | `parameters.amount` | `string` | Amount of tokens to swap (incoming or outgoing depending on isReverseSwap) |
-| `parameters.from` | <code><a href="/ecosystem/appkit/reference/appkit#swaptoken">SwapToken</a></code> | Token to swap from |
-| `parameters.to` | <code><a href="/ecosystem/appkit/reference/appkit#swaptoken">SwapToken</a></code> | Token to swap to |
-| `parameters.network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network on which the swap will be executed |
+| `parameters.from` | <code><a href="/ecosystem/appkit/reference/appkit#swaptoken">SwapToken</a></code> | Token to swap from. |
+| `parameters.to` | <code><a href="/ecosystem/appkit/reference/appkit#swaptoken">SwapToken</a></code> | Token to swap to. |
+| `parameters.network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network on which the swap will be executed. |
 | `parameters.slippageBps` | `number` | Slippage tolerance in basis points (1 bp = 0.01%) |
 | `parameters.maxOutgoingMessages` | `number` | Maximum number of outgoing messages |
-| `parameters.providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `parameters.providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 | `parameters.isReverseSwap` | `boolean` | If true, amount is the amount to receive (buy). If false, amount is the amount to spend (sell). |
 | `parameters.providerId` | `string` | Provider to quote against. Defaults to the registered default swap provider. |
 | `parameters.query` | [`QueryOptionsOverride`](/ecosystem/appkit/reference/appkit#queryoptionsoverride) | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
@@ -2503,10 +2503,10 @@ Parameters accepted by [`useCryptoOnrampQuote`](#usecryptoonrampquote) — TanSt
 | `sourceCurrencyAddress` | `string` | Source crypto currency address (contract address or 0x0... for native) |
 | `sourceChain` | `string` | Source chain identifier in CAIP-2 format (e.g. 'eip155:1' for Ethereum mainnet, 'eip155:42161' for Arbitrum One). Providers map this to their own chain identifiers internally. |
 | `targetCurrencyAddress` | `string` | Target crypto currency address on TON (contract address or 0x0... for native) |
-| `recipientAddress` | `string` | TON address that will receive the target crypto |
-| `refundAddress` | `string` | Refund address for the source crypto |
+| `recipientAddress` | `string` | TON address that will receive the target crypto. |
+| `refundAddress` | `string` | Refund address for the source crypto. |
 | `isSourceAmount` | `boolean` | If true, `amount` is the source amount to spend. If false, `amount` is the target amount to receive. Defaults to true when omitted. |
-| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 | `providerId` | `string` | Provider to quote against. Defaults to the registered default provider. |
 | `query` | [`QueryOptionsOverride`](/ecosystem/appkit/reference/appkit#queryoptionsoverride) | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
@@ -2527,8 +2527,8 @@ Parameters accepted by [`useCryptoOnrampStatus`](#usecryptoonrampstatus) — Tan
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `depositId` | `string` | Deposit id |
-| `providerId` | `string` | Identifier of the provider that issued this deposit |
+| `depositId` | `string` | Deposit id. |
+| `providerId` | `string` | Identifier of the provider that issued this deposit. |
 | `query` | [`QueryOptionsOverride`](/ecosystem/appkit/reference/appkit#queryoptionsoverride) | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
 #### UseCryptoOnrampStatusReturnType
@@ -3380,12 +3380,12 @@ Parameters accepted by [`useStakingQuote`](#usestakingquote) — TanStack Query 
 | Field | Type | Description |
 | --- | --- | --- |
 | `direction` | <code><a href="/ecosystem/appkit/reference/appkit#stakingquotedirection">StakingQuoteDirection</a></code> | Direction of the quote (stake or unstake) |
-| `amount` | `string` | Amount of tokens to stake or unstake |
-| `userAddress` | <code><a href="/ecosystem/appkit/reference/appkit#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user |
-| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network on which the staking will be executed |
+| `amount` | `string` | Amount of tokens to stake or unstake. |
+| `userAddress` | <code><a href="/ecosystem/appkit/reference/appkit#userfriendlyaddress">UserFriendlyAddress</a></code> | Address of the user. |
+| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network on which the staking will be executed. |
 | `unstakeMode` | <code><a href="/ecosystem/appkit/reference/appkit#unstakemodes">UnstakeModes</a></code> | Unstake-timing mode the quote should target — see [`UnstakeMode`](/ecosystem/appkit/reference/appkit#unstakemode) for the supported flavours (`'INSTANT'`, `'WHEN_AVAILABLE'`, `'ROUND_END'`). Only meaningful when `direction === 'unstake'` and the provider lists the mode in `supportedUnstakeModes`. |
 | `isReversed` | `boolean` | If true, for unstake requests the amount is specified in the staking coin (e.g. TON) instead of the Liquid Staking Token (e.g. tsTON). |
-| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 | `providerId` | `string` | Provider to quote against. Defaults to the registered default staking provider. |
 | `query` | [`QueryOptionsOverride`](/ecosystem/appkit/reference/appkit#queryoptionsoverride) | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
 
@@ -3596,12 +3596,12 @@ Parameters accepted by [`useSwapQuote`](#useswapquote) — TanStack Query option
 | Field | Type | Description |
 | --- | --- | --- |
 | `amount` | `string` | Amount of tokens to swap (incoming or outgoing depending on isReverseSwap) |
-| `from` | <code><a href="/ecosystem/appkit/reference/appkit#swaptoken">SwapToken</a></code> | Token to swap from |
-| `to` | <code><a href="/ecosystem/appkit/reference/appkit#swaptoken">SwapToken</a></code> | Token to swap to |
-| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network on which the swap will be executed |
+| `from` | <code><a href="/ecosystem/appkit/reference/appkit#swaptoken">SwapToken</a></code> | Token to swap from. |
+| `to` | <code><a href="/ecosystem/appkit/reference/appkit#swaptoken">SwapToken</a></code> | Token to swap to. |
+| `network` | <code><a href="/ecosystem/appkit/reference/appkit#network">Network</a></code> | Network on which the swap will be executed. |
 | `slippageBps` | `number` | Slippage tolerance in basis points (1 bp = 0.01%) |
 | `maxOutgoingMessages` | `number` | Maximum number of outgoing messages |
-| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options |
+| `providerOptions` | `TProviderOptions = unknown` | Provider-specific options. |
 | `isReverseSwap` | `boolean` | If true, amount is the amount to receive (buy). If false, amount is the amount to spend (sell). |
 | `providerId` | `string` | Provider to quote against. Defaults to the registered default swap provider. |
 | `query` | [`QueryOptionsOverride`](/ecosystem/appkit/reference/appkit#queryoptionsoverride) | TanStack Query options forwarded to `useQuery` (`enabled`, `staleTime`, `refetchInterval`, `select`, …). `queryKey` and `queryFn` are managed by the wrapper. |
