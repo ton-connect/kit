@@ -37,7 +37,7 @@ export interface SendJettonButtonProps extends Omit<SendProps, 'request'> {
 }
 
 /**
- * Pre-wired button that builds a jetton transfer with {@link appkit:createTransferJettonTransaction} and dispatches it through the standard `Send` flow on click — disabled until `recipientAddress`, `amount`, `jetton.address` and a non-zero `jetton.decimals` are all set. Throws inside the click handler when `jetton.address` is missing or `jetton.decimals` is falsy. (A `0`-decimal jetton must be passed as a truthy value to avoid being treated as missing.)
+ * Pre-wired button that builds a jetton transfer with {@link appkit:createTransferJettonTransaction} and dispatches it through the standard `Send` flow on click — disabled until `recipientAddress`, `amount`, `jetton.address` and `jetton.decimals` are all set. Throws inside the click handler when `jetton.address` or `jetton.decimals` is missing.
  *
  * @sample docs/examples/src/appkit/components/balances#SEND_JETTON_BUTTON
  *
@@ -60,7 +60,7 @@ export const SendJettonButton: FC<SendJettonButtonProps> = ({
             throw new Error('Jetton address is required');
         }
 
-        if (!jetton.decimals) {
+        if (jetton.decimals === undefined) {
             throw new Error('Jetton decimals is required');
         }
 
@@ -74,7 +74,7 @@ export const SendJettonButton: FC<SendJettonButtonProps> = ({
     }, [appKit, recipientAddress, amount, comment, jetton]);
 
     const text = useMemo(() => {
-        if (amount && jetton.decimals) {
+        if (amount && jetton.decimals !== undefined) {
             return t('balances.sendJettonWithAmount', {
                 amount: formatUnits(parseUnits(amount, jetton.decimals), jetton.decimals).toString(),
                 symbol: jetton.symbol,
@@ -88,7 +88,7 @@ export const SendJettonButton: FC<SendJettonButtonProps> = ({
         <Send
             request={createTransferTransaction}
             text={text}
-            disabled={!recipientAddress || !amount || !jetton.address || !jetton.decimals}
+            disabled={!recipientAddress || !amount || !jetton.address || jetton.decimals === undefined}
             {...props}
         />
     );

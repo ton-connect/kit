@@ -715,7 +715,7 @@ Returns: <code><a href="#useselectedwalletreturntype">UseSelectedWalletReturnTyp
 
 #### SendJettonButton
 
-Pre-wired button that builds a jetton transfer with [`createTransferJettonTransaction`](/ecosystem/appkit/reference/appkit#createtransferjettontransaction) and dispatches it through the standard `Send` flow on click — disabled until `recipientAddress`, `amount`, `jetton.address` and a non-zero `jetton.decimals` are all set. Throws inside the click handler when `jetton.address` is missing or `jetton.decimals` is falsy. (A `0`-decimal jetton must be passed as a truthy value to avoid being treated as missing.)
+Pre-wired button that builds a jetton transfer with [`createTransferJettonTransaction`](/ecosystem/appkit/reference/appkit#createtransferjettontransaction) and dispatches it through the standard `Send` flow on click — disabled until `recipientAddress`, `amount`, `jetton.address` and `jetton.decimals` are all set. Throws inside the click handler when `jetton.address` or `jetton.decimals` is missing.
 
 | Prop | Type | Description |
 | --- | --- | --- |
