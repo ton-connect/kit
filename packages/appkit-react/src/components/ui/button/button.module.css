@@ -46,6 +46,12 @@
   padding: 9px 12px;
 }
 
+.icon {
+  composes: labelSemibold from "../../../styles/typography.module.css";
+  aspect-ratio: 1;
+  padding: 6px;
+}
+
 /* Border radius */
 .radiusS {
   border-radius: var(--ta-border-radius-s);

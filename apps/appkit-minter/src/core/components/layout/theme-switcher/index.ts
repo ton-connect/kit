@@ -6,4 +6,4 @@
  *
  */
 
-export { Card } from './card';
+export { ThemeSwitcher } from './theme-switcher';

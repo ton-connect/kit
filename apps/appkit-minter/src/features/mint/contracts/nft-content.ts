@@ -20,12 +20,12 @@ const SNAKE_PREFIX = 0x00;
  * Encode off-chain content for NFT metadata
  * Format: 0x01 prefix + URL as snake cell
  */
-export function encodeOffChainContent(content: string): Cell {
+export const encodeOffChainContent = (content: string): Cell => {
     let data = Buffer.from(content);
     const offChainPrefix = Buffer.from([OFF_CHAIN_CONTENT_PREFIX]);
     data = Buffer.concat([offChainPrefix, data]);
     return makeSnakeCell(data);
-}
+};
 
 /**
  * NFT metadata for on-chain content
@@ -41,7 +41,7 @@ export interface NftMetadata {
  * Encode on-chain content for NFT metadata
  * Format: 0x00 prefix + Dictionary<SHA256(key), SnakeCell(value)>
  */
-export function encodeOnChainContent(metadata: NftMetadata): Cell {
+export const encodeOnChainContent = (metadata: NftMetadata): Cell => {
     // Create dictionary with Buffer(32) keys (SHA256 hashes)
     const dict = Dictionary.empty(Dictionary.Keys.Buffer(32), {
         serialize: (src: Cell, builder) => {
@@ -76,4 +76,4 @@ export function encodeOnChainContent(metadata: NftMetadata): Cell {
 
     // Build content cell: 0x00 prefix + dictionary
     return beginCell().storeUint(ON_CHAIN_CONTENT_PREFIX, 8).storeDict(dict).endCell();
-}
+};

@@ -21,11 +21,11 @@ export const ToasterProvider: React.FC = () => {
             richColors
             toastOptions={{
                 style: {
-                    background: 'var(--card)',
-                    color: 'var(--card-foreground)',
-                    border: '1px solid var(--border)',
+                    background: 'var(--secondary)',
+                    color: 'var(--foreground)',
+                    border: '1px solid var(--tertiary)',
                 },
-                descriptionClassName: 'text-muted-foreground',
+                descriptionClassName: 'text-tertiary-foreground',
             }}
         />
     );

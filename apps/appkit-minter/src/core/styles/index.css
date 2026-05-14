@@ -20,62 +20,27 @@
   --font-sans: "Inter", system-ui, Avenir, Helvetica, Arial, sans-serif;
   --radius: 0.625rem;
 
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.147 0.004 49.25);
-  --primary: oklch(0.71 0.13 215);
-  --primary-foreground: oklch(0.98 0.02 201);
-  --secondary: oklch(97.893% 0.00298 264.796);
-  --secondary-foreground: oklch(57.568% 0.01372 285.899);
-  --muted: oklch(93.014% 0.00759 260.883);
-  --muted-foreground: oklch(66.646% 0.0147 285.926);
-  --destructive: oklch(0.577 0.245 27.325);
-  --success: oklch(24.818% 0.0376 145.737);
-  --success-foreground: oklch(1 0 0);
-  --border: oklch(0.923 0.003 48.717);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.147 0.004 49.25);
-  --ring: oklch(0.71 0.13 215);
-}
-
-.dark {
-  --background: oklch(0.147 0.004 49.25);
-  --foreground: oklch(0.985 0.001 106.423);
-  --card: oklch(0.216 0.006 56.043);
-  --card-foreground: oklch(0.985 0.001 106.423);
-  --primary: oklch(0.71 0.13 215);
-  --primary-foreground: oklch(0.30 0.05 230);
-  --secondary: oklch(23.503% 0.00003 271.152);
-  --secondary-foreground: oklch(98.511% 0.00011 271.152);
-  --muted: oklch(0.2931 0 0);
-  --muted-foreground: oklch(57.568% 0.01372 285.899);
-  --destructive: oklch(0.704 0.191 22.216);
-  --success: oklch(0.75 0.18 144);
-  --success-foreground: oklch(0 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --ring: oklch(0.71 0.13 215);
+  /* Colors aliased from @ton/appkit-react */
+  --primary: var(--ta-color-primary);
+  --primary-foreground: var(--ta-color-primary-foreground);
+  --primary-light: var(--ta-color-primary-light);
+  --error: var(--ta-color-error);
+  --success: var(--ta-color-success);
+  --background: var(--ta-color-background);
+  --foreground: var(--ta-color-text);
+  --secondary: var(--ta-color-background-secondary);
+  --secondary-foreground: var(--ta-color-text-secondary);
+  --tertiary: var(--ta-color-background-tertiary);
+  --tertiary-foreground: var(--ta-color-text-tertiary);
+  --background-bezeled: var(--ta-color-background-bezeled);
+  --skeleton-shimmer: var(--ta-color-skeleton-shimmer);
+  --white: var(--ta-color-white);
+  --black: var(--ta-color-black);
+  --ton: var(--ta-color-ton);
 }
 
 #root {
   width: 100%;
-}
-
-* {
-  --ta-color-primary: var(--primary);
-  --ta-color-primary-foreground: var(--primary-foreground);
-  --ta-color-error: var(--destructive);
-  --ta-color-success: var(--success);
-  --ta-color-text: var(--foreground);
-  --ta-color-text-secondary: var(--muted-foreground);
-  --ta-color-background: var(--background);
-  --ta-color-background-secondary: var(--secondary);
-  --ta-color-background-tertiary: var(--muted);
-
-  --ta-font-family: var(--font-sans);
-  --ta-border-radius-s: var(--radius-sm);
-  --ta-border-radius-m: var(--radius-md);
-  --ta-border-radius-l: var(--radius-lg);
-  --ta-border-radius-xl: var(--radius-xl);
-  --ta-border-radius-2xl: var(--radius-2xl);
 }
 
 /* Rarity glow effects */
@@ -146,30 +111,32 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-destructive: var(--destructive);
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
-  --color-border: var(--border);
-  --color-ring: var(--ring);
-  --font-sans: "Inter", sans-serif;
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-light: var(--primary-light);
+  --color-error: var(--error);
+  --color-success: var(--success);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-tertiary: var(--tertiary);
+  --color-tertiary-foreground: var(--tertiary-foreground);
+  --color-background-bezeled: var(--background-bezeled);
+  --color-white: var(--white);
+  --color-black: var(--black);
+  --color-ton: var(--ton);
+
+  --font-sans: "Inter", sans-serif;
 }
 
 @layer base {
   * {
-    @apply border-border outline-none;
+    @apply border-tertiary outline-none;
   }
 
   body {

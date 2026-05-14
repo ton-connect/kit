@@ -6,4 +6,4 @@
  *
  */
 
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './tooltip';
+export { AppRouter } from './app-router';

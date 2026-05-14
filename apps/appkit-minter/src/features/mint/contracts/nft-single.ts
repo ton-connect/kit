@@ -31,7 +31,7 @@ export interface NftSingleData {
 /**
  * Build data cell for NFT Single contract
  */
-export function buildSingleNftDataCell(data: NftSingleData): Cell {
+export const buildSingleNftDataCell = (data: NftSingleData): Cell => {
     const royaltyCell = beginCell()
         .storeUint(data.royaltyParams.royaltyFactor, 16)
         .storeUint(data.royaltyParams.royaltyBase, 16)
@@ -44,13 +44,13 @@ export function buildSingleNftDataCell(data: NftSingleData): Cell {
         .storeRef(data.contentCell)
         .storeRef(royaltyCell)
         .endCell();
-}
+};
 
 /**
  * Build StateInit for NFT Single contract
  * Returns stateInit cell and calculated contract address
  */
-export function buildSingleNftStateInit(data: NftSingleData) {
+export const buildSingleNftStateInit = (data: NftSingleData) => {
     const dataCell = buildSingleNftDataCell(data);
 
     const stateInit: StateInit = {
@@ -67,4 +67,4 @@ export function buildSingleNftStateInit(data: NftSingleData) {
         stateInitCell,
         address,
     };
-}
+};

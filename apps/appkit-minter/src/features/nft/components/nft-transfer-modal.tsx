@@ -47,16 +47,18 @@ export const NftTransferModal: React.FC<NftTransferModalProps> = ({ nft, isOpen,
         <Modal title="Transfer NFT" open={isOpen} onOpenChange={(open) => !open && handleClose()}>
             {/* NFT Preview */}
             <div className="mb-4">
-                <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center overflow-hidden mb-3">
+                <div className="w-full h-48 bg-tertiary rounded-lg flex items-center justify-center overflow-hidden mb-3">
                     {nftInfo.image ? (
                         <img src={nftInfo.image} alt={nftInfo.name} className="w-full h-full object-cover" />
                     ) : (
-                        <ImageIcon className="w-16 h-16 text-muted-foreground" />
+                        <ImageIcon className="w-16 h-16 text-tertiary-foreground" />
                     )}
                 </div>
-                <h4 className="font-medium text-card-foreground">{nftInfo.name}</h4>
-                <p className="text-sm text-muted-foreground">{nftInfo.collectionName}</p>
-                {nftInfo.description && <p className="text-xs text-muted-foreground/70 mt-1">{nftInfo.description}</p>}
+                <h4 className="font-medium text-foreground">{nftInfo.name}</h4>
+                <p className="text-sm text-tertiary-foreground">{nftInfo.collectionName}</p>
+                {nftInfo.description && (
+                    <p className="text-xs text-tertiary-foreground/70 mt-1">{nftInfo.description}</p>
+                )}
             </div>
 
             <div className="space-y-4">
@@ -89,8 +91,8 @@ export const NftTransferModal: React.FC<NftTransferModalProps> = ({ nft, isOpen,
                 </Input>
 
                 {transferError && (
-                    <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
-                        <p className="text-sm text-destructive">{transferError}</p>
+                    <div className="p-3 bg-error/10 border border-error/30 rounded-lg">
+                        <p className="text-sm text-error">{transferError}</p>
                     </div>
                 )}
             </div>
