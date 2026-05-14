@@ -166,7 +166,7 @@ export const Layout: FC<LayoutProps> = ({ children, title }) => {
                 </main>
 
                 <footer className="pt-2 pb-4 text-center text-xs text-tertiary-foreground">
-                    <p>Powered by AppKit & TonConnect</p>
+                    <p>Powered by AppKit & TON Connect</p>
                 </footer>
             </SidebarInset>
         </SidebarProvider>

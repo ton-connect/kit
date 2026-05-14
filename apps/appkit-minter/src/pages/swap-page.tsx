@@ -93,7 +93,7 @@ const TOKENS: AppkitUIToken[] = [
 export const SwapPage: React.FC = () => {
     return (
         <Layout title={<span className="hidden md:block">Swap</span>}>
-            <div className="w-fit mx-auto pt-3">
+            <div className="w-fit mx-auto pt-3 flex justify-center items-center">
                 <SwapWidget
                     tokens={TOKENS}
                     network={Network.mainnet()}

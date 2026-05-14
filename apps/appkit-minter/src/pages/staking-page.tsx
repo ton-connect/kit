@@ -14,7 +14,7 @@ import { Layout } from '@/core/components';
 export const StakingPage: React.FC = () => {
     return (
         <Layout title={<span className="hidden md:block">Staking</span>}>
-            <div className="w-full max-w-[434px] mx-auto">
+            <div className="w-full max-w-[434px] mx-auto flex justify-center items-center">
                 <StakingWidget />
             </div>
         </Layout>
