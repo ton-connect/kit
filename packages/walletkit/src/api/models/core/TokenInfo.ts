@@ -14,22 +14,22 @@ import type { TokenAnimation } from './TokenAnimation';
  */
 export interface TokenInfo {
     /**
-     * Display name of the token
+     * Display name of the token.
      */
     name?: string;
 
     /**
-     * Human-readable description of the token
+     * Human-readable description of the token.
      */
     description?: string;
 
     /**
-     * Token image in various sizes
+     * Token image in various sizes.
      */
     image?: TokenImage;
 
     /**
-     * Animated media associated with the token
+     * Animated media associated with the token.
      */
     animation?: TokenAnimation;
 

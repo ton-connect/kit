@@ -23,7 +23,7 @@ const log = globalLogger.createChild('EventStore');
 const MAX_EVENT_SIZE_BYTES = 100 * 1024; // 100kb
 
 /**
- * Concrete implementation of EventStore using Storage
+ * Concrete implementation of EventStore using Storage.
  */
 export class StorageEventStore implements EventStore {
     private storage: Storage;
@@ -35,7 +35,7 @@ export class StorageEventStore implements EventStore {
     }
 
     /**
-     * Store a new event from the bridge
+     * Store a new event from the bridge.
      */
     async storeEvent(_rawEvent: RawBridgeEvent): Promise<StoredEvent> {
         const rawEvent = { ..._rawEvent, wallet: undefined };
@@ -81,7 +81,7 @@ export class StorageEventStore implements EventStore {
     }
 
     /**
-     * Get events for a wallet that are ready for processing
+     * Get events for a wallet that are ready for processing.
      */
     async getEventsForWallet(sessionIds: string[], eventTypes: EventType[]): Promise<StoredEvent[]> {
         const events = await this.getAllEvents();
@@ -118,7 +118,7 @@ export class StorageEventStore implements EventStore {
     }
 
     /**
-     * Attempt to acquire exclusive lock on an event for processing
+     * Attempt to acquire exclusive lock on an event for processing.
      */
     async acquireLock(eventId: string, walletId: string): Promise<StoredEvent | undefined> {
         return this.withLock('storage', async () => {
@@ -156,7 +156,7 @@ export class StorageEventStore implements EventStore {
     }
 
     /**
-     * Increment retry count and update error message for an event
+     * Increment retry count and update error message for an event.
      */
     async releaseLock(eventId: string, error?: string): Promise<StoredEvent> {
         return this.withLock('storage', async () => {
@@ -197,7 +197,7 @@ export class StorageEventStore implements EventStore {
     }
 
     /**
-     * Update event status and timestamps with optimistic locking
+     * Update event status and timestamps with optimistic locking.
      */
     async updateEventStatus(eventId: string, status: EventStatus, oldStatus: EventStatus): Promise<StoredEvent> {
         return this.withLock('storage', async () => {
@@ -234,7 +234,7 @@ export class StorageEventStore implements EventStore {
     }
 
     /**
-     * Get event by ID
+     * Get event by ID.
      */
     async getEvent(eventId: string): Promise<StoredEvent | null> {
         try {
@@ -247,7 +247,7 @@ export class StorageEventStore implements EventStore {
     }
 
     /**
-     * Recover stale events that have been processing too long
+     * Recover stale events that have been processing too long.
      */
     async recoverStaleEvents(processingTimeoutMs: number): Promise<number> {
         const events = await this.getAllEvents();
@@ -287,7 +287,7 @@ export class StorageEventStore implements EventStore {
     }
 
     /**
-     * Clean up old completed events
+     * Clean up old completed events.
      */
     async cleanupOldEvents(retentionMs: number): Promise<number> {
         const events = await this.getAllEvents();

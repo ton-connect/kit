@@ -7,20 +7,16 @@
  */
 
 /**
- * Deposit details returned by a crypto onramp provider.
- *
- * The user must send `amount` of `sourceCurrencyAddress` to `address` on `sourceChain`
- * to complete the onramp; the provider then delivers the target crypto to the
- * user's TON address.
+ * Parameters identifying a previously created crypto-onramp deposit — pair of `depositId` and the `providerId` that issued it.
  */
 export interface CryptoOnrampStatusParams {
     /**
-     * Deposit id
+     * Deposit id.
      */
     depositId: string;
 
     /**
-     * Identifier of the provider that issued this deposit
+     * Identifier of the provider that issued this deposit.
      */
     providerId: string;
 }

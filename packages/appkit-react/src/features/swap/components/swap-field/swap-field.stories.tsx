@@ -26,7 +26,6 @@ export const Pay: Story = {
         amount: '10',
         balance: '100000000000',
         onAmountChange: () => {},
-        isWalletConnected: true,
     },
 };
 
@@ -36,7 +35,6 @@ export const Receive: Story = {
         token: STORY_TOKENS[1], // USDT
         amount: '25',
         balance: '500000000',
-        isWalletConnected: true,
     },
 };
 
@@ -44,12 +42,5 @@ export const Loading: Story = {
     args: {
         ...Receive.args,
         loading: true,
-    },
-};
-
-export const NoWallet: Story = {
-    args: {
-        ...Pay.args,
-        isWalletConnected: false,
     },
 };

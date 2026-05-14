@@ -6,10 +6,9 @@
  *
  */
 
-import type { OnrampQuote, OnrampQuoteParams } from '@ton/walletkit';
-
-import { resolveNetwork } from '../../utils';
 import type { AppKit } from '../../core/app-kit';
+import type { OnrampQuote, OnrampQuoteParams } from '../../onramp';
+import { resolveNetwork } from '../../utils';
 
 export type GetOnrampQuoteOptions<T = unknown> = OnrampQuoteParams<T> & {
     providerId?: string;
@@ -18,7 +17,7 @@ export type GetOnrampQuoteOptions<T = unknown> = OnrampQuoteParams<T> & {
 export type GetOnrampQuoteReturnType = Promise<OnrampQuote>;
 
 /**
- * Get onramp quote
+ * Get onramp quote.
  */
 export const getOnrampQuote = async <T = unknown>(
     appKit: AppKit,

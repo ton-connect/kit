@@ -6,21 +6,42 @@
  *
  */
 
-import type { StakingProviderInterface } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
+import type { StakingProviderInterface } from '../../staking';
 
+/**
+ * Options for {@link getStakingProvider}.
+ *
+ * @public
+ * @category Type
+ * @section Staking
+ */
 export type GetStakingProviderOptions = {
-    /**
-     * Provider ID to get. If not provided, returns default provider.
-     */
+    /** Provider ID to look up. When omitted, returns the registered default staking provider. */
     id?: string;
 };
 
+/**
+ * Return type of {@link getStakingProvider}.
+ *
+ * @public
+ * @category Type
+ * @section Staking
+ */
 export type GetStakingProviderReturnType = StakingProviderInterface;
 
 /**
- * Get staking provider instance
+ * Get a registered staking provider by id, or the default staking provider when no id is given. Throws when no provider matches — or when no id is passed and no default has been registered.
+ *
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param options - {@link GetStakingProviderOptions} Optional provider id.
+ * @returns The matching staking provider instance.
+ *
+ * @expand options
+ *
+ * @public
+ * @category Action
+ * @section Staking
  */
 export const getStakingProvider = (
     appKit: AppKit,

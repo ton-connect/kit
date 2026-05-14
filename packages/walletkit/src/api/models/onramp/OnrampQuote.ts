@@ -7,7 +7,7 @@
  */
 
 /**
- * Onramp quote response with pricing information
+ * Onramp quote response with pricing information.
  */
 export interface OnrampQuote {
     /**
@@ -21,12 +21,12 @@ export interface OnrampQuote {
     cryptoCurrency: string;
 
     /**
-     * Amount of fiat to spend
+     * Amount of fiat to spend.
      */
     fiatAmount: string;
 
     /**
-     * Amount of crypto to receive
+     * Amount of crypto to receive.
      */
     cryptoAmount: string;
 
@@ -46,12 +46,12 @@ export interface OnrampQuote {
     networkFeeFiat?: string;
 
     /**
-     * Identifier of the onramp provider
+     * Identifier of the onramp provider.
      */
     providerId: string;
 
     /**
-     * Provider-specific metadata for the quote
+     * Provider-specific metadata for the quote.
      */
     metadata?: unknown;
 }

@@ -15,18 +15,19 @@ import type { SharedKitEvents } from './emitter';
  * Context passed to provider factory functions.
  */
 export interface ProviderFactoryContext<Events extends SharedKitEvents = SharedKitEvents> {
+    /** Network manager the provider should use for client lookups and default-network reads. */
     networkManager: NetworkManager;
+    /** Event emitter the provider should publish its events to. */
     eventEmitter: EventEmitter<Events>;
-    ssr?: boolean;
 }
 
-/** Factory function that creates a provider from context */
+/** Factory function that creates a provider from context. */
 export type ProviderFactory<T extends BaseProvider = BaseProvider> = (ctx: ProviderFactoryContext) => T;
 
-/** A provider instance or a factory that creates one */
+/** A provider instance or a factory that creates one. */
 export type ProviderInput<T extends BaseProvider = BaseProvider> = T | ProviderFactory<T>;
 
-/** Helper for creating typed provider factories */
+/** Helper for creating typed provider factories. */
 export function createProvider<T extends BaseProvider = BaseProvider>(factory: ProviderFactory<T>): ProviderFactory<T> {
     return factory;
 }

@@ -6,40 +6,27 @@
  *
  */
 
-import type { NetworkAdapters, ProviderInput } from '@ton/walletkit';
-
 import type { ConnectorInput } from '../../../types/connector';
-import type { Network } from '../../../types/network';
+import type { Network, NetworkAdapters } from '../../../types/network';
+import type { ProviderInput } from '../../../types/provider';
 
 /**
- * Configuration for AppKit
+ * Constructor options for {@link AppKit} — networks, connectors, providers and runtime flags.
+ *
+ * @public
+ * @category Type
+ * @section Core
  */
 export interface AppKitConfig {
-    /**
-     * Network configuration
-     * At least one network must be configured.
-     *
-     * Keys are chain IDs (use `Network.mainnet().chainId` or `Network.testnet().chainId`)
-     * Values contain apiClient configuration (url and optional API key)
-     */
+    /** Map of chain ID to {@link NetworkConfig} (which holds the api-client setup). If omitted, AppKit defaults to mainnet only. */
     networks?: NetworkAdapters;
 
-    /**
-     * Wallet connectors
-     */
+    /** Wallet connectors registered at startup. */
     connectors?: ConnectorInput[];
 
-    /**
-     * Default network for wallet connections.
-     * If set, connectors (e.g. TonConnect) will enforce this network when connecting.
-     * Set to `undefined` to allow any network.
-     */
+    /** Default network. */
     defaultNetwork?: Network;
 
+    /** Providers registered at startup. */
     providers?: ProviderInput[];
-
-    /**
-     * Enable server-side rendering support
-     */
-    ssr?: boolean;
 }

@@ -11,12 +11,12 @@
  */
 export interface DAppInfo {
     /**
-     * Display name of the dApp
+     * Display name of the dApp.
      */
     name?: string;
 
     /**
-     * Brief description of the dApp's purpose
+     * Brief description of the dApp's purpose.
      */
     description?: string;
 

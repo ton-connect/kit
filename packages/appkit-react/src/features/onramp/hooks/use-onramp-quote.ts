@@ -23,7 +23,7 @@ export type UseOnrampQuoteReturnType<selectData = GetOnrampQuoteData> = UseQuery
 >;
 
 /**
- * Hook to get onramp quote
+ * React hook that fetches an onramp quote through TanStack Query (wraps `getOnrampQuote`). Internal: not part of the public API yet (fiat onramp is WIP).
  */
 export const useOnrampQuote = <selectData = GetOnrampQuoteData>(
     parameters: UseOnrampQuoteParameters<selectData> = {},

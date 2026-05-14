@@ -12,11 +12,26 @@ import { useAddress } from '../../wallets/hooks/use-address';
 import { useNetwork } from '../../network/hooks/use-network';
 import { useWatchJettonsByAddress } from './use-watch-jettons-by-address';
 
+/**
+ * Parameters accepted by {@link useWatchJettons} — update callback and optional network override. The hook resolves the address from the selected wallet.
+ *
+ * @public
+ * @category Type
+ * @section Jettons
+ */
 export type UseWatchJettonsParameters = Partial<WatchJettonsOptions>;
 
 /**
- * Hook to watch jetton updates of the currently selected wallet in real-time.
- * Automatically updates TanStack Query caches for jetton balances.
+ * Subscribe to jetton-balance updates for the currently selected wallet. Updates flow into the TanStack Query cache so {@link useJettons} picks up the new data automatically (use {@link useWatchJettonsByAddress} for a fixed address). Requires a streaming provider registered for the network — the hook exits silently with a console warning when none is configured.
+ *
+ * @param parameters - {@link UseWatchJettonsParameters} Update callback and optional network override.
+ * @expand parameters
+ *
+ * @sample docs/examples/src/appkit/hooks/jettons#USE_WATCH_JETTONS
+ *
+ * @public
+ * @category Hook
+ * @section Jettons
  */
 export const useWatchJettons = (parameters: UseWatchJettonsParameters = {}): void => {
     const address = useAddress();

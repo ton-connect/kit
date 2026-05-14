@@ -1,7 +1,7 @@
 <!--
 This file is auto-generated. Do not edit manually.
 Changes will be overwritten when running the docs update script.
-Source template: template/packages/walletkit/src/defi/swap/omniston/README.md
+Source template: docs/templates/packages/walletkit/src/defi/swap/omniston/README.md
 -->
 
 # Omniston Swap Provider
@@ -35,7 +35,7 @@ interface OmnistonSwapProviderConfig {
 }
 ```
 
-**Omniston-specific quote options:** `maxOutgoingMessages` (max messages per tx; default 1). Extract from wallet features via `getMaxOutgoingMessages()`. See [Swap README](../README.md) for base parameters.
+**Omniston-specific quote options:** `maxOutgoingMessages` (max messages per tx, default 1). Extract from wallet features via `getMaxOutgoingMessages()`. See [Swap README](../README.md) for base parameters.
 
 ### Usage Example
 

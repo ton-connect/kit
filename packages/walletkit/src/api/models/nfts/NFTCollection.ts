@@ -14,47 +14,47 @@ import type { UserFriendlyAddress, Hex } from '../core/Primitives';
  */
 export interface NFTCollection {
     /**
-     * The blockchain address of the NFT collection contract
+     * The blockchain address of the NFT collection contract.
      */
     address: UserFriendlyAddress;
 
     /**
-     * The name of the NFT collection
+     * The name of the NFT collection.
      */
     name?: string;
 
     /**
-     * The image representing the NFT collection
+     * The image representing the NFT collection.
      */
     image?: TokenImage;
 
     /**
-     * A brief description of the NFT collection
+     * A brief description of the NFT collection.
      */
     description?: string;
 
     /**
-     * The index value for the next item to be minted in the collection
+     * The index value for the next item to be minted in the collection.
      */
     nextItemIndex?: string;
 
     /**
-     * The hash of the collection's smart contract code
+     * The hash of the collection's smart contract code.
      */
     codeHash?: Hex;
 
     /**
-     * The hash of the collection's data in the blockchain
+     * The hash of the collection's data in the blockchain.
      */
     dataHash?: Hex;
 
     /**
-     * The blockchain address of the collection owner
+     * The blockchain address of the collection owner.
      */
     ownerAddress?: UserFriendlyAddress;
 
     /**
-     * Additional arbitrary data related to the NFT collection
+     * Additional arbitrary data related to the NFT collection.
      */
     extra?: { [key: string]: unknown };
 }

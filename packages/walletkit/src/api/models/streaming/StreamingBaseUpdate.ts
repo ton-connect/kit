@@ -10,8 +10,8 @@ import type { StreamingWatchType } from './StreamingWatchType';
 import type { StreamingUpdateStatus } from './StreamingUpdateStatus';
 
 export interface StreamingBaseUpdate {
-    /** The update type field */
+    /** Discriminator identifying the kind of streaming update (`'balance'`, `'jettons'`, `'transactions'`). */
     type: StreamingWatchType;
-    /** The finality of the update */
+    /** Finality stage of the update — see {@link StreamingUpdateStatus}. */
     status: StreamingUpdateStatus;
 }

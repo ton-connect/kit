@@ -22,7 +22,7 @@ export type SettlementMethodValue = (typeof SettlementMethod)[keyof typeof Settl
 
 export type OmnistonSwapOptions = {
     /**
-     * Settlement methods to use for the swap
+     * Settlement methods to use for the swap.
      */
     settlementMethods?: SettlementMethodValue[];
 };

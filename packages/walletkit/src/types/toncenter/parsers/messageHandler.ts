@@ -8,7 +8,7 @@
 
 /**
  * Extensible message handler architecture
- * Allows registration of custom handlers for different message types
+ * Allows registration of custom handlers for different message types.
  */
 
 import type { MessageType } from './opcodes';
@@ -17,7 +17,7 @@ import type { Action, AddressBook } from '../AccountEvent';
 import type { ToncenterTraceItem, ToncenterTransaction } from '../emulation';
 
 /**
- * Context for message handling
+ * Context for message handling.
  */
 export interface MessageHandlerContext {
     ownerAddress: string;
@@ -27,11 +27,11 @@ export interface MessageHandlerContext {
 }
 
 /**
- * Message handler interface
+ * Message handler interface.
  */
 export interface MessageHandler {
     /**
-     * Message type this handler processes
+     * Message type this handler processes.
      */
     messageType: MessageType;
 
@@ -41,24 +41,24 @@ export interface MessageHandler {
     priority?: number;
 
     /**
-     * Check if this handler can process the message
+     * Check if this handler can process the message.
      */
     canHandle(message: DecodedMessage, context: MessageHandlerContext): boolean;
 
     /**
-     * Process the message and return actions
+     * Process the message and return actions.
      */
     handle(message: DecodedMessage, context: MessageHandlerContext): Action[];
 }
 
 /**
- * Message handler registry
+ * Message handler registry.
  */
 class MessageHandlerRegistry {
     private handlers: Map<MessageType, MessageHandler[]> = new Map();
 
     /**
-     * Register a message handler
+     * Register a message handler.
      */
     register(handler: MessageHandler): void {
         const existing = this.handlers.get(handler.messageType) || [];
@@ -69,7 +69,7 @@ class MessageHandlerRegistry {
     }
 
     /**
-     * Unregister a handler
+     * Unregister a handler.
      */
     unregister(handler: MessageHandler): void {
         const existing = this.handlers.get(handler.messageType);
@@ -80,14 +80,14 @@ class MessageHandlerRegistry {
     }
 
     /**
-     * Get all handlers for a message type
+     * Get all handlers for a message type.
      */
     getHandlers(messageType: MessageType): MessageHandler[] {
         return this.handlers.get(messageType) || [];
     }
 
     /**
-     * Find the first handler that can handle the message
+     * Find the first handler that can handle the message.
      */
     findHandler(message: DecodedMessage, context: MessageHandlerContext): MessageHandler | null {
         const handlers = this.getHandlers(message.messageType);
@@ -100,7 +100,7 @@ class MessageHandlerRegistry {
     }
 
     /**
-     * Process a message with the appropriate handler
+     * Process a message with the appropriate handler.
      */
     handle(message: DecodedMessage, context: MessageHandlerContext): Action[] {
         const handler = this.findHandler(message, context);
@@ -111,14 +111,14 @@ class MessageHandlerRegistry {
     }
 
     /**
-     * Get all registered message types
+     * Get all registered message types.
      */
     getRegisteredTypes(): MessageType[] {
         return Array.from(this.handlers.keys());
     }
 
     /**
-     * Clear all handlers
+     * Clear all handlers.
      */
     clear(): void {
         this.handlers.clear();
@@ -126,12 +126,12 @@ class MessageHandlerRegistry {
 }
 
 /**
- * Global message handler registry
+ * Global message handler registry.
  */
 export const messageHandlerRegistry = new MessageHandlerRegistry();
 
 /**
- * Base message handler with common utilities
+ * Base message handler with common utilities.
  */
 export abstract class BaseMessageHandler implements MessageHandler {
     abstract messageType: MessageType;
@@ -141,14 +141,14 @@ export abstract class BaseMessageHandler implements MessageHandler {
     abstract handle(message: DecodedMessage, context: MessageHandlerContext): Action[];
 
     /**
-     * Helper: check if value is a record
+     * Helper: check if value is a record.
      */
     protected isRecord(v: unknown): v is Record<string, unknown> {
         return typeof v === 'object' && v !== null;
     }
 
     /**
-     * Helper: get property from payload
+     * Helper: get property from payload.
      */
     protected getProperty<T = unknown>(payload: unknown, key: string): T | undefined {
         if (this.isRecord(payload)) {
@@ -158,7 +158,7 @@ export abstract class BaseMessageHandler implements MessageHandler {
     }
 
     /**
-     * Helper: safely convert to bigint
+     * Helper: safely convert to bigint.
      */
     protected toBigInt(value?: string | number): bigint {
         if (value === undefined || value === null) return BigInt(0);
@@ -167,7 +167,7 @@ export abstract class BaseMessageHandler implements MessageHandler {
     }
 
     /**
-     * Helper: extract comment from decoded payload
+     * Helper: extract comment from decoded payload.
      */
     protected extractComment(payload: unknown): string | null {
         if (!this.isRecord(payload)) return null;
@@ -183,7 +183,7 @@ export abstract class BaseMessageHandler implements MessageHandler {
 }
 
 /**
- * Decorator for registering handlers automatically
+ * Decorator for registering handlers automatically.
  */
 export function RegisterMessageHandler(messageType: MessageType, priority?: number) {
     return function <T extends { new (...args: unknown[]): MessageHandler }>(constructor: T): T {
@@ -199,7 +199,7 @@ export function RegisterMessageHandler(messageType: MessageType, priority?: numb
 }
 
 /**
- * Fluent builder for creating handlers
+ * Fluent builder for creating handlers.
  */
 export class MessageHandlerBuilder {
     private _messageType?: MessageType;
@@ -259,7 +259,7 @@ export class MessageHandlerBuilder {
 }
 
 /**
- * Create a new message handler builder
+ * Create a new message handler builder.
  */
 export function createMessageHandler(): MessageHandlerBuilder {
     return new MessageHandlerBuilder();

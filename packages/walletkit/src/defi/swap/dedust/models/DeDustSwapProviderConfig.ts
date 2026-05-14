@@ -10,7 +10,7 @@ import type { SwapProviderMetadataOverride } from '../../../../api/models';
 import type { DeDustReferralOptions } from './DeDustReferralOptions';
 
 /**
- * Configuration for the DeDust Swap Provider
+ * Configuration for the DeDust Swap Provider.
  */
 export interface DeDustSwapProviderConfig extends DeDustReferralOptions {
     /**
@@ -59,7 +59,7 @@ export interface DeDustSwapProviderConfig extends DeDustReferralOptions {
     minPoolUsdTvl?: string;
 
     /**
-     * Custom metadata for the provider
+     * Custom metadata for the provider.
      */
     metadata?: SwapProviderMetadataOverride;
 }

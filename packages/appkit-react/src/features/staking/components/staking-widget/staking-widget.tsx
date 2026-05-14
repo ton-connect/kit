@@ -14,14 +14,16 @@ import { StakingWidgetProvider, useStakingContext } from '../staking-widget-prov
 import type { StakingProviderProps } from '../staking-widget-provider';
 
 /**
- * Props for the StakingWidget component.
+ * Props accepted by {@link StakingWidget}. Extends {@link StakingProviderProps} (e.g. `network`) and standard `<div>` props forwarded to the default UI.
+ *
+ * @public
+ * @category Type
+ * @section Staking
  */
 export interface StakingWidgetProps
     extends Omit<StakingProviderProps, 'children'>, Omit<ComponentProps<'div'>, 'children'> {
     /**
-     * Custom render function.
-     * When provided, it replaces the default widget UI and gives full control over the rendering.
-     * Useful for building unique staking interfaces while leveraging the widget's internal logic.
+     * Optional render-prop. When provided, the default {@link StakingWidgetUI} is bypassed and this function is called with the full {@link StakingWidgetRenderProps} (context state + forwarded `<div>` props), letting consumers build a custom UI on top of the widget's internal logic.
      */
     children?: (props: StakingWidgetRenderProps) => ReactNode;
 }
@@ -39,11 +41,13 @@ const StakingWidgetContent: FC<
 };
 
 /**
- * A high-level component that provides a complete staking interface.
+ * High-level staking widget that wires the full stake/unstake flow: pick a provider, enter an amount (with optional reverse input on supported providers), review the quote (APY, exchange rate, "you get"), then submit the transaction. Internally wraps {@link StakingWidgetProvider} around {@link StakingWidgetUI}. Consumers can replace the UI by passing a render-prop `children` while keeping the widget's state, quoting, balance checks, and submission logic.
  *
- * It manages the staking lifecycle, including fetching quotes, building transactions,
- * and handling user input. It can be used as a standalone widget with default UI
- * or customized using a render function.
+ * @sample docs/examples/src/appkit/components/staking#STAKING_WIDGET
+ *
+ * @public
+ * @category Component
+ * @section Staking
  */
 export const StakingWidget: FC<StakingWidgetProps> = ({ children, network, ...rest }) => {
     return (

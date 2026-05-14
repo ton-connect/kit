@@ -26,14 +26,14 @@ export class WalletManager {
     }
 
     /**
-     * Initialize manager and load persisted wallets
+     * Initialize manager and load persisted wallets.
      */
     async initialize(): Promise<void> {
         // await this.loadWallets();
     }
 
     /**
-     * Get all wallets as array
+     * Get all wallets as array.
      */
     getWallets(): Wallet[] {
         return Array.from(this.wallets.values());
@@ -47,7 +47,7 @@ export class WalletManager {
     }
 
     /**
-     * Add a wallet with validation
+     * Add a wallet with validation.
      */
     async addWallet(wallet: Wallet): Promise<WalletId> {
         const validation = validateWallet(wallet);
@@ -65,7 +65,7 @@ export class WalletManager {
     }
 
     /**
-     * Remove wallet by wallet ID or wallet adapter
+     * Remove wallet by wallet ID or wallet adapter.
      */
     async removeWallet(walletIdOrAdapter: WalletId | WalletAdapter): Promise<boolean> {
         let walletId: WalletId;
@@ -80,7 +80,7 @@ export class WalletManager {
     }
 
     /**
-     * Update existing wallet
+     * Update existing wallet.
      */
     async updateWallet(wallet: Wallet): Promise<void> {
         const walletId = wallet.getWalletId();
@@ -97,28 +97,28 @@ export class WalletManager {
     }
 
     /**
-     * Clear all wallets
+     * Clear all wallets.
      */
     async clearWallets(): Promise<void> {
         this.wallets.clear();
     }
 
     /**
-     * Get wallet count
+     * Get wallet count.
      */
     getWalletCount(): number {
         return this.wallets.size;
     }
 
     /**
-     * Check if wallet exists by wallet ID
+     * Check if wallet exists by wallet ID.
      */
     hasWallet(walletId: WalletId): boolean {
         return this.wallets.has(walletId);
     }
 
     /**
-     * Get wallet ID for a wallet adapter
+     * Get wallet ID for a wallet adapter.
      */
     getWalletId(wallet: WalletAdapter): WalletId {
         return wallet.getWalletId();

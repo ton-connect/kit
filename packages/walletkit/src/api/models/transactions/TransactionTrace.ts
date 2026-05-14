@@ -22,27 +22,27 @@ export interface TransactionTrace {
     mcBlockSeqno: number;
 
     /**
-     * Root trace node of the execution tree
+     * Root trace node of the execution tree.
      */
     trace: TransactionTraceNode;
 
     /**
-     * Map of transaction hashes to transaction details
+     * Map of transaction hashes to transaction details.
      */
     transactions: { [key: Hex]: Transaction };
 
     /**
-     * List of high-level actions extracted from the trace
+     * List of high-level actions extracted from the trace.
      */
     actions: TransactionTraceAction[];
 
     /**
-     * Random seed used for emulation
+     * Random seed used for emulation.
      */
     randSeed: Hex;
 
     /**
-     * Whether the trace is incomplete due to limits or errors
+     * Whether the trace is incomplete due to limits or errors.
      */
     isIncomplete: boolean;
 }
@@ -52,17 +52,17 @@ export interface TransactionTrace {
  */
 export interface TransactionTraceNode {
     /**
-     * Transaction hash
+     * Transaction hash.
      */
     txHash?: Hex;
 
     /**
-     * Incoming message hash
+     * Incoming message hash.
      */
     inMsgHash?: Hex;
 
     /**
-     * Child trace nodes representing spawned messages
+     * Child trace nodes representing spawned messages.
      */
     children: TransactionTraceNode[];
 }
@@ -72,25 +72,25 @@ export interface TransactionTraceNode {
  */
 export interface TransactionTraceAction {
     /**
-     * Trace identifier
+     * Trace identifier.
      */
     traceId?: string;
 
     /**
-     * Action identifier
+     * Action identifier.
      */
     actionId?: string;
 
     /**
-     * Logical time when the action started
+     * Logical time when the action started.
      */
     startLt?: LogicalTime;
     /**
-     * Logical time when the action ended
+     * Logical time when the action ended.
      */
     endLt?: LogicalTime;
     /**
-     * Unix time when the action started
+     * Unix time when the action started.
      */
     startUtime?: number;
     /**
@@ -99,7 +99,7 @@ export interface TransactionTraceAction {
      */
     endUtime?: number;
     /**
-     * Logical time when the trace ended
+     * Logical time when the trace ended.
      */
     traceEndLt?: LogicalTime;
     /**
@@ -108,33 +108,33 @@ export interface TransactionTraceAction {
      */
     traceEndUtime?: number;
     /**
-     * Masterchain block sequence number when the trace ended
+     * Masterchain block sequence number when the trace ended.
      */
     traceMcSeqnoEnd?: number;
     /**
-     * List of transaction hashes involved in this action
+     * List of transaction hashes involved in this action.
      */
     transactions: Hex[];
     /**
-     * Indicates if the action was successful
+     * Indicates if the action was successful.
      */
     isSuccess?: boolean;
     /**
-     * External hash of the trace
+     * External hash of the trace.
      */
     traceExternalHash?: Hex;
     /**
-     * List of accounts involved in this action
+     * List of accounts involved in this action.
      */
     accounts: UserFriendlyAddress[];
     /**
-     * Detailed information about the action
+     * Detailed information about the action.
      */
     details: TransactionTraceActionDetails;
 }
 
 /**
- * Details of a transaction trace action
+ * Details of a transaction trace action.
  */
 export type TransactionTraceActionDetails =
     | { type: 'jetton_swap'; value: TransactionTraceActionJettonSwapDetails }
@@ -147,22 +147,22 @@ export type TransactionTraceActionDetails =
  */
 export interface TransactionTraceActionJettonSwapDetails {
     /**
-     * Name of the decentralized exchange
+     * Name of the decentralized exchange.
      */
     dex: string;
 
     /**
-     * Address of the account initiating the swap
+     * Address of the account initiating the swap.
      */
     sender?: UserFriendlyAddress;
 
     /**
-     * Transfer details for tokens sent to the DEX
+     * Transfer details for tokens sent to the DEX.
      */
     dexIncomingTransfer?: TransactionTraceActionJettonTransfer;
 
     /**
-     * Transfer details for tokens received from the DEX
+     * Transfer details for tokens received from the DEX.
      */
     dexOutgoingTransfer?: TransactionTraceActionJettonTransfer;
 
@@ -253,7 +253,7 @@ export interface TransactionTraceActionTONTransferDetails {
     valueExtraCurrencies?: ExtraCurrencies;
 
     /**
-     * Optional comment for the transfer
+     * Optional comment for the transfer.
      */
     comment?: string;
 

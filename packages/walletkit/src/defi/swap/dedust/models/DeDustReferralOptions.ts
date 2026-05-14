@@ -7,11 +7,11 @@
  */
 
 /**
- * Options for configuring the referral in DeDust swap operations
+ * Options for configuring the referral in DeDust swap operations.
  */
 export interface DeDustReferralOptions {
     /**
-     * The address of the referrer
+     * The address of the referrer.
      */
     referralAddress?: string;
 

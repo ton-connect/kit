@@ -6,7 +6,26 @@
  *
  */
 
-export { formatUnits, parseUnits, compareAddress } from '@ton/walletkit';
+export {
+    formatUnits,
+    parseUnits,
+    compareAddress,
+    asHex,
+    createWalletId,
+    getNormalizedExtMessageHash,
+    createCommentPayloadBase64,
+    createJettonTransferPayload,
+    createNftTransferPayload,
+    createTransferTransaction,
+    DEFAULT_JETTON_GAS_FEE,
+    DEFAULT_NFT_GAS_FEE,
+    getJettonBalanceFromClient,
+    getJettonWalletAddressFromClient,
+    getJettonsFromClient,
+    getNftFromClient,
+    getNftsFromClient,
+    getTransactionStatus as getTransactionStatusFromClient,
+} from '@ton/walletkit';
 
 export * from './address/format';
 export * from './amount/calc-fiat-value';

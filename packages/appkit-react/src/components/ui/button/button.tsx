@@ -12,16 +12,47 @@ import clsx from 'clsx';
 
 import styles from './button.module.css';
 
+/**
+ * Size token for {@link Button}: `'s' | 'm' | 'l' | 'unset'`. `'unset'` skips the size class entirely.
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export type ButtonSize = 's' | 'm' | 'l' | 'unset';
+
+/**
+ * Border-radius token for {@link Button}: `'s' | 'm' | 'l' | 'xl' | '2xl' | 'full'`.
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export type ButtonBorderRadius = 's' | 'm' | 'l' | 'xl' | '2xl' | 'full';
+
+/**
+ * Visual variant for {@link Button}: `'fill' | 'secondary' | 'bezeled' | 'gray' | 'ghost' | 'unstyled'`.
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export type ButtonVariant = 'fill' | 'secondary' | 'bezeled' | 'gray' | 'ghost' | 'unstyled';
 
+/**
+ * Props accepted by {@link Button}.
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export interface ButtonProps extends ComponentProps<'button'> {
     /**
      * Size class applied to the button. Pass `'unset'` to skip the size class
      * entirely (no padding, no typography) — useful with `variant="unstyled"`.
      */
     size?: ButtonSize;
+    /** Border radius token. Defaults to a size-dependent value (`s` → `2xl`, `m` → `l`, `l` → `xl`). */
     borderRadius?: ButtonBorderRadius;
     /**
      * Visual variant. Use `'unstyled'` to opt out of all built-in styling —
@@ -30,8 +61,11 @@ export interface ButtonProps extends ComponentProps<'button'> {
      * and `icon`/`children` rendering.
      */
     variant?: ButtonVariant;
+    /** When true, renders a spinner instead of `icon`/`children` and disables the button. */
     loading?: boolean;
+    /** When true, the button stretches to fill its container width. */
     fullWidth?: boolean;
+    /** Optional leading icon rendered before `children` when not loading. */
     icon?: ReactNode;
 }
 
@@ -50,6 +84,15 @@ const RADIUS_CLASS: Record<ButtonBorderRadius, string> = {
     full: 'radiusFull',
 };
 
+/**
+ * Themed `<button>` with size, border-radius, and variant tokens. Renders an optional leading `icon`, swaps content for a spinner while `loading`, and is disabled whenever `disabled` or `loading` is true.
+ *
+ * @sample docs/examples/src/appkit/components/ui#BUTTON
+ *
+ * @public
+ * @category Component
+ * @section UI
+ */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     (
         {

@@ -10,21 +10,21 @@ import type { UserFriendlyAddress } from '../core/Primitives';
 import type { StakingQuote } from './StakingQuote';
 
 /**
- * Parameters for staking TON
+ * Parameters for staking TON.
  */
 export interface StakeParams<TProviderOptions = unknown> {
     /**
-     * The staking quote based on which the transaction is built
+     * The staking quote based on which the transaction is built.
      */
     quote: StakingQuote;
 
     /**
-     * Address of the user performing the staking
+     * Address of the user performing the staking.
      */
     userAddress: UserFriendlyAddress;
 
     /**
-     * Provider-specific options
+     * Provider-specific options.
      */
     providerOptions?: TProviderOptions;
 }

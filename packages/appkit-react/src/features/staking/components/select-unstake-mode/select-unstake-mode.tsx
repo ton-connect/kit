@@ -18,10 +18,21 @@ import { useI18n } from '../../../settings/hooks/use-i18n';
 import { formatAmount } from '../staking-info/utils';
 import styles from './select-unstake-mode.module.css';
 
+/**
+ * Props accepted by {@link SelectUnstakeMode}.
+ *
+ * @public
+ * @category Type
+ * @section Staking
+ */
 export interface SelectUnstakeModeProps extends ComponentProps<'div'> {
+    /** Currently selected unstake mode (see {@link appkit:UnstakeMode}). */
     value: UnstakeModes;
+    /** Called when the user picks a different mode. */
     onValueChange: (mode: UnstakeModes) => void;
+    /** Dynamic provider info — used to show the instant-unstake limit when available. */
     providerInfo: StakingProviderInfo | undefined;
+    /** Static provider metadata — supplies `supportedUnstakeModes` and stake-token formatting. */
     providerMetadata: StakingProviderMetadata | undefined;
 }
 
@@ -31,6 +42,15 @@ interface ModeOption {
     tags: string[];
 }
 
+/**
+ * Collapsible selector for the unstake mode (instant / round-end / when-available). Filters options by `providerMetadata.supportedUnstakeModes` and renders nothing when only one mode is supported. Annotates the instant option with the provider's current instant-unstake limit.
+ *
+ * @sample docs/examples/src/appkit/components/staking#SELECT_UNSTAKE_MODE
+ *
+ * @public
+ * @category Component
+ * @section Staking
+ */
 export const SelectUnstakeMode: FC<SelectUnstakeModeProps> = ({
     value,
     onValueChange,

@@ -10,6 +10,15 @@ import { useContext } from 'react';
 
 import { AppKitContext } from '../../../providers/app-kit-provider';
 
+/**
+ * Read the {@link appkit:AppKit} instance hosted by {@link AppKitProvider}. Throws when the hook is rendered outside the provider tree.
+ *
+ * @returns The AppKit instance shared with descendant hooks/components.
+ *
+ * @public
+ * @category Hook
+ * @section Settings
+ */
 export const useAppKit = () => {
     const context = useContext(AppKitContext);
 

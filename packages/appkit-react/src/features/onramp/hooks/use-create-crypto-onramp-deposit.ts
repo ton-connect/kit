@@ -20,9 +20,23 @@ import type {
 import { useAppKit } from '../../settings';
 import { useMutation } from '../../../libs/query';
 
+/**
+ * Parameters accepted by {@link useCreateCryptoOnrampDeposit} — TanStack Query mutation options forwarded via `parameters.mutation`.
+ *
+ * @public
+ * @category Type
+ * @section Crypto Onramp
+ */
 export type UseCreateCryptoOnrampDepositParameters<context = unknown> =
     CreateCryptoOnrampDepositMutationOptions<context>;
 
+/**
+ * Return type of {@link useCreateCryptoOnrampDeposit} — TanStack Query mutation result.
+ *
+ * @public
+ * @category Type
+ * @section Crypto Onramp
+ */
 export type UseCreateCryptoOnrampDepositReturnType<context = unknown> = UseMutationResult<
     CreateCryptoOnrampDepositData,
     CreateCryptoOnrampDepositErrorType,
@@ -31,7 +45,15 @@ export type UseCreateCryptoOnrampDepositReturnType<context = unknown> = UseMutat
 >;
 
 /**
- * Hook to create a crypto onramp deposit from a previously obtained quote
+ * Create a crypto-onramp deposit from a quote previously obtained via {@link useCryptoOnrampQuote}. Call `mutate(options)` where `options` matches {@link appkit:CreateCryptoOnrampDepositOptions} (quote, refund address, optional provider override). On success, `data` is the {@link appkit:CryptoOnrampDeposit} carrying the address and amount the user must send on the source chain to complete the onramp. Pair with {@link useCryptoOnrampStatus} to poll the deposit until it settles.
+ *
+ * @param parameters - {@link UseCreateCryptoOnrampDepositParameters} TanStack Query mutation overrides (`parameters.mutation`).
+ * @expand parameters
+ * @returns Mutation result for the deposit call.
+ *
+ * @public
+ * @category Hook
+ * @section Crypto Onramp
  */
 export const useCreateCryptoOnrampDeposit = <context = unknown>(
     parameters: UseCreateCryptoOnrampDepositParameters<context> = {},

@@ -8,21 +8,28 @@
 
 import type { Network } from '@ton/appkit';
 
+/**
+ * UI-side token descriptor consumed by appkit-react widgets ({@link SwapWidget}, {@link SwapField}, currency selectors, etc.) — identifies the token in the picker UI and carries display + on-chain fields the widget needs to render and quote.
+ *
+ * @public
+ * @category Type
+ * @section Shared
+ */
 export interface AppkitUIToken {
-    /** Unique identifier for the token, used for section grouping */
+    /** Stable id used for picker selection state and section grouping. */
     id: string;
-    /** Token symbol, e.g. "TON" */
+    /** Ticker symbol shown in the picker and selector chip (e.g., `"TON"`, `"USDT"`). */
     symbol: string;
-    /** Full token name, e.g. "Toncoin" */
+    /** Full token name shown in the picker (e.g., `"Toncoin"`). */
     name: string;
-    /** Number of decimals for the token */
+    /** Number of decimal places used to format raw amounts. */
     decimals: number;
-    /** Jetton contract address (use "ton" for TON) */
+    /** Token contract address. Pass `'ton'` for native TON; otherwise the jetton master's user-friendly address. */
     address: string;
-    /** Optional token logo */
+    /** Optional URL of the token logo shown in the picker and selector chip. */
     logo?: string;
-    /** Optional exchange rate: 1 token = rate fiat units (used for fiat value display) */
+    /** Optional fiat exchange rate (`1 token = rate fiat units`). Used by widgets to render fiat conversions next to amounts. */
     rate?: string;
-    /** Network the token belongs to. */
+    /** {@link appkit:Network} the token lives on. Widgets filter their token universe by the active network. */
     network: Network;
 }

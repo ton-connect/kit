@@ -15,17 +15,17 @@ export type AddressBook = { [key: UserFriendlyAddress]: AddressBookEntry };
 
 export interface AddressBookEntry {
     /**
-     * The human-readable representation of the blockchain address
+     * The human-readable representation of the blockchain address.
      */
     address?: UserFriendlyAddress;
 
     /**
-     * The domain name associated with the address if available
+     * The domain name associated with the address if available.
      */
     domain?: string;
 
     /**
-     * List of supported interfaces by the address
+     * List of supported interfaces by the address.
      */
     interfaces: string[];
 }

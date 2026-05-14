@@ -22,7 +22,7 @@ export type TransactionAddressMetadata = {
  */
 export interface TransactionAddressMetadataEntry {
     /**
-     * Token information associated with this address, if any
+     * Token information associated with this address, if any.
      */
     tokenInfo?: TransactionTokenInfo[];
 }
@@ -40,15 +40,15 @@ export type TransactionTokenInfo =
  */
 export interface TransactionTokenInfoBase {
     /**
-     * Indicates if the token contract is valid
+     * Indicates if the token contract is valid.
      */
     isValid: boolean;
     /**
-     * Type of token
+     * Type of token.
      */
     type: string;
     /**
-     * Additional metadata for the token, such as image sizes, decimal precision, external links, and marketplaces
+     * Additional metadata for the token, such as image sizes, decimal precision, external links, and marketplaces.
      */
     extra: { [key: string]: unknown };
 }
@@ -58,15 +58,15 @@ export interface TransactionTokenInfoBase {
  */
 export interface TransactionTokenInfoJettonWallets extends TransactionTokenInfoBase {
     /**
-     * Current balance of the Jetton wallet
+     * Current balance of the Jetton wallet.
      */
     balance: TokenAmount;
     /**
-     * Address of the Jetton master contract
+     * Address of the Jetton master contract.
      */
     jetton: UserFriendlyAddress;
     /**
-     * Owner address of this Jetton wallet
+     * Owner address of this Jetton wallet.
      */
     owner: UserFriendlyAddress;
 }
@@ -76,15 +76,15 @@ export interface TransactionTokenInfoJettonWallets extends TransactionTokenInfoB
  */
 export interface TransactionTokenInfoJettonMasters extends TransactionTokenInfoBase {
     /**
-     * Display name of the Jetton
+     * Display name of the Jetton.
      */
     name: string;
     /**
-     * Ticker symbol of the Jetton
+     * Ticker symbol of the Jetton.
      */
     symbol: string;
     /**
-     * Human-readable description of the Jetton
+     * Human-readable description of the Jetton.
      */
     description: string;
     /**
@@ -93,19 +93,19 @@ export interface TransactionTokenInfoJettonMasters extends TransactionTokenInfoB
      */
     decimalsCount: number;
     /**
-     * Token image in various sizes
+     * Token image in various sizes.
      */
     image?: TokenImage;
     /**
-     * Social media links for the Jetton project
+     * Social media links for the Jetton project.
      */
     social: string[];
     /**
-     * Metadata URI for the Jetton
+     * Metadata URI for the Jetton.
      */
     uri: string;
     /**
-     * Official website URLs for the Jetton project
+     * Official website URLs for the Jetton project.
      */
     websites: string[];
 }

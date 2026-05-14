@@ -11,6 +11,9 @@ import type { FC } from 'react';
 import { DEFAULT_ICON_SIZE } from './types';
 import type { IconProps } from './types';
 
+/**
+ * Close (X) icon — used for dismiss buttons and modal close affordances.
+ */
 export const CloseIcon: FC<IconProps> = ({ size = DEFAULT_ICON_SIZE, ...props }) => (
     <svg
         width={size}

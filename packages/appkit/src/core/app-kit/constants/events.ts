@@ -7,16 +7,27 @@
  */
 
 /**
- * Connector events
+ * Event names AppKit emits for connector-list and connector-wallet changes. Payloads are {@link ConnectorAddedPayload}, {@link ConnectorRemovedPayload} and {@link ConnectorWalletsUpdatedPayload}.
+ *
+ * @public
+ * @category Constants
+ * @section Connectors
  */
 export const CONNECTOR_EVENTS = {
+    /** A connector was registered via {@link addConnector} (or AppKit's constructor). */
     ADDED: 'connector:added',
+    /** A connector was unregistered — typically by calling the unregister function returned from {@link addConnector}, or as part of the connector's own teardown. */
     REMOVED: 'connector:removed',
+    /** A connector's connected-wallets list changed (connect, disconnect, or account switch inside the wallet). */
     WALLETS_UPDATED: 'connector:wallets-updated',
 } as const;
 
 /**
- * Wallet events
+ * Event names AppKit emits when the available wallet list (`UPDATED`) or the active wallet (`SELECTION_CHANGED`) changes.
+ *
+ * @public
+ * @category Constants
+ * @section Wallets
  */
 export const WALLETS_EVENTS = {
     UPDATED: 'wallets:updated',
@@ -24,7 +35,11 @@ export const WALLETS_EVENTS = {
 } as const;
 
 /**
- * Networks events
+ * Event names AppKit emits on network changes. `DEFAULT_CHANGED` carries a {@link DefaultNetworkChangedPayload}.
+ *
+ * @public
+ * @category Constants
+ * @section Networks
  */
 export const NETWORKS_EVENTS = {
     UPDATED: 'networks:updated',

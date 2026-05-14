@@ -119,9 +119,9 @@ export interface OnrampProviderProps extends PropsWithChildren {
     tokenSections?: TokenSectionConfig[];
     /** Optional section configs for grouping currencies in the selector */
     currencySections?: CurrencySectionConfig[];
-    /** Id of the token pre-selected for purchase */
+    /** ID of the token pre-selected for purchase */
     defaultTokenId?: string;
-    /** Id of the fiat currency pre-selected */
+    /** ID of the fiat currency pre-selected */
     defaultCurrencyId?: string;
 }
 

@@ -32,6 +32,7 @@ export interface NetworkManager {
 export class KitNetworkManager implements NetworkManager {
     private clients: Map<string, ApiClient> = new Map();
 
+    /** @param options - {@link TonWalletKitOptions} Configuration carrying the `networks` map keyed by chain ID. At least one network must be configured. */
     constructor(options: TonWalletKitOptions) {
         this.initializeClients(options);
 
@@ -46,7 +47,7 @@ export class KitNetworkManager implements NetworkManager {
     }
 
     /**
-     * Initialize API clients from configuration
+     * Initialize API clients from configuration.
      */
     private initializeClients(options: TonWalletKitOptions): void {
         const networks = options.networks;
@@ -69,7 +70,7 @@ export class KitNetworkManager implements NetworkManager {
     }
 
     /**
-     * Create an API client for a specific network
+     * Create an API client for a specific network.
      */
     private createClient(
         network: Network,
@@ -103,7 +104,7 @@ export class KitNetworkManager implements NetworkManager {
     }
 
     /**
-     * Type guard to check if value is a full ApiClient instance
+     * Type guard to check if value is a full ApiClient instance.
      */
     private isApiClient(value: ApiClientConfig | ApiClient | undefined): value is ApiClient {
         return (
@@ -141,21 +142,21 @@ export class KitNetworkManager implements NetworkManager {
     }
 
     /**
-     * Check if a network is configured
+     * Check if a network is configured.
      */
     hasNetwork(network: Network): boolean {
         return this.clients.has(network.chainId);
     }
 
     /**
-     * Get all configured networks
+     * Get all configured networks.
      */
     getConfiguredNetworks(): Network[] {
         return Array.from(this.clients.keys()).map((chainId) => Network.custom(chainId));
     }
 
     /**
-     * Add or update a network client dynamically
+     * Add or update a network client dynamically.
      */
     setClient(network: Network, client: ApiClient): void {
         this.clients.set(network.chainId, client);

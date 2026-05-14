@@ -14,15 +14,37 @@ import styles from './centered-amount-input.module.css';
 
 const MIN_FONT_SCALE = 0.5;
 
+/**
+ * Props accepted by {@link CenteredAmountInput}.
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export interface CenteredAmountInputProps extends ComponentProps<'div'> {
+    /** Controlled input value (decimal string). */
     value: string;
+    /** Called with the new string whenever the user edits the input. */
     onValueChange: (value: string) => void;
+    /** Optional trailing ticker label (e.g., `'TON'`). */
     ticker?: string;
+    /** Optional leading currency symbol (e.g., `'$'`). */
     symbol?: string;
+    /** Placeholder shown when `value` is empty. Defaults to `'0'`. */
     placeholder?: string;
+    /** When true, the underlying `<input>` is disabled. */
     disabled?: boolean;
 }
 
+/**
+ * Center-aligned, auto-resizing amount input with optional leading symbol and trailing ticker. Scales the font down to fit the container when the rendered text overflows, and clicking the wrapper focuses the input.
+ *
+ * @sample docs/examples/src/appkit/components/ui#CENTERED_AMOUNT_INPUT
+ *
+ * @public
+ * @category Component
+ * @section UI
+ */
 export const CenteredAmountInput: FC<CenteredAmountInputProps> = ({
     value,
     onValueChange,

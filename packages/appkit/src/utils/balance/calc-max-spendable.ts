@@ -6,7 +6,7 @@
  *
  */
 
-import { formatUnits, parseUnits } from '@ton/walletkit';
+import { formatUnits, parseUnits } from '..';
 
 /**
  * Default TON reserve subtracted from balance when computing the max spendable amount
@@ -27,9 +27,9 @@ export interface CalcMaxSpendableParams {
 }
 
 /**
- * Compute the max spendable amount a user can place into an input when they click MAX.
- * For native TON — subtracts a fixed reserve so the user still has room for network fees.
- * For jettons — returns the full balance (gas is paid from TON separately).
+ * Compute the max amount a user can spend — used to populate the input when the user clicks MAX.
+ * For native TON: subtracts a fixed reserve so the user still has room for network fees.
+ * For jettons: returns the full balance (gas is paid from TON separately).
  */
 export const calcMaxSpendable = ({
     balance,

@@ -65,12 +65,17 @@ import { isHex } from '../../utils';
 
 const log = globalLogger.createChild('ApiClientToncenter');
 
-export interface ApiClientConfig extends BaseApiClientConfig {
+export interface ApiClientToncenterConfig extends BaseApiClientConfig {
+    /** Override the contract address used to resolve TON DNS records. Defaults to the network's standard root resolver. */
     dnsResolver?: string;
 }
 
 export class ApiClientToncenter extends BaseApiClient implements ApiClient {
-    constructor(config: ApiClientConfig = {}) {
+    /**
+     * @param config - {@link ApiClientToncenterConfig} Toncenter client config — endpoint URL, API key and optional DNS resolver override. Defaults to mainnet/testnet Toncenter URLs based on `config.network`.
+     * @expand config
+     */
+    constructor(config: ApiClientToncenterConfig = {}) {
         const defaultEndpoint =
             config.network?.chainId === Network.mainnet().chainId
                 ? 'https://toncenter.com'

@@ -6,4 +6,42 @@
  *
  */
 
-export * from '@ton/walletkit/staking/tonstakers';
+/**
+ * {@link StakingProvider} implementation backed by Tonstakers. The constructor is private — always go through the {@link createTonstakersProvider} factory and pass the result to {@link AppKitConfig}'s `providers` or {@link registerProvider}.
+ *
+ * @extract
+ * @public
+ * @category Class
+ * @section Staking
+ */
+export { TonStakersStakingProvider } from '@ton/walletkit/staking/tonstakers';
+
+/**
+ * Build a Tonstakers-backed {@link StakingProvider} for AppKit. Pass the result to {@link AppKitConfig}'s `providers` or {@link registerProvider}.
+ *
+ * @extract
+ * @public
+ * @category Action
+ * @section Staking
+ */
+export { createTonstakersProvider } from '@ton/walletkit/staking/tonstakers';
+
+/**
+ * Configuration accepted by {@link createTonstakersProvider} — map of chain ID (e.g. `Network.mainnet().chainId`) to its per-chain {@link TonStakersChainConfig}.
+ *
+ * @extract
+ * @public
+ * @category Type
+ * @section Staking
+ */
+export type { TonStakersProviderConfig } from '@ton/walletkit/staking/tonstakers';
+
+/**
+ * Per-chain Tonstakers config — optional TonAPI key for APY reads and an optional staking-provider metadata override.
+ *
+ * @extract
+ * @public
+ * @category Type
+ * @section Staking
+ */
+export type { TonStakersChainConfig } from '@ton/walletkit/staking/tonstakers';

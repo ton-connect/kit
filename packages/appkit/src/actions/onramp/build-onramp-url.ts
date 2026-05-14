@@ -6,9 +6,8 @@
  *
  */
 
-import type { OnrampParams } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
+import type { OnrampParams } from '../../onramp';
 
 export type BuildOnrampUrlOptions<T = unknown> = OnrampParams<T> & {
     providerId?: string;
@@ -17,7 +16,7 @@ export type BuildOnrampUrlOptions<T = unknown> = OnrampParams<T> & {
 export type BuildOnrampUrlReturnType = Promise<string>;
 
 /**
- * Build onramp URL
+ * Build onramp URL.
  */
 export const buildOnrampUrl = async <T = unknown>(
     appKit: AppKit,

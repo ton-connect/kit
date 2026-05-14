@@ -7,21 +7,51 @@
  */
 
 import { Address } from '@ton/core';
-import type { BalanceUpdate, Network } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
+import type { BalanceUpdate } from '../../core/streaming';
+import type { UserFriendlyAddress } from '../../types/primitives';
+import type { Network } from '../../types/network';
 import { resolveNetwork } from '../../utils/network/resolve-network';
 
+/**
+ * Options for {@link watchBalanceByAddress}.
+ *
+ * @public
+ * @category Type
+ * @section Balances
+ */
 export interface WatchBalanceByAddressOptions {
-    address: string | Address;
+    /** Wallet address — pass a {@link UserFriendlyAddress} string or an `Address` instance from `@ton/core`. */
+    address: UserFriendlyAddress | Address;
+    /** Network to watch on. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
     network?: Network;
+    /** Callback fired on every balance update from the streaming provider. */
     onChange: (update: BalanceUpdate) => void;
 }
 
+/**
+ * Return type of {@link watchBalanceByAddress} — call to stop receiving updates.
+ *
+ * @public
+ * @category Type
+ * @section Balances
+ */
 export type WatchBalanceByAddressReturnType = () => void;
 
 /**
- * Watch account balance changes by address.
+ * Subscribe to Toncoin balance updates for an arbitrary address — useful for monitoring wallets that aren't selected in AppKit (use {@link watchBalance} for the selected wallet). Requires a streaming provider registered for the network — call throws when none is configured. Use {@link hasStreamingProvider} to check first.
+ *
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param options - {@link WatchBalanceByAddressOptions} Target address, update callback and optional network override.
+ * @returns Unsubscribe function — call it to stop receiving updates.
+ *
+ * @sample docs/examples/src/appkit/actions/balances#WATCH_BALANCE_BY_ADDRESS
+ * @expand options
+ *
+ * @public
+ * @category Action
+ * @section Balances
  */
 export const watchBalanceByAddress = (
     appKit: AppKit,

@@ -89,3 +89,13 @@ Use `packages/appkit-react/src/components/block` as the canonical reference for:
 - `block.tsx`
 - `block.module.css`
 - `block.stories.tsx`
+
+---
+
+## 5. Documentation
+
+If the component is meant to be part of the public API, tag it with `@public` JSDoc so it shows up in the auto-generated reference (`packages/appkit-react/docs/reference.md`). Use `@category Component` and `@section <Domain>`. The full ruleset (required tags, allowed values, `{@link X}` for type-cell links, single-sentence description style, `@sample` for usage examples) lives in the [`document-public-api`](../document-public-api/SKILL.md) skill.
+
+For compound components (`const Foo = { Container: …, Item: … }`), the same `@public` block on the namespace object is enough — the generator walks each member and renders them as `#### Foo.Container`, `#### Foo.Item`, etc.
+
+After editing JSDoc run `pnpm docs:update` to regenerate `packages/appkit-react/docs/reference.md`.

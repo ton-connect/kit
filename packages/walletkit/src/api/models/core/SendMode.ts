@@ -19,15 +19,15 @@ export interface SendMode {
  */
 export enum SendModeBase {
     /**
-     * Ordinary message
+     * Ordinary message.
      */
     ORDINARY = 0,
     /**
-     * Carry all the remaining value of the inbound message in addition to the value initially indicated in the new message
+     * Carry all the remaining value of the inbound message in addition to the value initially indicated in the new message.
      */
     CARRY_ALL_REMAINING_INCOMING_VALUE = 64,
     /**
-     * Carry all the remaining balance of the current smart contract instead of the value originally indicated in the message
+     * Carry all the remaining balance of the current smart contract instead of the value originally indicated in the message.
      */
     CARRY_ALL_REMAINING_BALANCE = 128,
 }
@@ -45,11 +45,11 @@ export enum SendModeFlag {
      */
     BOUNCE_IF_FAILURE = 16,
     /**
-     * Ignore some errors arising while processing this message during the action phase
+     * Ignore some errors arising while processing this message during the action phase.
      */
     IGNORE_ERRORS = 2,
     /**
-     * Pay transfer fees separately from the message value
+     * Pay transfer fees separately from the message value.
      */
     PAY_GAS_SEPARATELY = 1,
 }

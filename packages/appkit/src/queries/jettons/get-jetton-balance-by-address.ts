@@ -7,9 +7,9 @@
  */
 
 import type { QueryClient } from '@tanstack/query-core';
-import type { TokenAmount } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
+import type { TokenAmount } from '../../types/primitives';
 import { getJettonBalance } from '../../actions/jettons/get-jetton-balance';
 import type { GetJettonBalanceOptions as GetJettonBalanceParameters } from '../../actions/jettons/get-jetton-balance';
 import type { QueryOptions, QueryParameter } from '../../types/query';

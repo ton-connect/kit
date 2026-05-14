@@ -9,9 +9,13 @@
 import { DefiError } from '../errors';
 
 export enum OnrampErrorCode {
+    /** Provider's upstream API rejected the call. */
     ProviderError = 'PROVIDER_ERROR',
+    /** Caller passed parameters that fail provider-level validation. */
     InvalidParams = 'INVALID_ONRAMP_PARAMS',
+    /** Provider could not produce a quote for the supplied parameters. */
     QuoteFailed = 'QUOTE_FAILED',
+    /** Provider could not build the redirect URL for the requested onramp. */
     UrlBuildFailed = 'URL_BUILD_FAILED',
 }
 

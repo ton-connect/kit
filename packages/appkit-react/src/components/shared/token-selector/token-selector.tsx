@@ -15,16 +15,35 @@ import type { ButtonProps } from '../../ui/button';
 import { Logo } from '../../ui/logo';
 import { LogoWithNetwork } from '../../ui/logo-with-network';
 
+/**
+ * Props accepted by {@link TokenSelector} — extends the base {@link Button} props.
+ *
+ * @public
+ * @category Type
+ * @section Shared
+ */
 export interface TokenSelectorProps extends ButtonProps {
+    /** Label shown next to the icon — typically the token symbol. */
     title: string;
+    /** Token logo URL. */
     icon?: string;
+    /** Single-character fallback used when `icon` fails to load. Defaults to the first character of `title`. */
     iconFallback?: string;
-    /** When provided, renders a network badge overlay on the icon */
+    /** When provided, renders a network badge overlay on the icon. */
     networkIcon?: string;
-    /** Hide chevron and suppress click handling — use when there's nothing to pick */
+    /** Hide chevron and suppress click handling — use when there's nothing to pick. */
     readOnly?: boolean;
 }
 
+/**
+ * Compact pill button used as the trigger for a token picker — shows the token icon (optionally with a network badge), its symbol, and a chevron unless `readOnly` is set.
+ *
+ * @sample docs/examples/src/appkit/components/shared#TOKEN_SELECTOR
+ *
+ * @public
+ * @category Component
+ * @section Shared
+ */
 export const TokenSelector: FC<TokenSelectorProps> = ({
     title,
     icon,

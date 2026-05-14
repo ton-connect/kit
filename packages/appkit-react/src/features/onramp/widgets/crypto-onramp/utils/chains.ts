@@ -7,20 +7,27 @@
  */
 
 /**
- * Display info for a CAIP-2 chain — used by the crypto onramp widget to
- * render chain names and logos.
+ * Display info for a CAIP-2 chain — used by the crypto onramp widget to render chain names and logos.
+ *
+ * @public
+ * @category Type
+ * @section Crypto Onramp
  */
 export interface ChainInfo {
+    /** Human-readable chain name (e.g. `"Ethereum"`, `"Arbitrum One"`). */
     name: string;
+    /** Optional logo URL for the chain. */
     logo?: string;
 }
 
 /**
- * Default mapping of CAIP-2 chain identifiers to display info used in the
- * crypto onramp widget. Consumers can override or extend this map via the
- * `chains` prop on `CryptoOnrampWidgetProvider`.
+ * Default mapping of CAIP-2 chain identifiers to {@link ChainInfo} used by the crypto onramp widget. Consumers can override or extend this map via the `chains` prop on {@link CryptoOnrampWidgetProvider}.
  *
  * @see https://chainagnostic.org/CAIPs/caip-2
+ *
+ * @public
+ * @category Constants
+ * @section Crypto Onramp
  */
 export const DEFAULT_CHAINS: Record<string, ChainInfo> = {
     'eip155:1': { name: 'Ethereum' },
@@ -38,10 +45,10 @@ export const DEFAULT_CHAINS: Record<string, ChainInfo> = {
 };
 
 /**
- * Resolve display info for a CAIP-2 chain. Falls back to a synthetic info
- * object whose `name` is the reference portion of the CAIP-2 string
- * (e.g. `eip155:9999` → `9999`), or the raw value if it does not look like
- * a CAIP-2 identifier.
+ * Resolves display info for a CAIP-2 chain. Falls back to a synthetic info object whose `name` is the reference portion of the CAIP-2 string (e.g. `eip155:9999` → `9999`), or the raw value if it does not look like a CAIP-2 identifier.
+ *
+ * @param chain - CAIP-2 chain identifier to look up (e.g. `'eip155:1'`).
+ * @param chains - Map of CAIP-2 ids to {@link ChainInfo} to consult first. Pass {@link DEFAULT_CHAINS} unless you need overrides.
  */
 export const getChainInfo = (chain: string, chains: Record<string, ChainInfo>): ChainInfo => {
     const direct = chains[chain];

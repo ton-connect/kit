@@ -11,6 +11,13 @@ import type { FC } from 'react';
 import { DEFAULT_ICON_SIZE } from './types';
 import type { IconProps } from './types';
 
+/**
+ * TON brand diamond glyph — solid, inherits color from `currentColor`.
+ *
+ * @public
+ * @category Component
+ * @section UI
+ */
 export const TonIcon: FC<IconProps> = ({ size = DEFAULT_ICON_SIZE, ...props }) => (
     <svg
         width={size}
@@ -28,6 +35,13 @@ export const TonIcon: FC<IconProps> = ({ size = DEFAULT_ICON_SIZE, ...props }) =
     </svg>
 );
 
+/**
+ * TON brand glyph rendered inside a filled circle, using the TON brand color token.
+ *
+ * @public
+ * @category Component
+ * @section UI
+ */
 export const TonIconCircle: FC<IconProps> = ({ size = DEFAULT_ICON_SIZE, ...props }) => (
     <svg
         width={size}

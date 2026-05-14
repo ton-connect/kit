@@ -18,7 +18,7 @@ import { getDefaultNetwork } from '../../actions/network/get-default-network';
  * 1. Explicitly passed `network` parameter
  * 2. Selected wallet's network
  * 3. Configured default network
- * 4. Mainnet (last resort)
+ * 4. Mainnet, when nothing else is configured.
  */
 export const resolveNetwork = (appKit: AppKit, network?: Network): Network => {
     if (network) return network;

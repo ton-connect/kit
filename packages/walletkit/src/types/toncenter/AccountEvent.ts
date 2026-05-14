@@ -117,7 +117,7 @@ export function toAddressBook(data: MetadataV3): AddressBook {
 
 export interface Event {
     eventId: Hex;
-    /** Normalized trace external hash (base64url) for deduplication with WebSocket pending */
+    /** Normalized trace external hash (base64url) for deduplication with WebSocket pending. */
     traceExternalHash?: string;
     account: Account;
     timestamp: number;
@@ -223,7 +223,7 @@ export type Action =
     | JettonSwapAction;
 
 /**
- * Helper: Build Event structure from parsed data
+ * Helper: Build Event structure from parsed data.
  */
 function buildEvent(data: ToncenterTraceItem, account: string, actions: Action[], addressBook: AddressBook): Event {
     // Prefer hash_norm (TEP-467 normalized) to match WebSocket trace_external_hash_norm; fallback to raw hash
@@ -270,7 +270,7 @@ function filterActionsByPriority(actions: Action[]): Action[] {
 }
 
 /**
- * Parse trace item into structured Event with typed actions
+ * Parse trace item into structured Event with typed actions.
  */
 export function toEvent(data: ToncenterTraceItem, account: string, addressBook: AddressBook = {}): Event {
     const accountFriendly = asAddressFriendly(account);

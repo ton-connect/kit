@@ -81,7 +81,7 @@ const log = globalLogger.createChild('TonWalletKit');
  * - EventRouter: event parsing & routing
  * - RequestProcessor: request approval/rejection
  * - ResponseHandler: response formatting & sending
- * - Initializer: component setup & teardown
+ * - Initializer: component setup & teardown.
  */
 export class TonWalletKit implements ITonWalletKit {
     // Component references
@@ -209,7 +209,6 @@ export class TonWalletKit implements ITonWalletKit {
         return {
             networkManager: this.networkManager,
             eventEmitter: this.eventEmitter,
-            ssr: false,
         };
     }
 
@@ -234,7 +233,7 @@ export class TonWalletKit implements ITonWalletKit {
     // === Initialization ===
 
     /**
-     * Initialize all components
+     * Initialize all components.
      */
     private async initialize(): Promise<void> {
         if (this.isInitialized) return;
@@ -259,7 +258,7 @@ export class TonWalletKit implements ITonWalletKit {
     }
 
     /**
-     * Assign initialized components
+     * Assign initialized components.
      */
     private assignComponents(components: InitializationResult): void {
         this.walletManager = components.walletManager;
@@ -271,7 +270,7 @@ export class TonWalletKit implements ITonWalletKit {
     }
 
     /**
-     * Setup event routing from bridge to handlers
+     * Setup event routing from bridge to handlers.
      */
     private async setupEventRouting(): Promise<void> {
         // The event routing logic will use the existing EventRouter
@@ -282,7 +281,7 @@ export class TonWalletKit implements ITonWalletKit {
     }
 
     /**
-     * Start event processing for all existing wallets
+     * Start event processing for all existing wallets.
      */
     private async startProcessingForExistingWallets(): Promise<void> {
         const wallets = this.walletManager.getWallets();
@@ -301,7 +300,7 @@ export class TonWalletKit implements ITonWalletKit {
     }
 
     /**
-     * Ensure initialization is complete
+     * Ensure initialization is complete.
      */
     async ensureInitialized(): Promise<void> {
         if (this.initializationPromise) {
@@ -310,7 +309,7 @@ export class TonWalletKit implements ITonWalletKit {
     }
 
     /**
-     * Get all configured networks
+     * Get all configured networks.
      */
     getConfiguredNetworks(): Network[] {
         return this.networkManager.getConfiguredNetworks();
@@ -543,7 +542,7 @@ export class TonWalletKit implements ITonWalletKit {
     // === URL Parsing API ===
 
     /**
-     * Allow to convert url to ConnectionRequestEvent to use inline way
+     * Allow to convert url to ConnectionRequestEvent to use inline way.
      */
     async connectionEventFromUrl(url: string): Promise<ConnectionRequestEvent> {
         await this.ensureInitialized();
@@ -562,7 +561,7 @@ export class TonWalletKit implements ITonWalletKit {
 
     /**
      * Handle pasted TON Connect URL/link
-     * Parses the URL and creates a connect request event
+     * Parses the URL and creates a connect request event.
      */
     async handleTonConnectUrl(url: string): Promise<void> {
         await this.ensureInitialized();
@@ -597,7 +596,7 @@ export class TonWalletKit implements ITonWalletKit {
     }
 
     /**
-     * Parse and validate TON Connect URL into a RawBridgeEventConnect
+     * Parse and validate TON Connect URL into a RawBridgeEventConnect.
      */
     private parseBridgeConnectEventFromUrl(url: string): RawBridgeEventConnect {
         const parsedUrl = this.parseTonConnectUrl(url);
@@ -621,7 +620,7 @@ export class TonWalletKit implements ITonWalletKit {
     }
 
     /**
-     * Parse TON Connect URL to extract connection parameters
+     * Parse TON Connect URL to extract connection parameters.
      */
     private parseTonConnectUrl(url: string): {
         version: string;
@@ -663,7 +662,7 @@ export class TonWalletKit implements ITonWalletKit {
     }
 
     /**
-     * Create bridge event from parsed URL parameters
+     * Create bridge event from parsed URL parameters.
      */
     private createConnectEventFromUrl(params: {
         version: string;
@@ -753,7 +752,7 @@ export class TonWalletKit implements ITonWalletKit {
 
     /**
      * Get the NetworkManager instance
-     * Provides access to all configured network clients
+     * Provides access to all configured network clients.
      */
     getNetworkManager(): NetworkManager {
         return this.networkManager;
@@ -762,21 +761,21 @@ export class TonWalletKit implements ITonWalletKit {
     // === Lifecycle Management ===
 
     /**
-     * Check if kit is ready for use
+     * Check if kit is ready for use.
      */
     isReady(): boolean {
         return this.isInitialized;
     }
 
     /**
-     * Wait for initialization to complete
+     * Wait for initialization to complete.
      */
     async waitForReady(): Promise<void> {
         await this.ensureInitialized();
     }
 
     /**
-     * Get initialization status
+     * Get initialization status.
      */
     getStatus(): { initialized: boolean; ready: boolean } {
         return {
@@ -786,7 +785,7 @@ export class TonWalletKit implements ITonWalletKit {
     }
 
     /**
-     * Clean shutdown
+     * Clean shutdown.
      */
     async close(): Promise<void> {
         if (this.initializer) {
@@ -806,35 +805,35 @@ export class TonWalletKit implements ITonWalletKit {
     // === Jettons API ===
 
     /**
-     * Jettons API access
+     * Jettons API access.
      */
     get jettons(): JettonsAPI {
         return this.jettonsManager;
     }
 
     /**
-     * Get jettons manager for internal use
+     * Get jettons manager for internal use.
      */
     getJettonsManager(): JettonsManager {
         return this.jettonsManager;
     }
 
     /**
-     * Swap API access
+     * Swap API access.
      */
     get swap(): SwapManager {
         return this.swapManager;
     }
 
     /**
-     * Streaming API access
+     * Streaming API access.
      */
     get streaming(): StreamingAPI {
         return this.streamingManager;
     }
 
     /**
-     * Staking API access
+     * Staking API access.
      */
     get staking(): StakingManager {
         return this.stakingManager;
@@ -842,7 +841,7 @@ export class TonWalletKit implements ITonWalletKit {
 
     /**
      * Get the event emitter for this kit instance
-     * Allows external components to listen to and emit events
+     * Allows external components to listen to and emit events.
      */
     getEventEmitter(): WalletKitEventEmitter {
         return this.eventEmitter;

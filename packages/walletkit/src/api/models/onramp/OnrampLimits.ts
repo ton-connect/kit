@@ -7,31 +7,31 @@
  */
 
 /**
- * Onramp limits specify the boundaries of what a user can purchase
+ * Onramp limits specify the boundaries of what a user can purchase.
  */
 export interface OnrampLimits {
     /**
-     * Minimum fiat amount allowed
+     * Minimum fiat amount allowed.
      */
     minBaseAmount: number;
 
     /**
-     * Maximum fiat amount allowed
+     * Maximum fiat amount allowed.
      */
     maxBaseAmount: number;
 
     /**
-     * Minimum crypto amount allowed
+     * Minimum crypto amount allowed.
      */
     minQuoteAmount?: number;
 
     /**
-     * Maximum crypto amount allowed
+     * Maximum crypto amount allowed.
      */
     maxQuoteAmount?: number;
 
     /**
-     * Provider identifier
+     * Provider identifier.
      */
     providerId: string;
 }

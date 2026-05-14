@@ -32,7 +32,7 @@ import type { Wallet, WalletAdapter } from '../api/interfaces';
 const log = globalLogger.createChild('Initializer');
 
 /**
- * Initialization result
+ * Initialization result.
  */
 export interface InitializationResult {
     walletManager: WalletManager;
@@ -45,7 +45,7 @@ export interface InitializationResult {
 }
 
 /**
- * Handles initialization of all TonWalletKit components
+ * Handles initialization of all TonWalletKit components.
  */
 export class Initializer {
     private config: TonWalletKitOptions;
@@ -60,7 +60,7 @@ export class Initializer {
     }
 
     /**
-     * Initialize all components
+     * Initialize all components.
      */
     async initialize(options: TonWalletKitOptions, networkManager: NetworkManager): Promise<InitializationResult> {
         try {
@@ -96,7 +96,7 @@ export class Initializer {
     }
 
     /**
-     * Initialize storage adapter and wrap it in Storage
+     * Initialize storage adapter and wrap it in Storage.
      */
     private initializeStorage(options: TonWalletKitOptions): Storage {
         let adapter: StorageAdapter;
@@ -127,7 +127,7 @@ export class Initializer {
     }
 
     /**
-     * Initialize core managers
+     * Initialize core managers.
      */
     private async initializeManagers(
         options: TonWalletKitOptions,
@@ -205,7 +205,7 @@ export class Initializer {
     }
 
     /**
-     * Initialize processors
+     * Initialize processors.
      */
     private initializeProcessors(
         sessionManager: TONConnectSessionManager,
@@ -228,7 +228,7 @@ export class Initializer {
     }
 
     /**
-     * Cleanup resources during shutdown
+     * Cleanup resources during shutdown.
      */
     async cleanup(components: Partial<InitializationResult>): Promise<void> {
         try {
@@ -258,7 +258,7 @@ export class Initializer {
 /**
  * Wrap wallet adapter with extension interfaces (Ton, Jetton, NFT)
  * Uses proxy API to make wallet extension modular
- * The wallet adapter already contains its own ApiClient for its network
+ * The wallet adapter already contains its own ApiClient for its network.
  */
 export async function wrapWalletInterface(wallet: WalletAdapter): Promise<Wallet> {
     const ourClassesToExtend = [WalletTonClass, WalletJettonClass, WalletNftClass];

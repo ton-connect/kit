@@ -1,7 +1,7 @@
 <!--
 This file is auto-generated. Do not edit manually.
 Changes will be overwritten when running the docs update script.
-Source template: template/packages/walletkit/src/defi/staking/tonstakers/README.md
+Source template: docs/templates/packages/walletkit/src/defi/staking/tonstakers/README.md
 -->
 
 # Tonstakers staking provider
@@ -20,7 +20,7 @@ import type { TonStakersProviderConfig } from '@ton/walletkit/staking/tonstakers
 
 const config: TonStakersProviderConfig = {
     [Network.mainnet().chainId]: {
-        contractAddress: 'EQ...', // optional; defaults to known pool when available
+        contractAddress: 'EQ...', // optional. Defaults to known pool when available
         tonApiToken: '...', // optional TonAPI key for APY (`getStakingProviderInfo`)
     },
 };
@@ -37,10 +37,10 @@ Networks without a known Tonstakers pool and without `contractAddress` are skipp
 | Value | Behavior |
 |-------|----------|
 | `UnstakeMode.INSTANT` | Immediate exit if the pool has liquidity (`fillOrKill`) |
-| `UnstakeMode.WHEN_AVAILABLE` | Non–fill-or-kill; completes when liquidity allows |
+| `UnstakeMode.WHEN_AVAILABLE` | Non–fill-or-kill — completes when liquidity allows |
 | `UnstakeMode.ROUND_END` | Wait until round end for the projected rate (`waitTillRoundEnd`) |
 
-`getSupportedUnstakeModes()` returns these three values. Quote and transaction building must use the same `unstakeMode` on the quote; if it is missing on an unstake quote, the provider defaults to **`UnstakeMode.INSTANT`**.
+`getSupportedUnstakeModes()` returns these three values. Quote and transaction building must use the same `unstakeMode` on the quote. If it is missing on an unstake quote, the provider defaults to **`UnstakeMode.INSTANT`**.
 
 ## Balances and pool info
 

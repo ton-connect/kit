@@ -9,7 +9,7 @@
 import type { Network } from '../core/Network';
 
 /**
- * Base parameters for requesting an onramp quote
+ * Base parameters for requesting an onramp quote.
  */
 export interface OnrampQuoteParams<TProviderOptions = unknown> {
     /**
@@ -28,12 +28,12 @@ export interface OnrampQuoteParams<TProviderOptions = unknown> {
     cryptoCurrency: string;
 
     /**
-     * Network on which the crypto will be received
+     * Network on which the crypto will be received.
      */
     network?: Network;
 
     /**
-     * Provider-specific options
+     * Provider-specific options.
      */
     providerOptions?: TProviderOptions;
 

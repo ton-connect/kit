@@ -13,16 +13,16 @@ import type { AddressBook } from '../core/AddressBook';
 import type { StreamingBaseUpdate } from './StreamingBaseUpdate';
 
 export interface TransactionsUpdate extends StreamingBaseUpdate {
-    /** The update type field */
+    /** Discriminator pinned to `'transactions'` — identifies this update as a transactions stream payload. */
     type: 'transactions';
-    /** The account address */
+    /** Account address the transactions belong to (the watched address). */
     address: UserFriendlyAddress;
-    /** The array of transactions */
+    /** Transactions that landed for `address` in this update. */
     transactions: Transaction[];
-    /** The hash of the trace */
+    /** Hash of the trace that produced these transactions — the root external-message hash that spawned them. */
     traceHash: Hex;
-    /** Address book from streaming v2 notification */
+    /** Pre-resolved address-book entries for raw addresses referenced inside `transactions`, so the UI can render labels without extra lookups. */
     addressBook?: AddressBook;
-    /** Metadata from streaming v2 notification */
+    /** Pre-fetched address metadata (interfaces, domain) for the watched `address`. */
     metadata?: TransactionAddressMetadata;
 }

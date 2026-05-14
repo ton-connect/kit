@@ -14,15 +14,37 @@ import { useQuery } from '../../../libs/query';
 import type { UseQueryReturnType } from '../../../libs/query';
 import { useNetwork } from '../hooks/use-network';
 
+/**
+ * Parameters accepted by {@link useBlockNumber} — TanStack Query options plus an optional network override. Defaults to the selected wallet's network. If no wallet is selected, falls back to mainnet.
+ *
+ * @public
+ * @category Type
+ * @section Networks
+ */
 export type UseBlockNumberParameters<selectData = GetBlockNumberData> = GetBlockNumberQueryConfig<selectData>;
 
+/**
+ * Return type of {@link useBlockNumber} — TanStack Query result.
+ *
+ * @public
+ * @category Type
+ * @section Networks
+ */
 export type UseBlockNumberReturnType<selectData = GetBlockNumberData> = UseQueryReturnType<
     selectData,
     GetBlockNumberErrorType
 >;
 
 /**
- * Hook to get the current masterchain block number
+ * React hook reading the latest masterchain seqno through TanStack Query — useful for freshness checks and pagination cursors.
+ *
+ * @param parameters - {@link UseBlockNumberParameters} TanStack Query overrides and optional network.
+ * @expand parameters
+ * @returns TanStack Query result for the seqno read.
+ *
+ * @public
+ * @category Hook
+ * @section Networks
  */
 export const useBlockNumber = <selectData = GetBlockNumberData>(
     parameters: UseBlockNumberParameters<selectData> = {},

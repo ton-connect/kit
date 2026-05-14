@@ -30,7 +30,7 @@ export interface EventProcessorConfig {
 }
 
 /**
- * Processes durable events for wallets based on their active sessions and enabled event types
+ * Processes durable events for wallets based on their active sessions and enabled event types.
  */
 export class StorageEventProcessor implements IEventProcessor {
     private eventStore: EventStore;
@@ -82,7 +82,7 @@ export class StorageEventProcessor implements IEventProcessor {
     }
 
     /**
-     * Start processing events for a wallet
+     * Start processing events for a wallet.
      */
     async startProcessing(walletId?: string): Promise<void> {
         if (this.processorConfig.disableEvents) {
@@ -110,7 +110,7 @@ export class StorageEventProcessor implements IEventProcessor {
     }
 
     /**
-     * Stop processing events for a wallet
+     * Stop processing events for a wallet.
      */
     async stopProcessing(walletId?: WalletId): Promise<void> {
         if (this.processorConfig.disableEvents) {
@@ -140,7 +140,7 @@ export class StorageEventProcessor implements IEventProcessor {
 
     /**
      * Process next available event from any source (wallet or no-wallet)
-     * This is the main method used by the global processing loop
+     * This is the main method used by the global processing loop.
      */
     private async processNextAvailableEvent(): Promise<boolean> {
         try {
@@ -200,7 +200,7 @@ export class StorageEventProcessor implements IEventProcessor {
     }
 
     /**
-     * Mark an event as completed after successful processing
+     * Mark an event as completed after successful processing.
      */
     async completeEvent(eventId: string): Promise<void> {
         try {
@@ -215,7 +215,7 @@ export class StorageEventProcessor implements IEventProcessor {
     }
 
     /**
-     * Start the recovery process for stale events
+     * Start the recovery process for stale events.
      */
     startRecoveryLoop(): void {
         if (this.recoveryTimeoutId) {
@@ -263,7 +263,7 @@ export class StorageEventProcessor implements IEventProcessor {
     }
 
     /**
-     * Stop the recovery process
+     * Stop the recovery process.
      */
     stopRecoveryLoop(): void {
         if (this.recoveryTimeoutId) {
@@ -283,7 +283,7 @@ export class StorageEventProcessor implements IEventProcessor {
 
     /**
      * Process a single event with retry logic
-     * Returns true if event was processed successfully, false otherwise
+     * Returns true if event was processed successfully, false otherwise.
      */
     private async processEvent(event: StoredEvent, walletId: WalletId): Promise<boolean> {
         const acquiredEvent = await this.eventStore.acquireLock(event.id, walletId);
@@ -364,7 +364,7 @@ export class StorageEventProcessor implements IEventProcessor {
     }
 
     /**
-     * Main global processing loop for all events
+     * Main global processing loop for all events.
      */
     private async processEventsLoop(): Promise<void> {
         while (this.isProcessing) {
@@ -391,7 +391,7 @@ export class StorageEventProcessor implements IEventProcessor {
     }
 
     /**
-     * Trigger the global processing loop
+     * Trigger the global processing loop.
      */
     private triggerProcessing(): void {
         if (this.isProcessing && this.wakeUpResolver) {
@@ -401,7 +401,7 @@ export class StorageEventProcessor implements IEventProcessor {
     }
 
     /**
-     * Wait for either a wake-up signal or timeout
+     * Wait for either a wake-up signal or timeout.
      */
     private async waitForWakeUpOrTimeout(timeoutMs: number): Promise<void> {
         return new Promise<void>((resolve) => {
@@ -424,7 +424,7 @@ export class StorageEventProcessor implements IEventProcessor {
     }
 
     /**
-     * Get enabled event types based on registered handlers in EventRouter
+     * Get enabled event types based on registered handlers in EventRouter.
      */
     private getEnabledEventTypes(): EventType[] {
         return this.eventRouter.getEnabledEventTypes();

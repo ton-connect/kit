@@ -10,16 +10,16 @@ import type { UserFriendlyAddress } from '../core/Primitives';
 import type { SwapQuote } from './SwapQuote';
 
 /**
- * Parameters for building swap transaction
+ * Parameters for building swap transaction.
  */
 export interface SwapParams<TProviderOptions = unknown> {
     /**
-     * The swap quote based on which the transaction is built
+     * The swap quote based on which the transaction is built.
      */
     quote: SwapQuote;
 
     /**
-     * Address of the user performing the swap
+     * Address of the user performing the swap.
      */
     userAddress: UserFriendlyAddress;
 
@@ -35,13 +35,13 @@ export interface SwapParams<TProviderOptions = unknown> {
     slippageBps?: number;
 
     /**
-     * Transaction deadline in unix timestamp
+     * Unix timestamp (in seconds) after which the swap transaction must not be executed.
      * @format int
      */
     deadline?: number;
 
     /**
-     * Provider-specific options
+     * Provider-specific options.
      */
     providerOptions?: TProviderOptions;
 }

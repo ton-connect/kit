@@ -17,19 +17,19 @@ import type { AddressBook } from '../../core/AddressBook';
  */
 export interface TransactionEmulatedTrace extends TransactionTrace {
     /**
-     * Map of code cell hashes to their Base64-encoded content
+     * Map of code cell hashes to their Base64-encoded content.
      */
     codeCells: { [key: Hex]: Base64String };
     /**
-     * Map of data cell hashes to their Base64-encoded content
+     * Map of data cell hashes to their Base64-encoded content.
      */
     dataCells: { [key: Hex]: Base64String };
     /**
-     * Address metadata for accounts involved in the transaction
+     * Address metadata for accounts involved in the transaction.
      */
     metadata: TransactionAddressMetadata;
     /**
-     * Address book mapping addresses to their human-readable names
+     * Address book mapping addresses to their human-readable names.
      */
     addressBook: AddressBook;
 }

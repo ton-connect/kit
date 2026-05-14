@@ -17,23 +17,9 @@ import type {
 import type { SwapProviderInterface } from '../../api/interfaces';
 
 /**
- * Abstract base class for swap providers
+ * Abstract base class for swap providers.
  *
- * Provides a common interface for implementing swap functionality
- * across different DEXs and protocols.
- *
- * @example
- * ```typescript
- * class MySwapProvider extends SwapProvider {
- *   async getQuote(params: SwapQuoteParams): Promise<SwapQuote> {
- *     // Implementation
- *   }
- *
- *   async buildSwapTransaction(params: SwapParams): Promise<TransactionRequest> {
- *     // Implementation
- *   }
- * }
- * ```
+ * Provides a common interface for implementing swap functionality across different DEXs and protocols. Apps don't typically subclass it directly — use the bundled factories ({@link createDeDustProvider}, {@link createOmnistonProvider}) or build a custom provider through `createProvider`.
  */
 export abstract class SwapProvider<
     TQuoteOptions = undefined,
@@ -63,7 +49,7 @@ export abstract class SwapProvider<
     abstract buildSwapTransaction(params: SwapParams<TSwapOptions>): Promise<TransactionRequest>;
 
     /**
-     * Get provider metadata
+     * Get provider metadata.
      */
     abstract getMetadata(): SwapProviderMetadata;
 }

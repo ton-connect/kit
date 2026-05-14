@@ -104,7 +104,7 @@ export class BridgeManager {
     }
 
     /**
-     * Initialize bridge connection
+     * Initialize bridge connection.
      */
     async start(): Promise<void> {
         if (this.bridgeProvider) {
@@ -133,7 +133,7 @@ export class BridgeManager {
     }
 
     /**
-     * Create new session for a dApp connection
+     * Create new session for a dApp connection.
      */
     async createSession(appSessionId: string): Promise<void> {
         // const walletSession = new SessionCrypto();
@@ -164,7 +164,7 @@ export class BridgeManager {
     }
 
     /**
-     * Remove session
+     * Remove session.
      */
     async removeSession(appSessionId: string): Promise<void> {
         // const session = this.sessions.get(appSessionId);
@@ -181,7 +181,7 @@ export class BridgeManager {
     }
 
     /**
-     * Send response to dApp
+     * Send response to dApp.
      */
 
     async sendResponse(
@@ -316,7 +316,7 @@ export class BridgeManager {
     }
 
     /**
-     * Close bridge connection
+     * Close bridge connection.
      */
     async close(): Promise<void> {
         if (this.bridgeProvider) {
@@ -338,14 +338,14 @@ export class BridgeManager {
     }
 
     /**
-     * Get connection status
+     * Get connection status.
      */
     isConnectedToBridge(): boolean {
         return this.isConnected;
     }
 
     /**
-     * Get active session count
+     * Get active session count.
      */
     // getSessionCount(): number {
     //     return this.sessions.size;
@@ -362,7 +362,7 @@ export class BridgeManager {
     }
 
     /**
-     * Connect to TON Connect bridge
+     * Connect to TON Connect bridge.
      */
     private async connectToSSEBridge(): Promise<void> {
         if (!this.config.bridgeUrl) {
@@ -452,7 +452,7 @@ export class BridgeManager {
     }
 
     /**
-     * Restart bridge connection in case of error, so we can receive events again
+     * Restart bridge connection in case of error, so we can receive events again.
      */
     private async restartConnection(): Promise<void> {
         await this.close();
@@ -460,7 +460,7 @@ export class BridgeManager {
     }
 
     /**
-     * Add client to existing bridge connection
+     * Add client to existing bridge connection.
      */
     private async updateClients(): Promise<void> {
         log.debug('Updating clients');
@@ -474,7 +474,7 @@ export class BridgeManager {
     }
 
     /**
-     * Queue incoming bridge events for processing
+     * Queue incoming bridge events for processing.
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private queueBridgeEvent(event: any): void {
@@ -548,7 +548,7 @@ export class BridgeManager {
      * New events from the bridge added to eventQueue to avoid concurrency
      * processBridgeEvents takes events from queue one by one and tries to store them durably
      * if event stored successfully, we will update lastEventId and proceed to the next event
-     * if we've encountered error, bridge connection we be restarted from last success id, so we should try to process same event again
+     * if we've encountered error, bridge connection we be restarted from last success id, so we should try to process same event again.
      */
     private async processBridgeEvents(): Promise<void> {
         // Ensure only one processing instance runs at a time
@@ -700,7 +700,7 @@ export class BridgeManager {
     }
 
     /**
-     * Load last event ID from storage
+     * Load last event ID from storage.
      */
     private async loadLastEventId(): Promise<void> {
         try {
@@ -720,7 +720,7 @@ export class BridgeManager {
     }
 
     /**
-     * Save last event ID to storage
+     * Save last event ID to storage.
      */
     private async saveLastEventId(): Promise<void> {
         try {

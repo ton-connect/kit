@@ -13,8 +13,22 @@ import type { SignBinaryData, SignBinaryErrorType, SignBinaryOptions, SignBinary
 import { useAppKit } from '../../settings';
 import { useMutation } from '../../../libs/query';
 
+/**
+ * Parameters accepted by {@link useSignBinary} — TanStack Query mutation options.
+ *
+ * @public
+ * @category Type
+ * @section Signing
+ */
 export type UseSignBinaryParameters<context = unknown> = SignBinaryOptions<context>;
 
+/**
+ * Return type of {@link useSignBinary} — TanStack Query mutation result.
+ *
+ * @public
+ * @category Type
+ * @section Signing
+ */
 export type UseSignBinaryReturnType<context = unknown> = UseMutationResult<
     SignBinaryData,
     SignBinaryErrorType,
@@ -23,16 +37,15 @@ export type UseSignBinaryReturnType<context = unknown> = UseMutationResult<
 >;
 
 /**
- * Hook to sign binary data with the connected wallet.
+ * Ask the selected wallet to sign an opaque binary blob (Base64-encoded), without on-chain structure. Call `mutate` from an event handler with the `bytes` to sign and an optional `network` override. On success, `data` carries the signature plus the signer address, timestamp and dApp domain the wallet bound to the signature. Throws `Error('Wallet not connected')` if no wallet is currently selected — TanStack Query surfaces it via the mutation's `error`.
  *
- * @example
- * ```tsx
- * const { mutate: signBinary, isPending } = useSignBinary();
+ * @param parameters - {@link UseSignBinaryParameters} TanStack Query mutation overrides.
+ * @expand parameters
+ * @returns Mutation result for the signing call.
  *
- * const handleSign = () => {
- *   signBinary({ bytes: btoa("binary data") });
- * };
- * ```
+ * @public
+ * @category Hook
+ * @section Signing
  */
 export const useSignBinary = <context = unknown>(
     parameters?: UseSignBinaryParameters<context>,

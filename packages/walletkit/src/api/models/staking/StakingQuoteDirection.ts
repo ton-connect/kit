@@ -7,6 +7,6 @@
  */
 
 /**
- * Direction of the staking quote
+ * Direction of the staking quote.
  */
 export type StakingQuoteDirection = 'stake' | 'unstake';

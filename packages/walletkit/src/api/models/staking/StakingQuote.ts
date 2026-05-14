@@ -12,7 +12,7 @@ import type { StakingQuoteDirection } from './StakingQuoteDirection';
 import type { UnstakeModes } from './UnstakeMode';
 
 /**
- * Staking quote response with pricing information
+ * Staking quote response with pricing information.
  */
 export interface StakingQuote {
     /**
@@ -21,42 +21,42 @@ export interface StakingQuote {
     direction: StakingQuoteDirection;
 
     /**
-     * Amount of tokens being provided
+     * Amount of tokens being provided.
      */
     rawAmountIn: TokenAmount;
 
     /**
-     * Estimated amount of tokens to be received
+     * Estimated amount of tokens to be received.
      */
     rawAmountOut: TokenAmount;
 
     /**
-     * Formatted amount of tokens being provided
+     * Formatted amount of tokens being provided.
      */
     amountIn: string;
 
     /**
-     * Formatted estimated amount of tokens to be received
+     * Formatted estimated amount of tokens to be received.
      */
     amountOut: string;
 
     /**
-     * Network on which the staking will be executed
+     * Network on which the staking will be executed.
      */
     network: Network;
 
     /**
-     * Identifier of the staking provider
+     * Identifier of the staking provider.
      */
     providerId: string;
 
     /**
-     * Mode of unstaking (if applicable)
+     * Unstake-timing mode the quote was produced for. Only meaningful when `direction === 'unstake'` — for `'stake'` it is ignored.
      */
     unstakeMode?: UnstakeModes;
 
     /**
-     * Provider-specific metadata for the quote
+     * Provider-specific metadata for the quote.
      */
     metadata?: unknown;
 }

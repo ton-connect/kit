@@ -8,8 +8,24 @@
 
 import { useEffect, useState } from 'react';
 
+/**
+ * Theme value accepted by {@link useAppKitTheme} — `'light'`, `'dark'`, or any custom string mapped to a `data-ta-theme` token in the host's CSS.
+ *
+ * @public
+ * @category Type
+ * @section Settings
+ */
 export type AppKitTheme = 'light' | 'dark' | string;
 
+/**
+ * State hook that mirrors the active appkit-react theme to `document.body[data-ta-theme]` — returns a `[theme, setTheme]` tuple just like `useState`.
+ *
+ * @returns Tuple `[theme, setTheme]` for reading and switching the active theme.
+ *
+ * @public
+ * @category Hook
+ * @section Settings
+ */
 export const useAppKitTheme = () => {
     const [theme, setTheme] = useState<AppKitTheme>('light');
 

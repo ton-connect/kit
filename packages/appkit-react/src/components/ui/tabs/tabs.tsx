@@ -22,13 +22,33 @@ const TabsContext = createContext<TabsContextValue>({
     onValueChange: () => {},
 });
 
+/**
+ * Props accepted by {@link Tabs}.
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export interface TabsProps extends ComponentProps<'div'> {
+    /** Controlled active tab value. */
     value?: string;
+    /** Initial active tab when uncontrolled. Defaults to `''`. */
     defaultValue?: string;
+    /** Called whenever the active tab changes. */
     onValueChange?: (value: string) => void;
+    /** Compound sub-components — typically {@link TabsList} (with {@link TabsTrigger}s) followed by {@link TabsContent}s. */
     children: ReactNode;
 }
 
+/**
+ * Root tabs container — owns the active value (controlled or uncontrolled) and shares it with descendant {@link TabsList}, {@link TabsTrigger}, and {@link TabsContent} via context.
+ *
+ * @sample docs/examples/src/appkit/components/ui#TABS
+ *
+ * @public
+ * @category Component
+ * @section UI
+ */
 export const Tabs: FC<TabsProps> = ({
     value: controlledValue,
     defaultValue = '',
@@ -61,10 +81,25 @@ export const Tabs: FC<TabsProps> = ({
     );
 };
 
+/**
+ * Props accepted by {@link TabsList}.
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export interface TabsListProps extends ComponentProps<'div'> {
+    /** Tab triggers — typically one or more {@link TabsTrigger}s. */
     children: ReactNode;
 }
 
+/**
+ * Horizontal list of tab triggers with `role="tablist"`.
+ *
+ * @public
+ * @category Component
+ * @section UI
+ */
 export const TabsList: FC<TabsListProps> = ({ children, className, ...props }) => {
     return (
         <div role="tablist" className={clsx(styles.list, className)} {...props}>
@@ -73,11 +108,27 @@ export const TabsList: FC<TabsListProps> = ({ children, className, ...props }) =
     );
 };
 
+/**
+ * Props accepted by {@link TabsTrigger}.
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export interface TabsTriggerProps extends ComponentProps<'button'> {
+    /** Value committed to the parent {@link Tabs} when this trigger is activated. */
     value: string;
+    /** Trigger label / content. */
     children: ReactNode;
 }
 
+/**
+ * Tab trigger button with `role="tab"`. Activates its `value` on click and reflects active state via `aria-selected` and `data-state`.
+ *
+ * @public
+ * @category Component
+ * @section UI
+ */
 export const TabsTrigger: FC<TabsTriggerProps> = ({ value, children, className, ...props }) => {
     const ctx = useContext(TabsContext);
     const isActive = ctx.value === value;
@@ -97,11 +148,27 @@ export const TabsTrigger: FC<TabsTriggerProps> = ({ value, children, className, 
     );
 };
 
+/**
+ * Props accepted by {@link TabsContent}.
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export interface TabsContentProps extends ComponentProps<'div'> {
+    /** Value this panel is associated with — rendered only when the parent {@link Tabs} is on this value. */
     value: string;
+    /** Panel content. */
     children: ReactNode;
 }
 
+/**
+ * Tab panel rendered with `role="tabpanel"`. Returns `null` unless its `value` matches the active {@link Tabs} value.
+ *
+ * @public
+ * @category Component
+ * @section UI
+ */
 export const TabsContent: FC<TabsContentProps> = ({ value, children, className, ...props }) => {
     const ctx = useContext(TabsContext);
     const isActive = ctx.value === value;

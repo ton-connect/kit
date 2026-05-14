@@ -16,6 +16,13 @@ import type { ButtonProps } from '../button';
 import styles from './select.module.css';
 import { SelectContext, useSelectContext } from './use-select-context';
 
+/**
+ * Props accepted by {@link Select.Root}.
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export interface SelectRootProps {
     /** Controlled selected value. */
     value?: string;
@@ -31,6 +38,7 @@ export interface SelectRootProps {
     onOpenChange?: (open: boolean) => void;
     /** When true, the trigger is non-interactive. */
     disabled?: boolean;
+    /** Compound sub-components — {@link Select.Trigger}, {@link Select.Content}, {@link Select.Item}. */
     children: ReactNode;
 }
 
@@ -87,6 +95,13 @@ const SelectRoot: FC<SelectRootProps> = ({
     return <SelectContext.Provider value={ctx}>{children}</SelectContext.Provider>;
 };
 
+/**
+ * Props accepted by {@link Select.Trigger} — same as {@link ButtonProps}. The trigger inherits `disabled` from the surrounding root if set.
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export type SelectTriggerProps = ButtonProps;
 
 const SelectTrigger = forwardRef<ComponentRef<'button'>, SelectTriggerProps>(
@@ -125,6 +140,13 @@ const SelectTrigger = forwardRef<ComponentRef<'button'>, SelectTriggerProps>(
 
 SelectTrigger.displayName = 'SelectTrigger';
 
+/**
+ * Props accepted by {@link Select.Content}.
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export interface SelectContentProps extends ComponentPropsWithoutRef<'div'> {
     /** Horizontal alignment relative to the trigger. */
     align?: 'start' | 'end';
@@ -230,8 +252,17 @@ const SelectContent: FC<SelectContentProps> = ({
     );
 };
 
+/**
+ * Props accepted by {@link Select.Item}.
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export interface SelectItemProps extends ComponentPropsWithoutRef<'div'> {
+    /** Value committed to {@link Select.Root} when this item is chosen. */
     value: string;
+    /** When true, the item is not selectable and is excluded from keyboard navigation. */
     disabled?: boolean;
 }
 
@@ -266,9 +297,22 @@ const SelectItem = forwardRef<ComponentRef<'div'>, SelectItemProps>(
 
 SelectItem.displayName = 'SelectItem';
 
+/**
+ * Compound select / dropdown component with controlled or uncontrolled state. The content is portaled to `document.body` and positioned relative to the trigger. Closes on outside click, `Escape`, or item selection.
+ *
+ * @sample docs/examples/src/appkit/components/ui#SELECT
+ *
+ * @public
+ * @category Component
+ * @section UI
+ */
 export const Select = {
+    /** Provider that owns the selected value and open state, controlled or uncontrolled. */
     Root: SelectRoot,
+    /** {@link Button}-based trigger that toggles the popover and exposes `aria-expanded`. */
     Trigger: SelectTrigger,
+    /** Portaled popover that renders the list of items. Positioned under the trigger with optional `sideOffset`. */
     Content: SelectContent,
+    /** Selectable option row. Commits its `value` to the root on click. */
     Item: SelectItem,
 };

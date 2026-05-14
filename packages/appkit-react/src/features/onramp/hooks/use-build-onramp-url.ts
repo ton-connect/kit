@@ -30,7 +30,7 @@ export type UseBuildOnrampUrlReturnType<context = unknown> = UseMutationResult<
 >;
 
 /**
- * Hook to build onramp URL
+ * React mutation hook that wraps `buildOnrampUrl` — builds a URL that redirects the user to an onramp provider's flow. Returns `mutate(params)`. Internal: not part of the public API yet (fiat onramp is WIP).
  */
 export const useBuildOnrampUrl = <context = unknown>(
     parameters: UseBuildOnrampUrlParameters<context> = {},

@@ -11,12 +11,12 @@ import type { StreamingBaseUpdate } from './StreamingBaseUpdate';
 import type { TokenAmount } from '../core/TokenAmount';
 
 export interface BalanceUpdate extends StreamingBaseUpdate {
-    /** The update type field */
+    /** The update type field. */
     type: 'balance';
-    /** The account address */
+    /** The account address. */
     address: UserFriendlyAddress;
-    /** The account balance in nano units */
+    /** The account balance in nano units. */
     rawBalance: TokenAmount;
-    /** The formatted balance */
+    /** The formatted balance. */
     balance: string;
 }

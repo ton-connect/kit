@@ -6,9 +6,8 @@
  *
  */
 
-import type { NFT } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
+import type { NFT } from '../../types/nft';
 import { getNft } from '../../actions/nft/get-nft';
 import type { GetNftOptions as GetNftParameters } from '../../actions/nft/get-nft';
 import type { QueryOptions, QueryParameter } from '../../types/query';

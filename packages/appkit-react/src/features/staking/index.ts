@@ -9,7 +9,11 @@
 export { UnstakeMode, type UnstakeModes } from '@ton/appkit';
 
 export { useStakingProviders, type UseStakingProvidersReturnType } from './hooks/use-staking-providers';
-export { useStakingProvider, type UseStakingProviderReturnType } from './hooks/use-staking-provider';
+export {
+    useStakingProvider,
+    type UseStakingProviderParameters,
+    type UseStakingProviderReturnType,
+} from './hooks/use-staking-provider';
 export {
     useStakingQuote,
     type UseStakingQuoteParameters,

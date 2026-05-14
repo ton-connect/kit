@@ -1,0 +1,18 @@
+{
+    "name": "@ton/reference-generator",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "description": "Generates Mintlify-flavored API reference for @ton/appkit and @ton/appkit-react",
+    "scripts": {
+        "generate": "tsx src/index.ts",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "ts-morph": "^28.0.0"
+    },
+    "devDependencies": {
+        "tsx": "^4.21.0",
+        "typescript": "~5.9.3"
+    }
+}

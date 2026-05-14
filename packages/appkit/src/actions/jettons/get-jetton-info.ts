@@ -6,19 +6,49 @@
  *
  */
 
-import type { JettonInfo } from '@ton/walletkit';
-
 import type { AppKit } from '../../core/app-kit';
-import { resolveNetwork } from '../../utils/network/resolve-network';
+import type { JettonInfo } from '../../types/jetton';
 import type { Network } from '../../types/network';
+import type { UserFriendlyAddress } from '../../types/primitives';
+import { resolveNetwork } from '../../utils/network/resolve-network';
 
+/**
+ * Options for {@link getJettonInfo}.
+ *
+ * @public
+ * @category Type
+ * @section Jettons
+ */
 export interface GetJettonInfoOptions {
-    address: string;
+    /** Jetton master contract address whose metadata is being fetched. */
+    address: UserFriendlyAddress;
+    /** Network to query. Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set. */
     network?: Network;
 }
 
+/**
+ * Return type of {@link getJettonInfo} — `null` when the indexer has no record for that master address.
+ *
+ * @public
+ * @category Type
+ * @section Jettons
+ */
 export type GetJettonInfoReturnType = JettonInfo | null;
 
+/**
+ * Fetch token metadata for a jetton master — name, symbol, decimals, image and description as reported by the indexer. Returns `null` when the indexer has no record for that master address.
+ *
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param options - {@link GetJettonInfoOptions} Jetton master address and optional network override.
+ * @returns Jetton metadata, or `null` if the indexer has no record.
+ *
+ * @sample docs/examples/src/appkit/actions/jettons#GET_JETTON_INFO
+ * @expand options
+ *
+ * @public
+ * @category Action
+ * @section Jettons
+ */
 export const getJettonInfo = async (
     appKit: AppKit,
     options: GetJettonInfoOptions,

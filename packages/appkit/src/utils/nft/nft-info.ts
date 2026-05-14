@@ -6,8 +6,7 @@
  *
  */
 
-import type { NFT } from '@ton/walletkit';
-
+import type { NFT } from '../../types/nft';
 import { middleEllipsis } from '../string/middle-ellipsis';
 
 export const getNftImage = (nft: NFT): string | null => {

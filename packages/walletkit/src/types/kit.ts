@@ -45,35 +45,35 @@ export interface ITonWalletKit {
      */
     getApiClient(network: Network): ApiClient;
 
-    /** Network manager for all configured API clients */
+    /** Network manager for all configured API clients. */
     getNetworkManager(): NetworkManager;
 
-    /** Get all configured networks */
+    /** Get all configured networks. */
     getConfiguredNetworks(): Network[];
 
-    /** Get factory context */
+    /** Get factory context. */
     createFactoryContext(): ProviderFactoryContext;
 
     isReady(): boolean;
 
-    /** Ensure initialization is complete */
+    /** Ensure initialization is complete. */
     ensureInitialized(): Promise<void>;
 
     // === Wallet Management ===
 
-    /** Get all registered wallets */
+    /** Get all registered wallets. */
     getWallets(): Wallet[];
 
     /** Get wallet by wallet ID (network:address format) */
     getWallet(walletId: WalletId): Wallet | undefined;
 
-    /** Add a new wallet, returns wallet ID */
+    /** Add a new wallet, returns wallet ID. */
     addWallet(adapter: WalletAdapter): Promise<Wallet | undefined>;
 
-    /** Remove a wallet by wallet ID or adapter */
+    /** Remove a wallet by wallet ID or adapter. */
     removeWallet(walletIdOrAdapter: WalletId | WalletAdapter): Promise<void>;
 
-    /** Clear all wallets */
+    /** Clear all wallets. */
     clearWallets(): Promise<void>;
 
     // === Session Management ===
@@ -81,89 +81,89 @@ export interface ITonWalletKit {
     /** Disconnect session(s) */
     disconnect(sessionId?: string): Promise<void>;
 
-    /** List all active sessions */
+    /** List all active sessions. */
     listSessions(): Promise<TONConnectSession[]>;
 
     // === URL Parsing API ===
 
     /**
-     * Allow to convert url to ConnectionRequestEvent to use inline way
+     * Allow to convert url to ConnectionRequestEvent to use inline way.
      */
     connectionEventFromUrl(url: string): Promise<ConnectionRequestEvent>;
 
     // === URL Processing ===
 
-    /** Handle pasted TON Connect URL/link */
+    /** Handle pasted TON Connect URL/link. */
     handleTonConnectUrl(url: string): Promise<void>;
 
-    /** Handle new transaction */
+    /** Handle new transaction. */
     handleNewTransaction(wallet: Wallet, data: TransactionRequest): Promise<void>;
 
     // === Request Processing ===
 
-    /** Approve a connect request */
+    /** Approve a connect request. */
     approveConnectRequest(event: ConnectionRequestEvent, response?: ConnectionApprovalResponse): Promise<void>;
-    /** Reject a connect request */
+    /** Reject a connect request. */
     rejectConnectRequest(
         event: ConnectionRequestEvent,
         reason?: string,
         errorCode?: CONNECT_EVENT_ERROR_CODES,
     ): Promise<void>;
 
-    /** Approve a transaction request */
+    /** Approve a transaction request. */
     approveTransactionRequest(
         event: SendTransactionRequestEvent,
         response?: SendTransactionApprovalResponse,
     ): Promise<SendTransactionApprovalResponse>;
 
-    /** Reject a transaction request */
+    /** Reject a transaction request. */
     rejectTransactionRequest(
         event: SendTransactionRequestEvent,
         reason?: string | SendTransactionRpcResponseError['error'],
     ): Promise<void>;
 
-    /** Approve a sign data request */
+    /** Approve a sign data request. */
     approveSignDataRequest(
         event: SignDataRequestEvent,
         response?: SignDataApprovalResponse,
     ): Promise<SignDataApprovalResponse>;
 
-    /** Reject a sign data request */
+    /** Reject a sign data request. */
     rejectSignDataRequest(event: SignDataRequestEvent, reason?: string): Promise<void>;
 
     // === Event Handlers ===
 
-    /** Register connect request handler */
+    /** Register connect request handler. */
     onConnectRequest(cb: (event: ConnectionRequestEvent) => void): void;
 
-    /** Register transaction request handler */
+    /** Register transaction request handler. */
     onTransactionRequest(cb: (event: SendTransactionRequestEvent) => void): void;
 
-    /** Register sign data request handler */
+    /** Register sign data request handler. */
     onSignDataRequest(cb: (event: SignDataRequestEvent) => void): void;
 
-    /** Register disconnect handler */
+    /** Register disconnect handler. */
     onDisconnect(cb: (event: DisconnectionEvent) => void): void;
 
-    /** Register error handler */
+    /** Register error handler. */
     onRequestError(cb: (event: RequestErrorEvent) => void): void;
 
-    /** Remove request handlers */
+    /** Remove request handlers. */
     removeConnectRequestCallback(cb: (event: ConnectionRequestEvent) => void): void;
     removeTransactionRequestCallback(cb: (event: SendTransactionRequestEvent) => void): void;
     removeSignDataRequestCallback(cb: (event: SignDataRequestEvent) => void): void;
     removeDisconnectCallback(cb: (event: DisconnectionEvent) => void): void;
     removeErrorCallback(cb: (event: RequestErrorEvent) => void): void;
 
-    /** Jettons API access */
+    /** Jettons API access. */
     jettons: JettonsAPI;
 
-    /** Jettons API access */
+    /** Jettons API access. */
     swap: SwapAPI;
 
-    /** Get streaming manager */
+    /** Get streaming manager. */
     streaming: StreamingAPI;
 
-    /** Staking API access */
+    /** Staking API access. */
     staking: StakingAPI;
 }

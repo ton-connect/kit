@@ -1,7 +1,7 @@
 <!--
 This file is auto-generated. Do not edit manually.
 Changes will be overwritten when running the docs update script.
-Source template: template/packages/appkit/README.md
+Source template: docs/templates/packages/appkit/README.md
 -->
 
 # TonAppKit
@@ -72,7 +72,7 @@ const appKit = new AppKit({
 ```ts
 const balance = await getBalance(appKit);
 if (balance) {
-    console.log('Balance:', balance.toString());
+    console.log('Balance:', balance);
 }
 ```
  

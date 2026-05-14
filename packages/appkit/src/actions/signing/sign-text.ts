@@ -12,23 +12,42 @@ import type { SignDataResponse } from '../../types/signing';
 import { getSelectedWallet } from '../wallets/get-selected-wallet';
 import { getDefaultNetwork } from '../network/get-default-network';
 
+/**
+ * Parameters accepted by {@link signText}.
+ *
+ * @public
+ * @category Type
+ * @section Signing
+ */
 export interface SignTextParameters {
-    /** Text message to sign */
+    /** UTF-8 text the user is asked to sign. */
     text: string;
-    /** Optional network (mainnet/testnet) */
+    /** Network to issue the sign request against. Defaults to AppKit's configured default network. When none is set, the wallet falls back to its current network. */
     network?: Network;
 }
 
+/**
+ * Return type of {@link signText}.
+ *
+ * @public
+ * @category Type
+ * @section Signing
+ */
 export type SignTextReturnType = SignDataResponse;
 
 /**
- * Sign a text message with the connected wallet.
+ * Ask the selected wallet to sign a plain text message. Throws `Error('Wallet not connected')` if no wallet is currently selected.
  *
- * @example
- * ```ts
- * const result = await signText(appKit, { text: "Hello World" });
- * console.log(result.signature);
- * ```
+ * @param appKit - {@link AppKit} Runtime instance.
+ * @param parameters - {@link SignTextParameters} Text to sign and optional network override.
+ * @returns Signature and signed payload, as returned by the wallet.
+ *
+ * @sample docs/examples/src/appkit/actions/signing#SIGN_TEXT
+ * @expand parameters
+ *
+ * @public
+ * @category Action
+ * @section Signing
  */
 export const signText = async (appKit: AppKit, parameters: SignTextParameters): Promise<SignTextReturnType> => {
     const wallet = getSelectedWallet(appKit);

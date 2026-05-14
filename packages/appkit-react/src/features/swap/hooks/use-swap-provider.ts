@@ -12,11 +12,23 @@ import type { GetSwapProviderReturnType } from '@ton/appkit';
 
 import { useAppKit } from '../../settings/hooks/use-app-kit';
 
+/**
+ * Return type of {@link useSwapProvider} — `[provider, setProviderId]` tuple. `provider` is the default `SwapProviderInterface` (or `undefined` when none is registered). `setProviderId` calls {@link appkit:setDefaultSwapProvider} and emits `provider:default-changed`, which {@link appkit:watchSwapProviders} picks up.
+ *
+ * @public
+ * @category Type
+ * @section Swap
+ */
 export type UseSwapProviderReturnType = readonly [GetSwapProviderReturnType | undefined, (providerId: string) => void];
 
 /**
- * Hook to get and set the currently selected swap provider.
- * Mirrors the tuple shape of `useSelectedWallet`.
+ * Read and switch the default swap provider — subscribes to {@link appkit:watchSwapProviders} and re-reads via {@link appkit:getSwapProvider}. Returns a `useState`-style tuple. The read swallows the throw from {@link appkit:getSwapProvider} (which throws when no provider matches — or when no id is passed and no default has been registered) and yields `undefined` instead.
+ *
+ * @returns Tuple `[provider, setProviderId]`.
+ *
+ * @public
+ * @category Hook
+ * @section Swap
  */
 export const useSwapProvider = (): UseSwapProviderReturnType => {
     const appKit = useAppKit();

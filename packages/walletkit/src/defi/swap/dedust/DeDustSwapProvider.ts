@@ -29,12 +29,12 @@ import type { ProviderFactoryContext } from '../../../types/factory';
 const log = globalLogger.createChild('DeDustSwapProvider');
 
 /**
- * Default API URL for DeDust Router
+ * Default API URL for DeDust Router.
  */
 const DEFAULT_API_URL = 'https://api-mainnet.dedust.io';
 
 /**
- * Default protocols to use for routing
+ * Default protocols to use for routing.
  */
 const DEFAULT_PROTOCOLS = [
     'dedust',
@@ -53,18 +53,7 @@ const DEFAULT_PROTOCOLS = [
  * Uses the DeDust Router API to get quotes and build swap transactions
  * with optimal routing across multiple pools and protocols.
  *
- * @example
- * ```typescript
- * import { createDeDustProvider } from '@ton/walletkit/swap/dedust';
- *
- * kit.swap.registerProvider(
- *     createDeDustProvider({
- *         defaultSlippageBps: 100, // 1%
- *         referralAddress: 'EQ...',
- *         referralFeeBps: 50, // 0.5%
- *     }),
- * );
- * ```
+ * @sample docs/examples/src/appkit/swap#DEDUST_QUICK_START
  */
 export class DeDustSwapProvider extends SwapProvider<DeDustProviderOptions, DeDustProviderOptions> {
     private readonly apiUrl: string;
@@ -83,6 +72,10 @@ export class DeDustSwapProvider extends SwapProvider<DeDustProviderOptions, DeDu
         url: 'https://dedust.io',
     };
 
+    /**
+     * @param config - Optional {@link DeDustSwapProviderConfig}. Defaults are filled in for any field left undefined.
+     * @expand config
+     */
     constructor(config?: DeDustSwapProviderConfig) {
         super();
         this.providerId = config?.providerId ?? 'dedust';
@@ -313,6 +306,9 @@ export class DeDustSwapProvider extends SwapProvider<DeDustProviderOptions, DeDu
 /**
  * Returns an AppKit / `ProviderInput` factory for {@link DeDustSwapProvider}:
  * pass to `providers: [createDeDustProvider(config)]`.
+ *
+ * @param config - Optional {@link DeDustSwapProviderConfig}. Defaults are filled in for any field left undefined.
+ * @expand config
  */
 export const createDeDustProvider = (
     config: DeDustSwapProviderConfig = {},

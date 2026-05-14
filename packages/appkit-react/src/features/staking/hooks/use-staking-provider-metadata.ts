@@ -13,11 +13,34 @@ import { useMemo } from 'react';
 import { useAppKit } from '../../settings';
 import { useStakingProvider } from './use-staking-provider';
 
+/**
+ * Parameters accepted by {@link useStakingProviderMetadata} — optional `providerId` and network override.
+ *
+ * @public
+ * @category Type
+ * @section Staking
+ */
 export type UseStakingProviderMetadataParameters = GetStakingProviderMetadataOptions;
-export type UseStakingProviderMetadataReturnType = GetStakingProviderMetadataReturnType;
 
 /**
- * Hook to get static staking provider metadata
+ * Return type of {@link useStakingProviderMetadata} — static {@link appkit:StakingProviderMetadata} for the resolved provider, or `undefined` when no provider matches and no default is registered (the hook swallows the throw from {@link appkit:getStakingProviderMetadata}).
+ *
+ * @public
+ * @category Type
+ * @section Staking
+ */
+export type UseStakingProviderMetadataReturnType = GetStakingProviderMetadataReturnType | undefined;
+
+/**
+ * Read static metadata for a staking provider — display name, stake/receive tokens, supported unstake modes and contract address. Returns `undefined` when no provider matches and no default is registered. Use {@link useStakingProviderInfo} for live values (APY, instant-unstake liquidity, exchange rate). Defaults to the selected wallet's network. If no wallet is selected, falls back to AppKit's default network, or mainnet when none is set.
+ *
+ * @param parameters - {@link UseStakingProviderMetadataParameters} Optional `providerId` and network override.
+ * @expand parameters
+ * @returns Static {@link appkit:StakingProviderMetadata}, or `undefined` when the provider can't be resolved.
+ *
+ * @public
+ * @category Hook
+ * @section Staking
  */
 export const useStakingProviderMetadata = (parameters: UseStakingProviderMetadataParameters = {}) => {
     const appKit = useAppKit();

@@ -19,7 +19,7 @@ export interface MasterchainInfo {
     seqno: number;
 
     /**
-     * Shard identifier of the block
+     * Shard identifier of the block.
      */
     shard: string;
 
@@ -30,12 +30,12 @@ export interface MasterchainInfo {
     workchain: number;
 
     /**
-     * File hash of the block
+     * File hash of the block.
      */
     fileHash: Hex;
 
     /**
-     * Root hash of the block
+     * Root hash of the block.
      */
     rootHash: Hex;
 }

@@ -13,21 +13,37 @@ import clsx from 'clsx';
 import { Logo } from '../logo';
 import styles from './logo-with-network.module.css';
 
+/**
+ * Props accepted by {@link LogoWithNetwork}.
+ *
+ * @public
+ * @category Type
+ * @section UI
+ */
 export interface LogoWithNetworkProps extends ComponentPropsWithoutRef<'span'> {
-    /** Size of the main logo in pixels */
+    /** Size of the main logo in pixels. Defaults to `30`. The network badge is sized to `size * 0.4`. */
     size?: number;
-    /** Image source for the main logo */
+    /** Image source for the main logo. */
     src?: string;
-    /** Alt text for the main logo */
+    /** Alt text for the main logo. */
     alt?: string;
-    /** Fallback text for the main logo */
+    /** Fallback text shown when the main logo image fails or is missing. */
     fallback?: string;
-    /** Image source for the network badge */
+    /** Image source for the network badge overlay. When omitted, the badge is not rendered. */
     networkSrc?: string;
-    /** Alt text for the network badge */
+    /** Alt text for the network badge. */
     networkAlt?: string;
 }
 
+/**
+ * Token logo with an overlaid network badge — wraps {@link Logo} and renders a smaller secondary logo as a corner badge to indicate which network the asset belongs to.
+ *
+ * @sample docs/examples/src/appkit/components/ui#LOGO_WITH_NETWORK
+ *
+ * @public
+ * @category Component
+ * @section UI
+ */
 export const LogoWithNetwork = forwardRef<ComponentRef<'span'>, LogoWithNetworkProps>(
     ({ size = 30, src, alt, fallback, networkSrc, networkAlt, className, ...props }, ref) => {
         return (

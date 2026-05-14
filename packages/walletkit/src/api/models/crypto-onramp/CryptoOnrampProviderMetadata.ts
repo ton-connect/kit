@@ -16,12 +16,12 @@ export interface CryptoOnrampProviderMetadata {
     name: string;
 
     /**
-     * URL to the provider's logo image
+     * URL to the provider's logo image.
      */
     logo?: string;
 
     /**
-     * URL to the provider's website
+     * URL to the provider's website.
      */
     url?: string;
 
@@ -43,17 +43,17 @@ export interface CryptoOnrampProviderMetadata {
  */
 export interface CryptoOnrampProviderMetadataOverride {
     /**
-     * Override the provider's display name
+     * Override the provider's display name.
      */
     name?: string;
 
     /**
-     * Override the provider's logo URL
+     * Override the provider's logo URL.
      */
     logo?: string;
 
     /**
-     * Override the provider's website URL
+     * Override the provider's website URL.
      */
     url?: string;
 }

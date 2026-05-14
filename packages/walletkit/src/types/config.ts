@@ -17,34 +17,37 @@ import type { AnalyticsManagerOptions } from '../analytics';
 import type { TONConnectSessionManager } from '../api/interfaces';
 
 /**
- * API client configuration options
+ * API client configuration options.
  */
 export interface ApiClientConfig {
-    url?: string; // default 'https://toncenter.com' for mainnet, 'https://testnet.toncenter.com' for testnet
-    key?: string; // key for better RPS limits
+    /** Base URL of the indexer endpoint. Defaults to `'https://toncenter.com'` for mainnet, `'https://testnet.toncenter.com'` for testnet. */
+    url?: string;
+    /** API key forwarded to the indexer for higher rate limits. */
+    key?: string;
 }
 
 /**
- * Network configuration for a specific chain
+ * Network configuration for a specific chain.
  */
 export interface NetworkConfig {
-    /** API client configuration or instance */
+    /** API client configuration or instance. */
     apiClient?: ApiClientConfig | ApiClient;
 }
 
 /**
- * Multi-network configuration keyed by chain ID
- * Example: { [Networl.mainnet().chainId]: { apiClient: {...} }, [Networl.testnet().chainId]: { apiClient: {...} } }
+ * Multi-network configuration keyed by chain ID — each entry maps a chain ID (e.g. `Network.mainnet().chainId`) to its own {@link NetworkConfig} carrying the api-client setup.
  */
 export type NetworkAdapters = {
     [key: string]: NetworkConfig | undefined;
 };
 
 /**
- * Main configuration options for TonWalletKit
+ * Main configuration options for TonWalletKit.
  */
 export interface TonWalletKitOptions {
+    /** TonConnect wallet manifest published by the dApp. Required for the wallet to recognize the integration. */
     walletManifest?: WalletInfo;
+    /** Device fingerprint forwarded with TonConnect requests so wallets can recognize the host. */
     deviceInfo?: DeviceInfo;
 
     /**
@@ -54,26 +57,28 @@ export interface TonWalletKitOptions {
     sessionManager?: TONConnectSessionManager;
 
     /**
-     * Network configuration
+     * Network configuration.
      */
     networks?: NetworkAdapters;
 
-    /** Bridge settings */
+    /** Bridge settings. */
     bridge?: BridgeConfig;
-    /** Storage settings */
+    /** Storage settings. */
     storage?: StorageConfig | StorageAdapter;
-    /** Validation settings */
+    /** Validation settings. */
     validation?: {
         strictMode?: boolean;
         allowUnknownWalletVersions?: boolean;
     };
-    /** Event processor settings */
+    /** Event processor settings. */
     eventProcessor?: EventProcessorConfig;
 
+    /** Analytics manager options merged with an `enabled` toggle. Off by default. */
     analytics?: AnalyticsManagerOptions & {
         enabled?: boolean;
     };
 
+    /** Diagnostic toggles useful during local development. Should not be set in production builds. */
     dev?: {
         disableNetworkSend?: boolean;
         disableManifestDomainCheck?: boolean;

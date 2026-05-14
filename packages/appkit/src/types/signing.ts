@@ -12,7 +12,11 @@ import type { Base64String } from './primitives';
 // SignData types for wallet adapter
 
 /**
- * Data to be signed by the wallet, discriminated by type.
+ * Payload the user is asked to sign — discriminated union over `'text'`, `'binary'`, and `'cell'`. Nested under {@link SignDataRequest}'s `data`.
+ *
+ * @public
+ * @category Type
+ * @section Signing
  */
 export type SignData =
     | { type: 'text'; value: SignDataText }
@@ -20,59 +24,75 @@ export type SignData =
     | { type: 'cell'; value: SignDataCell };
 
 /**
- * Binary data to be signed.
+ * Binary variant of {@link SignData} — opaque byte content the user is asked to sign.
+ *
+ * @public
+ * @category Type
+ * @section Signing
  */
 export interface SignDataBinary {
-    /**
-     * Raw binary content encoded as bytes in Base64
-     */
+    /** Raw binary content encoded as Base64. */
     content: Base64String;
 }
 
 /**
- * TON Cell data to be signed with a schema definition.
+ * TON cell variant of {@link SignData} — Base64-encoded cell payload paired with the schema needed to parse it.
+ *
+ * @public
+ * @category Type
+ * @section Signing
  */
 export interface SignDataCell {
-    /**
-     * Schema describing the cell structure for parsing
-     */
+    /** TL-B-style schema describing the cell layout so the wallet can render the payload to the user. */
     schema: string;
-    /**
-     * Cell content encoded in Base64
-     */
+    /** Cell content encoded as Base64. */
     content: Base64String;
 }
 
 /**
- * Plain text data to be signed.
+ * Plain-text variant of {@link SignData} — UTF-8 string the user is asked to sign.
+ *
+ * @public
+ * @category Type
+ * @section Signing
  */
 export interface SignDataText {
-    /**
-     * Text content to be signed
-     */
+    /** UTF-8 text the user signs. */
     content: string;
 }
 
-/** SignData Request Payload - sent to wallet */
+/**
+ * Sign-data payload sent to {@link WalletInterface}'s `signData` — discriminated by `data.type` (`'text'`, `'binary'`, or `'cell'`).
+ *
+ * @public
+ * @category Type
+ * @section Signing
+ */
 export interface SignDataRequest {
-    /** Network */
+    /** Network to issue the sign request against. Defaults to the wallet's current network. */
     network?: Network;
-    /** Sender address in raw format */
+    /** Sender address in raw format. Usually omitted, the wallet fills it in. */
     from?: string;
-    /** Data to sign */
+    /** Payload the user is asked to sign. */
     data: SignData;
 }
 
-/** SignData Response - returned from wallet */
+/**
+ * Wallet response to a {@link SignDataRequest} — carries the signature plus the canonicalized address, timestamp, and domain the wallet committed to.
+ *
+ * @public
+ * @category Type
+ * @section Signing
+ */
 export interface SignDataResponse {
-    /** Base64 encoded signature */
+    /** Base64-encoded signature. */
     signature: string;
-    /** Wallet address that signed */
+    /** Wallet address that signed, in user-friendly format. */
     address: string;
-    /** Unix timestamp when signed */
+    /** Unix timestamp the wallet stamped onto the signature. */
     timestamp: number;
-    /** Domain of the dApp */
+    /** dApp domain the wallet bound the signature to. */
     domain: string;
-    /** Original payload that was signed */
+    /** Original payload that was signed, echoed back for binding. */
     payload: SignDataRequest;
 }

@@ -40,13 +40,13 @@ export const useSendContext = () => {
 };
 
 export interface SendProviderProps extends PropsWithChildren {
-    /** The transaction request parameters */
+    /** Transaction request (or a sync/async producer of one) the provider hands to {@link sendTransaction} when triggered. */
     request: SendRequest;
-    /** Callback when an error occurs */
+    /** Called when the wallet rejects the request or the send fails. Receives the raised `Error`. */
     onError?: (error: Error) => void;
-    /** Callback when the transaction is successful */
+    /** Called once the transaction is broadcast. Receives the wallet's {@link SendTransactionReturnType} (BoC + normalized hash). */
     onSuccess?: (response: SendTransactionReturnType) => void;
-    /** Disable the button/interaction */
+    /** When true, descendant trigger components disable themselves and ignore clicks. */
     disabled?: boolean;
 }
 

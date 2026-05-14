@@ -1,7 +1,7 @@
 <!--
 This file is auto-generated. Do not edit manually.
 Changes will be overwritten when running the docs update script.
-Source template: template/packages/appkit-react/README.md
+Source template: docs/templates/packages/appkit-react/README.md
 -->
 
 # @ton/appkit-react
@@ -148,7 +148,7 @@ export const Balance = () => {
         return <div>Loading...</div>;
     }
 
-    return <div>Balance: {balance?.toString()} TON</div>;
+    return <div>Balance: {balance || 0} TON</div>;
 };
 ```
 

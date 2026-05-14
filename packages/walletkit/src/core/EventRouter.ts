@@ -58,7 +58,7 @@ export class EventRouter {
     }
 
     /**
-     * Route incoming bridge event to appropriate handler
+     * Route incoming bridge event to appropriate handler.
      */
     async routeEvent(event: RawBridgeEvent): Promise<void> {
         // Validate event structure
@@ -93,7 +93,7 @@ export class EventRouter {
     }
 
     /**
-     * Register event callbacks
+     * Register event callbacks.
      */
     onConnectRequest(callback: EventCallback<ConnectionRequestEvent>): void {
         this.connectRequestCallback = callback;
@@ -116,7 +116,7 @@ export class EventRouter {
     }
 
     /**
-     * Remove specific callback
+     * Remove specific callback.
      */
     removeConnectRequestCallback(): void {
         this.connectRequestCallback = undefined;
@@ -139,7 +139,7 @@ export class EventRouter {
     }
 
     /**
-     * Clear all callbacks
+     * Clear all callbacks.
      */
     clearCallbacks(): void {
         this.connectRequestCallback = undefined;
@@ -150,7 +150,7 @@ export class EventRouter {
     }
 
     /**
-     * Setup event handlers
+     * Setup event handlers.
      */
     private setupHandlers(): void {
         this.handlers = [
@@ -174,42 +174,42 @@ export class EventRouter {
     }
 
     /**
-     * Notify connect request callbacks
+     * Notify connect request callbacks.
      */
     private async notifyConnectRequestCallbacks(event: ConnectionRequestEvent): Promise<void> {
         return await this.connectRequestCallback?.(event);
     }
 
     /**
-     * Notify transaction request callbacks
+     * Notify transaction request callbacks.
      */
     private async notifyTransactionRequestCallbacks(event: SendTransactionRequestEvent): Promise<void> {
         return await this.transactionRequestCallback?.(event);
     }
 
     /**
-     * Notify sign data request callbacks
+     * Notify sign data request callbacks.
      */
     private async notifySignDataRequestCallbacks(event: SignDataRequestEvent): Promise<void> {
         return await this.signDataRequestCallback?.(event);
     }
 
     /**
-     * Notify disconnect callbacks
+     * Notify disconnect callbacks.
      */
     private async notifyDisconnectCallbacks(event: DisconnectionEvent): Promise<void> {
         return await this.disconnectCallback?.(event);
     }
 
     /**
-     * Notify error callbacks
+     * Notify error callbacks.
      */
     private async notifyErrorCallback(event: RequestErrorEvent): Promise<void> {
         return await this.errorCallback?.(event);
     }
 
     /**
-     * Get enabled event types based on registered callbacks
+     * Get enabled event types based on registered callbacks.
      */
     getEnabledEventTypes(): EventType[] {
         const enabledTypes: EventType[] = [];

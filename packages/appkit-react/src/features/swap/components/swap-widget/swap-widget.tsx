@@ -14,15 +14,14 @@ import { SwapWidgetProvider, useSwapContext } from '../swap-widget-provider';
 import type { SwapProviderProps } from '../swap-widget-provider';
 
 /**
- * Props for the SwapWidget component.
- * Inherits all configuration from SwapProviderProps.
+ * Props accepted by {@link SwapWidget} — extend {@link SwapProviderProps} (swap configuration: tokens, network, defaults) with the standard `<div>` attributes and an optional render-prop override.
+ *
+ * @public
+ * @category Type
+ * @section Swap
  */
 export interface SwapWidgetProps extends Omit<SwapProviderProps, 'children'>, Omit<ComponentProps<'div'>, 'children'> {
-    /**
-     * Custom render function.
-     * When provided, it replaces the default widget UI and gives full control over the rendering.
-     * Accesses all state and actions from the swap context.
-     */
+    /** Optional render-prop receiving the full swap context plus the forwarded `<div>` props. When supplied it replaces the default {@link SwapWidgetUI}. */
     children?: (props: SwapWidgetRenderProps) => ReactNode;
 }
 
@@ -39,11 +38,13 @@ const SwapWidgetContent: FC<
 };
 
 /**
- * A high-level component that provides a complete swap interface.
+ * Drop-in swap UI that walks the user through picking the source/target tokens, entering an amount, reviewing the quote (rate, min-received, slippage, provider), and confirming the swap — which builds the transaction via {@link useBuildSwapTransaction} and dispatches it through the standard send flow. Internally mounts a {@link SwapWidgetProvider} so the rendered UI (default {@link SwapWidgetUI} or a custom `children` render-prop) can read state through {@link useSwapContext}.
  *
- * It manages the token selection, quote fetching, and transaction building
- * for swaps between TON and Jettons. It can be used as a standalone widget
- * with default UI or customized using a render function.
+ * @sample docs/examples/src/appkit/components/swap#SWAP_WIDGET
+ *
+ * @public
+ * @category Component
+ * @section Swap
  */
 export const SwapWidget: FC<SwapWidgetProps> = ({
     children,
