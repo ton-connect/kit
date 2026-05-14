@@ -12,10 +12,10 @@ import type {
     StakingBalance,
     StakingProviderInfo,
     StakingProviderInterface,
+    StakingProviderMetadata,
     StakingQuote,
     StakingQuoteParams,
     TransactionRequest,
-    UnstakeModes,
     UserFriendlyAddress,
 } from '@ton/walletkit';
 import { TonStakersStakingProvider } from '@ton/walletkit/staking/tonstakers';
@@ -30,15 +30,16 @@ import { get, release, retainWithId } from '../utils/registry';
  * Kotlin-implemented `ITONStakingProvider` via reverse-RPC. Mirrors the streaming
  * `ProxyStreamingProvider` pattern.
  *
- * `getSupportedUnstakeModes` is synchronous per the interface contract, so the supported modes
- * are fetched once at registration and cached on this instance.
+ * `getStakingProviderMetadata` and `getSupportedNetworks` are synchronous per the interface
+ * contract, so both values are passed in at registration and cached on this instance.
  */
 class ProxyStakingProvider implements StakingProviderInterface {
     readonly type = 'staking' as const;
 
     constructor(
         readonly providerId: string,
-        private readonly supportedUnstakeModes: UnstakeModes[],
+        private readonly metadata: StakingProviderMetadata,
+        private readonly supportedNetworks: Network[],
     ) {}
 
     async getQuote(params: StakingQuoteParams): Promise<StakingQuote> {
@@ -74,8 +75,12 @@ class ProxyStakingProvider implements StakingProviderInterface {
         return JSON.parse(resultJson) as StakingProviderInfo;
     }
 
-    getSupportedUnstakeModes(): UnstakeModes[] {
-        return this.supportedUnstakeModes;
+    getStakingProviderMetadata(_network?: Network): StakingProviderMetadata {
+        return this.metadata;
+    }
+
+    getSupportedNetworks(): Network[] {
+        return this.supportedNetworks;
     }
 }
 
@@ -127,9 +132,9 @@ export async function getStakingProviderInfo(args: { network?: { chainId: string
     return instance.staking.getStakingProviderInfo(args.network, args.providerId);
 }
 
-export async function getSupportedUnstakeModes(args: { providerId?: string }) {
+export async function getStakingProviderMetadata(args: { network?: { chainId: string }; providerId?: string }) {
     const instance = await getKit();
-    return instance.staking.getSupportedUnstakeModes(args.providerId);
+    return instance.staking.getStakingProviderMetadata(args.network, args.providerId);
 }
 
 /**
@@ -138,11 +143,13 @@ export async function getSupportedUnstakeModes(args: { providerId?: string }) {
  * forward to the Kotlin instance via reverse-RPC.
  *
  * @param args.providerId Unique id — matches `identifier.name` on the Kotlin side.
- * @param args.supportedUnstakeModes Cached modes returned synchronously from `getSupportedUnstakeModes`.
+ * @param args.metadata Static provider metadata returned synchronously from `getStakingProviderMetadata`.
+ * @param args.supportedNetworks Networks the Kotlin provider can serve, returned by `getSupportedNetworks`.
  */
 export async function registerKotlinStakingProvider(args: {
     providerId: string;
-    supportedUnstakeModes: UnstakeModes[];
+    metadata: StakingProviderMetadata;
+    supportedNetworks: Network[];
 }) {
     const instance = await getKit();
     // Replace any previous proxy with the same id
@@ -150,7 +157,7 @@ export async function registerKotlinStakingProvider(args: {
     if (previous instanceof ProxyStakingProvider) {
         release(args.providerId);
     }
-    const provider = new ProxyStakingProvider(args.providerId, args.supportedUnstakeModes);
+    const provider = new ProxyStakingProvider(args.providerId, args.metadata, args.supportedNetworks);
     retainWithId(args.providerId, provider);
     instance.staking.registerProvider(provider);
 }
