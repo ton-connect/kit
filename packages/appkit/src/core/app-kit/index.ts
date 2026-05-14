@@ -13,7 +13,8 @@ export type { AppKitConfig } from './types/config';
 export type {
     AppKitEmitter,
     AppKitEvents,
-    WalletConnectedPayload,
-    WalletDisconnectedPayload,
+    ConnectorAddedPayload,
+    ConnectorRemovedPayload,
+    ConnectorWalletsUpdatedPayload,
     DefaultNetworkChangedPayload,
 } from './types/events';

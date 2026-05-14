@@ -95,10 +95,9 @@ describe('Connector Actions Examples (Integration)', () => {
 
             // Trigger event
             appKit.emitter.emit(
-                CONNECTOR_EVENTS.CONNECTED,
+                CONNECTOR_EVENTS.ADDED,
                 {
-                    wallets: [],
-                    connectorId: 'test',
+                    connector: mockConnector,
                 },
                 'test',
             );
@@ -113,10 +112,9 @@ describe('Connector Actions Examples (Integration)', () => {
 
             // Trigger event
             appKit.emitter.emit(
-                CONNECTOR_EVENTS.CONNECTED,
+                CONNECTOR_EVENTS.ADDED,
                 {
-                    wallets: [],
-                    connectorId: 'test',
+                    connector: mockConnector,
                 },
                 'test',
             );
