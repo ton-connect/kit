@@ -24,7 +24,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background-color: var(--ta-color-background-secondary);
+	background-color: var(--ta-color-background-tertiary);
 	color: var(--ta-color-text);
 	font-size: 15px;
 	line-height: 1;

@@ -22,7 +22,7 @@ export const RarityBadge: React.FC<RarityBadgeProps> = ({ rarity, className }) =
     const config = RARITY_CONFIGS[rarity];
 
     const badgeStyles: Record<Rarity, string> = {
-        [RarityValues.Common]: 'bg-muted text-muted-foreground border-border',
+        [RarityValues.Common]: 'bg-tertiary text-tertiary-foreground border-tertiary',
         [RarityValues.Rare]:
             'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700',
         [RarityValues.Epic]:

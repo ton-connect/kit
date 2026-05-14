@@ -77,18 +77,20 @@ export const TokenTransferModal: React.FC<TokenTransferModalProps> = ({
     return (
         <Modal title={`Transfer ${tokenInfo.name}`} open={isOpen} onOpenChange={(open) => !open && handleClose()}>
             <div className="flex items-center space-x-3 mb-6">
-                <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center overflow-hidden">
+                <div className="w-10 h-10 bg-tertiary rounded-full flex items-center justify-center overflow-hidden">
                     {tokenInfo.image ? (
                         <img src={tokenInfo.image} alt={tokenInfo.name} className="w-full h-full object-cover" />
                     ) : tokenType === 'TON' ? (
                         <Gem className="w-6 h-6 text-primary" />
                     ) : (
-                        <span className="text-sm font-bold text-muted-foreground">{tokenInfo.symbol?.slice(0, 2)}</span>
+                        <span className="text-sm font-bold text-tertiary-foreground">
+                            {tokenInfo.symbol?.slice(0, 2)}
+                        </span>
                     )}
                 </div>
                 <div>
                     <p className="text-sm font-medium text-foreground">Available Balance</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-tertiary-foreground">
                         {tokenInfo.balance} {tokenInfo.symbol}
                     </p>
                 </div>
@@ -149,8 +151,8 @@ export const TokenTransferModal: React.FC<TokenTransferModalProps> = ({
                         </Input>
 
                         {transferError && (
-                            <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
-                                <p className="text-sm text-destructive">{transferError}</p>
+                            <div className="p-3 bg-error/10 border border-error/30 rounded-lg">
+                                <p className="text-sm text-error">{transferError}</p>
                             </div>
                         )}
                     </div>

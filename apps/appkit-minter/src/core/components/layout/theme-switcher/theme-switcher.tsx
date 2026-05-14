@@ -11,13 +11,13 @@ import { Button } from '@ton/appkit-react';
 
 import { useTheme } from '@/core/hooks';
 
-export function ThemeSwitcher() {
+export const ThemeSwitcher = () => {
     const { theme, setTheme } = useTheme();
 
     return (
-        <Button size="s" borderRadius="full" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+        <Button size="icon" variant="ghost" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
             {theme === 'light' ? <Sun className="h-[1.2rem] w-[1.2rem]" /> : <Moon className="h-[1.2rem] w-[1.2rem]" />}
             <span className="sr-only">Toggle theme</span>
         </Button>
     );
-}
+};

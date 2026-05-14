@@ -6,5 +6,4 @@
  *
  */
 
-export * from './components/stake-button';
-export * from './components/staking-card';
+export { Layout } from './layout';

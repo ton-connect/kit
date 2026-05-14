@@ -7,8 +7,10 @@
  */
 
 import type { FC, ComponentProps, ChangeEvent } from 'react';
-import { useDefaultNetwork, useNetworks, useSelectedWallet, Network } from '@ton/appkit-react';
+import { useDefaultNetwork, useNetworks, Network } from '@ton/appkit-react';
 import { ChevronDown } from 'lucide-react';
+
+import { saveStoredNetworkChainId } from '../storage';
 
 import { cn } from '@/core/lib/utils';
 
@@ -25,10 +27,11 @@ const getNetworkLabel = (chainId: string): string => {
 export const NetworkPicker: FC<ComponentProps<'select'>> = ({ className, ...props }) => {
     const [defaultNetwork, setDefaultNetwork] = useDefaultNetwork();
     const networks = useNetworks();
-    const [wallet] = useSelectedWallet();
 
     const handleChange = (e: ChangeEvent<HTMLSelectElement>) => {
         const value = e.target.value;
+
+        saveStoredNetworkChainId(value);
 
         if (value === '') {
             setDefaultNetwork(undefined);
@@ -37,19 +40,14 @@ export const NetworkPicker: FC<ComponentProps<'select'>> = ({ className, ...prop
         }
     };
 
-    if (wallet) {
-        return null;
-    }
-
     return (
         <div className={cn('relative inline-block w-full', className)}>
             <select
                 className={cn(
-                    'peer appearance-none w-full cursor-pointer rounded-4xl border border-border bg-card/60 px-4 py-2.5 pr-10 text-sm font-medium text-foreground outline-none backdrop-blur-md transition-all placeholder:text-muted-foreground hover:border-border hover:bg-card/80 focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50',
+                    'peer appearance-none w-full cursor-pointer rounded-4xl border border-tertiary bg-secondary/60 px-4 py-2.5 pr-10 text-sm font-medium text-foreground outline-none backdrop-blur-md transition-all placeholder:text-tertiary-foreground hover:border-tertiary hover:bg-secondary/80 focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50',
                 )}
                 value={defaultNetwork?.chainId ?? ''}
                 onChange={handleChange}
-                disabled={!!wallet}
                 {...props}
             >
                 <option value="">Any Network</option>
@@ -59,7 +57,7 @@ export const NetworkPicker: FC<ComponentProps<'select'>> = ({ className, ...prop
                     </option>
                 ))}
             </select>
-            <div className="pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center text-muted-foreground/70 transition-colors peer-focus:text-foreground">
+            <div className="pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center text-tertiary-foreground/70 transition-colors peer-focus:text-foreground">
                 <ChevronDown className="h-4 w-4" />
             </div>
         </div>
