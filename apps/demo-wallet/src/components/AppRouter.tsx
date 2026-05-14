@@ -12,6 +12,7 @@ import { useWalletStore, useWallet } from '@demo/wallet-core';
 
 import { ProtectedRoute } from './ProtectedRoute';
 import { LoaderCircle } from './LoaderCircle';
+import { SwapNotifications } from './swap/SwapNotifications';
 import {
     SetupPassword,
     UnlockWallet,
@@ -81,6 +82,7 @@ export const AppRouter: React.FC = () => {
 
     return (
         <BrowserRouter>
+            <SwapNotifications />
             <Routes>
                 {/* Public routes */}
                 <Route path="/setup-password" element={<SetupPassword />} />

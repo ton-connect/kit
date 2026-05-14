@@ -7,18 +7,22 @@
  */
 
 import type { FC } from 'react';
-import { useState } from 'react';
-import { useSwap } from '@demo/wallet-core';
+import { useEffect, useRef, useState } from 'react';
+import { useSwap, useAuth, useJettons } from '@demo/wallet-core';
 import { useNavigate } from 'react-router-dom';
-import type { SwapToken } from '@ton/walletkit';
 
 import { SwapSettings } from './SwapSettings';
 import { TokenInput } from './TokenInput';
 import { QuoteTimer } from './QuoteTimer';
 import { Button } from '../Button';
 import { Card } from '../Card';
+import { HoldToSignButton } from '../HoldToSignButton';
 
 import { cn } from '@/lib/utils';
+import { resolveTokenSymbol } from '@/utils/swapToken';
+
+const QUOTE_DEBOUNCE_MS = 500;
+const QUOTE_REFRESH_LEAD_MS = 5000;
 
 function getPriceImpactColor(priceImpact: number): string {
     if (priceImpact > 500) return 'text-destructive';
@@ -51,32 +55,80 @@ export const SwapInterface: FC<SwapInterfaceProps> = ({ className }) => {
         swapTokens,
         getSwapQuote: getQuote,
         executeSwap,
+        validateSwapInputs,
     } = useSwap();
 
+    const { holdToSign } = useAuth();
+    const { userJettons } = useJettons();
     const navigate = useNavigate();
 
     const [showSlippageSettings, setShowSlippageSettings] = useState(false);
     const [useCustomDestination, setUseCustomDestination] = useState(false);
+    const [isRefreshingQuote, setIsRefreshingQuote] = useState(false);
 
-    const getTokenSymbol = (token: SwapToken): string => {
-        if (token.symbol) return token.symbol;
-        if (token.address === 'ton') return 'TON';
-        return 'Unknown';
-    };
+    const fromSymbol = resolveTokenSymbol(fromToken, userJettons);
+    const toSymbol = resolveTokenSymbol(toToken, userJettons);
 
-    const fromSymbol = getTokenSymbol(fromToken);
-    const toSymbol = getTokenSymbol(toToken);
+    // Debounced auto-quote: refetch the quote whenever the meaningful inputs change.
+    // We deliberately re-run on quote becoming null (e.g. after a token switch)
+    // so the new pair fetches a quote without requiring an extra keystroke.
+    useEffect(() => {
+        if (!amount || parseFloat(amount) <= 0) return;
+        if (validateSwapInputs()) return;
+        if (currentQuote) return;
 
-    const handleGetQuote = async () => {
-        await getQuote();
-    };
+        const handle = setTimeout(() => {
+            void getQuote();
+        }, QUOTE_DEBOUNCE_MS);
 
+        return () => clearTimeout(handle);
+    }, [
+        amount,
+        fromToken.address,
+        toToken.address,
+        isReverseSwap,
+        slippageBps,
+        currentQuote,
+        validateSwapInputs,
+        getQuote,
+    ]);
+
+    // Silent refresh: re-fetch the quote ~5s before it expires so the
+    // hold-to-sign gesture always has a fresh quote available.
+    useEffect(() => {
+        if (!currentQuote?.expiresAt) return;
+
+        const expiresAtMs = currentQuote.expiresAt * 1000;
+        const refreshAt = expiresAtMs - QUOTE_REFRESH_LEAD_MS;
+        const delay = Math.max(0, refreshAt - Date.now());
+
+        const handle = setTimeout(async () => {
+            setIsRefreshingQuote(true);
+            try {
+                await getQuote();
+            } finally {
+                setIsRefreshingQuote(false);
+            }
+        }, delay);
+
+        return () => clearTimeout(handle);
+    }, [currentQuote?.expiresAt, getQuote]);
+
+    // Guard against double-firing executeSwap on accidental re-entries (e.g. the
+    // hold-to-sign button completing twice). Navigate to /wallet only when the
+    // broadcast actually succeeded; on failure the inline error stays put.
+    const isExecutingRef = useRef(false);
     const handleExecuteSwap = async () => {
-        await executeSwap();
-
-        navigate('/wallet', {
-            state: { message: `${fromSymbol} sent successfully!` },
-        });
+        if (isExecutingRef.current) return;
+        isExecutingRef.current = true;
+        try {
+            const hash = await executeSwap();
+            if (hash) {
+                navigate('/wallet');
+            }
+        } finally {
+            isExecutingRef.current = false;
+        }
     };
 
     const handleFromAmountChange = (val: string) => {
@@ -90,21 +142,24 @@ export const SwapInterface: FC<SwapInterfaceProps> = ({ className }) => {
     };
 
     const fromAmount = !isReverseSwap ? amount : currentQuote ? currentQuote.fromAmount : '';
-
     const toAmount = isReverseSwap ? amount : currentQuote ? currentQuote.toAmount : '';
 
-    const getSwapButtonText = () => {
-        if (!fromToken || !toToken) return 'Select tokens';
-        const hasFromAmount = fromAmount && parseFloat(fromAmount) > 0;
-        const hasToAmount = toAmount && parseFloat(toAmount) > 0;
-        if (!hasFromAmount && !hasToAmount) return 'Enter amount';
-        if (isLoadingQuote) return 'Getting quote...';
-        if (error) return 'Error';
-        if (!currentQuote) return 'Get Quote';
-        return `Swap ${fromSymbol} for ${toSymbol}`;
-    };
+    const hasFromAmount = !!fromAmount && parseFloat(fromAmount) > 0;
+    const hasToAmount = !!toAmount && parseFloat(toAmount) > 0;
+    const hasInput = hasFromAmount || hasToAmount;
 
-    const isSwapDisabled = !!error || isLoadingQuote || isSwapping;
+    const validationError = validateSwapInputs();
+    const isQuoteReady = !!currentQuote && !error;
+    const canSwap = isQuoteReady && !isSwapping && !validationError;
+
+    const idleCtaLabel = (() => {
+        if (!fromToken || !toToken) return 'Select tokens';
+        if (!hasInput) return 'Enter an amount';
+        if (validationError && validationError !== 'Please enter an amount') return validationError;
+        if (isLoadingQuote) return 'Getting best quote…';
+        if (error) return 'Try again';
+        return null;
+    })();
 
     return (
         <Card className={cn('mx-auto w-full max-w-md', className)}>
@@ -126,6 +181,7 @@ export const SwapInterface: FC<SwapInterfaceProps> = ({ className }) => {
                     onAmountChange={handleFromAmountChange}
                     onTokenSelect={setFromToken}
                     token={fromToken}
+                    isLoading={isReverseSwap && isLoadingQuote}
                 />
 
                 <div className="w-full h-1 relative -mt-2">
@@ -152,6 +208,7 @@ export const SwapInterface: FC<SwapInterfaceProps> = ({ className }) => {
                     onTokenSelect={setToToken}
                     token={toToken}
                     className="-mt-2"
+                    isLoading={!isReverseSwap && isLoadingQuote}
                 />
 
                 {/* Destination Address */}
@@ -189,12 +246,6 @@ export const SwapInterface: FC<SwapInterfaceProps> = ({ className }) => {
 
                 {currentQuote && (
                     <>
-                        <QuoteTimer
-                            expiresAt={currentQuote.expiresAt}
-                            onRefresh={handleGetQuote}
-                            isLoading={isLoadingQuote}
-                        />
-
                         <div className="border-t border-gray-200 my-6" />
 
                         <div className="space-y-2 text-sm">
@@ -210,9 +261,9 @@ export const SwapInterface: FC<SwapInterfaceProps> = ({ className }) => {
                                 </span>
                             </div>
 
-                            {currentQuote.priceImpact && (
+                            {currentQuote.priceImpact !== undefined && (
                                 <div className="flex justify-between">
-                                    <span className="text-gray-500">Price Impact</span>
+                                    <span className="text-muted-foreground">Price Impact</span>
                                     <span className={cn(getPriceImpactColor(currentQuote.priceImpact))}>
                                         {(currentQuote.priceImpact / 100).toFixed(2)}%
                                     </span>
@@ -222,6 +273,14 @@ export const SwapInterface: FC<SwapInterfaceProps> = ({ className }) => {
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Slippage</span>
                                 <span className="font-medium">{slippageBps / 100}%</span>
+                            </div>
+
+                            <div className="flex justify-between pt-1">
+                                <span className="text-muted-foreground text-xs">Quote</span>
+                                <QuoteTimer
+                                    expiresAt={currentQuote.expiresAt}
+                                    isRefreshing={isRefreshingQuote || isLoadingQuote}
+                                />
                             </div>
                         </div>
                     </>
@@ -235,25 +294,20 @@ export const SwapInterface: FC<SwapInterfaceProps> = ({ className }) => {
             </div>
 
             <div className="flex flex-col gap-3 mt-6">
-                {!currentQuote && (
-                    <Button
-                        disabled={isSwapDisabled}
-                        onClick={handleGetQuote}
-                        isLoading={isLoadingQuote}
-                        className="w-full"
-                    >
-                        {isLoadingQuote ? 'Getting Quote...' : 'Get Quote'}
+                {idleCtaLabel ? (
+                    <Button disabled isLoading={isLoadingQuote} className="w-full">
+                        {idleCtaLabel}
                     </Button>
-                )}
-
-                {currentQuote && (
-                    <Button
-                        disabled={!currentQuote || isSwapping}
-                        onClick={handleExecuteSwap}
+                ) : holdToSign ? (
+                    <HoldToSignButton
+                        onComplete={handleExecuteSwap}
                         isLoading={isSwapping}
-                        className="w-full"
-                    >
-                        {isSwapping ? 'Swapping...' : getSwapButtonText()}
+                        disabled={!canSwap}
+                        idleLabel={`Hold to swap ${fromSymbol} for ${toSymbol}`}
+                    />
+                ) : (
+                    <Button onClick={handleExecuteSwap} isLoading={isSwapping} disabled={!canSwap} className="w-full">
+                        Swap {fromSymbol} for {toSymbol}
                     </Button>
                 )}
             </div>

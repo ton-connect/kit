@@ -14,6 +14,7 @@ interface HoldToSignButtonProps {
     isLoading?: boolean;
     holdDuration?: number; // Duration in milliseconds
     className?: string;
+    idleLabel?: string;
 }
 
 export const HoldToSignButton: React.FC<HoldToSignButtonProps> = ({
@@ -22,6 +23,7 @@ export const HoldToSignButton: React.FC<HoldToSignButtonProps> = ({
     isLoading = false,
     holdDuration = 3000,
     className = '',
+    idleLabel = 'Hold to Sign',
 }) => {
     const [isHolding, setIsHolding] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -221,7 +223,7 @@ export const HoldToSignButton: React.FC<HoldToSignButtonProps> = ({
                         <span className="font-semibold inline-block min-w-[110px] text-center">
                             {isHolding
                                 ? `Hold (${Math.ceil((holdDuration - (progress * holdDuration) / 100) / 1000)}s)`
-                                : 'Hold to Sign'}
+                                : idleLabel}
                         </span>
                     </>
                 )}

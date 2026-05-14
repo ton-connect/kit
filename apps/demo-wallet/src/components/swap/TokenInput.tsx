@@ -23,6 +23,7 @@ interface Props {
     onAmountChange: (amount: string) => void;
     excludeToken?: SwapToken;
     isOutput?: boolean;
+    isLoading?: boolean;
     className?: string;
 }
 
@@ -34,6 +35,7 @@ export const TokenInput: FC<Props> = ({
     onAmountChange,
     excludeToken,
     isOutput = false,
+    isLoading = false,
     className,
 }) => {
     const { balance } = useWallet();
@@ -93,9 +95,12 @@ export const TokenInput: FC<Props> = ({
             </div>
 
             <div className="flex max-w-full items-center gap-2 overflow-hidden">
-                <div className="flex-1">
+                <div className="flex-1 relative">
                     <input
-                        className="w-full font-semibold text-3xl outline-none [-moz-appearance:textfield] focus-visible:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                        className={cn(
+                            'w-full font-semibold text-3xl outline-none [-moz-appearance:textfield] focus-visible:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
+                            isLoading && !amount && 'text-transparent caret-transparent',
+                        )}
                         disabled={isOutput}
                         id={`amount-${label}`}
                         onChange={(e) => onAmountChange(e.target.value)}
@@ -103,6 +108,11 @@ export const TokenInput: FC<Props> = ({
                         type="text"
                         value={amount}
                     />
+                    {isLoading && !amount && (
+                        <div className="pointer-events-none absolute inset-0 flex items-center">
+                            <div className="h-7 w-24 rounded-md bg-gray-200/80 animate-pulse" />
+                        </div>
+                    )}
                 </div>
 
                 <TokenSelector excludeToken={excludeToken} onTokenSelect={onTokenSelect} selectedToken={token} />
