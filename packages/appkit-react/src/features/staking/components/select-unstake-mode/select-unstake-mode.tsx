@@ -17,6 +17,7 @@ import { ChevronDownIcon } from '../../../../components/ui/icons';
 import { useI18n } from '../../../settings/hooks/use-i18n';
 import { formatAmount } from '../staking-info/utils';
 import styles from './select-unstake-mode.module.css';
+import { Button } from '../../../../components/ui/button';
 
 export interface SelectUnstakeModeProps extends ComponentProps<'div'> {
     value: UnstakeModes;
@@ -84,13 +85,20 @@ export const SelectUnstakeMode: FC<SelectUnstakeModeProps> = ({
 
     return (
         <div className={clsx(styles.root, className)} {...props}>
-            <button type="button" className={styles.header} onClick={() => setOpen((v) => !v)}>
+            <div className={styles.header}>
                 <span className={styles.headerLabel}>{t('staking.unstakeType')}</span>
-                <span className={styles.headerValue}>
+
+                <Button
+                    variant="gray"
+                    size="s"
+                    borderRadius="full"
+                    className={styles.headerValue}
+                    onClick={() => setOpen((v) => !v)}
+                >
                     {selectedLabel}
                     <ChevronDownIcon size={16} className={clsx(styles.chevron, open && styles.chevronOpen)} />
-                </span>
-            </button>
+                </Button>
+            </div>
 
             <Collapsible open={open}>
                 <div className={styles.options}>

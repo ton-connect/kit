@@ -16,6 +16,10 @@
   margin-bottom: 16px;
 }
 
+.widget > .info {
+  padding-top: 12px;
+}
+
 .inputSection {
   display: flex;
   flex-direction: column;

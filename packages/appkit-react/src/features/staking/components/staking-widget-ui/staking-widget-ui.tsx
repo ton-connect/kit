@@ -127,7 +127,7 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
                 </TabsContent>
 
                 {/* ── UNSTAKE TAB ── */}
-                <TabsContent className={styles.tab} value="unstake">
+                <TabsContent value="unstake">
                     <div className={styles.content}>
                         <div className={styles.inputSection}>
                             <CenteredAmountInput
@@ -167,16 +167,17 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
                         />
                     </div>
                 </TabsContent>
-
-                <StakingInfo
-                    quote={quote}
-                    isQuoteLoading={isQuoteLoading}
-                    providerInfo={providerInfo}
-                    providerMetadata={providerMetadata}
-                    isProviderInfoLoading={isProviderInfoLoading}
-                    direction={direction}
-                />
             </Tabs>
+
+            <StakingInfo
+                className={styles.info}
+                quote={quote}
+                isQuoteLoading={isQuoteLoading}
+                providerInfo={providerInfo}
+                providerMetadata={providerMetadata}
+                isProviderInfoLoading={isProviderInfoLoading}
+                direction={direction}
+            />
 
             <LowBalanceModal
                 open={isLowBalanceWarningOpen}
