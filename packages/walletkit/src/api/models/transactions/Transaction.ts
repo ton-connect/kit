@@ -6,6 +6,7 @@
  *
  */
 
+import type { AccountStatus } from '../blockchain/AccountStatus';
 import type { Hex, Base64String, LogicalTime, UserFriendlyAddress } from '../core/Primitives';
 import type { ExtraCurrencies } from '../core/ExtraCurrencies';
 import type { TokenAmount } from '../core/TokenAmount';
@@ -22,12 +23,12 @@ export interface Transaction {
     /**
      * The state of the account before the transaction was executed
      */
-    accountStateBefore?: AccountState;
+    accountStateBefore?: TransactionAccountState;
 
     /**
      * * The state of the account after the transaction has been applied
      */
-    accountStateAfter?: AccountState;
+    accountStateAfter?: TransactionAccountState;
 
     /**
      * The detailed breakdown of the transaction execution
@@ -117,19 +118,9 @@ export interface Transaction {
 }
 
 /**
- * Status of the account on the blockchain.
- */
-export type AccountStatus =
-    | { type: 'active' }
-    | { type: 'frozen' }
-    | { type: 'uninit' }
-    | { type: 'nonexist' }
-    | { type: 'unknown'; value: string };
-
-/**
  * State of an account at a specific point in time.
  */
-export interface AccountState {
+export interface TransactionAccountState {
     /**
      * The state hash of the account
      */

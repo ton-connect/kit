@@ -6,13 +6,19 @@
  *
  */
 
-import type { AccountStatus } from '@ton/core';
-
-import type { Hex } from '../../../api/models';
-import type { FullAccountState, TransactionId } from '../../../types/toncenter/api';
+import type {
+    AccountState,
+    AccountStatus,
+    ExtraCurrencies,
+    Hex,
+    TransactionId,
+    UserFriendlyAddress,
+} from '../../../api/models';
+import { asAddressFriendly } from '../../../utils/address';
+import { formatUnits } from '../../../utils/units';
 import type { TonApiBlockchainAccount } from '../types/accounts';
 
-export function mapAccountState(raw: TonApiBlockchainAccount): FullAccountState {
+export function mapAccountState(raw: TonApiBlockchainAccount, address: UserFriendlyAddress): AccountState {
     let status: AccountStatus;
     switch (raw.status) {
         case 'nonexist':
@@ -31,14 +37,14 @@ export function mapAccountState(raw: TonApiBlockchainAccount): FullAccountState 
             status = 'non-existing';
     }
 
-    const extraCurrencies: Record<number, bigint> = {};
+    const extraCurrencies: ExtraCurrencies = {};
     if (raw.extra_balance && Array.isArray(raw.extra_balance)) {
         for (const extra of raw.extra_balance) {
-            extraCurrencies[extra.preview.id] = BigInt(extra.amount);
+            extraCurrencies[String(extra.preview.id)] = String(extra.amount);
         }
     }
 
-    let lastTransaction: TransactionId | null = null;
+    let lastTransaction: TransactionId | undefined;
     if (raw.last_transaction_lt && raw.last_transaction_hash) {
         lastTransaction = {
             lt: raw.last_transaction_lt.toString(),
@@ -48,14 +54,16 @@ export function mapAccountState(raw: TonApiBlockchainAccount): FullAccountState 
         };
     }
 
-    const out: FullAccountState = {
+    const rawBalance = raw.balance.toString();
+
+    return {
+        address: asAddressFriendly(address),
         status,
-        balance: raw.balance.toString(),
+        rawBalance,
+        balance: formatUnits(rawBalance, 9),
         extraCurrencies,
-        code: raw.code ? Buffer.from(raw.code, 'hex').toString('base64') : null,
-        data: raw.data ? Buffer.from(raw.data, 'hex').toString('base64') : null,
+        code: raw.code ? Buffer.from(raw.code, 'hex').toString('base64') : undefined,
+        data: raw.data ? Buffer.from(raw.data, 'hex').toString('base64') : undefined,
         lastTransaction,
     };
-
-    return out;
 }

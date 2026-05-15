@@ -6,11 +6,9 @@
  *
  */
 
-import type { ExtraCurrency } from '@ton/core';
 import { Address } from '@ton/core';
 
 import { Base64ToBigInt, Base64Normalize, Base64ToHex } from '../../utils/base64';
-import type { FullAccountState } from '../../types/toncenter/api';
 import type { JettonInfo } from '../../types';
 import type { ToncenterEmulationResponse } from './types/raw-emulation';
 import type {
@@ -38,6 +36,9 @@ import { toDnsRecords } from './types/v3/DNSRecordsResponseV3';
 import { toAddressBook, toEvent } from '../../types/toncenter/AccountEvent';
 import { Network } from '../../api/models';
 import type {
+    AccountState,
+    AccountStates,
+    ExtraCurrencies,
     Base64String,
     GetMethodResult,
     Jetton,
@@ -51,7 +52,10 @@ import type {
     UserNFTsRequest,
     MasterchainInfo,
 } from '../../api/models';
-import { asAddressFriendly } from '../../utils/address';
+import { asAddressFriendly, compareAddress } from '../../utils/address';
+import { formatUnits } from '../../utils/units';
+import { mapAccountStatesEntry, makeNonExistingAccountState } from './mappers/map-account-states-entry';
+import type { ToncenterAccountStatesResponse } from './types/account-states';
 import type { EmulationResult } from '../../api/models';
 import { mapToncenterEmulationResponse } from './mappers/map-emulation';
 import { BaseApiClient } from '../BaseApiClient';
@@ -62,6 +66,8 @@ import { TonClientError } from '../TonClientError';
 import { isHex } from '../../utils';
 
 const log = globalLogger.createChild('ApiClientToncenter');
+
+const MAX_ACCOUNT_STATES_BATCH = 100;
 
 export interface ApiClientConfig extends BaseApiClientConfig {
     dnsResolver?: string;
@@ -150,27 +156,28 @@ export class ApiClientToncenter extends BaseApiClient implements ApiClient {
         };
     }
 
-    async getAccountState(address: UserFriendlyAddress, seqno?: number): Promise<FullAccountState> {
+    async getAccountState(address: UserFriendlyAddress, seqno?: number): Promise<AccountState> {
         const query: Record<string, unknown> = { include_boc: true, address: [address] };
         if (typeof seqno === 'number') query.seqno = seqno.toString();
         const raw = await this.getJson<V2AddressInformation>('/api/v3/addressInformation', query);
-        const balance = BigInt(raw.balance);
-        const extraCurrencies: ExtraCurrency = {};
+        const rawBalance = BigInt(raw.balance).toString();
+        const extraCurrencies: ExtraCurrencies = {};
         for (const currency of raw.extra_currencies || []) {
-            extraCurrencies[currency.id] = BigInt(currency.amount);
+            extraCurrencies[String(currency.id)] = currency.amount;
         }
-        // const code = Base64ToUint8Array(raw.code);
-        // const data = Base64ToUint8Array(raw.data);
-        const out: FullAccountState = {
+        const out: AccountState = {
+            address: asAddressFriendly(address),
             status: raw.status,
-            balance: balance.toString(),
+            rawBalance,
+            balance: formatUnits(rawBalance, 9),
             extraCurrencies,
-            code: raw.code,
-            data: raw.data,
-            lastTransaction: parseInternalTransactionId({
-                hash: raw.last_transaction_hash,
-                lt: raw.last_transaction_lt,
-            }),
+            code: raw.code ?? undefined,
+            data: raw.data ?? undefined,
+            lastTransaction:
+                parseInternalTransactionId({
+                    hash: raw.last_transaction_hash,
+                    lt: raw.last_transaction_lt,
+                }) ?? undefined,
         };
         if (raw.frozen_hash) {
             out.frozenHash = Base64ToHex(raw.frozen_hash) ?? undefined;
@@ -178,8 +185,41 @@ export class ApiClientToncenter extends BaseApiClient implements ApiClient {
         return out;
     }
 
+    async getAccountStates(addresses: UserFriendlyAddress[]): Promise<AccountStates> {
+        if (addresses.length > MAX_ACCOUNT_STATES_BATCH) {
+            throw new Error(
+                `ApiClientToncenter.getAccountStates: requested ${addresses.length} addresses, ` +
+                    `maximum is ${MAX_ACCOUNT_STATES_BATCH} per call.`,
+            );
+        }
+
+        const unique = new Set<UserFriendlyAddress>();
+        for (const addr of addresses) {
+            unique.add(asAddressFriendly(addr));
+        }
+        const uniqueAddrs = [...unique];
+
+        if (uniqueAddrs.length === 0) {
+            return {};
+        }
+
+        const raw = await this.getJson<ToncenterAccountStatesResponse>('/api/v3/accountStates', {
+            address: uniqueAddrs,
+            include_boc: true,
+        });
+
+        const result: AccountStates = {};
+        for (const inputAddr of uniqueAddrs) {
+            const account = raw.accounts.find((a) => compareAddress(a.address, inputAddr));
+            result[inputAddr] = account
+                ? mapAccountStatesEntry(account, inputAddr)
+                : makeNonExistingAccountState(inputAddr);
+        }
+        return result;
+    }
+
     async getBalance(address: UserFriendlyAddress, seqno?: number): Promise<TokenAmount> {
-        return (await this.getAccountState(address, seqno)).balance;
+        return (await this.getAccountState(address, seqno)).rawBalance;
     }
 
     async getAccountTransactions(request: TransactionsByAddressRequest): Promise<TransactionsResponse> {

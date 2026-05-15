@@ -110,7 +110,7 @@ export { RESTORE_CONNECTION_TIMEOUT, DEFAULT_REQUEST_TIMEOUT } from './bridge/ut
 export { CreateTonProofMessageBytes } from './utils/tonProof';
 export type { AnalyticsAppInfo, AnalyticsManagerOptions } from './analytics';
 
-export type { FullAccountState } from './types/toncenter/api';
+export type { AccountState, AccountStates, TransactionId } from './api/models';
 export type { ToncenterResponseJettonMasters } from './types/toncenter/emulation';
 export { asHex } from './utils/hex';
 export {

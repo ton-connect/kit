@@ -9,9 +9,10 @@
 import type { Address } from '@ton/core';
 
 import type { ToncenterResponseJettonMasters, ToncenterTracesResponse } from '../../types/toncenter/emulation';
-import type { FullAccountState } from '../../types/toncenter/api';
 import type { Event } from '../../types/toncenter/AccountEvent';
 import type {
+    AccountState,
+    AccountStates,
     Base64String,
     UserNFTsRequest,
     NFTsRequest,
@@ -108,7 +109,22 @@ export interface ApiClient {
         stack?: RawStackItem[],
         seqno?: number,
     ): Promise<GetMethodResult>; // TODO - Make serializable
-    getAccountState(address: UserFriendlyAddress, seqno?: number): Promise<FullAccountState>;
+    getAccountState(address: UserFriendlyAddress, seqno?: number): Promise<AccountState>;
+
+    /**
+     * Fetches blockchain state for multiple accounts in a single batched request.
+     *
+     * Returns a Record keyed by canonical (bounceable) addresses, normalized via
+     * `asAddressFriendly`. Every input address is guaranteed to have a key:
+     * accounts that don't exist on chain are represented by an `AccountState`
+     * with `status: 'non-existing'`.
+     *
+     * Throws synchronously on any invalid address format (no network call made).
+     * Throws on any HTTP failure. Has no `seqno` parameter — bulk endpoints
+     * of both toncenter and tonapi do not support historical state queries.
+     */
+    getAccountStates(addresses: UserFriendlyAddress[]): Promise<AccountStates>;
+
     getBalance(address: UserFriendlyAddress, seqno?: number): Promise<TokenAmount>;
 
     getAccountTransactions(request: TransactionsByAddressRequest): Promise<TransactionsResponse>;

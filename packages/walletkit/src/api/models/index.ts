@@ -7,7 +7,11 @@
  */
 
 // Blockchain models
+export type { AccountState } from './blockchain/AccountState';
+export type { AccountStates } from './blockchain/AccountStates';
+export type { AccountStatus } from './blockchain/AccountStatus';
 export type { MasterchainInfo } from './blockchain/MasterchainInfo';
+export type { TransactionId } from './blockchain/TransactionId';
 
 // Core models
 export type { AddressBook, AddressBookEntry } from './core/AddressBook';
@@ -83,7 +87,6 @@ export type { EmulationTraceNode } from './emulation/EmulationTraceNode';
 export type {
     EmulationTransaction,
     EmulationAccountState,
-    EmulationAccountStatus,
     EmulationBlockRef,
     EmulationTransactionDescription,
     EmulationStoragePhase,

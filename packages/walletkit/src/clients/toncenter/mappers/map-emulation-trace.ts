@@ -7,8 +7,7 @@
  */
 
 import type {
-    AccountState,
-    AccountStatus,
+    TransactionAccountState,
     Transaction,
     TransactionMessage,
     TransactionDescription,
@@ -29,7 +28,6 @@ import type {
     EmulationMessage as DomainEmulationMessage,
     EmulationAction as DomainEmulationAction,
     EmulationAddressBookEntry as DomainEmulationAddressBookEntry,
-    EmulationAccountStatus,
 } from '../../../api/models';
 import { asMaybeAddressFriendly } from '../../../utils/address';
 import type {
@@ -63,31 +61,16 @@ function domainTraceNodeToTransactionTraceNode(node: DomainEmulationTraceNode): 
     };
 }
 
-function emulationAccountStateToAccountState(state: DomainEmulationAccountState): AccountState {
+function emulationAccountStateToAccountState(state: DomainEmulationAccountState): TransactionAccountState {
     return {
         hash: state.hash ?? undefined,
         balance: state.balance,
         extraCurrencies: state.extraCurrencies ?? undefined,
-        accountStatus: toAccountStatus(state.accountStatus),
+        accountStatus: state.accountStatus,
         frozenHash: state.frozenHash ?? undefined,
         dataHash: state.dataHash ?? undefined,
         codeHash: state.codeHash ?? undefined,
     };
-}
-
-function toAccountStatus(status: EmulationAccountStatus): AccountStatus {
-    switch (status) {
-        case 'active':
-            return { type: 'active' };
-        case 'frozen':
-            return { type: 'frozen' };
-        case 'uninit':
-            return { type: 'uninit' };
-        case 'nonexist':
-            return { type: 'nonexist' };
-        default:
-            return { type: 'unknown', value: status };
-    }
 }
 
 function emulationMsgToTransactionMessage(msg: DomainEmulationMessage): TransactionMessage {
@@ -177,8 +160,8 @@ function emulationTxToTransaction(tx: DomainEmulationTransaction): Transaction {
         traceId: tx.traceId,
         previousTransactionHash: tx.prevTransHash ?? undefined,
         previousTransactionLogicalTime: tx.prevTransLt ?? undefined,
-        origStatus: toAccountStatus(tx.origStatus),
-        endStatus: toAccountStatus(tx.endStatus),
+        origStatus: tx.origStatus,
+        endStatus: tx.endStatus,
         totalFees: tx.totalFees,
         totalFeesExtraCurrencies: tx.totalFeesExtraCurrencies,
         blockRef: tx.blockRef,

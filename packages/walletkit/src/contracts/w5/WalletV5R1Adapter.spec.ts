@@ -13,7 +13,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { clearAllMocks, mocked } from '../../../mock.config';
 import { WalletV5R1Adapter } from './WalletV5R1Adapter';
 import type { ApiClient } from '../../api/interfaces';
-import type { FullAccountState } from '../../types/toncenter/api';
+import type { AccountState } from '../../api/models';
 import { HexToBase64, Uint8ArrayToHex } from '../../utils/base64';
 import { Signer } from '../../utils/Signer';
 import {
@@ -112,6 +112,7 @@ describe('WalletV5R1Adapter', () => {
         expect(tonClient.getAccountState).toHaveBeenCalledWith(wallet.walletContract.address.toString());
         mocked(tonClient.getAccountState).mockResolvedValueOnce({
             status: 'uninitialized',
+            rawBalance: '0',
             balance: '0',
             last: null,
             frozen: null,
@@ -120,7 +121,7 @@ describe('WalletV5R1Adapter', () => {
             code: null,
             data: null,
             lastTransaction: null,
-        } as unknown as FullAccountState);
+        } as unknown as AccountState);
         isDeployed = await wallet.isDeployed();
         expect(isDeployed).toEqual(false);
         mocked(tonClient.getAccountState).mockRejectedValueOnce(new Error('Account state fetch failed'));

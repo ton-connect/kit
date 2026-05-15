@@ -6,15 +6,11 @@
  *
  */
 
+import type { AccountStatus } from '../blockchain/AccountStatus';
 import type { UserFriendlyAddress, LogicalTime, Hex } from '../core/Primitives';
 import type { TokenAmount } from '../core/TokenAmount';
 import type { ExtraCurrencies } from '../core/ExtraCurrencies';
 import type { EmulationMessage } from './EmulationMessage';
-
-/**
- * Account status on the TON blockchain.
- */
-export type EmulationAccountStatus = 'active' | 'frozen' | 'uninit' | 'nonexist';
 
 /**
  * State of an account at a specific point in an emulated transaction.
@@ -38,7 +34,7 @@ export interface EmulationAccountState {
     /**
      * Account status
      */
-    accountStatus: EmulationAccountStatus;
+    accountStatus: AccountStatus;
 
     /**
      * Hex-encoded hash of the frozen account state, if frozen
@@ -372,12 +368,12 @@ export interface EmulationTransaction {
     /**
      * Account status before this transaction was applied
      */
-    origStatus: EmulationAccountStatus;
+    origStatus: AccountStatus;
 
     /**
      * Account status after this transaction was applied
      */
-    endStatus: EmulationAccountStatus;
+    endStatus: AccountStatus;
 
     /**
      * Total fees paid in nanotons

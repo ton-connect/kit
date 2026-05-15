@@ -6,8 +6,7 @@
  *
  */
 
-import type { AccountStatus } from '@ton/core';
-
+import type { AccountStatus } from '../../../api/models';
 import type { RawStackItem } from '../../../utils';
 
 export interface InternalTransactionId {

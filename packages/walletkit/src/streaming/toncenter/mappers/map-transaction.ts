@@ -8,7 +8,7 @@
 
 import type {
     Transaction,
-    AccountState,
+    TransactionAccountState,
     AccountStatus,
     TransactionMessage,
     TransactionDescription,
@@ -23,13 +23,13 @@ import type { EmulationBlockRef, EmulationMessage } from '../../../types/toncent
 
 const toAccountStatus = (status: string | null | undefined): AccountStatus | undefined => {
     if (!status) return undefined;
-    if (status === 'active') return { type: 'active' };
-    if (status === 'frozen') return { type: 'frozen' };
-    if (status === 'uninit') return { type: 'uninit' };
-    return { type: 'unknown', value: status };
+    if (status === 'active') return 'active';
+    if (status === 'frozen') return 'frozen';
+    if (status === 'uninit') return 'uninitialized';
+    return 'non-existing';
 };
 
-const toAccountState = (state: StreamingV2AccountState): AccountState => {
+const toAccountState = (state: StreamingV2AccountState): TransactionAccountState => {
     return {
         hash: Base64ToHex(state.hash),
         balance: state.balance ?? '0',
