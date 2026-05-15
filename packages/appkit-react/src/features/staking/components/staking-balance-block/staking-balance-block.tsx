@@ -81,7 +81,7 @@ export const StakingBalanceBlock: FC<StakingBalanceBlockProps> = ({
             </div>
 
             {onMaxClick && (
-                <Button size="s" variant="secondary" className={styles.maxButton} onClick={onMaxClick}>
+                <Button size="s" variant="bezeled" className={styles.maxButton} onClick={onMaxClick}>
                     {t('staking.max')}
                 </Button>
             )}

@@ -28,13 +28,13 @@
 }
 
 .input::placeholder {
-    color: var(--ta-color-text-tertiary);
+    color: var(--ta-color-text-secondary);
     opacity: 1;
 }
 
 .ticker {
     composes: inputXlSymbol from "../../../styles/typography.module.css";
-    color: var(--ta-color-text-tertiary);
+    color: var(--ta-color-text-secondary);
     white-space: nowrap;
     user-select: none;
     margin-left: 0.2em;
