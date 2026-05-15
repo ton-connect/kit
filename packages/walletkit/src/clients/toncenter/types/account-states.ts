@@ -6,16 +6,15 @@
  *
  */
 
-import type { AccountStatus } from '@ton/core';
-
 /**
  * Raw entry from toncenter `/api/v3/accountStates` response.
- * Note: addresses are in UPPERCASE raw form, hashes are base64.
+ * Note: addresses are in UPPERCASE raw form, hashes are base64,
+ * status is in short form (`active` | `uninit` | `frozen` | `nonexist`).
  */
 export interface ToncenterAccountStatesEntry {
     address: string;
     balance: string;
-    status: AccountStatus;
+    status: 'active' | 'uninit' | 'frozen' | 'nonexist';
     extra_currencies?: Record<string, string>;
     code_boc?: string | null;
     data_boc?: string | null;

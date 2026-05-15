@@ -6,9 +6,14 @@
  *
  */
 
-import type { AccountStatus } from '@ton/core';
-
-import type { AccountState, Hex, TransactionId, UserFriendlyAddress } from '../../../api/models';
+import type {
+    AccountState,
+    AccountStatus,
+    ExtraCurrencies,
+    Hex,
+    TransactionId,
+    UserFriendlyAddress,
+} from '../../../api/models';
 import { asAddressFriendly } from '../../../utils/address';
 import { formatUnits } from '../../../utils/units';
 import type { TonApiBlockchainAccount } from '../types/accounts';
@@ -32,10 +37,10 @@ export function mapAccountState(raw: TonApiBlockchainAccount, address: UserFrien
             status = 'non-existing';
     }
 
-    const extraCurrencies: Record<number, bigint> = {};
+    const extraCurrencies: ExtraCurrencies = {};
     if (raw.extra_balance && Array.isArray(raw.extra_balance)) {
         for (const extra of raw.extra_balance) {
-            extraCurrencies[extra.preview.id] = BigInt(extra.amount);
+            extraCurrencies[String(extra.preview.id)] = String(extra.amount);
         }
     }
 

@@ -6,26 +6,32 @@
  *
  */
 
-import type { ExtraCurrency } from '@ton/core';
-
-import type { AccountState, UserFriendlyAddress } from '../../../api/models';
+import type { AccountState, AccountStatus, ExtraCurrencies, UserFriendlyAddress } from '../../../api/models';
 import { asAddressFriendly } from '../../../utils/address';
 import { Base64ToHex } from '../../../utils/base64';
 import { formatUnits } from '../../../utils/units';
 import type { ToncenterAccountStatesEntry } from '../types/account-states';
 import { parseInternalTransactionId } from '../utils';
 
-export function mapAccountStatesEntry(raw: ToncenterAccountStatesEntry, address: UserFriendlyAddress): AccountState {
-    const extraCurrencies: ExtraCurrency = {};
-    if (raw.extra_currencies) {
-        for (const [id, amount] of Object.entries(raw.extra_currencies)) {
-            extraCurrencies[Number(id)] = BigInt(amount);
-        }
+function toAccountStatus(raw: ToncenterAccountStatesEntry['status']): AccountStatus {
+    switch (raw) {
+        case 'active':
+            return 'active';
+        case 'uninit':
+            return 'uninitialized';
+        case 'frozen':
+            return 'frozen';
+        case 'nonexist':
+            return 'non-existing';
     }
+}
+
+export function mapAccountStatesEntry(raw: ToncenterAccountStatesEntry, address: UserFriendlyAddress): AccountState {
+    const extraCurrencies: ExtraCurrencies = { ...(raw.extra_currencies ?? {}) };
 
     const out: AccountState = {
         address: asAddressFriendly(address),
-        status: raw.status,
+        status: toAccountStatus(raw.status),
         rawBalance: raw.balance,
         balance: formatUnits(raw.balance, 9),
         extraCurrencies,

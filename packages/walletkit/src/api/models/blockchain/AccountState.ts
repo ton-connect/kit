@@ -6,11 +6,11 @@
  *
  */
 
-import type { AccountStatus, ExtraCurrency } from '@ton/core';
-
+import type { AccountStatus } from './AccountStatus';
 import type { Hex, UserFriendlyAddress } from '../core/Primitives';
 import type { TokenAmount } from '../core/TokenAmount';
 import type { TransactionId } from './TransactionId';
+import type { ExtraCurrencies } from '../core/ExtraCurrencies';
 
 /**
  * Blockchain state of an account at a given point in time.
@@ -46,7 +46,7 @@ export interface AccountState {
      * Additional currencies attached to the account, keyed by currency id.
      * Empty object if there are none.
      */
-    extraCurrencies: ExtraCurrency;
+    extraCurrencies: ExtraCurrencies;
 
     /**
      * Base64-encoded contract code BOC. Omitted if the contract is not deployed.

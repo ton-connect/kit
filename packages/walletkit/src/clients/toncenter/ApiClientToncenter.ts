@@ -6,7 +6,6 @@
  *
  */
 
-import type { ExtraCurrency } from '@ton/core';
 import { Address } from '@ton/core';
 
 import { Base64ToBigInt, Base64Normalize, Base64ToHex } from '../../utils/base64';
@@ -39,6 +38,7 @@ import { Network } from '../../api/models';
 import type {
     AccountState,
     AccountStates,
+    ExtraCurrencies,
     Base64String,
     GetMethodResult,
     Jetton,
@@ -161,9 +161,9 @@ export class ApiClientToncenter extends BaseApiClient implements ApiClient {
         if (typeof seqno === 'number') query.seqno = seqno.toString();
         const raw = await this.getJson<V2AddressInformation>('/api/v3/addressInformation', query);
         const rawBalance = BigInt(raw.balance).toString();
-        const extraCurrencies: ExtraCurrency = {};
+        const extraCurrencies: ExtraCurrencies = {};
         for (const currency of raw.extra_currencies || []) {
-            extraCurrencies[currency.id] = BigInt(currency.amount);
+            extraCurrencies[String(currency.id)] = currency.amount;
         }
         const out: AccountState = {
             address: asAddressFriendly(address),
