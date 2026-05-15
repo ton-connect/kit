@@ -48,14 +48,11 @@ export const appKit = new AppKit({
             },
         }),
     ],
-    providers: [createOmnistonProvider(), createDeDustProvider(), createTonstakersProvider()],
+    providers: [
+        createOmnistonProvider(),
+        createDeDustProvider(),
+        createTonstakersProvider(),
+        createTonCenterStreamingProvider({ network: Network.mainnet(), apiKey: ENV_TON_API_KEY_MAINNET }),
+        createTonCenterStreamingProvider({ network: Network.testnet(), apiKey: ENV_TON_API_KEY_TESTNET }),
+    ],
 });
-
-// TODO: replace in normal config
-appKit.streamingManager.registerProvider(
-    createTonCenterStreamingProvider({ network: Network.mainnet(), apiKey: ENV_TON_API_KEY_MAINNET }),
-);
-
-appKit.streamingManager.registerProvider(
-    createTonCenterStreamingProvider({ network: Network.testnet(), apiKey: ENV_TON_API_KEY_TESTNET }),
-);

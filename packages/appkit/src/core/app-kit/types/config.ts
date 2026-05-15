@@ -11,6 +11,7 @@ import type { NetworkAdapters, ProviderInput } from '@ton/walletkit';
 import type { AppKitCache } from '../../cache';
 import type { ConnectorInput } from '../../../types/connector';
 import type { Network } from '../../../types/network';
+import type { AppKitProvider } from '../../../types/provider';
 
 /**
  * Configuration for AppKit
@@ -37,7 +38,7 @@ export interface AppKitConfig {
      */
     defaultNetwork?: Network;
 
-    providers?: ProviderInput[];
+    providers?: ProviderInput<AppKitProvider>[];
 
     /**
      * Custom cache implementation.

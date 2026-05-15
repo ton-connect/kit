@@ -7,7 +7,7 @@
  */
 
 import { SwapManager, StreamingManager } from '@ton/walletkit';
-import type { ProviderInput, SwapProviderInterface, StakingProviderInterface } from '@ton/walletkit';
+import type { ProviderInput, SwapProviderInterface, StakingProviderInterface, StreamingProvider } from '@ton/walletkit';
 
 import type { AppKitConfig } from '../types/config';
 import { CONNECTOR_EVENTS, WALLETS_EVENTS } from '../constants/events';
@@ -21,6 +21,7 @@ import { AppKitNetworkManager } from '../../network';
 import { Network } from '../../../types/network';
 import type { AppKitCache } from '../../cache';
 import { LruAppKitCache } from '../../cache';
+import type { AppKitProvider } from '../../../types/provider';
 
 /**
  * Central hub for wallet management.
@@ -110,7 +111,7 @@ export class AppKit {
     /**
      * Add a provider
      */
-    registerProvider(input: ProviderInput): void {
+    registerProvider(input: ProviderInput<AppKitProvider>): void {
         const provider = typeof input === 'function' ? input(this.createFactoryContext()) : input;
         switch (provider.type) {
             case 'swap':
@@ -118,6 +119,9 @@ export class AppKit {
                 break;
             case 'staking':
                 this.stakingManager.registerProvider(provider as StakingProviderInterface);
+                break;
+            case 'streaming':
+                this.streamingManager.registerProvider(provider as StreamingProvider);
                 break;
             default:
                 throw new Error('Unknown provider type');
