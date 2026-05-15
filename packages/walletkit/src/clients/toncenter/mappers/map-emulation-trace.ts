@@ -7,8 +7,8 @@
  */
 
 import type {
-    AccountState,
-    AccountStatus,
+    TransactionAccountState,
+    TransactionAccountStatus,
     Transaction,
     TransactionMessage,
     TransactionDescription,
@@ -63,7 +63,7 @@ function domainTraceNodeToTransactionTraceNode(node: DomainEmulationTraceNode): 
     };
 }
 
-function emulationAccountStateToAccountState(state: DomainEmulationAccountState): AccountState {
+function emulationAccountStateToAccountState(state: DomainEmulationAccountState): TransactionAccountState {
     return {
         hash: state.hash ?? undefined,
         balance: state.balance,
@@ -75,7 +75,7 @@ function emulationAccountStateToAccountState(state: DomainEmulationAccountState)
     };
 }
 
-function toAccountStatus(status: EmulationAccountStatus): AccountStatus {
+function toAccountStatus(status: EmulationAccountStatus): TransactionAccountStatus {
     switch (status) {
         case 'active':
             return { type: 'active' };

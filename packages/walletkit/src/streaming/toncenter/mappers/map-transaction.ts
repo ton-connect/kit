@@ -8,8 +8,8 @@
 
 import type {
     Transaction,
-    AccountState,
-    AccountStatus,
+    TransactionAccountState,
+    TransactionAccountStatus,
     TransactionMessage,
     TransactionDescription,
     TransactionBlockRef,
@@ -21,7 +21,7 @@ import { parseMsgSizeCount } from '../../../clients/toncenter/utils';
 import type { StreamingV2AccountState, StreamingV2TransactionRaw, StreamingV2TransactionDescription } from '../types';
 import type { EmulationBlockRef, EmulationMessage } from '../../../types/toncenter/emulation';
 
-const toAccountStatus = (status: string | null | undefined): AccountStatus | undefined => {
+const toAccountStatus = (status: string | null | undefined): TransactionAccountStatus | undefined => {
     if (!status) return undefined;
     if (status === 'active') return { type: 'active' };
     if (status === 'frozen') return { type: 'frozen' };
@@ -29,7 +29,7 @@ const toAccountStatus = (status: string | null | undefined): AccountStatus | und
     return { type: 'unknown', value: status };
 };
 
-const toAccountState = (state: StreamingV2AccountState): AccountState => {
+const toAccountState = (state: StreamingV2AccountState): TransactionAccountState => {
     return {
         hash: Base64ToHex(state.hash),
         balance: state.balance ?? '0',

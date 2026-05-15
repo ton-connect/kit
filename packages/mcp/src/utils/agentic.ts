@@ -10,7 +10,7 @@ import { randomBytes } from 'node:crypto';
 
 import { Address, Cell } from '@ton/core';
 import { Base64NormalizeUrl, CallForSuccess, getNftsFromClient, Signer, Uint8ArrayToBase64 } from '@ton/walletkit';
-import type { ApiClient, FullAccountState } from '@ton/walletkit';
+import type { ApiClient, AccountState } from '@ton/walletkit';
 
 import { AgenticWalletCodeCell } from '../contracts/agentic_wallet/AgenticWallet.source.js';
 import type { TonNetwork } from '../registry/config.js';
@@ -67,7 +67,7 @@ export class AgenticWalletValidationError extends Error {
 interface AgenticWalletContractCheckResult {
     address: string;
     network: TonNetwork;
-    accountStatus: FullAccountState['status'];
+    accountStatus: AccountState['status'];
     hasCode: boolean;
     codeHash?: string;
     expectedCodeHash: string;
@@ -92,7 +92,7 @@ async function withAgenticLookupRetry<T>(fn: () => Promise<T>): Promise<T> {
     );
 }
 
-function getAccountCodeHash(accountState: FullAccountState): string | undefined {
+function getAccountCodeHash(accountState: AccountState): string | undefined {
     if (!accountState.code) {
         return undefined;
     }
@@ -100,7 +100,7 @@ function getAccountCodeHash(accountState: FullAccountState): string | undefined 
 }
 
 function assertAgenticWalletContract(input: {
-    accountState: FullAccountState;
+    accountState: AccountState;
     address: string;
     network: TonNetwork;
 }): AgenticWalletContractCheckResult {
@@ -226,7 +226,7 @@ export function buildAgenticChangeKeyDeepLink(address: string, nextOperatorPubli
     return url.toString();
 }
 
-function parseAgenticWalletState(accountState: FullAccountState, address: string): AgenticWalletState {
+function parseAgenticWalletState(accountState: AccountState, address: string): AgenticWalletState {
     if (!accountState.data) {
         throw new Error(`Account state data is empty for ${address}`);
     }
@@ -292,7 +292,7 @@ async function getAgenticWalletSnapshot(input: {
         address: input.address,
         network: input.network,
     });
-    const balanceNano = BigInt(accountState.balance ?? '0').toString();
+    const balanceNano = BigInt(accountState.rawBalance ?? '0').toString();
     let state: AgenticWalletState;
     try {
         state = parseAgenticWalletState(accountState, input.address);

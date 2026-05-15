@@ -63,7 +63,7 @@ export type {
     TraceMeta,
 } from './toncenter/emulation';
 
-export type { FullAccountState } from './toncenter/api';
+export type { AccountState, AccountStates, TransactionId } from '../api/models';
 
 export type { NftItem, NftItems } from '../clients/toncenter/types/nfts';
 export { emulationEvent, toEvent, toAddressBook } from './toncenter/AccountEvent';

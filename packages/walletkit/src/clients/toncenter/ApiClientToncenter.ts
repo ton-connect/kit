@@ -10,7 +10,6 @@ import type { ExtraCurrency } from '@ton/core';
 import { Address } from '@ton/core';
 
 import { Base64ToBigInt, Base64Normalize, Base64ToHex } from '../../utils/base64';
-import type { FullAccountState } from '../../types/toncenter/api';
 import type { JettonInfo } from '../../types';
 import type { ToncenterEmulationResponse } from './types/raw-emulation';
 import type {
@@ -38,6 +37,7 @@ import { toDnsRecords } from './types/v3/DNSRecordsResponseV3';
 import { toAddressBook, toEvent } from '../../types/toncenter/AccountEvent';
 import { Network } from '../../api/models';
 import type {
+    AccountState,
     Base64String,
     GetMethodResult,
     Jetton,
@@ -52,6 +52,7 @@ import type {
     MasterchainInfo,
 } from '../../api/models';
 import { asAddressFriendly } from '../../utils/address';
+import { formatUnits } from '../../utils/units';
 import type { EmulationResult } from '../../api/models';
 import { mapToncenterEmulationResponse } from './mappers/map-emulation';
 import { BaseApiClient } from '../BaseApiClient';
@@ -150,27 +151,28 @@ export class ApiClientToncenter extends BaseApiClient implements ApiClient {
         };
     }
 
-    async getAccountState(address: UserFriendlyAddress, seqno?: number): Promise<FullAccountState> {
+    async getAccountState(address: UserFriendlyAddress, seqno?: number): Promise<AccountState> {
         const query: Record<string, unknown> = { include_boc: true, address: [address] };
         if (typeof seqno === 'number') query.seqno = seqno.toString();
         const raw = await this.getJson<V2AddressInformation>('/api/v3/addressInformation', query);
-        const balance = BigInt(raw.balance);
+        const rawBalance = BigInt(raw.balance).toString();
         const extraCurrencies: ExtraCurrency = {};
         for (const currency of raw.extra_currencies || []) {
             extraCurrencies[currency.id] = BigInt(currency.amount);
         }
-        // const code = Base64ToUint8Array(raw.code);
-        // const data = Base64ToUint8Array(raw.data);
-        const out: FullAccountState = {
+        const out: AccountState = {
+            address: asAddressFriendly(address),
             status: raw.status,
-            balance: balance.toString(),
+            rawBalance,
+            balance: formatUnits(rawBalance, 9),
             extraCurrencies,
-            code: raw.code,
-            data: raw.data,
-            lastTransaction: parseInternalTransactionId({
-                hash: raw.last_transaction_hash,
-                lt: raw.last_transaction_lt,
-            }),
+            code: raw.code ?? undefined,
+            data: raw.data ?? undefined,
+            lastTransaction:
+                parseInternalTransactionId({
+                    hash: raw.last_transaction_hash,
+                    lt: raw.last_transaction_lt,
+                }) ?? undefined,
         };
         if (raw.frozen_hash) {
             out.frozenHash = Base64ToHex(raw.frozen_hash) ?? undefined;
@@ -179,7 +181,7 @@ export class ApiClientToncenter extends BaseApiClient implements ApiClient {
     }
 
     async getBalance(address: UserFriendlyAddress, seqno?: number): Promise<TokenAmount> {
-        return (await this.getAccountState(address, seqno)).balance;
+        return (await this.getAccountState(address, seqno)).rawBalance;
     }
 
     async getAccountTransactions(request: TransactionsByAddressRequest): Promise<TransactionsResponse> {

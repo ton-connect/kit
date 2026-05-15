@@ -22,6 +22,7 @@ import type {
 } from '../../api/interfaces';
 import { Network } from '../../api/models';
 import type {
+    AccountState,
     Base64String,
     GetMethodResult,
     JettonsResponse,
@@ -35,12 +36,12 @@ import type {
     UserNFTsRequest,
 } from '../../api/models';
 import type { EmulationResult } from '../../api/models';
-import type { FullAccountState } from '../../types/toncenter/api';
 import type { ToncenterTracesResponse } from '../../types/toncenter/emulation';
 import type { ToncenterResponseJettonMasters } from '../toncenter/types/jettons';
 import { BaseApiClient } from '../BaseApiClient';
 import type { BaseApiClientConfig } from '../BaseApiClient';
 import { TonClientError } from '../TonClientError';
+import { globalLogger } from '../../core/Logger';
 import type { TonApiBlockchainAccount } from './types/accounts';
 import { asAddressFriendly } from '../../utils/address';
 import { mapAccountState } from './mappers/map-account-state';
@@ -63,6 +64,8 @@ import { mapTonApiTransaction } from './mappers/map-transactions';
 import { mapTonApiTrace, mapTonApiTraceTransaction } from './mappers/map-traces';
 import { mapTonApiEvent } from './mappers/map-events';
 import { mapMasterchainInfo } from './mappers/map-masterchain-info';
+
+const log = globalLogger.createChild('ApiClientTonApi');
 
 /**
  * @experimental
@@ -92,22 +95,25 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
         return this.network;
     }
 
-    async getAccountState(address: UserFriendlyAddress, _seqno?: number): Promise<FullAccountState> {
-        // Note: seqno parameter is not supported by TonApi /v2/accounts endpoint for historical state queries
+    async getAccountState(address: UserFriendlyAddress, seqno?: number): Promise<AccountState> {
+        if (typeof seqno === 'number') {
+            log.warn(
+                `getAccountState: seqno=${seqno} is ignored — TonApi /v2/accounts endpoint does not support historical state queries.`,
+            );
+        }
         try {
             const raw = await this.getJson<TonApiBlockchainAccount>(`/v2/blockchain/accounts/${address}`);
 
-            return mapAccountState(raw);
+            return mapAccountState(raw, address);
         } catch (e) {
             // TonApi returns 404 for non-existent accounts
             if (e instanceof TonClientError && e.status === 404) {
                 return {
+                    address: asAddressFriendly(address),
                     status: 'non-existing',
+                    rawBalance: '0',
                     balance: '0',
                     extraCurrencies: {},
-                    code: null,
-                    data: null,
-                    lastTransaction: null,
                 };
             }
             throw e;
@@ -117,7 +123,7 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
     async getBalance(address: UserFriendlyAddress, seqno?: number): Promise<TokenAmount> {
         const state = await this.getAccountState(address, seqno);
 
-        return state.balance;
+        return state.rawBalance;
     }
 
     async jettonsByAddress(request: GetJettonsByAddressRequest): Promise<ToncenterResponseJettonMasters> {

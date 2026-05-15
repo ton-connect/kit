@@ -22,12 +22,12 @@ export interface Transaction {
     /**
      * The state of the account before the transaction was executed
      */
-    accountStateBefore?: AccountState;
+    accountStateBefore?: TransactionAccountState;
 
     /**
      * * The state of the account after the transaction has been applied
      */
-    accountStateAfter?: AccountState;
+    accountStateAfter?: TransactionAccountState;
 
     /**
      * The detailed breakdown of the transaction execution
@@ -78,12 +78,12 @@ export interface Transaction {
     /**
      * Original status of the transaction
      */
-    origStatus?: AccountStatus;
+    origStatus?: TransactionAccountStatus;
 
     /**
      * End status of the transaction
      */
-    endStatus?: AccountStatus;
+    endStatus?: TransactionAccountStatus;
 
     /**
      * Total fees of the transaction
@@ -119,7 +119,7 @@ export interface Transaction {
 /**
  * Status of the account on the blockchain.
  */
-export type AccountStatus =
+export type TransactionAccountStatus =
     | { type: 'active' }
     | { type: 'frozen' }
     | { type: 'uninit' }
@@ -129,7 +129,7 @@ export type AccountStatus =
 /**
  * State of an account at a specific point in time.
  */
-export interface AccountState {
+export interface TransactionAccountState {
     /**
      * The state hash of the account
      */
@@ -148,7 +148,7 @@ export interface AccountState {
     /**
      * The status of the account
      */
-    accountStatus?: AccountStatus;
+    accountStatus?: TransactionAccountStatus;
 
     /**
      * The hash of the frozen account state, if the account is frozen

@@ -10,7 +10,7 @@ import { Address } from '@ton/core';
 
 import { Base64ToHex } from '../../utils';
 import type { InternalTransactionId } from './types/internal';
-import type { TransactionId } from '../../types/toncenter/api';
+import type { TransactionId } from '../../api/models';
 
 export const padBase64 = (data: string): string => {
     return data.padEnd(data.length + (4 - (data.length % 4)), '=');

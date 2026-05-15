@@ -8,8 +8,8 @@
 
 import { Base64ToHex } from '../../../utils/base64';
 import type {
-    AccountState,
-    AccountStatus,
+    TransactionAccountState,
+    TransactionAccountStatus,
     Transaction,
     TransactionMessage,
     TransactionDescription,
@@ -62,7 +62,7 @@ function toTransaction(tx: ToncenterTransaction): Transaction {
     };
 }
 
-function toAccountStatus(status: EmulationAccountStatus | string): AccountStatus {
+function toAccountStatus(status: EmulationAccountStatus | string): TransactionAccountStatus {
     if (status === 'active') {
         return { type: 'active' };
     } else if (status === 'frozen') {
@@ -164,7 +164,7 @@ function toTransactionMessage(msg: EmulationMessage): TransactionMessage {
     };
 }
 
-function toAccountState(state: EmulationAccountState): AccountState {
+function toAccountState(state: EmulationAccountState): TransactionAccountState {
     return {
         hash: Base64ToHex(state.hash),
         balance: state.balance,

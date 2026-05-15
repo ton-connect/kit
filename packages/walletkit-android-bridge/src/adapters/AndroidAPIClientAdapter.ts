@@ -18,7 +18,7 @@ import type {
     TokenAmount,
     TransactionsResponse,
     JettonsResponse,
-    FullAccountState,
+    AccountState,
     EmulationResult,
     ToncenterResponseJettonMasters,
     ToncenterTracesResponse,
@@ -147,7 +147,7 @@ export class AndroidAPIClientAdapter implements ApiClient {
         throw new Error('fetchEmulation is not implemented yet');
     }
 
-    async getAccountState(_address: UserFriendlyAddress, _seqno?: number): Promise<FullAccountState> {
+    async getAccountState(_address: UserFriendlyAddress, _seqno?: number): Promise<AccountState> {
         throw new Error('getAccountState is not implemented yet');
     }
 

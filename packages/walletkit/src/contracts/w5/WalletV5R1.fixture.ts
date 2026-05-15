@@ -10,9 +10,8 @@ import { Dictionary } from '@ton/core';
 
 import { mockFn } from '../../../mock.config';
 import type { ApiClient, GetEventsResponse } from '../../api/interfaces';
-import type { FullAccountState } from '../../types/toncenter/api';
 import type { ToncenterTracesResponse } from '../../types';
-import type { EmulationResponse, MasterchainInfo } from '../../api/models';
+import type { AccountState, EmulationResponse, MasterchainInfo } from '../../api/models';
 import type { ResponseUserJettons } from '../../types/export/responses/jettons';
 import type { NftItemsResponse } from '../../clients/toncenter/types/nfts';
 import type { WalletV5R1Id } from './WalletV5R1';
@@ -84,13 +83,14 @@ export function createMockApiClient(): ApiClient {
         sendBoc: mockFn().mockResolvedValue('mock-tx-hash'),
         runGetMethod: mockFn().mockResolvedValue({}),
         getAccountState: mockFn().mockResolvedValue({
+            address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
             status: 'active',
-            balance: '1000000000',
+            rawBalance: '1000000000',
+            balance: '1',
             extraCurrencies: {},
             code: 'mock-code',
             data: walletDataBase64,
-            lastTransaction: null,
-        } as unknown as FullAccountState),
+        } as unknown as AccountState),
         getBalance: mockFn().mockResolvedValue('1000000000'),
         getAccountTransactions: mockFn().mockResolvedValue({} as ToncenterTransactionsResponse),
         getPendingTrace: mockFn().mockResolvedValue({} as ToncenterTracesResponse),

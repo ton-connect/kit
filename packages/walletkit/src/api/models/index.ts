@@ -7,7 +7,10 @@
  */
 
 // Blockchain models
+export type { AccountState } from './blockchain/AccountState';
+export type { AccountStates } from './blockchain/AccountStates';
 export type { MasterchainInfo } from './blockchain/MasterchainInfo';
+export type { TransactionId } from './blockchain/TransactionId';
 
 // Core models
 export type { AddressBook, AddressBookEntry } from './core/AddressBook';
