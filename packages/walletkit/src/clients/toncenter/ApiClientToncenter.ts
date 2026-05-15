@@ -38,6 +38,7 @@ import { toAddressBook, toEvent } from '../../types/toncenter/AccountEvent';
 import { Network } from '../../api/models';
 import type {
     AccountState,
+    AccountStates,
     Base64String,
     GetMethodResult,
     Jetton,
@@ -51,8 +52,10 @@ import type {
     UserNFTsRequest,
     MasterchainInfo,
 } from '../../api/models';
-import { asAddressFriendly } from '../../utils/address';
+import { asAddressFriendly, compareAddress } from '../../utils/address';
 import { formatUnits } from '../../utils/units';
+import { mapAccountStatesEntry, makeNonExistingAccountState } from './mappers/map-account-states-entry';
+import type { ToncenterAccountStatesResponse } from './types/account-states';
 import type { EmulationResult } from '../../api/models';
 import { mapToncenterEmulationResponse } from './mappers/map-emulation';
 import { BaseApiClient } from '../BaseApiClient';
@@ -63,6 +66,8 @@ import { TonClientError } from '../TonClientError';
 import { isHex } from '../../utils';
 
 const log = globalLogger.createChild('ApiClientToncenter');
+
+const MAX_ACCOUNT_STATES_BATCH = 100;
 
 export interface ApiClientConfig extends BaseApiClientConfig {
     dnsResolver?: string;
@@ -178,6 +183,39 @@ export class ApiClientToncenter extends BaseApiClient implements ApiClient {
             out.frozenHash = Base64ToHex(raw.frozen_hash) ?? undefined;
         }
         return out;
+    }
+
+    async getAccountStates(addresses: UserFriendlyAddress[]): Promise<AccountStates> {
+        if (addresses.length > MAX_ACCOUNT_STATES_BATCH) {
+            throw new Error(
+                `ApiClientToncenter.getAccountStates: requested ${addresses.length} addresses, ` +
+                    `maximum is ${MAX_ACCOUNT_STATES_BATCH} per call.`,
+            );
+        }
+
+        const unique = new Set<UserFriendlyAddress>();
+        for (const addr of addresses) {
+            unique.add(asAddressFriendly(addr));
+        }
+        const uniqueAddrs = [...unique];
+
+        if (uniqueAddrs.length === 0) {
+            return {};
+        }
+
+        const raw = await this.getJson<ToncenterAccountStatesResponse>('/api/v3/accountStates', {
+            address: uniqueAddrs,
+            include_boc: true,
+        });
+
+        const result: AccountStates = {};
+        for (const inputAddr of uniqueAddrs) {
+            const account = raw.accounts.find((a) => compareAddress(a.address, inputAddr));
+            result[inputAddr] = account
+                ? mapAccountStatesEntry(account, inputAddr)
+                : makeNonExistingAccountState(inputAddr);
+        }
+        return result;
     }
 
     async getBalance(address: UserFriendlyAddress, seqno?: number): Promise<TokenAmount> {

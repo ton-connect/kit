@@ -19,6 +19,7 @@ import type {
     TransactionsResponse,
     JettonsResponse,
     AccountState,
+    AccountStates,
     EmulationResult,
     ToncenterResponseJettonMasters,
     ToncenterTracesResponse,
@@ -73,6 +74,10 @@ export class SwiftAPIClientAdapter implements ApiClient {
 
     async getAccountState(_address: UserFriendlyAddress, _seqno?: number): Promise<AccountState> {
         throw new Error('getAccountState is not implemented yet');
+    }
+
+    async getAccountStates(_addresses: UserFriendlyAddress[]): Promise<AccountStates> {
+        throw new Error('getAccountStates is not implemented yet');
     }
 
     async getBalance(_address: UserFriendlyAddress, _seqno?: number): Promise<TokenAmount> {

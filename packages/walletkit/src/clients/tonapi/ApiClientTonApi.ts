@@ -23,6 +23,7 @@ import type {
 import { Network } from '../../api/models';
 import type {
     AccountState,
+    AccountStates,
     Base64String,
     GetMethodResult,
     JettonsResponse,
@@ -43,7 +44,7 @@ import type { BaseApiClientConfig } from '../BaseApiClient';
 import { TonClientError } from '../TonClientError';
 import { globalLogger } from '../../core/Logger';
 import type { TonApiBlockchainAccount } from './types/accounts';
-import { asAddressFriendly } from '../../utils/address';
+import { asAddressFriendly, compareAddress } from '../../utils/address';
 import { mapAccountState } from './mappers/map-account-state';
 import { mapJettonMasters } from './mappers/map-jetton-masters';
 import { mapUserJettons } from './mappers/map-user-jettons';
@@ -66,6 +67,8 @@ import { mapTonApiEvent } from './mappers/map-events';
 import { mapMasterchainInfo } from './mappers/map-masterchain-info';
 
 const log = globalLogger.createChild('ApiClientTonApi');
+
+const MAX_ACCOUNT_STATES_BATCH = 100;
 
 /**
  * @experimental
@@ -118,6 +121,38 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
             }
             throw e;
         }
+    }
+
+    async getAccountStates(addresses: UserFriendlyAddress[]): Promise<AccountStates> {
+        if (addresses.length > MAX_ACCOUNT_STATES_BATCH) {
+            throw new Error(
+                `ApiClientTonApi.getAccountStates: requested ${addresses.length} addresses, ` +
+                    `maximum is ${MAX_ACCOUNT_STATES_BATCH} per call.`,
+            );
+        }
+
+        const unique = new Set<UserFriendlyAddress>();
+        for (const addr of addresses) {
+            unique.add(asAddressFriendly(addr));
+        }
+        const uniqueAddrs = [...unique];
+
+        if (uniqueAddrs.length === 0) {
+            return {};
+        }
+
+        const raw = await this.postJson<{ accounts: TonApiBlockchainAccount[] }>('/v2/blockchain/accounts/_bulk', {
+            account_ids: uniqueAddrs,
+        });
+
+        const result: AccountStates = {};
+        for (const inputAddr of uniqueAddrs) {
+            const account = raw.accounts.find((a) => compareAddress(a.address, inputAddr));
+            if (account) {
+                result[inputAddr] = mapAccountState(account, inputAddr);
+            }
+        }
+        return result;
     }
 
     async getBalance(address: UserFriendlyAddress, seqno?: number): Promise<TokenAmount> {
