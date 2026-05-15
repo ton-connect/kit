@@ -27,7 +27,7 @@ kit.registerProvider(
 ```typescript
 interface DeDustSwapProviderConfig {
     providerId?: string;          // Default: 'dedust'
-    apiUrl?: string;              // Default: 'https://mainnet.api.dedust.io/v4/router'
+    apiUrl?: string;              // Default: 'https://api-mainnet.dedust.io'
     defaultSlippageBps?: number;  // Default: 100 (1%)
     referralAddress?: string;     // Optional referral address
     referralFeeBps?: number;     // Referral fee in bps (max 100 = 1%)

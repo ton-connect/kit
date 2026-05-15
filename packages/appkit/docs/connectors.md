@@ -116,26 +116,5 @@ interface TonConnectConnectorConfig {
      * @default 'tonconnect'
      */
     id?: string;
-    /**
-     * Connector metadata
-     */
-    metadata?: ConnectorMetadata;
-}
-```
-
-### Connector Metadata
-
-You can provide metadata for the connector, which can be used to display connector information in the UI.
-
-```typescript
-interface ConnectorMetadata {
-    /**
-     * Connector name
-     */
-    name: string;
-    /**
-     * Connector icon URL
-     */
-    iconUrl?: string;
 }
 ```
