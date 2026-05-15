@@ -87,7 +87,6 @@ export type { EmulationTraceNode } from './emulation/EmulationTraceNode';
 export type {
     EmulationTransaction,
     EmulationAccountState,
-    EmulationAccountStatus,
     EmulationBlockRef,
     EmulationTransactionDescription,
     EmulationStoragePhase,

@@ -9,7 +9,7 @@
 import { Base64ToHex } from '../../../utils/base64';
 import type {
     TransactionAccountState,
-    TransactionAccountStatus,
+    AccountStatus,
     Transaction,
     TransactionMessage,
     TransactionDescription,
@@ -62,16 +62,11 @@ function toTransaction(tx: ToncenterTransaction): Transaction {
     };
 }
 
-function toAccountStatus(status: EmulationAccountStatus | string): TransactionAccountStatus {
-    if (status === 'active') {
-        return { type: 'active' };
-    } else if (status === 'frozen') {
-        return { type: 'frozen' };
-    } else if (status === 'uninit') {
-        return { type: 'uninit' };
-    } else {
-        return { type: 'unknown', value: status };
-    }
+function toAccountStatus(status: EmulationAccountStatus | string): AccountStatus {
+    if (status === 'active') return 'active';
+    if (status === 'frozen') return 'frozen';
+    if (status === 'uninit') return 'uninitialized';
+    return 'non-existing';
 }
 
 function toTransactionBlockRef(ref: EmulationBlockRef): TransactionBlockRef {

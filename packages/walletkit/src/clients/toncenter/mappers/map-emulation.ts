@@ -24,18 +24,18 @@ import type {
     EmulationMessage,
     EmulationAction,
     EmulationAddressBookEntry,
-    EmulationAccountStatus,
+    AccountStatus,
 } from '../../../api/models';
 import { Base64ToHex, asBase64 } from '../../../utils/base64';
 import { asHex } from '../../../utils/hex';
 import { asAddressFriendly, asMaybeAddressFriendly } from '../../../utils/address';
 import { parseMsgSizeCount } from '../utils';
 
-function normalizeAccountStatus(status: string): EmulationAccountStatus {
+function normalizeAccountStatus(status: string): AccountStatus {
     if (status === 'active') return 'active';
     if (status === 'frozen') return 'frozen';
-    if (status === 'nonexist') return 'nonexist';
-    return 'uninit';
+    if (status === 'nonexist') return 'non-existing';
+    return 'uninitialized';
 }
 
 function mapTraceNode(node: RawTraceNode): EmulationTraceNode {

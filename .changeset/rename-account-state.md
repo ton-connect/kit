@@ -5,6 +5,13 @@
 '@ton/walletkit-ios-bridge': patch
 ---
 
-Added `ApiClient.getAccountStates(addresses)` for fetching multiple account states in a single batched request (up to 100 addresses). Returns a `Record` keyed by canonical bouncable addresses; missing accounts are represented uniformly as `status: 'non-existing'` across both toncenter and tonapi providers.
+Added `ApiClient.getAccountStates(addresses)` — batched fetch for up to 100 accounts, uniform `non-existing` for missing addresses across providers.
 
-Renamed `FullAccountState` → `AccountState`, moved to `api/models/blockchain/` alongside `TransactionId`. `AccountState` now has `address` (canonical bouncable) and split `rawBalance` (nanotons) / `balance` (formatted TON). `AccountState`/`AccountStatus` from `transactions/Transaction.ts` renamed to `TransactionAccountState`/`TransactionAccountStatus`.
+Breaking changes to `AccountState` (was `FullAccountState`):
+
+- Renamed and moved to `api/models/blockchain/`.
+- New required `address` field, `balance` split into `rawBalance` (nanotons) + `balance` (formatted TON).
+- `code`, `data`, `lastTransaction` are now optional instead of `| null`.
+- `status` uses the unified `AccountStatus` string union (`'active' | 'uninitialized' | 'frozen' | 'non-existing'`); the discriminated `TransactionAccountStatus` and `EmulationAccountStatus` have been removed.
+
+Also fixed a bug in `BaseApiClient.buildUrl` where array query params were silently truncated to their last value.

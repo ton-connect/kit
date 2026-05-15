@@ -9,7 +9,7 @@
 import type {
     Transaction,
     TransactionAccountState,
-    TransactionAccountStatus,
+    AccountStatus,
     TransactionMessage,
     TransactionDescription,
     TransactionBlockRef,
@@ -21,12 +21,12 @@ import { parseMsgSizeCount } from '../../../clients/toncenter/utils';
 import type { StreamingV2AccountState, StreamingV2TransactionRaw, StreamingV2TransactionDescription } from '../types';
 import type { EmulationBlockRef, EmulationMessage } from '../../../types/toncenter/emulation';
 
-const toAccountStatus = (status: string | null | undefined): TransactionAccountStatus | undefined => {
+const toAccountStatus = (status: string | null | undefined): AccountStatus | undefined => {
     if (!status) return undefined;
-    if (status === 'active') return { type: 'active' };
-    if (status === 'frozen') return { type: 'frozen' };
-    if (status === 'uninit') return { type: 'uninit' };
-    return { type: 'unknown', value: status };
+    if (status === 'active') return 'active';
+    if (status === 'frozen') return 'frozen';
+    if (status === 'uninit') return 'uninitialized';
+    return 'non-existing';
 };
 
 const toAccountState = (state: StreamingV2AccountState): TransactionAccountState => {

@@ -6,6 +6,7 @@
  *
  */
 
+import type { AccountStatus } from '../blockchain/AccountStatus';
 import type { Hex, Base64String, LogicalTime, UserFriendlyAddress } from '../core/Primitives';
 import type { ExtraCurrencies } from '../core/ExtraCurrencies';
 import type { TokenAmount } from '../core/TokenAmount';
@@ -78,12 +79,12 @@ export interface Transaction {
     /**
      * Original status of the transaction
      */
-    origStatus?: TransactionAccountStatus;
+    origStatus?: AccountStatus;
 
     /**
      * End status of the transaction
      */
-    endStatus?: TransactionAccountStatus;
+    endStatus?: AccountStatus;
 
     /**
      * Total fees of the transaction
@@ -117,16 +118,6 @@ export interface Transaction {
 }
 
 /**
- * Status of the account on the blockchain.
- */
-export type TransactionAccountStatus =
-    | { type: 'active' }
-    | { type: 'frozen' }
-    | { type: 'uninit' }
-    | { type: 'nonexist' }
-    | { type: 'unknown'; value: string };
-
-/**
  * State of an account at a specific point in time.
  */
 export interface TransactionAccountState {
@@ -148,7 +139,7 @@ export interface TransactionAccountState {
     /**
      * The status of the account
      */
-    accountStatus?: TransactionAccountStatus;
+    accountStatus?: AccountStatus;
 
     /**
      * The hash of the frozen account state, if the account is frozen
