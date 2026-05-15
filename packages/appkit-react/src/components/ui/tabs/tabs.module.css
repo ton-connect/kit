@@ -11,7 +11,7 @@
   gap: 4px;
   box-sizing: border-box;
   border-radius: var(--ta-border-radius-2xl);
-  background-color: var(--ta-color-background-secondary);
+  background-color: var(--ta-color-background-tertiary);
 }
 
 .trigger {
