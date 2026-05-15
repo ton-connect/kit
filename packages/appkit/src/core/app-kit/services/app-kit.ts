@@ -21,6 +21,7 @@ import { AppKitNetworkManager } from '../../network';
 import { Network } from '../../../types/network';
 import type { AppKitCache } from '../../cache';
 import { LruAppKitCache } from '../../cache';
+import type { AppKitProvider } from '../../../types/provider';
 
 /**
  * Central hub for wallet management.
@@ -110,7 +111,7 @@ export class AppKit {
     /**
      * Add a provider
      */
-    registerProvider(input: ProviderInput): void {
+    registerProvider(input: ProviderInput<AppKitProvider>): void {
         const provider = typeof input === 'function' ? input(this.createFactoryContext()) : input;
         switch (provider.type) {
             case 'swap':
