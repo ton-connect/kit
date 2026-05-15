@@ -21,8 +21,6 @@ export interface Connector {
     /** Protocol type (e.g. 'tonconnect') */
     readonly type: string;
 
-    readonly metadata: ConnectorMetadata;
-
     /** Cleanup connector resources */
     destroy(): void;
 
@@ -34,11 +32,6 @@ export interface Connector {
 
     /** Get connected wallets */
     getConnectedWallets(): WalletInterface[];
-}
-
-export interface ConnectorMetadata {
-    name: string;
-    iconUrl?: string;
 }
 
 /**
