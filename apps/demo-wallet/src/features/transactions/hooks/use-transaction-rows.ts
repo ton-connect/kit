@@ -140,9 +140,7 @@ export const useTransactionRows = (pageSize: number = EVENTS_PAGE_SIZE): Transac
     // fresh/uninit account, or a successful (non-errored) load has completed. A timed-out/failed
     // fetch (eventsError) never shows empty — it surfaces as isError (below) instead.
     const showEmpty =
-        !!address &&
-        rows.length === 0 &&
-        (isFreshAccount || (eventsLoaded && !eventsError && !isLoadingEvents));
+        !!address && rows.length === 0 && (isFreshAccount || (eventsLoaded && !eventsError && !isLoadingEvents));
 
     // The first-page fetch failed and there is nothing to show — surface an error instead of an
     // endless shimmer (dashboard hides the block; the page shows a short error line). A failure

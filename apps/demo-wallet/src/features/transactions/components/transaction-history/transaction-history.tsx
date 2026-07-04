@@ -54,9 +54,7 @@ export const TransactionHistory: React.FC = () => {
                     // Genuinely-empty wallet: a small stub instead of hiding the section.
                     <p className="py-4 text-center text-sm text-gray-400">No transactions yet</p>
                 ) : (
-                    Array.from({ length: SKELETON_ROWS }).map((_, index) => (
-                        <TransactionRowSkeleton key={index} />
-                    ))
+                    Array.from({ length: SKELETON_ROWS }).map((_, index) => <TransactionRowSkeleton key={index} />)
                 )}
             </div>
         </section>
