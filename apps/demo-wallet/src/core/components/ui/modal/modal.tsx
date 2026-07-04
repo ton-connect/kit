@@ -169,11 +169,7 @@ export const ModalContainer: React.FC<ModalContainerProps> = ({
                     // wins over any caller style but still preserves the caller's other props.
                     aria-describedby={undefined}
                     {...props}
-                    style={
-                        keyboardSafe && keyboardInset > 0
-                            ? { ...props.style, bottom: keyboardInset }
-                            : props.style
-                    }
+                    style={keyboardSafe && keyboardInset > 0 ? { ...props.style, bottom: keyboardInset } : props.style}
                 >
                     {children}
                 </DrawerContent>

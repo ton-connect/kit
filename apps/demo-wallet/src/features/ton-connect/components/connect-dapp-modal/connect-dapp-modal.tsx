@@ -61,12 +61,7 @@ export const ConnectDappModal: React.FC<ConnectDappModalProps> = ({ isOpen, onCl
     }, [url, handleTonConnectUrl, onClose]);
 
     return (
-        <Modal.Container
-            isOpened={isOpen}
-            onOpenChange={(open) => !open && onClose()}
-            keyboardSafe
-            className="px-2"
-        >
+        <Modal.Container isOpened={isOpen} onOpenChange={(open) => !open && onClose()} keyboardSafe className="px-2">
             <Modal.Header onClose={onClose}>
                 <Modal.Title>Connect to dApp</Modal.Title>
             </Modal.Header>
