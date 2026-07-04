@@ -30,6 +30,7 @@ export const SetupPasswordScreen: React.FC = () => {
     const location = useLocation();
     const { setPassword: setStorePassword } = useAuth();
     const inputRef = useRef<HTMLInputElement>(null);
+    const confirmRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         inputRef.current?.focus();
@@ -55,6 +56,13 @@ export const SetupPasswordScreen: React.FC = () => {
         }
     };
 
+    // Fired by the on-screen keyboard's Return/Go key (and the hidden submit button).
+    // Mirrors the Continue button; the canSubmit guard makes it a no-op when invalid.
+    const handleFormSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        void handleSubmit();
+    };
+
     const footer = (
         <Button
             data-testid="password-submit"
@@ -75,7 +83,7 @@ export const SetupPasswordScreen: React.FC = () => {
                 </h1>
                 <p className="mt-2 text-base text-gray-500">Create a password to protect your wallet.</p>
 
-                <div className="mt-8 w-full space-y-3 text-left">
+                <form onSubmit={handleFormSubmit} className="mt-8 w-full space-y-3 text-left">
                     <input
                         ref={inputRef}
                         type="password"
@@ -86,14 +94,20 @@ export const SetupPasswordScreen: React.FC = () => {
                             setError('');
                         }}
                         onKeyDown={(e) => {
-                            if (e.key === 'Enter') void handleSubmit();
+                            // Return on Password moves focus to Confirm (matches Android "Next").
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                confirmRef.current?.focus();
+                            }
                         }}
                         placeholder="Password"
                         autoComplete="new-password"
+                        enterKeyHint="next"
                         aria-label="Password"
                         className={INPUT_CLASS}
                     />
                     <input
+                        ref={confirmRef}
                         type="password"
                         data-testid="password-confirm"
                         value={confirmPassword}
@@ -101,15 +115,17 @@ export const SetupPasswordScreen: React.FC = () => {
                             setConfirmPassword(e.target.value);
                             setError('');
                         }}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') void handleSubmit();
-                        }}
                         placeholder="Confirm password"
                         autoComplete="new-password"
+                        enterKeyHint="go"
                         aria-label="Confirm password"
                         className={INPUT_CLASS}
                     />
-                </div>
+                    {/* Return on Confirm submits the form (matches Android "Go"). A submit
+                        button inside the form is what makes iOS Safari's Return act. It is
+                        visually hidden — the visible action is the Continue button below. */}
+                    <button type="submit" className="hidden" aria-hidden="true" tabIndex={-1} />
+                </form>
 
                 {(error || tooShort || mismatch) && (
                     <p className="mt-4 text-sm text-red-500">

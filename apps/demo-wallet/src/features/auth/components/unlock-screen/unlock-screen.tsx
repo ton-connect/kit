@@ -50,6 +50,13 @@ export const UnlockScreen: React.FC = () => {
         }
     };
 
+    // Fired by the on-screen keyboard's Return/Go key (and the hidden submit button).
+    // Mirrors the Unlock button; the guard in handleSubmit makes it a no-op when empty.
+    const handleFormSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        void handleSubmit();
+    };
+
     const handleReset = () => {
         setIsResetOpen(false);
         reset();
@@ -81,7 +88,7 @@ export const UnlockScreen: React.FC = () => {
                 </h1>
                 <p className="mt-2 text-base text-gray-500">Enter your password to unlock your wallet.</p>
 
-                <div className="mt-8 w-full text-left">
+                <form onSubmit={handleFormSubmit} className="mt-8 w-full text-left">
                     <input
                         ref={inputRef}
                         type="password"
@@ -91,15 +98,17 @@ export const UnlockScreen: React.FC = () => {
                             setPassword(e.target.value);
                             setError('');
                         }}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') void handleSubmit();
-                        }}
                         placeholder="Password"
                         autoComplete="current-password"
+                        enterKeyHint="go"
                         aria-label="Password"
                         className={INPUT_CLASS}
                     />
-                </div>
+                    {/* Return submits the form (unlock). A submit button inside the form is
+                        what makes iOS Safari's Return act; it is visually hidden — the visible
+                        action is the Unlock button below. */}
+                    <button type="submit" className="hidden" aria-hidden="true" tabIndex={-1} />
+                </form>
 
                 {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
             </div>
