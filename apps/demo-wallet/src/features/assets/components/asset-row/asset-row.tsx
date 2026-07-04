@@ -9,6 +9,7 @@
 import React from 'react';
 
 import { FallbackImage } from '@/core/components/ui/fallback-image';
+import { Skeleton } from '@/core/components/ui/skeleton';
 import { useCountUp } from '@/core/hooks/use-count-up';
 import { formatLargeValue } from '@/core/utils';
 
@@ -63,16 +64,17 @@ export const AssetRow: React.FC<AssetRowData> = ({ icon, fallbackText, name, sym
     );
 };
 
+/** Loading placeholder mirroring {@link AssetRow}: circular icon, name/amount lines, right-side value. */
 export const AssetRowSkeleton: React.FC = () => (
     <div className="flex items-center gap-3 py-2">
-        <span className="w-10 h-10 rounded-full bg-gray-100 animate-pulse flex-shrink-0" />
+        <Skeleton className="w-10 h-10 rounded-full flex-shrink-0" />
         <div className="flex-1 min-w-0 space-y-1.5">
-            <div className="h-4 w-24 rounded bg-gray-100 animate-pulse" />
-            <div className="h-3 w-32 rounded bg-gray-100 animate-pulse" />
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-3 w-32" />
         </div>
         <div className="text-right space-y-1.5">
-            <div className="h-4 w-16 rounded bg-gray-100 animate-pulse ml-auto" />
-            <div className="h-3 w-12 rounded bg-gray-100 animate-pulse ml-auto" />
+            <Skeleton className="h-4 w-16 ml-auto" />
+            <Skeleton className="h-3 w-12 ml-auto" />
         </div>
     </div>
 );

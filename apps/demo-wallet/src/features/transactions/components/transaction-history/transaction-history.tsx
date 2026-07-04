@@ -10,23 +10,28 @@ import React from 'react';
 import { ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-import { TransactionRow } from '../transaction-row';
+import { TransactionRow, TransactionRowSkeleton } from '../transaction-row';
 import { useTransactionRows } from '../../hooks/use-transaction-rows';
 
 const PREVIEW_COUNT = 6;
-// Load a few extra so the preview still fills 6 rows after action-less events are skipped.
-const PREVIEW_LOAD = 10;
+const SKELETON_ROWS = 4;
 
 /**
- * Dashboard "History" block: the latest transactions. Like NftsCard, renders nothing
- * while loading or when empty; the header navigates to the full history page.
+ * Dashboard "History" block: the latest transactions (first page fetched at the shared
+ * page size, only the first {@link PREVIEW_COUNT} shown). Shows shimmer rows while the
+ * first fetch is in flight; hides the whole block on a load error (so we never shimmer
+ * forever); shows a small "No transactions yet" stub for a genuinely empty wallet. The
+ * header navigates to the full history page.
  */
 export const TransactionHistory: React.FC = () => {
     const navigate = useNavigate();
-    const { rows } = useTransactionRows(PREVIEW_LOAD);
+    // No explicit page size: uses the shared EVENTS_PAGE_SIZE (25) so this collapses onto
+    // the history page's first-page request. We still render only PREVIEW_COUNT rows.
+    const { rows, showEmpty, isError } = useTransactionRows();
     const preview = rows.slice(0, PREVIEW_COUNT);
 
-    if (preview.length === 0) {
+    // On a load error, hide the whole block rather than shimmering forever.
+    if (isError) {
         return null;
     }
 
@@ -43,9 +48,16 @@ export const TransactionHistory: React.FC = () => {
             </button>
 
             <div className="space-y-1">
-                {preview.map((row) => (
-                    <TransactionRow key={row.id} {...row} />
-                ))}
+                {preview.length > 0 ? (
+                    preview.map((row) => <TransactionRow key={row.id} {...row} />)
+                ) : showEmpty ? (
+                    // Genuinely-empty wallet: a small stub instead of hiding the section.
+                    <p className="py-4 text-center text-sm text-gray-400">No transactions yet</p>
+                ) : (
+                    Array.from({ length: SKELETON_ROWS }).map((_, index) => (
+                        <TransactionRowSkeleton key={index} />
+                    ))
+                )}
             </div>
         </section>
     );

@@ -22,6 +22,26 @@ const log = createComponentLogger('WalletManagementSlice');
 
 let activeStreamingUnwatchers: Array<() => void> = [];
 
+/**
+ * In-flight guard for loadEvents. The dashboard preview and the history page both mount
+ * a use-transaction-rows effect, and streaming confirmations also trigger a reload — under
+ * React StrictMode (dev) these fire concurrently and hammered toncenter with duplicate
+ * /traces requests (intermittent "timeout: context deadline exceeded"). We coalesce calls
+ * for the SAME (limit, offset) onto the first request's promise; a different window (e.g.
+ * the history "Load more" fetching the next offset page) is chained after, never dropped.
+ * Because dashboard and history now share the same first-page window (limit 25, offset 0),
+ * they collapse to a single /traces request that serves both.
+ */
+let inFlightEventsLoad: { key: string; promise: Promise<void> } | null = null;
+
+/** Toncenter returns this transient error under load; worth one quick retry. */
+const isToncenterTimeout = (error: unknown): boolean => {
+    const message = error instanceof Error ? error.message : String(error ?? '');
+    return /timeout|context deadline exceeded/i.test(message);
+};
+
+const delay = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+
 export const createWalletManagementSlice =
     (walletKitConfig?: WalletKitConfig): WalletManagementSliceCreator =>
     (set: SetState, get) => ({
@@ -33,6 +53,10 @@ export const createWalletManagementSlice =
             publicKey: undefined,
             events: [],
             hasNextEvents: false,
+            isLoadingEvents: false,
+            eventsLoaded: false,
+            eventsError: false,
+            accountStatus: undefined,
             pendingTransactions: [],
             confirmedTraceIds: [],
             confirmedExternalHashes: [],
@@ -337,6 +361,10 @@ export const createWalletManagementSlice =
                     log.warn('Failed to fetch balance during wallet switch (API may be down):', balanceError);
                 }
 
+                // Drop any in-flight events load for the previous wallet so the coalescing
+                // guard doesn't hand this wallet the old wallet's request.
+                inFlightEventsLoad = null;
+
                 set((state) => {
                     state.walletManagement.activeWalletId = walletId;
                     state.walletManagement.address = savedWallet.address;
@@ -344,6 +372,9 @@ export const createWalletManagementSlice =
                     state.walletManagement.balance = balance ?? state.walletManagement.balance;
                     state.walletManagement.currentWallet = wallet;
                     state.walletManagement.events = [];
+                    state.walletManagement.eventsLoaded = false;
+                    state.walletManagement.eventsError = false;
+                    state.walletManagement.accountStatus = undefined;
                 });
 
                 await get().startWebSocketStreaming();
@@ -388,6 +419,9 @@ export const createWalletManagementSlice =
                     state.walletManagement.balance = undefined;
                     state.walletManagement.currentWallet = undefined;
                     state.walletManagement.events = [];
+                    state.walletManagement.eventsLoaded = false;
+                    state.walletManagement.eventsError = false;
+                    state.walletManagement.accountStatus = undefined;
                     state.walletManagement.pendingTransactions = [];
                     state.walletManagement.confirmedTraceIds = [];
                     state.walletManagement.confirmedExternalHashes = [];
@@ -396,6 +430,7 @@ export const createWalletManagementSlice =
             });
 
             if (isRemovingActiveWallet && isLastWallet) {
+                inFlightEventsLoad = null;
                 void get().stopWebSocketStreaming();
             }
 
@@ -531,6 +566,7 @@ export const createWalletManagementSlice =
 
         clearWallet: () => {
             void get().stopWebSocketStreaming();
+            inFlightEventsLoad = null;
             set((state) => {
                 state.walletManagement.isAuthenticated = false;
                 state.walletManagement.hasWallet = false;
@@ -540,6 +576,9 @@ export const createWalletManagementSlice =
                 state.walletManagement.balance = undefined;
                 state.walletManagement.publicKey = undefined;
                 state.walletManagement.events = [];
+                state.walletManagement.eventsLoaded = false;
+                state.walletManagement.eventsError = false;
+                state.walletManagement.accountStatus = undefined;
                 state.walletManagement.pendingTransactions = [];
                 state.walletManagement.confirmedTraceIds = [];
                 state.walletManagement.confirmedExternalHashes = [];
@@ -747,7 +786,13 @@ export const createWalletManagementSlice =
             }
         },
 
-        loadEvents: async (limit = 10, offset = 0) => {
+        // Default batch size 25. Fetching >= 25 traces is a workaround for a server-side
+        // toncenter limitation: GET /api/v3/traces?limit=N returns 500 ("timeout: context
+        // deadline exceeded") for small N (observed for N in 1..10) but succeeds for 25.
+        // Not our bug — see the batch constant reused by the UI (use-transaction-rows).
+        // offset === 0 is treated as a fresh first page (replaces the list); offset > 0 is a
+        // "Load more" page that is appended to the accumulated events (deduped by eventId).
+        loadEvents: async (limit = 25, offset = 0) => {
             const state = get();
             if (!state.walletManagement.address) {
                 log.warn('No wallet address available to load events');
@@ -758,57 +803,130 @@ export const createWalletManagementSlice =
                 throw new Error('WalletKit not initialized');
             }
 
-            try {
-                log.info(
-                    'Loading events for address:',
-                    state.walletManagement.address,
-                    'limit:',
-                    limit,
-                    'offset:',
-                    offset,
-                );
+            // Coalesce overlapping requests for the SAME window onto the first in-flight load.
+            // Prevents the duplicate concurrent /traces requests (dashboard preview + history
+            // page + StrictMode double-mount + streaming refresh all firing at once). A request
+            // for a different window (e.g. a "Load more" offset page) waits, then runs.
+            const key = `${limit}:${offset}`;
+            if (inFlightEventsLoad) {
+                if (inFlightEventsLoad.key === key) {
+                    return inFlightEventsLoad.promise;
+                }
+                const previous = inFlightEventsLoad.promise;
+                await previous.catch(() => {});
+                // Another matching request may have started while we awaited.
+                if (inFlightEventsLoad?.key === key) {
+                    return inFlightEventsLoad.promise;
+                }
+            }
 
-                const activeWallet = state.walletManagement.savedWallets.find(
-                    (w) => w.id === state.walletManagement.activeWalletId,
+            const run = (async () => {
+                const startState = get();
+                const address = startState.walletManagement.address;
+                if (!address) return;
+
+                const activeWallet = startState.walletManagement.savedWallets.find(
+                    (w) => w.id === startState.walletManagement.activeWalletId,
                 );
                 const walletNetwork = activeWallet?.network || 'testnet';
+                const apiClient = startState.walletCore.walletKit?.getApiClient(getChainNetwork(walletNetwork));
+                if (!apiClient) return;
 
-                const response = await state.walletCore.walletKit
-                    .getApiClient(getChainNetwork(walletNetwork))
-                    .getEvents({
-                        account: state.walletManagement.address,
-                        limit,
-                        offset,
-                    });
+                set((s) => {
+                    s.walletManagement.isLoadingEvents = true;
+                });
 
-                set((state) => {
-                    state.walletManagement.events = response.events;
-                    state.walletManagement.hasNextEvents = response.hasNext;
+                log.info('Loading events for address:', address, 'limit:', limit, 'offset:', offset);
+
+                // Best-effort account status (fresh/uninit accounts report 'uninitialized'/'non-existing')
+                // so the UI can tell "genuinely no transactions" from "still loading / failed".
+                void apiClient
+                    .getAccountState(address)
+                    .then((account) => {
+                        set((s) => {
+                            if (s.walletManagement.address === address) {
+                                s.walletManagement.accountStatus = account.status;
+                            }
+                        });
+                    })
+                    .catch((err) => log.warn('Failed to fetch account status:', err));
+
+                // One quick retry on a transient toncenter timeout.
+                let response: Awaited<ReturnType<typeof apiClient.getEvents>>;
+                try {
+                    response = await apiClient.getEvents({ account: address, limit, offset });
+                } catch (error) {
+                    if (isToncenterTimeout(error)) {
+                        log.warn('getEvents timed out; retrying once');
+                        await delay(600);
+                        response = await apiClient.getEvents({ account: address, limit, offset });
+                    } else {
+                        throw error;
+                    }
+                }
+
+                set((s) => {
+                    // offset 0 = fresh first page (replace). offset > 0 = "Load more" page:
+                    // append to what's already loaded and dedupe by eventId so a page overlap
+                    // (e.g. a new tx shifting the window) can't produce duplicate rows.
+                    if (offset > 0) {
+                        const existing = s.walletManagement.events as Array<{ eventId?: string }>;
+                        const seenEventIds = new Set<string>(
+                            existing.map((ev) => ev.eventId).filter((id): id is string => !!id),
+                        );
+                        const appended = (response.events as Array<{ eventId?: string }>).filter(
+                            (ev) => !ev.eventId || !seenEventIds.has(ev.eventId),
+                        );
+                        s.walletManagement.events = [...existing, ...appended];
+                    } else {
+                        s.walletManagement.events = response.events;
+                    }
+                    s.walletManagement.hasNextEvents = response.hasNext;
                     const eventTraceIds = new Set<string>();
                     const eventExtHashes = new Set<string>();
                     for (const ev of response.events as Array<{ eventId?: string; traceExternalHash?: string }>) {
                         if (ev.eventId) eventTraceIds.add(ev.eventId);
                         if (ev.traceExternalHash) eventExtHashes.add(Base64ToHex(ev.traceExternalHash));
                     }
-                    state.walletManagement.confirmedTraceIds = [
-                        ...state.walletManagement.confirmedTraceIds,
+                    s.walletManagement.confirmedTraceIds = [
+                        ...s.walletManagement.confirmedTraceIds,
                         ...eventTraceIds,
                     ].slice(-50);
-                    state.walletManagement.confirmedExternalHashes = [
-                        ...state.walletManagement.confirmedExternalHashes,
+                    s.walletManagement.confirmedExternalHashes = [
+                        ...s.walletManagement.confirmedExternalHashes,
                         ...eventExtHashes,
                     ].slice(-50);
-                    state.walletManagement.pendingTransactions = state.walletManagement.pendingTransactions.filter(
+                    s.walletManagement.pendingTransactions = s.walletManagement.pendingTransactions.filter(
                         (p) =>
                             !(p.traceId && eventTraceIds.has(p.traceId)) &&
                             !(p.externalHash && eventExtHashes.has(p.externalHash)),
                     );
+                    s.walletManagement.eventsError = false;
                 });
 
                 log.info(`Loaded ${response.events.length} events`);
-            } catch (error) {
-                log.error('Error loading events:', error);
-            }
+            })();
+
+            const promise = run
+                .catch((error) => {
+                    log.error('Error loading events:', error);
+                    set((s) => {
+                        s.walletManagement.eventsError = true;
+                    });
+                })
+                .finally(() => {
+                    set((s) => {
+                        s.walletManagement.isLoadingEvents = false;
+                        s.walletManagement.eventsLoaded = true;
+                    });
+                    // Only clear if we're still the current load (a newer one may have replaced us).
+                    if (inFlightEventsLoad?.promise === promise) {
+                        inFlightEventsLoad = null;
+                    }
+                });
+
+            inFlightEventsLoad = { key, promise };
+            return promise;
         },
 
         getAvailableWallets: (): Wallet[] => {

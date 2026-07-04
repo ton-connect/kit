@@ -11,6 +11,8 @@ import { Check, MinusCircle, PlusCircle, X } from 'lucide-react';
 
 import type { TransactionRowModel, TransactionRowStatus } from '../../utils/map-transaction-row';
 
+import { Skeleton } from '@/core/components/ui/skeleton';
+
 const StatusBadge: React.FC<{ status: TransactionRowStatus }> = ({ status }) => {
     const base =
         'absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-white';
@@ -88,3 +90,18 @@ export const TransactionRow: React.FC<TransactionRowModel> = ({
         </a>
     );
 };
+
+/** Loading placeholder mirroring {@link TransactionRow}: circular icon, title/id lines, amount/date. */
+export const TransactionRowSkeleton: React.FC = () => (
+    <div className="flex items-center gap-3 py-2 -mx-1 px-1">
+        <Skeleton className="w-10 h-10 rounded-full flex-shrink-0" />
+        <div className="flex-1 min-w-0 space-y-1.5">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-3 w-20" />
+        </div>
+        <div className="text-right space-y-1.5">
+            <Skeleton className="h-4 w-16 ml-auto" />
+            <Skeleton className="h-3 w-12 ml-auto" />
+        </div>
+    </div>
+);
