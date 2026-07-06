@@ -4,8 +4,8 @@ A Model Context Protocol (MCP) server for TON blockchain wallet operations. Buil
 
 ## Features
 
-- **Balance Queries**: Check TON and Jetton balances, view transaction history.
-- **Transfers**: Send TON, Jettons, and NFTs to any address.
+- **Balance Queries**: Check GRAM (ex. TON) and Jetton balances, view transaction history.
+- **Transfers**: Send GRAM (ex. TON), Jettons, and NFTs to any address.
 - **Swaps**: Get quotes for token swaps via DEX aggregators.
 - **NFTs**: List, inspect, and transfer NFTs.
 - **DNS**: Resolve TON DNS-compatible domains and reverse-lookup addresses.
@@ -166,17 +166,17 @@ Soft-delete a stored wallet from the local registry. Removed wallets remain in t
 ### Balance & History
 
 #### `get_balance`
-Get the TON balance of the wallet.
+Get the GRAM (ex. TON) balance of the wallet.
 
-**Returns:** Balance in TON and nanoTON
+**Returns:** Balance in GRAM (ex. TON) and nanoTON
 
 #### `get_balance_by_address`
-Get the TON balance of any address.
+Get the GRAM (ex. TON) balance of any address.
 
 **Parameters:**
 - `address` (required): TON wallet address
 
-**Returns:** Address balance in TON and nanoTON
+**Returns:** Address balance in GRAM (ex. TON) and nanoTON
 
 #### `get_jetton_balance`
 Get the balance of a specific Jetton in the wallet.
@@ -202,7 +202,7 @@ Get metadata for a Jetton master contract.
 - `jettonAddress` (required): Jetton master contract address
 
 #### `get_transactions`
-Get recent transaction history for the wallet (TON transfers, Jetton transfers, swaps, etc.).
+Get recent transaction history for the wallet (GRAM (ex. TON) transfers, Jetton transfers, swaps, etc.).
 
 **Parameters:**
 - `limit` (optional): Maximum number of transactions to return (default: 20, max: 100)
@@ -220,11 +220,11 @@ Get the status of a transaction by its normalized hash to know if it is pending,
 `build_ton_transfer`, `build_jetton_transfer`, and `build_nft_transfer` do **not** broadcast. They build a transaction and return ready-to-send `messages` (the `transaction` field). Preview them with `emulate_transaction`, then broadcast with `send_raw_transaction` — the same pipeline used by `get_swap_quote`. Only `send_raw_transaction` signs and sends. When broadcasting, pass the returned `transaction.fromAddress` along with the messages: jetton and NFT transfers are bound to the wallet they were built for.
 
 #### `build_ton_transfer`
-Build a TON transfer to an address. Amount is in human-readable format (e.g., `"1.5"` means 1.5 TON). Returns `transaction: { messages, validUntil, fromAddress }`. Preview with `emulate_transaction`, then broadcast with `send_raw_transaction`.
+Build a GRAM (ex. TON) transfer to an address. Amount is in human-readable format (e.g., `"1.5"` means 1.5 GRAM). Returns `transaction: { messages, validUntil, fromAddress }`. Preview with `emulate_transaction`, then broadcast with `send_raw_transaction`.
 
 **Parameters:**
 - `toAddress` (required): Recipient TON address
-- `amount` (required): Amount in TON (e.g., `"1.5"`)
+- `amount` (required): Amount in GRAM (ex. TON) (e.g., `"1.5"`)
 - `comment` (optional): Transaction comment/memo
 
 #### `build_jetton_transfer`
@@ -249,7 +249,7 @@ Sign and broadcast a raw transaction with full control over messages. Supports m
 - `fromAddress` (optional): Sender wallet address; when broadcasting a prepared transaction, pass its `transaction.fromAddress`
 
 #### `emulate_transaction`
-Dry-run a raw transaction without broadcasting it. Accepts the same `messages` format as `send_raw_transaction` and returns the expected TON and Jetton balance changes, fees, and high-level actions so agents can verify a transaction before sending.
+Dry-run a raw transaction without broadcasting it. Accepts the same `messages` format as `send_raw_transaction` and returns the expected GRAM (ex. TON) and Jetton balance changes, fees, and high-level actions so agents can verify a transaction before sending.
 
 **Parameters:**
 - `messages` (required): Array of messages, each with `address`, `amount` in nanotons, and optional `stateInit` / `payload`
@@ -261,9 +261,9 @@ Dry-run a raw transaction without broadcasting it. Accepts the same `messages` f
 Get a quote for swapping tokens. Returns quote details and transaction params that can be executed via `send_raw_transaction`.
 
 **Parameters:**
-- `fromToken` (required): Token to swap from (`"TON"` or jetton address)
-- `toToken` (required): Token to swap to (`"TON"` or jetton address)
-- `amount` (required): Amount in human-readable format (e.g., `"1.5"` for 1.5 TON)
+- `fromToken` (required): Token to swap from (`"TON"` for native GRAM (ex. TON), or jetton address)
+- `toToken` (required): Token to swap to (`"TON"` for native GRAM (ex. TON), or jetton address)
+- `amount` (required): Amount in human-readable format (e.g., `"1.5"` for 1.5 GRAM (ex. TON))
 - `slippageBps` (optional): Slippage tolerance in basis points (default: 100 = 1%)
 
 ### NFTs
@@ -361,7 +361,7 @@ Start first-root-agent setup: generate operator keys, persist a pending draft, a
 - `name` (optional): Agent display name
 - `source` (optional): Source or description
 - `collectionAddress` (optional): Collection address override
-- `tonDeposit` (optional): TON deposit hint for the dashboard
+- `tonDeposit` (optional): GRAM (ex. TON) deposit hint for the dashboard
 
 Pending onboarding callback state is persisted in the local config, so the setup can be resumed after MCP transport restarts. In HTTP mode, callback URLs are stable on the MCP server base URL. In stdio mode, use `AGENTIC_CALLBACK_BASE_URL` and/or `AGENTIC_CALLBACK_PORT` if you need a fixed callback endpoint across restarts.
 

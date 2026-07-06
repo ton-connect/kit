@@ -118,7 +118,7 @@ npx @ton/mcp@alpha get_current_wallet
 
 **User request**
 
-`Show my balance in TON and jettons`
+`Show my balance in GRAM (ex. TON) and jettons`
 
 **Approximate command list**
 
@@ -129,7 +129,7 @@ npx @ton/mcp@alpha get_jettons
 
 **Approximate agent response**
 
-> Active wallet balance: `12.84 TON`. Jetton balances include `USDT 53.2`, `NOT 1400`, and `STON 18.05`.
+> Active wallet balance: `12.84 GRAM (ex. TON)`. Jetton balances include `USDT 53.2`, `NOT 1400`, and `STON 18.05`.
 
 ### Show the balance of any address
 
@@ -146,7 +146,7 @@ npx @ton/mcp@alpha get_jettons_by_address --address EQ...
 
 **Approximate agent response**
 
-> Address `EQ...` has a balance of `3.21 TON`. No jettons were found for that address.
+> Address `EQ...` has a balance of `3.21 GRAM (ex. TON)`. No jettons were found for that address.
 
 ### Find a known jetton address
 
@@ -184,11 +184,11 @@ npx @ton/mcp@alpha generate_ton_proof --domain getgems.io --payload getgems-llm
 
 ## Transfers and Swaps
 
-### Send TON to a TON DNS name
+### Send GRAM (ex. TON) to a TON DNS name
 
 **User request**
 
-`Send 1 TON to foundation.ton`
+`Send 1 GRAM (ex. TON) to foundation.ton`
 
 **Approximate command list**
 
@@ -202,13 +202,13 @@ npx @ton/mcp@alpha get_transaction_status --normalizedHash <NORMALIZED_HASH>
 
 **Approximate agent response**
 
-> `foundation.ton` was resolved to TON address `EQ...`. The `1 TON` transfer was sent with `normalizedHash: <NORMALIZED_HASH>`. Transaction status: `completed`.
+> `foundation.ton` was resolved to TON address `EQ...`. The `1 GRAM (ex. TON)` transfer was sent with `normalizedHash: <NORMALIZED_HASH>`. Transaction status: `completed`.
 
-### Preview a TON transfer before sending
+### Preview a GRAM (ex. TON) transfer before sending
 
 **User request**
 
-`Prepare a 0.5 TON payment to UQAbc... and show me what happens before sending`
+`Prepare a 0.5 GRAM (ex. TON) payment to UQAbc... and show me what happens before sending`
 
 **Approximate command list**
 
@@ -219,7 +219,7 @@ npx @ton/mcp@alpha emulate_transaction --messages '<transaction.messages>'
 
 **Approximate agent response**
 
-> Prepared the `0.5 TON` transfer (it was not sent). Emulation shows the expected balance changes and fees. Confirm to broadcast it with `send_raw_transaction`.
+> Prepared the `0.5 GRAM (ex. TON)` transfer (it was not sent). Emulation shows the expected balance changes and fees. Confirm to broadcast it with `send_raw_transaction`.
 
 ### Send a jetton
 
@@ -241,11 +241,11 @@ npx @ton/mcp@alpha get_transaction_status --normalizedHash <NORMALIZED_HASH>
 
 > `USDT` was found in the wallet. I prepared the `25 USDT` transfer to `UQAbc...`, previewed it, then broadcast it with `send_raw_transaction`. `normalizedHash: <NORMALIZED_HASH>`. Current status: `completed`.
 
-### Swap TON for a jetton
+### Swap GRAM (ex. TON) for a jetton
 
 **User request**
 
-`Swap 2 TON to USDT`
+`Swap 2 GRAM (ex. TON) to USDT`
 
 **Approximate command list**
 
@@ -261,7 +261,7 @@ npx @ton/mcp@alpha get_transaction_status --normalizedHash <NORMALIZED_HASH>
 
 **Approximate agent response**
 
-> A quote was received for swapping `2 TON` to `USDT`. After confirmation, the swap was executed with an expected output of about `X USDT` after slippage. `normalizedHash: <NORMALIZED_HASH>`.
+> A quote was received for swapping `2 GRAM (ex. TON)` to `USDT`. After confirmation, the swap was executed with an expected output of about `X USDT` after slippage. `normalizedHash: <NORMALIZED_HASH>`.
 
 ### Show recent transactions
 
@@ -277,7 +277,7 @@ npx @ton/mcp@alpha get_transactions --limit 5
 
 **Approximate agent response**
 
-> The last 5 operations were shown, including incoming and outgoing TON transfers, jetton transfers, and swaps. For each transaction, the agent typically shows the time, action type, amount, and final status.
+> The last 5 operations were shown, including incoming and outgoing GRAM (ex. TON) transfers, jetton transfers, and swaps. For each transaction, the agent typically shows the time, action type, amount, and final status.
 
 ## TON DNS
 

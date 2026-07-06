@@ -26,7 +26,7 @@ export const deployAgenticSubwalletSchema = z.object({
         .min(1)
         .describe('Public key for the new sub-wallet operator (uint256, decimal or 0x-prefixed hex).'),
     metadata: agenticMetadataSchema.describe('Required onchain NFT metadata (TEP-64). Must include at least `name`.'),
-    amountTon: z.string().optional().describe('GRAM amount to attach for deployment in GRAM units (default: "0.05").'),
+    amountTon: z.string().optional().describe('GRAM (ex. TON) amount to attach for deployment in GRAM units (default: "0.05").'),
 });
 
 export function createMcpAgenticTools(service: McpWalletService) {
@@ -39,7 +39,7 @@ export function createMcpAgenticTools(service: McpWalletService) {
                 try {
                     const amountTon = args.amountTon ?? '0.05';
                     if (!TON_AMOUNT_REGEX.test(amountTon)) {
-                        throw new Error('amountTon must be a positive GRAM value with up to 9 decimals');
+                        throw new Error('amountTon must be a positive GRAM (ex. TON) value with up to 9 decimals');
                     }
 
                     const result = await service.deployAgenticSubwallet({

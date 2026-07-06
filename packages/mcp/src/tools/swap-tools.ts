@@ -12,9 +12,9 @@ import type { McpWalletService } from '../services/McpWalletService.js';
 import type { ToolResponse } from './types.js';
 
 export const getSwapQuoteSchema = z.object({
-    fromToken: z.string().min(1).describe('Token to swap from ("TON" or jetton address)'),
-    toToken: z.string().min(1).describe('Token to swap to ("TON" or jetton address)'),
-    amount: z.string().min(1).describe('Amount to swap in human-readable format (e.g., "1.5" for 1.5 GRAM)'),
+    fromToken: z.string().min(1).describe('Token to swap from ("TON" for native GRAM (ex. TON), or a jetton address)'),
+    toToken: z.string().min(1).describe('Token to swap to ("TON" for native GRAM (ex. TON), or a jetton address)'),
+    amount: z.string().min(1).describe('Amount to swap in human-readable format (e.g., "1.5" for 1.5 GRAM (ex. TON))'),
     slippageBps: z.number().optional().describe('Slippage tolerance in basis points (default 100 = 1%)'),
 });
 

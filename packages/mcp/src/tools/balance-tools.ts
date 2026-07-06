@@ -58,7 +58,7 @@ export function createMcpBalanceTools(service: McpWalletService) {
 
         get_balance: {
             description:
-                'Get the GRAM balance of the wallet. Returns both human-readable and raw (nano units) amounts.',
+                'Get the GRAM (ex. TON) balance of the wallet. Returns both human-readable and raw (nano units) amounts.',
             inputSchema: getBalanceSchema,
             handler: async (): Promise<ToolResponse> => {
                 try {
@@ -192,7 +192,7 @@ export function createMcpBalanceTools(service: McpWalletService) {
 
         get_transactions: {
             description:
-                'Get recent transaction history for the wallet. Returns events with actions like GRAM transfers, Jetton transfers, swaps, and more.',
+                'Get recent transaction history for the wallet. Returns events with actions like GRAM (ex. TON) transfers, Jetton transfers, swaps, and more.',
             inputSchema: getTransactionsSchema,
             handler: async (args: z.infer<typeof getTransactionsSchema>): Promise<ToolResponse> => {
                 try {
@@ -213,7 +213,7 @@ export function createMcpBalanceTools(service: McpWalletService) {
                                             status: tx.status,
                                             description: tx.description,
                                             isScam: tx.isScam,
-                                            // GRAM transfer details
+                                            // GRAM (ex. TON) transfer details
                                             ...(tx.type === 'TonTransfer' && {
                                                 from: tx.from,
                                                 to: tx.to,

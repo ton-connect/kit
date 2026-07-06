@@ -1,13 +1,13 @@
 ---
 name: ton-send
-description: Send TON or jettons (tokens) to an address or TON DNS domain. Use when the user wants to send TON, transfer tokens, send jettons, pay someone, send funds to a .ton or .t.me domain, or transfer assets on the TON blockchain.
+description: Send GRAM (ex. TON) or jettons (tokens) to an address or TON DNS domain. Use when the user wants to send GRAM (ex. TON), transfer tokens, send jettons, pay someone, send funds to a .ton or .t.me domain, or transfer assets on the TON blockchain.
 user-invocable: true
 disable-model-invocation: false
 ---
 
-# Send TON & Tokens
+# Send GRAM (ex. TON) & Tokens
 
-Transfer TON or jettons to any address. Supports TON DNS resolution for `.ton` and `.t.me` domains.
+Transfer GRAM (ex. TON) or jettons to any address. Supports TON DNS resolution for `.ton` and `.t.me` domains.
 
 ## MCP Tools
 
@@ -24,7 +24,7 @@ Transfer TON or jettons to any address. Supports TON DNS resolution for `.ton` a
 
 ## Workflows
 
-### Send TON
+### Send GRAM (ex. TON)
 1. If the user provides a DNS name (e.g., `foundation.ton`, `user.t.me`) instead of a raw address, call `resolve_dns` first
 2. Call `build_ton_transfer` with address and amount to build the transaction (it is NOT sent)
 3. Preview it with `emulate_transaction` using the returned `transaction.messages` (recommended before broadcasting)
@@ -43,7 +43,7 @@ Transfer TON or jettons to any address. Supports TON DNS resolution for `.ton` a
 
 ## Notes
 
-- Amounts are human-readable (e.g., `"1.5"` = 1.5 TON, `"100"` = 100 tokens)
+- Amounts are human-readable (e.g., `"1.5"` = 1.5 GRAM (ex. TON), `"100"` = 100 tokens)
 - `build_ton_transfer`/`build_jetton_transfer` build the transaction only; `send_raw_transaction` is the tool that actually signs and broadcasts
 - Use `emulate_transaction` to preview expected balance changes before broadcasting (fake signature)
 - Always confirm with the user before broadcasting a transfer; prefer the host client's structured confirmation UI when available, otherwise accept natural-language yes/no and do not require a fixed confirmation phrase

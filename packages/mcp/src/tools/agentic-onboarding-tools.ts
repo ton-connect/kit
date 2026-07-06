@@ -52,7 +52,7 @@ const startAgenticRootWalletSetupSchema = z.object({
     name: z.string().optional().describe('Optional agent display name'),
     source: z.string().optional().describe('Optional source / description'),
     collectionAddress: z.string().optional().describe('Optional collection address override'),
-    tonDeposit: z.string().optional().describe('Optional GRAM deposit hint for the dashboard'),
+    tonDeposit: z.string().optional().describe('Optional GRAM (ex. TON) deposit hint for the dashboard'),
 });
 
 const setupIdSchema = z.object({

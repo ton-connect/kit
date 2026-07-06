@@ -134,7 +134,7 @@ Without `MNEMONIC` or `PRIVATE_KEY`, the CLI uses the local config registry at `
 # Check wallet address and network
 npx @ton/mcp@alpha get_wallet
 
-# Check TON balance
+# Check GRAM (ex. TON) balance
 npx @ton/mcp@alpha get_balance
 
 # List all tokens
@@ -155,7 +155,7 @@ npx @ton/mcp@alpha get_balance --walletSelector "my-hot-wallet"
 # In registry mode: list all registered wallets
 npx @ton/mcp@alpha list_wallets
 
-# Send TON — build, preview, then broadcast (confirm with user before the broadcast step)
+# Send GRAM (ex. TON) — build, preview, then broadcast (confirm with user before the broadcast step)
 npx @ton/mcp@alpha build_ton_transfer --toAddress UQA... --amount 0.5 --comment "payment"
 npx @ton/mcp@alpha emulate_transaction --messages '<transaction.messages>'        # recommended preview
 npx @ton/mcp@alpha send_raw_transaction --messages '<transaction.messages>' --fromAddress '<transaction.fromAddress>'

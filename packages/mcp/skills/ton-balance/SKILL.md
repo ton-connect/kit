@@ -1,11 +1,11 @@
 ---
 name: ton-balance
-description: Check TON wallet balances, token holdings, and transaction history. Use when the user wants to check their balance, see how much TON they have, list tokens, view jettons, check transaction history, look up a token, or verify a transaction status.
+description: Check TON wallet balances, token holdings, and transaction history. Use when the user wants to check their balance, see how much GRAM (ex. TON) they have, list tokens, view jettons, check transaction history, look up a token, or verify a transaction status.
 user-invocable: true
 disable-model-invocation: false
 ---
 
-# TON Balance & Transaction Queries
+# GRAM (ex. TON) Balance & Transaction Queries
 
 Read-only queries for wallet balances, token holdings, and transaction history on TON.
 
@@ -28,7 +28,7 @@ Read-only queries for wallet balances, token holdings, and transaction history o
 
 ### Check Balance
 1. Call `get_wallet` for address and network info
-2. Call `get_balance` for TON balance
+2. Call `get_balance` for GRAM (ex. TON) balance
 3. Call `get_jettons` for all token holdings
 
 ### Check Specific Token
@@ -45,4 +45,4 @@ Read-only queries for wallet balances, token holdings, and transaction history o
 
 - All tools are read-only — no confirmation needed
 - In registry mode, pass `walletSelector` to query a specific wallet instead of the active one
-- All balance responses include both `amountRaw` (raw integer string) and `amount` (human-readable decimal string, e.g. `"1.5"` for 1.5 TON). Use `amount` for display; use `amountRaw` only when a raw integer is required.
+- All balance responses include both `amountRaw` (raw integer string) and `amount` (human-readable decimal string, e.g. `"1.5"` for 1.5 GRAM (ex. TON)). Use `amount` for display; use `amountRaw` only when a raw integer is required.

@@ -57,4 +57,4 @@ Deploy an on-chain agentic wallet on TON. The agent generates operator keys, ope
 - Callback-driven completion is for long-lived stdio/HTTP MCP server sessions; raw CLI should use manual `walletAddress` completion
 - If automatic dashboard opening is supported in the current environment, do it instead of asking the user to open the URL manually
 - In raw CLI mode, ask for the wallet address after deployment because the callback server is not available long enough to complete the flow
-- After wallet creation, fund the wallet with TON before using transfer or swap skills
+- After wallet creation, fund the wallet with GRAM (ex. TON) before using transfer or swap skills

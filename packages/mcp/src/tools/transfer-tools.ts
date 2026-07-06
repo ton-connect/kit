@@ -14,7 +14,7 @@ import type { ToolResponse } from './types.js';
 
 export const tonTransferSchema = z.object({
     toAddress: z.string().min(1).describe('Recipient TON address'),
-    amount: z.string().min(1).describe('Amount of GRAM to send (e.g., "1.5" for 1.5 GRAM)'),
+    amount: z.string().min(1).describe('Amount of GRAM (ex. TON) to send (e.g., "1.5" for 1.5 GRAM)'),
     comment: z.string().optional().describe('Optional comment/memo for the transaction'),
 });
 
@@ -77,7 +77,7 @@ export function createMcpTransferTools(service: McpWalletService) {
     return {
         build_ton_transfer: {
             description:
-                'Prepare a GRAM transfer from the wallet to an address. Amount is in GRAM (e.g., "1.5" means 1.5 GRAM). Does NOT broadcast: returns ready-to-send transaction messages. Preview them with emulate_transaction, then broadcast with send_raw_transaction.',
+                'Prepare a GRAM (ex. TON) transfer from the wallet to an address. Amount is in GRAM (e.g., "1.5" means 1.5 GRAM). Does NOT broadcast: returns ready-to-send transaction messages. Preview them with emulate_transaction, then broadcast with send_raw_transaction.',
             inputSchema: tonTransferSchema,
             handler: async (args: z.infer<typeof tonTransferSchema>): Promise<ToolResponse> => {
                 try {
@@ -216,7 +216,7 @@ export function createMcpTransferTools(service: McpWalletService) {
         },
         emulate_transaction: {
             description:
-                'Emulate a transaction without broadcasting it. Dry-run that returns the expected money flow (GRAM and jetton balance changes) so you can verify a transaction before sending. Accepts the same messages format as send_raw_transaction.',
+                'Emulate a transaction without broadcasting it. Dry-run that returns the expected money flow (GRAM (ex. TON) and jetton balance changes) so you can verify a transaction before sending. Accepts the same messages format as send_raw_transaction.',
             inputSchema: emulateTransactionSchema,
             handler: async (args: z.infer<typeof emulateTransactionSchema>): Promise<ToolResponse> => {
                 try {

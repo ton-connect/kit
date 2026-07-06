@@ -10,7 +10,7 @@ disable-model-invocation: false
 Backed **xStocks** are jettons on TON. Resolve the **jetton master** from the public xStocks API, then use the same **quote → execute** flow as `ton-swap`, with routing preferences learned from real Omniston behavior.
 
 > **Critical: USDT is the only working swap pair.**  
-> Omniston consistently returns **no quote** for TON → xStock and xStock → TON routes.  
+> Omniston consistently returns **no quote** for GRAM (ex. TON) → xStock and xStock → GRAM routes.  
 > All xStock buys and sells **must** go through USDT. If the user lacks sufficient USDT, buy USDT with TON first (see §Pre-fund USDT below).
 
 ## Key addresses
@@ -37,7 +37,7 @@ Backed **xStocks** are jettons on TON. Resolve the **jetton master** from the pu
 
 | Action | Tools |
 | ------ | ----- |
-| Pre-fund USDT | `get_jetton_balance` (USDT) → `get_swap_quote` (TON → USDT) → `emulate_transaction` → `send_raw_transaction` |
+| Pre-fund USDT | `get_jetton_balance` (USDT) → `get_swap_quote` (GRAM (ex. TON) → USDT) → `emulate_transaction` → `send_raw_transaction` |
 | Buy xStock | `get_swap_quote` (USDT → xStock) → `emulate_transaction` → `send_raw_transaction` |
 | Sell xStock | `get_jetton_balance` (xStock) → `get_swap_quote` (xStock → USDT) → `emulate_transaction` → `send_raw_transaction` |
 | Verify | `get_jetton_info`, `get_transaction_status`, `get_jetton_balance` |
@@ -50,7 +50,7 @@ Amounts for `get_swap_quote` are **human-readable** strings (respect jetton deci
 | ---- | --- | -------- |
 | `get_jetton_info` | jettonAddress | `--jettonAddress` |
 | `get_jetton_balance` | jettonAddress | `--jettonAddress` |
-| `get_swap_quote` | fromToken | `--fromToken` (use `"TON"` for native TON, jetton master address for tokens) |
+| `get_swap_quote` | fromToken | `--fromToken` (use `"TON"` for native GRAM (ex. TON), jetton master address for tokens) |
 | `get_swap_quote` | toToken | `--toToken` |
 | `get_swap_quote` | amount | `--amount` (human-readable) |
 | `get_swap_quote` | slippageBps | `--slippageBps` (default 100 = 1%) |
@@ -66,7 +66,7 @@ Before any xStock trade, check the user's USDT balance:
 2. If `amount` **< required amount** for the planned buy:
    a. Calculate the shortfall (include a small buffer for price movement).
    b. `get_swap_quote` with `fromToken` = `"TON"` (the literal string, not an address), `toToken` = USDT master, `amount` = shortfall.
-   c. Confirm with the user: *"You need ~X USDT but only have Y. Swap Z TON → X USDT first?"*
+   c. Confirm with the user: *"You need ~X USDT but only have Y. Swap Z GRAM (ex. TON) → X USDT first?"*
    d. On approval, `send_raw_transaction` → poll `get_transaction_status` until `completed`.
    e. Re-check USDT balance before proceeding to the xStock buy.
 
@@ -76,11 +76,11 @@ Before any xStock trade, check the user's USDT balance:
 2. Check USDT balance — run **Pre-fund USDT** if insufficient.
 3. `get_swap_quote`: `fromToken` = USDT master, `toToken` = xStock master, `amount` = USDT to spend, `slippageBps` = 100 (1 %).
 4. `emulate_transaction` with the quote's `transaction.messages` — verify expected balance changes before sending.
-5. Show the user: **fromAmount**, **toAmount**, **minReceived**, **expiresAt**, emulation results, and note the forward **TON** on router messages (gas).
+5. Show the user: **fromAmount**, **toAmount**, **minReceived**, **expiresAt**, emulation results, and note the forward **GRAM (ex. TON)** on router messages (gas).
 6. Confirm once, then `send_raw_transaction` with the returned `transaction.messages`.
 7. Poll `get_transaction_status` on `normalizedHash` until `completed` or `failed`.
 
-> **Do not attempt TON → xStock directly.** It will return no quote. Always route through USDT.
+> **Do not attempt GRAM (ex. TON) → xStock directly.** It will return no quote. Always route through USDT.
 
 ## Sell workflow ("sell all" or fixed amount)
 
@@ -91,7 +91,7 @@ Before any xStock trade, check the user's USDT balance:
 5. Show the user the quote details and emulation results, then confirm.
 6. `send_raw_transaction`, then poll `get_transaction_status` until `completed` or `failed`.
 
-> **Do not attempt xStock → TON directly.** Always sell into USDT.
+> **Do not attempt xStock → GRAM (ex. TON) directly.** Always sell into USDT.
 
 ## Post-trade checks
 
@@ -100,7 +100,7 @@ Before any xStock trade, check the user's USDT balance:
 
 ## Omniston quirks
 
-- **"No quote available"** — no route at that size / time. Retry after a short wait, or adjust amount / slippage slightly. Do **not** switch to TON pairing; it won't help.
+- **"No quote available"** — no route at that size / time. Retry after a short wait, or adjust amount / slippage slightly. Do **not** switch to GRAM (ex. TON) pairing; it won't help.
 - Occasional WebSocket errors (e.g. quote ack) — **retry** `get_swap_quote`.
 - Quotes **expire**; if the user waited before confirming, fetch a fresh quote before executing.
 

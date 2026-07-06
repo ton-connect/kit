@@ -4,7 +4,7 @@
 
 ## Overview
 
-This MCP server provides tools for managing TON blockchain wallets. It supports wallet info, balance queries, transfers (TON, Jettons, NFTs), token swaps, transaction history, DNS resolution, TonProof authentication, local multi-wallet registry management, and agentic wallet onboarding.
+This MCP server provides tools for managing TON blockchain wallets. It supports wallet info, balance queries, transfers (GRAM (ex. TON), Jettons, NFTs), token swaps, transaction history, DNS resolution, TonProof authentication, local multi-wallet registry management, and agentic wallet onboarding.
 
 It has two runtime modes:
 - Registry mode: if `MNEMONIC` and `PRIVATE_KEY` are not set, wallets are loaded from the local TON config registry (`~/.config/ton/config.json` or `TON_CONFIG_PATH`)
@@ -38,14 +38,14 @@ Parameters:
 - walletSelector (required): wallet id, name, or address
 
 ### get_balance
-Get TON balance of the wallet.
-Returns: address, balance in TON and nanoTON
+Get GRAM (ex. TON) balance of the wallet.
+Returns: address, balance in GRAM (ex. TON) and nanoTON
 
 ### get_balance_by_address
-Get TON balance for any address.
+Get GRAM (ex. TON) balance for any address.
 Parameters:
 - address (required): TON wallet address
-Returns: address, balance in TON and nanoTON
+Returns: address, balance in GRAM (ex. TON) and nanoTON
 
 ### get_jetton_balance
 Get balance of a specific Jetton token.
@@ -87,10 +87,10 @@ Get list of known/popular Jettons on TON.
 Returns: array with symbol, name, address, decimals
 
 ### build_ton_transfer
-Build a TON transfer to an address. Does NOT broadcast.
+Build a GRAM (ex. TON) transfer to an address. Does NOT broadcast.
 Parameters:
 - toAddress (required): recipient address
-- amount (required): amount in TON (e.g., "1.5")
+- amount (required): amount in GRAM (ex. TON) (e.g., "1.5")
 - comment (optional): transaction memo
 Returns: transaction {messages, validUntil, fromAddress} ready for emulate_transaction (preview) then send_raw_transaction (broadcast)
 
@@ -116,14 +116,14 @@ Dry-run a raw transaction without broadcasting it.
 Parameters:
 - messages (required): array of {address, amount (nanoTON), stateInit?, payload?}
 - validUntil (optional): expiry timestamp
-Returns: expected TON and Jetton balance changes, fees, and high-level actions
+Returns: expected GRAM (ex. TON) and Jetton balance changes, fees, and high-level actions
 
 ### get_swap_quote
 Get quote for token swap.
 Parameters:
-- fromToken (required): "TON" or jetton address
-- toToken (required): "TON" or jetton address
-- amount (required): human-readable amount (e.g., "1.5" for 1.5 TON)
+- fromToken (required): "TON" (native GRAM (ex. TON)) or jetton address
+- toToken (required): "TON" (native GRAM (ex. TON)) or jetton address
+- amount (required): human-readable amount (e.g., "1.5" for 1.5 GRAM (ex. TON))
 - slippageBps (optional): slippage in basis points (100 = 1%)
 Returns: quote details + transaction params for send_raw_transaction
 
@@ -219,7 +219,7 @@ Parameters:
 - name (optional): display name
 - source (optional): source or description
 - collectionAddress (optional): collection override
-- tonDeposit (optional): TON deposit hint
+- tonDeposit (optional): GRAM (ex. TON) deposit hint
 
 ### agentic_list_pending_root_wallet_setups
 Registry mode only. List pending root-agent onboarding drafts.
@@ -249,7 +249,7 @@ Parameters:
 3. set_active_wallet if the user wants to switch
 4. For one-off calls, pass walletSelector directly to wallet-scoped tools instead of changing the active wallet
 
-### Sending TON
+### Sending GRAM (ex. TON)
 1. If recipient is a DNS name rather than a raw address: resolve_dns first
 2. build_ton_transfer with resolved address (builds only — does NOT broadcast)
 3. emulate_transaction with the returned transaction.messages to preview balance changes and fees (recommended before sending)

@@ -22,5 +22,6 @@ All widgets and components now present the native asset as GRAM instead of TON:
 
 **@ton/mcp**
 
-- Tool descriptions and output labels now read GRAM (e.g. "Send GRAM", "Get GRAM balance", amounts rendered as "1.5 GRAM"); raw-unit wording now reads "nano units" instead of "nanoTON".
+- Tool descriptions, docs (README, llms.txt, USAGE_EXAMPLES), and skills now present the native asset as "GRAM (ex. TON)" (e.g. "Send GRAM (ex. TON)", "Get GRAM (ex. TON) balance", amounts rendered as "1.5 GRAM"); raw-unit wording now reads "nano units" instead of "nanoTON".
+- Only the coin is renamed: TON Blockchain / network / DNS / TonProof / config references stay "TON".
 - The tool API is unchanged: the `"TON"` token selector, returned token symbols, and the `nanoTon` output field stay the same.
