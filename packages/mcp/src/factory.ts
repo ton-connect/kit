@@ -29,6 +29,7 @@ import {
     createMcpAgenticTools,
     createMcpBalanceTools,
     createMcpKnownJettonsTools,
+    createMcpLimitsTools,
     createMcpNftTools,
     createMcpSwapTools,
     createMcpTransactionTools,
@@ -124,6 +125,7 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
         const agenticTools = createMcpAgenticTools(walletService);
         const addressTools = createMcpAddressTools(walletService);
         const tonProofTools = createMcpTonProofTools(walletService);
+        const limitsTools = createMcpLimitsTools(walletService);
 
         registerTool('get_wallet', balanceTools.get_wallet);
         registerTool('get_balance', balanceTools.get_balance);
@@ -150,6 +152,7 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
 
         if (config.walletVersion === 'agentic') {
             registerTool('agentic_deploy_subwallet', agenticTools.deploy_agentic_subwallet);
+            registerTool('agentic_get_limits', limitsTools.get_limits);
         }
 
         return server;
@@ -165,6 +168,7 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
     const agenticToolDefs = createMcpAgenticTools(staticService);
     const addressToolDefs = createMcpAddressTools(staticService);
     const tonProofToolDefs = createMcpTonProofTools(staticService);
+    const limitsToolDefs = createMcpLimitsTools(staticService);
     const walletManagementTools = createMcpWalletManagementTools(registry);
     const ownsAgenticSessionManager = !config.agenticSessionManager;
     const agenticSessionManager =
@@ -282,6 +286,11 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
         agenticToolDefs.deploy_agentic_subwallet,
         (service) => createMcpAgenticTools(service).deploy_agentic_subwallet,
         { requiresSigning: true },
+    );
+    registerRegistryWalletTool(
+        'agentic_get_limits',
+        limitsToolDefs.get_limits,
+        (service) => createMcpLimitsTools(service).get_limits,
     );
     registerRegistryWalletTool(
         'get_transaction_status',

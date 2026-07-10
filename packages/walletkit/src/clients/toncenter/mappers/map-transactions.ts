@@ -47,7 +47,7 @@ function toTransaction(tx: ToncenterTransaction): Transaction {
         logicalTime: tx.lt,
         now: tx.now,
         mcBlockSeqno: tx.mc_block_seqno,
-        traceExternalHash: Base64ToHex(tx.trace_external_hash),
+        traceExternalHash: tx.trace_external_hash ? Base64ToHex(tx.trace_external_hash) : undefined,
         traceId: tx.trace_id ?? undefined,
         previousTransactionHash: tx.prev_trans_hash ? Base64ToHex(tx.prev_trans_hash) : undefined,
         previousTransactionLogicalTime: tx.prev_trans_lt ?? undefined,

@@ -227,7 +227,7 @@ export class ApiClientToncenter extends BaseApiClient implements ApiClient {
         let offset = request.offset ?? 0;
         let limit = request.limit ?? 10;
         if (limit > 100) {
-            limit = 100;
+            limit = 1000;
         } else if (limit < 0) {
             limit = 0;
         }

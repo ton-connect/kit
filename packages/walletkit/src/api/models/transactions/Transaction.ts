@@ -57,9 +57,10 @@ export interface Transaction {
     mcBlockSeqno: number;
 
     /**
-     * External hash of the trace
+     * External hash of the trace. Absent when the toncenter API omits
+     * `trace_external_hash` (e.g. transactions with no external in-message).
      */
-    traceExternalHash: Hex;
+    traceExternalHash?: Hex;
 
     /**
      * ID of the trace

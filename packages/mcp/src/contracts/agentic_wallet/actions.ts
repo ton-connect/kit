@@ -92,46 +92,17 @@ function packActionsListOut(actions: (OutAction | ExtendedAction)[]): Cell {
     return beginCell().storeRef(packActionsListOut(rest)).storeSlice(action.serialize().beginParse()).endCell();
 }
 
-function packExtendedActions(extendedActions: ExtendedAction[]): Cell {
-    const first = extendedActions[0];
-    const rest = extendedActions.slice(1);
-    let builder = beginCell().storeSlice(first.serialize().beginParse());
-    if (rest.length > 0) {
-        builder = builder.storeRef(packExtendedActions(extendedActions.slice(1)));
+/**
+ * Pack send-message actions into the bare `OutList` head cell the agentic wallet
+ * contract expects in its `outActions` field (see `verifyC5Actions`): each node is
+ * a single `action_send_msg` (40 bits + 2 refs). This is NOT the w5 combined
+ * `(outList, extendedActions)` container — passing that container to the agentic
+ * contract fails on-chain with ERROR_INVALID_C5 (nRefs == 1, not 2). Extended
+ * actions travel separately in the request's `extraActions` ref.
+ */
+export function packOutActionList(actions: OutAction[]): Cell | null {
+    if (actions.length === 0) {
+        return null;
     }
-    return builder.endCell();
-}
-
-function packActionsListExtended(actions: (OutAction | ExtendedAction)[]): Cell {
-    const extendedActions: ExtendedAction[] = [];
-    const outActions: OutAction[] = [];
-    actions.forEach((action) => {
-        if (isExtendedAction(action)) {
-            extendedActions.push(action);
-        } else {
-            outActions.push(action);
-        }
-    });
-
-    let builder = beginCell();
-    if (outActions.length === 0) {
-        builder = builder.storeUint(0, 1);
-    } else {
-        builder = builder.storeMaybeRef(packActionsListOut(outActions.slice().reverse()));
-    }
-    if (extendedActions.length === 0) {
-        builder = builder.storeUint(0, 1);
-    } else {
-        const first = extendedActions[0];
-        const rest = extendedActions.slice(1);
-        builder = builder.storeUint(1, 1).storeSlice(first.serialize().beginParse());
-        if (rest.length > 0) {
-            builder = builder.storeRef(packExtendedActions(rest));
-        }
-    }
-    return builder.endCell();
-}
-
-export function packActionsList(actions: (OutAction | ExtendedAction)[]): Cell {
-    return packActionsListExtended(actions);
+    return packActionsListOut(actions.slice().reverse());
 }

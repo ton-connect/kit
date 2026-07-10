@@ -30,10 +30,12 @@ import {
     removeWallet,
     saveConfig,
     setActiveWallet,
+    updateAgenticWalletLimits,
     updateAgenticWalletNftIndex,
     upsertPendingAgenticDeployment,
     upsertWallet,
 } from '../registry/config.js';
+import type { StoredLimits } from '../registry/config.js';
 
 describe('mcp config registry', () => {
     const baseAddress = 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c';
@@ -318,6 +320,102 @@ describe('mcp config registry', () => {
         const result = await persistAgenticWalletNftIndex('does-not-exist', '1');
 
         expect(result).toBe(false);
+    });
+
+    const LIMITS: StoredLimits = { assets: { TON: { windows: { '0': '5' } } } };
+    const FORWARD_MAP = { EQjetton: '0:abc' };
+
+    it('createAgenticWalletRecord stores the forward jetton map and survives a save round-trip', async () => {
+        const record = createAgenticWalletRecord({
+            name: 'Agent wallet',
+            network: 'mainnet',
+            address: baseAddress,
+            ownerAddress: DEFAULT_AGENTIC_COLLECTION_ADDRESS,
+            limits: LIMITS,
+            limitsHash: 'hash-1',
+            jettonWallets: FORWARD_MAP,
+        });
+        expect(record).toMatchObject({ limits: LIMITS, limits_hash: 'hash-1', jetton_wallets: FORWARD_MAP });
+
+        saveConfig({ ...createEmptyConfig(), active_wallet_id: record.id, wallets: [record] });
+        const persisted = await loadConfigWithMigration();
+        expect(persisted?.wallets[0]).toMatchObject({ jetton_wallets: FORWARD_MAP, limits_hash: 'hash-1' });
+    });
+
+    it('updateAgenticWalletLimits sets limits, hash, and forward map together', () => {
+        const agent = createAgenticWalletRecord({
+            name: 'Agent wallet',
+            network: 'mainnet',
+            address: baseAddress,
+            ownerAddress: DEFAULT_AGENTIC_COLLECTION_ADDRESS,
+        });
+        const config = upsertWallet(createEmptyConfig(), agent);
+
+        const updated = updateAgenticWalletLimits(config, agent.id, LIMITS, 'hash-1', FORWARD_MAP);
+
+        expect(updated).not.toBe(config);
+        expect(updated.wallets.find((w) => w.id === agent.id)).toMatchObject({
+            limits: LIMITS,
+            limits_hash: 'hash-1',
+            jetton_wallets: FORWARD_MAP,
+        });
+    });
+
+    it('updateAgenticWalletLimits upgrades a legacy record (same hash, forward map newly added)', () => {
+        const agent = createAgenticWalletRecord({
+            name: 'Agent wallet',
+            network: 'mainnet',
+            address: baseAddress,
+            ownerAddress: DEFAULT_AGENTIC_COLLECTION_ADDRESS,
+            limits: LIMITS,
+            limitsHash: 'hash-1',
+            // No jettonWallets: a record written before the forward map existed.
+        });
+        const config = upsertWallet(createEmptyConfig(), agent);
+        expect(config.wallets[0]).not.toHaveProperty('jetton_wallets');
+
+        const updated = updateAgenticWalletLimits(config, agent.id, LIMITS, 'hash-1', FORWARD_MAP);
+
+        // The hash is unchanged, but the missing forward map must still force a write.
+        expect(updated).not.toBe(config);
+        expect(updated.wallets.find((w) => w.id === agent.id)).toMatchObject({ jetton_wallets: FORWARD_MAP });
+    });
+
+    it('updateAgenticWalletLimits is a no-op when hash and forward map are unchanged', () => {
+        const agent = createAgenticWalletRecord({
+            name: 'Agent wallet',
+            network: 'mainnet',
+            address: baseAddress,
+            ownerAddress: DEFAULT_AGENTIC_COLLECTION_ADDRESS,
+            limits: LIMITS,
+            limitsHash: 'hash-1',
+            jettonWallets: FORWARD_MAP,
+        });
+        const config = upsertWallet(createEmptyConfig(), agent);
+
+        const result = updateAgenticWalletLimits(config, agent.id, LIMITS, 'hash-1', { ...FORWARD_MAP });
+
+        expect(result).toBe(config);
+    });
+
+    it('updateAgenticWalletLimits clears limits, hash, and forward map when all are undefined', () => {
+        const agent = createAgenticWalletRecord({
+            name: 'Agent wallet',
+            network: 'mainnet',
+            address: baseAddress,
+            ownerAddress: DEFAULT_AGENTIC_COLLECTION_ADDRESS,
+            limits: LIMITS,
+            limitsHash: 'hash-1',
+            jettonWallets: FORWARD_MAP,
+        });
+        const config = upsertWallet(createEmptyConfig(), agent);
+
+        const cleared = updateAgenticWalletLimits(config, agent.id, undefined, undefined, undefined);
+
+        const wallet = cleared.wallets.find((w) => w.id === agent.id)!;
+        expect(wallet).not.toHaveProperty('limits');
+        expect(wallet).not.toHaveProperty('limits_hash');
+        expect(wallet).not.toHaveProperty('jetton_wallets');
     });
 });
 

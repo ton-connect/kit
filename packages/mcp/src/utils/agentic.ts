@@ -15,6 +15,7 @@ import type { ApiClient, AccountState } from '@ton/walletkit';
 import { AgenticWalletCodeCell } from '../contracts/agentic_wallet/AgenticWallet.source.js';
 import type { TonNetwork } from '../registry/config.js';
 import { parsePrivateKeyInput } from './private-key.js';
+import { readOnchainMetadataValue } from './tep64.js';
 
 const AGENTIC_DASHBOARD_BASE_URL = 'https://agents.ton.org/';
 
@@ -281,6 +282,17 @@ function parseAgenticWalletState(accountState: AccountState, address: string): A
     };
 }
 
+/**
+ * Read the on-chain `limits_hash` TEP-64 attribute from an agentic wallet's
+ * account state, or `undefined` when no limits are set (uninitialized wallet,
+ * missing content, or absent attribute). Throws only if the account state cannot
+ * be parsed as an agentic wallet.
+ */
+export function readAgenticLimitsHash(accountState: AccountState, address: string): string | undefined {
+    const state = parseAgenticWalletState(accountState, address);
+    return readOnchainMetadataValue(state.nftItemContent, 'limits_hash');
+}
+
 async function getAgenticWalletSnapshot(input: {
     client: ApiClient;
     address: string;
@@ -307,33 +319,6 @@ async function getAgenticWalletSnapshot(input: {
         balanceNano,
         balanceTon: (Number(balanceNano) / 1e9).toFixed(4),
     };
-}
-
-function extractMetadataText(cell: Cell | null): string | undefined {
-    if (!cell) {
-        return undefined;
-    }
-
-    try {
-        const slice = cell.beginParse();
-        const prefix = slice.loadUint(8);
-        if (prefix !== 0x00) {
-            return undefined;
-        }
-        const content = slice.loadRef();
-        const contentSlice = content.beginParse();
-        if (contentSlice.remainingBits >= 8) {
-            contentSlice.loadUint(8);
-        }
-        const bytes: number[] = [];
-        while (contentSlice.remainingBits >= 8) {
-            bytes.push(contentSlice.loadUint(8));
-        }
-        const text = Buffer.from(bytes).toString('utf-8').trim();
-        return text || undefined;
-    } catch {
-        return undefined;
-    }
 }
 
 export async function listAgenticWalletsByOwner(input: {
@@ -382,7 +367,7 @@ export async function listAgenticWalletsByOwner(input: {
                     collectionAddress: state.collectionAddress.toString(),
                     nftItemIndex: state.nftItemIndex.toString(),
                     deployedByUser: state.deployedByUser,
-                    name: nft.info?.name ?? extractMetadataText(state.nftItemContent),
+                    name: nft.info?.name ?? readOnchainMetadataValue(state.nftItemContent, 'name'),
                 });
             } catch {
                 // Skip malformed or uninitialized records.
@@ -442,6 +427,6 @@ export async function validateAgenticWalletAddress(input: {
         collectionAddress: state.collectionAddress.toString(),
         nftItemIndex: state.nftItemIndex.toString(),
         deployedByUser: state.deployedByUser,
-        name: extractMetadataText(state.nftItemContent),
+        name: readOnchainMetadataValue(state.nftItemContent, 'name'),
     };
 }

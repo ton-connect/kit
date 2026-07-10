@@ -47,7 +47,7 @@ import {
 } from '@ton/walletkit';
 
 import { AgenticWalletCodeCell } from './AgenticWallet.source.js';
-import { ActionSendMsg, packActionsList } from './actions.js';
+import { ActionSendMsg, packOutActionList } from './actions.js';
 
 export const defaultAgenticWorkchain = 0;
 
@@ -313,8 +313,7 @@ export class AgenticWalletAdapter implements WalletAdapter {
         options: SignedSendTransactionOptions | undefined,
         authType: AgenticWalletAuthType,
     ): Promise<Cell> {
-        const actions = packActionsList(input.messages.map((message) => this.createTransferAction(message)));
-        const outActions = extractOutActions(actions);
+        const outActions = packOutActionList(input.messages.map((message) => this.createTransferAction(message)));
 
         let seqno = 0;
         try {
@@ -458,9 +457,4 @@ export class AgenticWalletAdapter implements WalletAdapter {
             },
         ] as Feature[];
     }
-}
-
-function extractOutActions(actionsList: Cell): Cell | null {
-    const slice = actionsList.beginParse();
-    return slice.loadMaybeRef();
 }

@@ -258,7 +258,7 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
             return { transactions: [], addressBook: {} };
         }
 
-        const limit = Math.max(1, Math.min(request.limit ?? 10, 100));
+        const limit = Math.max(1, Math.min(request.limit ?? 10, 1000));
         const offset = Math.max(0, request.offset ?? 0);
 
         const response = await this.getJson<TonApiTransactionsResponse>(

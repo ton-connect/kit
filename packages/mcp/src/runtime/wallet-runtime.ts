@@ -27,7 +27,8 @@ import type {
 import { AgenticWalletAdapter } from '../contracts/agentic_wallet/AgenticWalletAdapter.js';
 import type { IContactResolver } from '../types/contacts.js';
 import { McpWalletService } from '../services/McpWalletService.js';
-import { persistAgenticWalletNftIndex } from '../registry/config.js';
+import { persistAgenticWalletLimits, persistAgenticWalletNftIndex } from '../registry/config.js';
+import type { CachedLimits, LimitsCache } from '../limits/enforce.js';
 import type {
     StandardWalletVersion,
     StoredAgenticWallet,
@@ -164,6 +165,28 @@ function parseStoredWalletNftIndex(value: string | undefined): bigint | undefine
     }
 }
 
+/**
+ * Per-wallet limits cache backed by the config record. Reads serve an in-memory
+ * snapshot seeded from the stored wallet; writes update the snapshot and persist
+ * to `config.json` (mirroring `persistAgenticWalletNftIndex`).
+ */
+function createConfigBackedLimitsCache(wallet: StoredAgenticWallet): LimitsCache {
+    let snapshot: CachedLimits = {
+        ...(wallet.limits ? { limits: wallet.limits } : {}),
+        ...(wallet.limits_hash ? { limits_hash: wallet.limits_hash } : {}),
+        ...(wallet.jetton_wallets ? { jetton_wallets: wallet.jetton_wallets } : {}),
+    };
+    return {
+        read: () => snapshot,
+        write: async (next) => {
+            // Persist first, then update the in-memory snapshot, so a failed (or
+            // out-of-order concurrent) write never leaves memory ahead of disk.
+            await persistAgenticWalletLimits(wallet.id, next.limits, next.limits_hash, next.jetton_wallets);
+            snapshot = next;
+        },
+    };
+}
+
 async function createServiceFromStoredAgentic(
     wallet: StoredAgenticWallet,
     contacts: IContactResolver | undefined,
@@ -204,6 +227,7 @@ async function createServiceFromStoredAgentic(
                 [wallet.network]: toncenterApiKey ? { apiKey: toncenterApiKey } : undefined,
             },
             providers,
+            limitsCache: createConfigBackedLimitsCache(wallet),
         });
         return {
             service,

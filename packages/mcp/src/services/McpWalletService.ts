@@ -16,8 +16,6 @@
  * with user-specific wallet instances.
  */
 
-import { createHash } from 'node:crypto';
-
 import {
     TonWalletKit,
     MemoryStorageAdapter,
@@ -52,6 +50,25 @@ import type { NetworkType } from '../types/config.js';
 import { AgenticWalletCodeCell } from '../contracts/agentic_wallet/AgenticWallet.source.js';
 import { createApiClient } from '../utils/ton-client.js';
 import { UINT_256_MAX } from '../utils/math.js';
+import { onchainMetadataKey } from '../utils/tep64.js';
+import { readAgenticLimitsHash } from '../utils/agentic.js';
+import { normalizeAddressForComparison } from '../utils/address.js';
+import { computeLimitsUsage, evaluateLimits, loadActiveLimits, maxConfiguredWindow } from '../limits/enforce.js';
+import type { AssetUsage, CachedLimits, LimitsCache, LimitsEnv, SyncedLimits } from '../limits/enforce.js';
+import { buildReverseJettonMap } from '../limits/pending.js';
+import {
+    TON_ASSET_KEY,
+    computeLimitsHash,
+    limitsDictToStored,
+    parseLimitsDictFromMessageBody,
+} from '../limits/limits-codec.js';
+import { resolveJettonProbes, transactionsToSpend } from '../limits/spend-window.js';
+import type { JettonSpendProbe, SpendEntry } from '../limits/types.js';
+import type { StoredLimits } from '../registry/config.js';
+
+/** History fetch bounds for limit enforcement. */
+const LIMITS_HISTORY_PAGE = 1000;
+const LIMITS_HISTORY_MAX_PAGES = 10;
 
 const OP_DEPLOY_WALLET = 0x0609e47b;
 const AGENTIC_DEFAULT_VALID_UNTIL = 600;
@@ -83,6 +100,19 @@ export interface AddressBalanceResult {
     address: string;
     balanceNano: string;
     balanceTon: string;
+}
+
+/**
+ * Active spend-limit config and usage for the wallet, in base units (matching the on-chain
+ * `limitsDict`). `enabled: false` means no limits in force; `reason` says why.
+ */
+export interface LimitsInfoResult {
+    enabled: boolean;
+    reason?: 'not-agentic' | 'no-limits' | 'unverifiable';
+    message?: string;
+    limitsHash?: string;
+    checkedAt?: number;
+    assets?: AssetUsage[];
 }
 
 /**
@@ -229,6 +259,8 @@ export interface McpWalletServiceConfig {
     };
 
     providers?: Array<ProviderInput<BaseProvider>>;
+    /** Per-wallet limits cache (config-backed). Absent = re-sync limits on every send. */
+    limitsCache?: LimitsCache;
 }
 
 interface McpWalletServiceInternalConfig {
@@ -241,6 +273,7 @@ interface McpWalletServiceInternalConfig {
     };
 
     providers?: Array<ProviderInput<BaseProvider>>;
+    limitsCache?: LimitsCache;
 }
 
 interface DeployAgenticSubwalletParams {
@@ -262,11 +295,13 @@ interface AgenticRootWalletState {
 export class McpWalletService {
     private readonly config: McpWalletServiceConfig;
     private readonly wallet: Wallet;
+    private readonly limitsCache: LimitsCache | null;
     private kit: TonWalletKit | null = null;
 
     private constructor(config: McpWalletServiceInternalConfig) {
         this.config = config;
         this.wallet = config.wallet;
+        this.limitsCache = config.limitsCache ?? null;
     }
 
     private static parseUint256(input: string, fieldName: string): bigint {
@@ -295,11 +330,6 @@ export class McpWalletService {
         return (now << 16n) | rand;
     }
 
-    private static onchainMetadataKey(key: string): bigint {
-        const hashHex = createHash('sha256').update(key, 'utf8').digest('hex');
-        return BigInt(`0x${hashHex}`);
-    }
-
     private static buildOnchainMetadataValue(value: string | number | boolean): Cell {
         const stringValue = typeof value === 'string' ? value : value.toString();
         return beginCell().storeUint(TEP64_SNAKE_CONTENT_PREFIX, 8).storeStringTail(stringValue).endCell();
@@ -308,7 +338,7 @@ export class McpWalletService {
     private static buildOnchainMetadata(metadata: Record<string, string | number | boolean>): Cell {
         const dict = Dictionary.empty(Dictionary.Keys.BigUint(256), Dictionary.Values.Cell());
         for (const [key, value] of Object.entries(metadata)) {
-            dict.set(McpWalletService.onchainMetadataKey(key), McpWalletService.buildOnchainMetadataValue(value));
+            dict.set(onchainMetadataKey(key), McpWalletService.buildOnchainMetadataValue(value));
         }
 
         const metadataDictCell = beginCell().storeDictDirect(dict).endCell();
@@ -368,9 +398,13 @@ export class McpWalletService {
         return slice.loadMaybeRef() !== null;
     }
 
+    /** The adapter's wallet version. `Wallet` does not type it, so it is read defensively. */
+    private get walletVersion(): string | undefined {
+        return (this.wallet as unknown as { version?: string }).version;
+    }
+
     private assertAgenticWalletVersion(): void {
-        const version = (this.wallet as unknown as { version?: string }).version;
-        if (version !== 'agentic') {
+        if (this.walletVersion !== 'agentic') {
             throw new Error('deploy_agentic_subwallet is available only for WALLET_VERSION=agentic');
         }
     }
@@ -723,6 +757,216 @@ export class McpWalletService {
         );
     }
 
+    /**
+     * Build → enforce on-chain-anchored spend limits → broadcast. The raw-send path
+     * routes through this single choke point. Limits apply only to agentic wallets;
+     * other wallets, and wallets with no on-chain limits, pass straight through.
+     */
+    private async sendWithLimits(
+        build: () => Promise<TransactionRequest> | TransactionRequest,
+        successMessage: string,
+    ): Promise<TransferResult> {
+        let request: TransactionRequest;
+        try {
+            request = await build();
+        } catch (error) {
+            return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
+        }
+
+        if (this.isAgenticWallet()) {
+            try {
+                const decision = await evaluateLimits(this.createLimitsEnv(), request.messages);
+                if (!decision.allowed) {
+                    return { success: false, message: decision.message };
+                }
+            } catch (error) {
+                // Fail closed: if limits cannot be verified, refuse to broadcast.
+                return {
+                    success: false,
+                    message: `Could not verify spend limits: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                };
+            }
+        }
+
+        try {
+            const response = await this.wallet.sendTransaction(request);
+            return { success: true, message: successMessage, normalizedHash: response.normalizedHash };
+        } catch (error) {
+            return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
+        }
+    }
+
+    private isAgenticWallet(): boolean {
+        return this.walletVersion === 'agentic';
+    }
+
+    /**
+     * Current spend-limit config and usage, without sending. Resolves limits via the same
+     * {@link loadActiveLimits} path enforcement uses, then meters spend over the largest window.
+     */
+    async getLimitsInfo(): Promise<LimitsInfoResult> {
+        if (!this.isAgenticWallet()) {
+            return { enabled: false, reason: 'not-agentic' };
+        }
+        const env = this.createLimitsEnv();
+        const loaded = await loadActiveLimits(env);
+        if (loaded.status === 'none') {
+            return { enabled: false, reason: 'no-limits' };
+        }
+        if (loaded.status === 'error') {
+            return { enabled: false, reason: 'unverifiable', message: loaded.message };
+        }
+
+        // One `now` so the fetch cutoff and window math share a boundary.
+        const now = env.now();
+        const reverseJettonMap = buildReverseJettonMap(loaded.jettonWallets);
+        const maxWindow = maxConfiguredWindow(loaded.limits);
+        const spendEntries = maxWindow > 0 ? await env.fetchSpendEntries(maxWindow, now, reverseJettonMap) : [];
+        const assets = computeLimitsUsage(loaded.limits, spendEntries, now);
+        return { enabled: true, limitsHash: loaded.hash, checkedAt: now, assets };
+    }
+
+    private createLimitsEnv(): LimitsEnv {
+        return {
+            now: () => Math.floor(Date.now() / 1000),
+            readOnchainLimitsHash: () => this.readOnchainLimitsHash(),
+            readCache: () => this.limitsCache?.read() ?? {},
+            writeCache: (next: CachedLimits) => this.limitsCache?.write(next) ?? Promise.resolve(),
+            syncLimitsFromChain: () => this.syncLimitsFromChain(),
+            fetchSpendEntries: (maxWindowSeconds: number, now: number, reverseJettonMap: Map<string, string>) =>
+                this.fetchSpendEntries(maxWindowSeconds, now, reverseJettonMap),
+        };
+    }
+
+    private async readOnchainLimitsHash(): Promise<string | undefined> {
+        const address = this.wallet.getAddress();
+        const accountState = await this.wallet.getClient().getAccountState(address);
+        return readAgenticLimitsHash(accountState, address);
+    }
+
+    /**
+     * Find the most recent limits-change tx, parse its limitsDict, hash it, and
+     * compute the forward jetton-wallet map for the configured masters. The map is
+     * derived once here (same lifecycle as `limits_hash`) so metering needs no RPC.
+     */
+    private async syncLimitsFromChain(): Promise<SyncedLimits | null> {
+        const client = this.wallet.getClient();
+        const address = this.wallet.getAddress();
+        for (let page = 0; page < LIMITS_HISTORY_MAX_PAGES; page += 1) {
+            const response = await client.getAccountTransactions({
+                address: [address],
+                limit: LIMITS_HISTORY_PAGE,
+                offset: page * LIMITS_HISTORY_PAGE,
+            });
+            if (response.transactions.length === 0) {
+                break;
+            }
+            for (const transaction of response.transactions) {
+                const body = transaction.inMessage?.messageContent?.body;
+                if (!body) {
+                    continue;
+                }
+                let dict: ReturnType<typeof parseLimitsDictFromMessageBody> = null;
+                try {
+                    dict = parseLimitsDictFromMessageBody(Cell.fromBase64(body));
+                } catch {
+                    // Malformed base64 body; treat as not a limits-change tx.
+                }
+                if (dict && dict.size > 0) {
+                    const limits = limitsDictToStored(dict);
+                    const jettonWallets = await this.computeJettonWalletMap(limits);
+                    return { limits, hash: computeLimitsHash(dict), jettonWallets };
+                }
+            }
+            if (response.transactions.length < LIMITS_HISTORY_PAGE) {
+                break;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Compute our jetton-wallet address for every configured jetton master (the TON
+     * sentinel is skipped). The `(owner, master) -> wallet` mapping is a deterministic,
+     * immutable function of the jetton-wallet code, so it is computed once per limits
+     * sync and cached. Keyed by the master display-key exactly as it appears in
+     * `limits.assets`, valued by the normalized wallet address.
+     *
+     * Fails closed, all-or-nothing: if any master's wallet cannot be resolved (RPC
+     * error or unparseable result), the whole map is rejected — a missing master at
+     * metering time would otherwise be treated as unlimited and bypass its cap.
+     */
+    private async computeJettonWalletMap(limits: StoredLimits): Promise<Record<string, string>> {
+        const owner = this.wallet.getAddress();
+        const client = this.wallet.getClient();
+        const masters = Object.keys(limits.assets).filter((assetKey) => assetKey !== TON_ASSET_KEY);
+        const resolved = await Promise.all(
+            masters.map(async (master) => {
+                const walletAddress = await getJettonWalletAddressFromClient(client, master, owner);
+                const normalized = normalizeAddressForComparison(walletAddress);
+                if (!normalized) {
+                    throw new Error(`Could not resolve a jetton-wallet address for master ${master}.`);
+                }
+                return [master, normalized] as const;
+            }),
+        );
+        return Object.fromEntries(resolved);
+    }
+
+    /**
+     * Page raw account transactions (newest first) until older than the window, then
+     * meter outgoing spend from the messages directly. Uses `getAccountTransactions`
+     * rather than `getEvents`: the events API is unreliable, carries pre-decoded data
+     * we don't need, and caps each request at 100 events. Fails closed (throws) if the
+     * page budget is exhausted while history still extends into the window: a truncated
+     * history would under-count spend and could pass a cap that should have been
+     * exceeded.
+     *
+     * Jetton outflows are resolved to their masters through the in-memory reverse map
+     * ({@link resolveJettonProbes}) rather than a per-wallet `get_wallet_data` call, so
+     * a full history scan adds no extra RPC beyond the transaction paging itself.
+     */
+    private async fetchSpendEntries(
+        maxWindowSeconds: number,
+        now: number,
+        reverseJettonMap: Map<string, string>,
+    ): Promise<SpendEntry[]> {
+        const client = this.wallet.getClient();
+        const address = this.wallet.getAddress();
+        const cutoff = now - maxWindowSeconds;
+        const tonEntries: SpendEntry[] = [];
+        const jettonProbes: JettonSpendProbe[] = [];
+        for (let page = 0; page < LIMITS_HISTORY_MAX_PAGES; page += 1) {
+            const response = await client.getAccountTransactions({
+                address: [address],
+                limit: LIMITS_HISTORY_PAGE,
+                offset: page * LIMITS_HISTORY_PAGE,
+            });
+            if (response.transactions.length === 0) {
+                return [...tonEntries, ...resolveJettonProbes(jettonProbes, reverseJettonMap)];
+            }
+            const within: typeof response.transactions = [];
+            let reachedCutoff = false;
+            for (const transaction of response.transactions) {
+                if (transaction.now < cutoff) {
+                    reachedCutoff = true;
+                    break;
+                }
+                within.push(transaction);
+            }
+            const spend = transactionsToSpend(within, address);
+            tonEntries.push(...spend.tonEntries);
+            jettonProbes.push(...spend.jettonProbes);
+            if (reachedCutoff || response.transactions.length < LIMITS_HISTORY_PAGE) {
+                return [...tonEntries, ...resolveJettonProbes(jettonProbes, reverseJettonMap)];
+            }
+        }
+        throw new Error(
+            `Spend history exceeds ${LIMITS_HISTORY_MAX_PAGES * LIMITS_HISTORY_PAGE} transactions within the limit ` +
+                `window; cannot verify limits without truncating history.`,
+        );
+    }
+
     /** Builds the transfer without signing or broadcasting it. */
     async buildJettonTransferTransaction(
         toAddress: string,
@@ -754,20 +998,10 @@ export class McpWalletService {
         validUntil?: number;
         fromAddress?: string;
     }): Promise<TransferResult> {
-        try {
-            const tx = await this.wallet.sendTransaction(request as TransactionRequest);
-
-            return {
-                success: true,
-                message: `Successfully sent transaction with ${request.messages.length} message(s)`,
-                normalizedHash: tx.normalizedHash,
-            };
-        } catch (error) {
-            return {
-                success: false,
-                message: error instanceof Error ? error.message : 'Unknown error',
-            };
-        }
+        return this.sendWithLimits(
+            () => request as TransactionRequest,
+            `Successfully sent transaction with ${request.messages.length} message(s)`,
+        );
     }
 
     /**
@@ -849,7 +1083,7 @@ export class McpWalletService {
 
             const stateInit = beginCell().store(storeStateInit(childInit)).endCell();
 
-            const response = await this.wallet.sendTransaction({
+            const request: TransactionRequest = {
                 validUntil: Math.floor(Date.now() / 1000) + AGENTIC_DEFAULT_VALID_UNTIL,
                 messages: [
                     {
@@ -859,12 +1093,18 @@ export class McpWalletService {
                         payload: deployBody.toBoc().toString('base64'),
                     },
                 ],
-            } as TransactionRequest);
+            } as TransactionRequest;
+
+            const result = await this.sendWithLimits(
+                () => request,
+                `Successfully sent deploy transaction for sub-wallet ${childAddressFriendly}`,
+            );
+            if (!result.success) {
+                return result;
+            }
 
             return {
-                success: true,
-                message: `Successfully sent deploy transaction for sub-wallet ${childAddressFriendly}`,
-                normalizedHash: response.normalizedHash,
+                ...result,
                 subwalletAddress: childAddressFriendly,
                 subwalletNftIndex: subwalletNftIndex.toString(),
                 ownerAddress: rootState.ownerAddress.toString(),

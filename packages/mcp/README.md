@@ -134,6 +134,20 @@ Examples of user requests, approximate corresponding raw CLI commands via `npx @
 | `AGENTIC_CALLBACK_HOST` | `127.0.0.1` | Host for the local callback server in stdio mode |
 | `AGENTIC_CALLBACK_PORT` | random free port | Port for the local callback server in stdio mode |
 
+## Spend limits for agentic wallets
+
+Agentic wallets can be capped by their **owner**, on-chain. The owner sets limits from the
+[dashboard](https://agents.ton.org/); the MCP only reads and enforces them — it never sets limits.
+
+- Limits are anchored by a `limits_hash` attribute in the wallet's on-chain NFT content and carried as a
+  `limitsDict` (`{asset: {window_seconds: max_spend}}`) in the owner-signed limits-change transaction.
+- Before every transfer the MCP reads the on-chain `limits_hash`; if it changed it re-syncs the limits
+  from the latest limits-change transaction and verifies the hash. A hash that cannot be verified blocks the send.
+- Each limit is checked against the wallet's **rolling on-chain history**: a window of `0` seconds is a
+  per-transaction cap, and any other window is "max spend within the last N seconds". TON and jettons are
+  metered independently (jettons matched by master address; TON metered net of incoming value).
+- Wallets with no `limits_hash` set are unlimited. Synced limits are cached per wallet in `config.json`.
+
 ## Available Tools
 
 In registry mode, wallet-scoped tools below also accept optional `walletSelector`. If omitted, the active wallet is used.
