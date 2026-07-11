@@ -29,7 +29,12 @@ const test = testWithGaslessFixture({
 });
 
 test.describe('Gasless transfer — resilience to relayer errors', () => {
-    test('Transient send error (503) triggers a retry request @allure.id=9853', async ({ app, minter, widget, wallet }) => {
+    test('Transient send error (503) triggers a retry request @allure.id=9853', async ({
+        app,
+        minter,
+        widget,
+        wallet,
+    }) => {
         await gaslessMeta('Relayer errors');
         const capture: SendCapture = { requests: [] };
         await mockGaslessConfig(app, { assets: [USDT_MASTER] });

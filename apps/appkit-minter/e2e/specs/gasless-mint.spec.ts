@@ -25,20 +25,23 @@ import { gaslessMeta } from '../qa/allure-meta';
 
 // --- no wallet: gasless toggle is disabled with a reason ---
 base.describe('Mint settings (no wallet)', () => {
-    base('Without a SignMessage wallet the Gasless toggle is disabled and a reason is shown @allure.id=9876', async ({ page }) => {
-        await gaslessMeta('Mint');
-        const minter = new MinterPage(page);
-        await base.step('Generate a card and open Mint settings', async () => {
-            await page.goto('/');
-            await minter.generateCard();
-            await minter.openMintSettings();
-        });
-        await base.step('Gasless toggle is disabled and the reason hint is visible', async () => {
-            await expect(page.getByText(/^Gasless$/).first()).toBeVisible();
-            await expect(minter.gaslessSwitch).toBeDisabled();
-            await expect(minter.noSignMessageHint).toBeVisible();
-        });
-    });
+    base(
+        'Without a SignMessage wallet the Gasless toggle is disabled and a reason is shown @allure.id=9876',
+        async ({ page }) => {
+            await gaslessMeta('Mint');
+            const minter = new MinterPage(page);
+            await base.step('Generate a card and open Mint settings', async () => {
+                await page.goto('/');
+                await minter.generateCard();
+                await minter.openMintSettings();
+            });
+            await base.step('Gasless toggle is disabled and the reason hint is visible', async () => {
+                await expect(page.getByText(/^Gasless$/).first()).toBeVisible();
+                await expect(minter.gaslessSwitch).toBeDisabled();
+                await expect(minter.noSignMessageHint).toBeVisible();
+            });
+        },
+    );
 });
 
 // --- two-tab wallet + mocked relayer ---

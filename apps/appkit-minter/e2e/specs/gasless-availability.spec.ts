@@ -57,7 +57,11 @@ test.describe('Availability (two-tab wallet)', () => {
         });
     });
 
-    test('Jetton transfer — Gasless checkbox enabled for a SignMessage wallet @allure.id=9869', async ({ minter, widget, wallet }) => {
+    test('Jetton transfer — Gasless checkbox enabled for a SignMessage wallet @allure.id=9869', async ({
+        minter,
+        widget,
+        wallet,
+    }) => {
         await gaslessMeta('Availability');
         await test.step('Connect wallet and open USDT transfer', async () => {
             await connectWallet({ widget, wallet });
