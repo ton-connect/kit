@@ -29,11 +29,7 @@ export abstract class WalletApp {
         readonly context: BrowserContext,
         readonly source: string,
         readonly password: string = TEST_PASSWORD,
-    ) {
-        this.context = context;
-        this.source = source;
-        this.password = password;
-    }
+    ) {}
 
     get isExtension(): boolean {
         return isExtensionWalletSource(this.source);

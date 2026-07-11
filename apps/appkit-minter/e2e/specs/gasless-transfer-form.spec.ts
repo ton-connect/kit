@@ -22,7 +22,12 @@ const test = testWithGaslessFixture({
 });
 
 test.describe('Gasless transfer form — states', () => {
-    test('Fee asset selector is hidden while Gasless is off', async ({ app, minter, widget, wallet }) => {
+    test('Fee asset selector is hidden while Gasless is off @allure.id=9870', async ({
+        app,
+        minter,
+        widget,
+        wallet,
+    }) => {
         await gaslessMeta('Transfer');
         await mockGaslessConfig(app, { assets: [USDT_MASTER] });
         await test.step('Connect Wallet and open USDT transfer (Gasless off)', async () => {
@@ -35,7 +40,12 @@ test.describe('Gasless transfer form — states', () => {
         });
     });
 
-    test('Fee asset selector appears when Gasless is enabled', async ({ app, minter, widget, wallet }) => {
+    test('Fee asset selector appears when Gasless is enabled @allure.id=9871', async ({
+        app,
+        minter,
+        widget,
+        wallet,
+    }) => {
         await gaslessMeta('Transfer');
         await mockGaslessConfig(app, { assets: [USDT_MASTER] });
         await test.step('Connect Wallet, open USDT transfer and enable Gasless', async () => {
@@ -48,7 +58,7 @@ test.describe('Gasless transfer form — states', () => {
         });
     });
 
-    test('With Gasless off the send button is the regular one — not "Send Gasless"', async ({
+    test('With Gasless off the send button is the regular one — not "Send Gasless" @allure.id=9851', async ({
         app,
         minter,
         widget,
@@ -67,7 +77,12 @@ test.describe('Gasless transfer form — states', () => {
         });
     });
 
-    test('Recipient and amount are preserved when Gasless is enabled', async ({ app, minter, widget, wallet }) => {
+    test('Recipient and amount are preserved when Gasless is enabled @allure.id=9880', async ({
+        app,
+        minter,
+        widget,
+        wallet,
+    }) => {
         await gaslessMeta('Transfer');
         await mockGaslessConfig(app, { assets: [USDT_MASTER] });
         await mockGaslessEstimateOk(app);
@@ -83,7 +98,12 @@ test.describe('Gasless transfer form — states', () => {
         });
     });
 
-    test('Toggling Gasless back and forth does not break the form', async ({ app, minter, widget, wallet }) => {
+    test('Toggling Gasless back and forth does not break the form @allure.id=9861', async ({
+        app,
+        minter,
+        widget,
+        wallet,
+    }) => {
         await gaslessMeta('Transfer');
         await mockGaslessConfig(app, { assets: [USDT_MASTER] });
         await mockGaslessEstimateOk(app);
@@ -106,7 +126,7 @@ test.describe('Gasless transfer form — states', () => {
         });
     });
 
-    test('Closing via "Cancel" resets the form on reopen', async ({ app, minter, widget, wallet }) => {
+    test('Closing via "Cancel" resets the form on reopen @allure.id=9868', async ({ app, minter, widget, wallet }) => {
         await gaslessMeta('Transfer');
         await mockGaslessConfig(app, { assets: [USDT_MASTER] });
         await test.step('Connect Wallet, open USDT transfer and fill the recipient', async () => {
@@ -127,7 +147,12 @@ test.describe('Gasless transfer form — states', () => {
     // includes USDT). That requires a pre-navigation route hook in the fixture — tracked
     // in the backlog; the post-goto mock here can't override the cached config.
 
-    test('No quote is requested while inputs are incomplete', async ({ app, minter, widget, wallet }) => {
+    test('No quote is requested while inputs are incomplete @allure.id=9879', async ({
+        app,
+        minter,
+        widget,
+        wallet,
+    }) => {
         await gaslessMeta('Transfer');
         const estimates: string[] = [];
         await mockGaslessConfig(app, { assets: [USDT_MASTER] });
@@ -145,7 +170,7 @@ test.describe('Gasless transfer form — states', () => {
         });
     });
 
-    test('Send shows "Quoting…" while the estimate is in flight, then settles', async ({
+    test('Send shows "Quoting…" while the estimate is in flight, then settles @allure.id=9863', async ({
         app,
         minter,
         widget,
@@ -169,7 +194,7 @@ test.describe('Gasless transfer form — states', () => {
         });
     });
 
-    test('Changing the amount re-requests the quote', async ({ app, minter, widget, wallet }) => {
+    test('Changing the amount re-requests the quote @allure.id=9915', async ({ app, minter, widget, wallet }) => {
         await gaslessMeta('Transfer');
         const estimates: string[] = [];
         await mockGaslessConfig(app, { assets: [USDT_MASTER] });
@@ -189,7 +214,7 @@ test.describe('Gasless transfer form — states', () => {
         });
     });
 
-    test('Changing the recipient re-requests the quote', async ({ app, minter, widget, wallet }) => {
+    test('Changing the recipient re-requests the quote @allure.id=9916', async ({ app, minter, widget, wallet }) => {
         await gaslessMeta('Transfer');
         const estimates: string[] = [];
         await mockGaslessConfig(app, { assets: [USDT_MASTER] });
@@ -210,7 +235,7 @@ test.describe('Gasless transfer form — states', () => {
         });
     });
 
-    test('Closing via Escape resets the form on reopen', async ({ app, minter, widget, wallet }) => {
+    test('Closing via Escape resets the form on reopen @allure.id=9914', async ({ app, minter, widget, wallet }) => {
         await gaslessMeta('Transfer');
         await mockGaslessConfig(app, { assets: [USDT_MASTER] });
         await test.step('Connect Wallet, open USDT transfer and fill the fields', async () => {

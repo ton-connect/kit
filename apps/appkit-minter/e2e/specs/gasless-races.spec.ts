@@ -26,7 +26,7 @@ const test = testWithGaslessFixture({
 });
 
 test.describe('Gasless transfer races (two-tab wallet, mocked relayer)', () => {
-    test('Double-send protection — one click yields exactly one relayer send', async ({
+    test('Double-send protection — one click yields exactly one relayer send @allure.id=9874', async ({
         app,
         minter,
         widget,
@@ -62,7 +62,7 @@ test.describe('Gasless transfer races (two-tab wallet, mocked relayer)', () => {
         });
     });
 
-    test('Switching the fee asset re-requests the quote — the form follows the new selection', async ({
+    test('Switching the fee asset re-requests the quote — the form follows the new selection @allure.id=9848', async ({
         app,
         minter,
         widget,

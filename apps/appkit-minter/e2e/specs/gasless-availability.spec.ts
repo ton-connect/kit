@@ -23,7 +23,7 @@ import { USDT_MASTER } from '../mocks/gaslessRelayer';
 
 // --- wallet-less: Assets empty state renders without crashing ---
 base.describe('Availability (no wallet)', () => {
-    base('Assets list shows empty state without a connected wallet (no crash)', async ({ page }) => {
+    base('Assets list shows empty state without a connected wallet (no crash) @allure.id=9849', async ({ page }) => {
         await gaslessMeta('Availability');
         const pageErrors: string[] = [];
         await base.step('Open the jettons list without a connected wallet', async () => {
@@ -46,7 +46,7 @@ const test = testWithGaslessFixture({
 });
 
 test.describe('Availability (two-tab wallet)', () => {
-    test('No Gasless block in the GRAM transfer modal', async ({ minter, widget, wallet }) => {
+    test('No Gasless block in the GRAM transfer modal @allure.id=9983', async ({ minter, widget, wallet }) => {
         await gaslessMeta('Availability');
         await test.step('Connect wallet and open GRAM transfer', async () => {
             await connectWallet({ widget, wallet });
@@ -57,7 +57,11 @@ test.describe('Availability (two-tab wallet)', () => {
         });
     });
 
-    test('Jetton transfer — Gasless checkbox enabled for a SignMessage wallet', async ({ minter, widget, wallet }) => {
+    test('Jetton transfer — Gasless checkbox enabled for a SignMessage wallet @allure.id=9869', async ({
+        minter,
+        widget,
+        wallet,
+    }) => {
         await gaslessMeta('Availability');
         await test.step('Connect wallet and open USDT transfer', async () => {
             await connectWallet({ widget, wallet });

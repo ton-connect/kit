@@ -43,7 +43,7 @@ async function openGaslessTransfer(minter: MinterPage) {
 }
 
 test.describe('Relayer error handling (two-tab wallet, mocked relayer)', () => {
-    test('Hostile relayer error string renders safely (no XSS) at the quote error display location', async ({
+    test('Hostile relayer error string renders safely (no XSS) at the quote error display location @allure.id=9858', async ({
         app,
         minter,
         widget,
@@ -74,7 +74,12 @@ test.describe('Relayer error handling (two-tab wallet, mocked relayer)', () => {
         });
     });
 
-    test('Estimate HTTP 400 — quote error shown, send stays blocked', async ({ app, minter, widget, wallet }) => {
+    test('Estimate HTTP 400 — quote error shown, send stays blocked @allure.id=9855', async ({
+        app,
+        minter,
+        widget,
+        wallet,
+    }) => {
         await gaslessMeta('Relayer errors');
         await test.step('Mock config and estimate error (HTTP 400)', async () => {
             await mockGaslessConfig(app, { assets: [USDT_MASTER] });
@@ -95,7 +100,7 @@ test.describe('Relayer error handling (two-tab wallet, mocked relayer)', () => {
         });
     });
 
-    test('Estimate returned non-JSON on 200 — handled as a typed error, no crash', async ({
+    test('Estimate returned non-JSON on 200 — handled as a typed error, no crash @allure.id=9864', async ({
         app,
         minter,
         widget,
@@ -118,7 +123,12 @@ test.describe('Relayer error handling (two-tab wallet, mocked relayer)', () => {
         });
     });
 
-    test('Send HTTP 500 — error shown, form recovers (quote re-requested)', async ({ app, minter, widget, wallet }) => {
+    test('Send HTTP 500 — error shown, form recovers (quote re-requested) @allure.id=9875', async ({
+        app,
+        minter,
+        widget,
+        wallet,
+    }) => {
         await gaslessMeta('Relayer errors');
         const capture: SendCapture = { requests: [] };
         await test.step('Mock config, a successful estimate and a send error (HTTP 500)', async () => {
@@ -145,7 +155,7 @@ test.describe('Relayer error handling (two-tab wallet, mocked relayer)', () => {
         });
     });
 
-    test('WALLET_MISMATCH — a quote bound to a different wallet is rejected before signing', async ({
+    test('WALLET_MISMATCH — a quote bound to a different wallet is rejected before signing @allure.id=9865', async ({
         app,
         minter,
         widget,
@@ -169,7 +179,12 @@ test.describe('Relayer error handling (two-tab wallet, mocked relayer)', () => {
         });
     });
 
-    test('QUOTE_EXPIRED — a stale quote is rejected before signing', async ({ app, minter, widget, wallet }) => {
+    test('QUOTE_EXPIRED — a stale quote is rejected before signing @allure.id=9860', async ({
+        app,
+        minter,
+        widget,
+        wallet,
+    }) => {
         await gaslessMeta('Relayer errors');
         await test.step('Mock config and an already expired estimate quote', async () => {
             await mockGaslessConfig(app, { assets: [USDT_MASTER] });
@@ -186,7 +201,7 @@ test.describe('Relayer error handling (two-tab wallet, mocked relayer)', () => {
         });
     });
 
-    test('Malformed `from` in the quote is rejected (error shown, send blocked)', async ({
+    test('Malformed `from` in the quote is rejected (error shown, send blocked) @allure.id=9854', async ({
         app,
         minter,
         widget,

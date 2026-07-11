@@ -48,26 +48,11 @@ apps/appkit-minter/
 
 ## Test design: steps are defined in code
 
-Each test name and its steps are authored **in code** (`test.step('…')` + the
-`gaslessMeta()` labels), and the TestOps test case is auto-created/updated from the
-uploaded run (matched by `fullName`). We deliberately do **not** hand-author the
-case scenarios in TestOps.
-
-Why code-defined (vs. describing steps directly in TestOps):
-
-|                             | Code-defined steps (chosen)                                              | TestOps-authored steps               |
-| --------------------------- | ------------------------------------------------------------------------ | ------------------------------------ |
-| Source of truth             | the spec — one place                                                     | the case — diverges from code        |
-| Drift                       | impossible (steps come from the run)                                     | constant (manual sync)               |
-| New test                    | appears in TestOps after one run                                         | must be hand-created first           |
-| Matches repo                | yes — demo-wallet/walletkit do this (`allureId`/`suite`/`label` in code) | no                                   |
-| Cost for ~60 cases          | zero extra                                                               | ~60 manual cases to write + maintain |
-| Rich "expected result" rows | weaker (body steps)                                                      | richer                               |
-
-The only real downside — slightly less rich step formatting — is outweighed by
-zero drift across a fast-moving feature. `detail: false` in the Allure reporter
-keeps the TestOps scenario clean (only our `test.step` labels; no Playwright
-hook/fixture noise).
+Each test's name and steps are authored in code (`test.step('…')`, with the
+`feature` / `sub-suite` labels from `gaslessMeta()`), so the spec is the single
+source of truth and the Allure report mirrors it with no manual step-authoring and
+no drift. `detail: false` in the reporter keeps the report to just those
+`test.step` labels — no Playwright hook/fixture noise.
 
 ## Testing approaches
 
@@ -137,14 +122,16 @@ key + non-empty signed BoC — see `gasless-transfer.spec.ts` and `gasless-races
 The `@real-send` specs (in `gasless-transfer.spec.ts` and `gasless-mint.spec.ts`)
 **do broadcast** real mainnet transactions and are therefore **not run in CI** —
 they exist for manual/local real-send verification (`pnpm e2e --grep "@real-send"`).
-A scheduled-monitor workflow that would run them against the live relayer was
-considered out of scope here (kept as a QA-side snippet, not in this repo).
 
-Results upload to Allure TestOps (project 368). Cases are **auto-created/updated by
-`fullName`** (path:line) on upload — no manual mapping. To harden the link so a
-rename/move can't orphan a case, pin the AllureID **after the first run** with a
-code call `await allureId(<id>)` (from `allure-js-commons`) — the title-only
-`@allureId(N)` tag is decorative in allure-playwright v3 and does not link.
+Results upload to Allure TestOps (project 368). Every test pins a stable case id
+with a native `@allure.id=<N>` token in its title — the adapter parses it, links
+the result to that exact case, and strips the token from the display name
+(`await allure.id("<N>")` in code is equivalent). Because the id is a DB-level
+identifier, a result stays linked to the same case across renames, file moves,
+and describe/title edits — unlike the default path + describe + title match,
+which orphans a case on any such change. A new test bootstraps by uploading once
+(the first run auto-creates the case and TestOps assigns an id); pin that id back
+in the title before any rename.
 
 ## Notes
 
@@ -155,7 +142,9 @@ code call `await allureId(<id>)` (from `allure-js-commons`) — the title-only
 - The appkit-minter Assets list is **empty without a connected wallet**, so the
   transfer modal is only reachable in two-tab specs; truly wallet-less coverage is
   limited to page-load / mocked-config / mint-settings-disabled checks.
-- `LowBalanceModal` (regular mint, insufficient TON) is **not yet automated**: it
-  needs either a real 0-TON wallet or a mocked account balance. Since CI must not
-  rely on a specially-funded wallet, the plan is to mock the balance endpoint
-  rather than add a second mnemonic — see the QA test plan.
+- The account and jetton balances are mocked (`mocks/tonBalances.ts`, installed by
+  the two-tab fixture for every non-`@real-send` spec), so the gate needs no
+  specially-funded wallet and reads no live indexer for balances.
+- `LowBalanceModal` (regular mint, insufficient TON) is **not yet automated**, but
+  the balance mock makes it reachable — a spec can drive it by mocking a low TON
+  balance instead of needing a real 0-TON wallet.

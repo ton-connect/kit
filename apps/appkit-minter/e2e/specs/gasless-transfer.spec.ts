@@ -25,7 +25,7 @@ const test = testWithGaslessFixture({
 });
 
 test.describe('Gasless jetton transfer', () => {
-    test('USDT is selected automatically, quote loads, Send Gasless button is enabled', async ({
+    test('USDT is selected automatically, quote loads, Send Gasless button is enabled @allure.id=9878', async ({
         app,
         minter,
         widget,
@@ -47,7 +47,12 @@ test.describe('Gasless jetton transfer', () => {
         });
     });
 
-    test('Relayer request is built correctly (without a real send)', async ({ app, minter, widget, wallet }) => {
+    test('Relayer request is built correctly (without a real send) @allure.id=9850', async ({
+        app,
+        minter,
+        widget,
+        wallet,
+    }) => {
         await gaslessMeta('Transfer');
         const capture: SendCapture = { requests: [] };
         await mockGaslessConfig(app, { assets: [USDT_MASTER] });
@@ -72,7 +77,12 @@ test.describe('Gasless jetton transfer', () => {
         });
     });
 
-    test('Sign rejection in the wallet — form recovers, error is shown', async ({ app, minter, widget, wallet }) => {
+    test('Sign rejection in the wallet — form recovers, error is shown @allure.id=9872', async ({
+        app,
+        minter,
+        widget,
+        wallet,
+    }) => {
         await gaslessMeta('Transfer');
         await mockGaslessConfig(app, { assets: [USDT_MASTER] });
         await mockGaslessEstimateOk(app);
@@ -98,7 +108,7 @@ test.describe('Gasless jetton transfer', () => {
 });
 
 // --- real on-chain send (mainnet) — manual run only, broadcasts funds ---
-test.describe('Gasless jetton transfer (real send) @real-send', () => {
+test.describe('Gasless jetton transfer (real send)', { tag: '@real-send' }, () => {
     test('Successful gasless send goes through on-chain', async ({ app, minter, widget, wallet }) => {
         await gaslessMeta('Transfer');
         await test.step('Connect wallet and fill the gasless transfer', async () => {

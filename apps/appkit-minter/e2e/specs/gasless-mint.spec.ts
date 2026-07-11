@@ -20,25 +20,28 @@ import { gaslessMeta } from '../qa/allure-meta';
  *  - two-tab wallet + mocked relayer: enabling gasless surfaces the Provider /
  *    Fee asset / Gas fee rows in the Confirm dialog; rejecting the signature
  *    recovers cleanly. Nothing is broadcast.
- *  - @real-send (monitor only): a real gasless mint lands on mainnet.
+ *  - @real-send: a real gasless mint is broadcast to mainnet (manual run only).
  */
 
 // --- no wallet: gasless toggle is disabled with a reason ---
 base.describe('Mint settings (no wallet)', () => {
-    base('Without a SignMessage wallet the Gasless toggle is disabled and a reason is shown', async ({ page }) => {
-        await gaslessMeta('Mint');
-        const minter = new MinterPage(page);
-        await base.step('Generate a card and open Mint settings', async () => {
-            await page.goto('/');
-            await minter.generateCard();
-            await minter.openMintSettings();
-        });
-        await base.step('Gasless toggle is disabled and the reason hint is visible', async () => {
-            await expect(page.getByText(/^Gasless$/).first()).toBeVisible();
-            await expect(minter.gaslessSwitch).toBeDisabled();
-            await expect(minter.noSignMessageHint).toBeVisible();
-        });
-    });
+    base(
+        'Without a SignMessage wallet the Gasless toggle is disabled and a reason is shown @allure.id=9876',
+        async ({ page }) => {
+            await gaslessMeta('Mint');
+            const minter = new MinterPage(page);
+            await base.step('Generate a card and open Mint settings', async () => {
+                await page.goto('/');
+                await minter.generateCard();
+                await minter.openMintSettings();
+            });
+            await base.step('Gasless toggle is disabled and the reason hint is visible', async () => {
+                await expect(page.getByText(/^Gasless$/).first()).toBeVisible();
+                await expect(minter.gaslessSwitch).toBeDisabled();
+                await expect(minter.noSignMessageHint).toBeVisible();
+            });
+        },
+    );
 });
 
 // --- two-tab wallet + mocked relayer ---
@@ -47,7 +50,7 @@ const test = testWithGaslessFixture({
 });
 
 test.describe('Gasless mint (two-tab wallet, mocked relayer)', () => {
-    test('Enabling Gasless shows Provider / Fee asset / Gas fee in the Confirm dialog', async ({
+    test('Enabling Gasless shows Provider / Fee asset / Gas fee in the Confirm dialog @allure.id=9877', async ({
         app,
         minter,
         widget,
@@ -75,7 +78,7 @@ test.describe('Gasless mint (two-tab wallet, mocked relayer)', () => {
         });
     });
 
-    test('Rejecting in the wallet keeps the mint recoverable (error shown, does not hang)', async ({
+    test('Rejecting in the wallet keeps the mint recoverable (error shown, does not hang) @allure.id=9862', async ({
         app,
         minter,
         widget,
@@ -106,8 +109,8 @@ test.describe('Gasless mint (two-tab wallet, mocked relayer)', () => {
     });
 });
 
-// --- real on-chain mint (mainnet) — monitor only, broadcasts funds ---
-test.describe('Gasless mint (real send) @real-send', () => {
+// --- real on-chain mint (mainnet) — manual run only, broadcasts funds ---
+test.describe('Gasless mint (real send)', { tag: '@real-send' }, () => {
     test('Successful Gasless mint lands on-chain', async ({ app, minter, widget, wallet }) => {
         await gaslessMeta('Mint');
         await test.step('Connect Wallet, generate a card and open Confirm with Gasless', async () => {
