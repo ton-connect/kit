@@ -26,7 +26,10 @@ import { mockDappFixture } from '../ton-connect/mockDappFixture';
 const test = mockDappFixture();
 
 test.describe('TON Connect mock-dApp — modal guards (two-tab)', () => {
-    test('The connect-request modal ignores Esc and backdrop (non-dismissible)', async ({ wallet, dapp }) => {
+    test('@allure.id=10173 The connect-request modal ignores Esc and backdrop (non-dismissible)', async ({
+        wallet,
+        dapp,
+    }) => {
         const url = await dapp.connectUrl();
         // Bring the connect-request modal up without resolving it.
         await wallet.connectBy(url, /* shouldSkipConnect */ true);
@@ -38,7 +41,10 @@ test.describe('TON Connect mock-dApp — modal guards (two-tab)', () => {
         await wallet.connect(false);
     });
 
-    test('The sign-data-request modal ignores Esc and backdrop (non-dismissible)', async ({ wallet, dapp }) => {
+    test('@allure.id=10170 The sign-data-request modal ignores Esc and backdrop (non-dismissible)', async ({
+        wallet,
+        dapp,
+    }) => {
         const url = await dapp.connectUrl();
         await wallet.connectBy(url, false, true);
         await dapp.isConnected();
@@ -51,7 +57,7 @@ test.describe('TON Connect mock-dApp — modal guards (two-tab)', () => {
         await wallet.signData(false);
     });
 
-    test('The Connect-to-dApp paste modal IS dismissible (Esc closes it)', async ({ wallet }) => {
+    test('@allure.id=10171 The Connect-to-dApp paste modal IS dismissible (Esc closes it)', async ({ wallet }) => {
         // No dApp interaction needed — just open the wallet's own paste modal and Esc it shut.
         await wallet.expectPasteModalDismissibleByEsc();
     });

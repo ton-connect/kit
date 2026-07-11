@@ -26,19 +26,21 @@ interface ImportWalletTestCase {
     network: NetworkType;
     version: WalletVersion;
     interfaceType: InterfaceType;
+    /** Pinned TestOps case id, emitted into the generated title as the @allure.id token. */
+    allureId: string;
 }
 
 const testMatrix: ImportWalletTestCase[] = [
     // Mainnet combinations
-    { network: 'mainnet', version: 'v4r2', interfaceType: 'mnemonic' },
-    { network: 'mainnet', version: 'v4r2', interfaceType: 'signer' },
-    { network: 'mainnet', version: 'v5r1', interfaceType: 'mnemonic' },
-    { network: 'mainnet', version: 'v5r1', interfaceType: 'signer' },
+    { network: 'mainnet', version: 'v4r2', interfaceType: 'mnemonic', allureId: '8955' },
+    { network: 'mainnet', version: 'v4r2', interfaceType: 'signer', allureId: '8937' },
+    { network: 'mainnet', version: 'v5r1', interfaceType: 'mnemonic', allureId: '8848' },
+    { network: 'mainnet', version: 'v5r1', interfaceType: 'signer', allureId: '8941' },
     // Testnet combinations
-    { network: 'testnet', version: 'v4r2', interfaceType: 'mnemonic' },
-    { network: 'testnet', version: 'v4r2', interfaceType: 'signer' },
-    { network: 'testnet', version: 'v5r1', interfaceType: 'mnemonic' },
-    { network: 'testnet', version: 'v5r1', interfaceType: 'signer' },
+    { network: 'testnet', version: 'v4r2', interfaceType: 'mnemonic', allureId: '8943' },
+    { network: 'testnet', version: 'v4r2', interfaceType: 'signer', allureId: '8811' },
+    { network: 'testnet', version: 'v5r1', interfaceType: 'mnemonic', allureId: '8792' },
+    { network: 'testnet', version: 'v5r1', interfaceType: 'signer', allureId: '8951' },
 ];
 
 /** Welcome → "Add an existing wallet" → "Recovery phrase" → set a password → land on the import screen. */
@@ -62,7 +64,7 @@ test.describe('Import Wallet Flow', () => {
     });
 
     for (const testCase of testMatrix) {
-        const testName = `Import wallet - ${testCase.network} / ${testCase.version} / ${testCase.interfaceType}`;
+        const testName = `@allure.id=${testCase.allureId} Import wallet - ${testCase.network} / ${testCase.version} / ${testCase.interfaceType}`;
 
         test(testName, async ({ page }) => {
             await step(
@@ -100,13 +102,13 @@ test.describe('Import Wallet - Validation', () => {
         await openImportScreen(page);
     });
 
-    test('Import button is disabled with no mnemonic', async ({ page }) => {
+    test('@allure.id=8952 Import button is disabled with no mnemonic', async ({ page }) => {
         await step('Verify the import button is disabled', async () => {
             await expect(page.getByTestId('import-wallet-process')).toBeDisabled();
         });
     });
 
-    test('Import button is disabled with less than 12 words', async ({ page }) => {
+    test('@allure.id=8945 Import button is disabled with less than 12 words', async ({ page }) => {
         await step('Paste a recovery phrase with too few words', async () => {
             const testWords = 'word1 word2 word3 word4 word5 word6 word7 word8 word9 word10';
             await page.evaluate(async (mnemonic) => {
@@ -121,7 +123,7 @@ test.describe('Import Wallet - Validation', () => {
         });
     });
 
-    test('Clear button clears all words', async ({ page }) => {
+    test('@allure.id=8913 Clear button clears all words', async ({ page }) => {
         if (!TEST_MNEMONIC) {
             test.skip(true, 'WALLET_MNEMONIC environment variable is required');
         }

@@ -16,7 +16,7 @@ import { mockWalletApi, USDT_MASTER_RAW, XAUT_MASTER_RAW } from '../mocks/wallet
 const test = testWithUIFixture();
 
 test.describe('Assets page (mocked wallet API)', () => {
-    test('Lists GRAM first, then jettons sorted by fiat desc', async ({ webOnly: _webOnly, page }) => {
+    test('@allure.id=10113 Lists GRAM first, then jettons sorted by fiat desc', async ({ webOnly: _webOnly, page }) => {
         // USDT @ $1 × 42.5 ≈ $42.50; XAUT @ $2400 × 1.5 ≈ $3600 — so by fiat desc the order is
         // GRAM (native, always first) → XAUT → USDT. We assert all three render with their symbols.
         await mockWalletApi(page);
@@ -40,7 +40,10 @@ test.describe('Assets page (mocked wallet API)', () => {
         expect(xautY!.y).toBeLessThan(usdtY!.y);
     });
 
-    test('Renders the fallback two-letter icon when every image URL fails', async ({ webOnly: _webOnly, page }) => {
+    test('@allure.id=10124 Renders the fallback two-letter icon when every image URL fails', async ({
+        webOnly: _webOnly,
+        page,
+    }) => {
         // A jetton whose only icon candidate is an unreachable http URL (404/CSP under the offline
         // test env) and has no inline base64 → FallbackImage shows the gradient with the symbol's
         // first two letters ("BR" for "BRK"). No real image host is reachable in CI.
@@ -66,7 +69,7 @@ test.describe('Assets page (mocked wallet API)', () => {
         await expect(assets.fallbackText('BR')).toBeVisible();
     });
 
-    test('Shows the fiat value for an asset that has a rate', async ({ webOnly: _webOnly, page }) => {
+    test('@allure.id=10109 Shows the fiat value for an asset that has a rate', async ({ webOnly: _webOnly, page }) => {
         // The GRAM row has a rate ($5.20), so its right-hand fiat column shows a "$" amount.
         await mockWalletApi(page, {
             jettons: [{ masterRaw: XAUT_MASTER_RAW, balance: '0', symbol: 'XAUT', name: 'Tether Gold', decimals: 6 }],
@@ -79,10 +82,9 @@ test.describe('Assets page (mocked wallet API)', () => {
 
         await expect(assets.gramName).toBeVisible();
         // Scope the fiat assertion to the GRAM row itself (the asset under test), not page-wide —
-        // a bare page `$` match would pass on any unrelated dollar amount. Within the row container
-        // (`.flex.items-center.gap-3.py-2`), the right-hand FIAT column is the `div.text-right`
-        // (`asset-row.tsx`); its inner `$<amount>` is the GRAM holding's fiat value (≈$65 here).
-        const gramRow = assets.gramName.locator('xpath=ancestor::div[contains(@class,"items-center")][1]');
-        await expect(gramRow.locator('div.text-right').getByText('$', { exact: false })).toBeVisible();
+        // a bare page `$` match would pass on any unrelated dollar amount. `gramFiat` is the
+        // `asset-fiat` cell of the GRAM `asset-row` (asset-row.tsx); its `$<amount>` is the GRAM
+        // holding's fiat value (≈$65 here).
+        await expect(assets.gramFiat).toContainText('$');
     });
 });

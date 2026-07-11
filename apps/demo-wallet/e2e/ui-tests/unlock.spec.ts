@@ -45,14 +45,14 @@ test.describe('Unlock Wallet Flow', () => {
         await createWalletThenLock(page);
     });
 
-    test('Locked wallet shows the unlock screen after reload', async ({ page }) => {
+    test('@allure.id=10121 Locked wallet shows the unlock screen after reload', async ({ page }) => {
         const unlock = new UnlockWalletPage(page);
         await unlock.waitForPage();
         await expect(page).toHaveURL(/\/unlock$/);
         await expect(page.getByTestId('subtitle')).toHaveText('Enter your password');
     });
 
-    test('Wrong password shows "Incorrect password" and stays locked', async ({ page }) => {
+    test('@allure.id=10101 Wrong password shows "Incorrect password" and stays locked', async ({ page }) => {
         const unlock = new UnlockWalletPage(page);
         await unlock.waitForPage();
 
@@ -64,7 +64,7 @@ test.describe('Unlock Wallet Flow', () => {
         await expect(page.getByTestId('wallet-menu')).toBeHidden();
     });
 
-    test('Correct password unlocks and lands on the dashboard', async ({ page }) => {
+    test('@allure.id=10128 Correct password unlocks and lands on the dashboard', async ({ page }) => {
         const unlock = new UnlockWalletPage(page);
         await unlock.waitForPage();
 
@@ -75,7 +75,7 @@ test.describe('Unlock Wallet Flow', () => {
         await expect(page).toHaveURL(/\/wallet$/);
     });
 
-    test('Reset Wallet → confirm navigates to /welcome', async ({ page }) => {
+    test('@allure.id=10110 Reset Wallet → confirm navigates to /welcome', async ({ page }) => {
         const unlock = new UnlockWalletPage(page);
         await unlock.waitForPage();
 

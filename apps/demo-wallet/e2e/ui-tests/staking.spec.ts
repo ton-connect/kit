@@ -22,7 +22,7 @@ test.describe('Staking page form (mocked wallet API, no network send)', () => {
         await expect(page.getByRole('heading', { name: 'Stake' })).toBeVisible();
     });
 
-    test('Shows stake/unstake tabs and Available / Staked balances', async ({ page }) => {
+    test('@allure.id=10095 Shows stake/unstake tabs and Available / Staked balances', async ({ page }) => {
         await expect(page.getByRole('button', { name: 'stake', exact: true })).toBeVisible();
         await expect(page.getByRole('button', { name: 'unstake', exact: true })).toBeVisible();
         await expect(page.getByText('Available', { exact: true })).toBeVisible();
@@ -31,7 +31,7 @@ test.describe('Staking page form (mocked wallet API, no network send)', () => {
         await expect(page.getByText('Tonstakers', { exact: true })).toBeVisible();
     });
 
-    test('Max fills the stake amount keeping the gas reserve', async ({ page }) => {
+    test('@allure.id=10115 Max fills the stake amount keeping the gas reserve', async ({ page }) => {
         // On the stake tab, Max writes (available balance − STAKE_GAS_RESERVE). With the mocked
         // 12.5 GRAM balance and the component's 1.2 GRAM reserve (staking-interface.tsx
         // STAKE_GAS_RESERVE), handleMax sets `String(12.5 - 1.2)` = "11.3" exactly — assert that
@@ -40,19 +40,19 @@ test.describe('Staking page form (mocked wallet API, no network send)', () => {
         await expect(page.getByTestId('stake-amount-input')).toHaveValue('11.3');
     });
 
-    test('Guards a stake that would not keep the gas reserve', async ({ page }) => {
+    test('@allure.id=10108 Guards a stake that would not keep the gas reserve', async ({ page }) => {
         // 12.0 GRAM is below the balance (12.5) but above the keep-reserve threshold (12.5 - 1.2 = 11.3),
         // so the reserve guard fires.
         await page.getByTestId('stake-amount-input').fill('12');
         await expect(page.getByText('Keep ~1.2 GRAM for network fees', { exact: true })).toBeVisible();
     });
 
-    test('Guards a stake above the available balance', async ({ page }) => {
+    test('@allure.id=10098 Guards a stake above the available balance', async ({ page }) => {
         await page.getByTestId('stake-amount-input').fill('999999');
         await expect(page.getByText('Insufficient balance', { exact: true })).toBeVisible();
     });
 
-    test('Guards an unstake with nothing staked', async ({ page }) => {
+    test('@allure.id=10116 Guards an unstake with nothing staked', async ({ page }) => {
         // With 0 staked, any unstake amount fails the "Not enough staked" guard.
         await page.getByRole('button', { name: 'unstake', exact: true }).click();
         await page.getByTestId('stake-amount-input').fill('1');

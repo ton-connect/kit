@@ -22,7 +22,10 @@ const test = testWithUIFixture();
  * ignored — silent precision drop ≥1M) and floors rather than rounds.
  */
 test.describe('Amount formatting on the Assets list', () => {
-    test('Abbreviates a ≥1M GRAM balance to "M" with 2 digits, floored', async ({ webOnly: _webOnly, page }) => {
+    test('@allure.id=10209 Abbreviates a ≥1M GRAM balance to "M" with 2 digits, floored', async ({
+        webOnly: _webOnly,
+        page,
+    }) => {
         // 1,234,567.899... GRAM (raw nanotons) → "1.23M" (floor to .23, never .24; only 2 digits even
         // though the row asks for 4). This is the precision-drop + floor behaviour in one assertion.
         await mockWalletApi(page, { balanceNano: '1234567899000000' });
@@ -36,7 +39,10 @@ test.describe('Amount formatting on the Assets list', () => {
         await expect(page.getByText('1.23M GRAM', { exact: false }).first()).toBeVisible();
     });
 
-    test('Accepts a 0-decimals jetton (not rejected) and lists it', async ({ webOnly: _webOnly, page }) => {
+    test('@allure.id=10208 Accepts a 0-decimals jetton (not rejected) and lists it', async ({
+        webOnly: _webOnly,
+        page,
+    }) => {
         // A jetton advertising decimals=0 is rendered on the assets list (the b45c9401 fix changed the
         // gate from `!decimals` to `== null`, so 0-decimals is valid).
         await mockWalletApi(page, {

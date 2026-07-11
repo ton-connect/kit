@@ -21,7 +21,7 @@ import { mockDappFixture } from '../ton-connect/mockDappFixture';
 const test = mockDappFixture();
 
 test.describe('TON Connect mock-dApp — signData (two-tab)', () => {
-    test('Approving a signData request returns a signature to the dApp', async ({ wallet, dapp }) => {
+    test('@allure.id=10129 Approving a signData request returns a signature to the dApp', async ({ wallet, dapp }) => {
         const url = await dapp.connectUrl();
         await wallet.connectBy(url, false, true);
         await dapp.isConnected();
@@ -35,7 +35,10 @@ test.describe('TON Connect mock-dApp — signData (two-tab)', () => {
         expect(result).toContain('signature');
     });
 
-    test('Rejecting a signData request returns a user-rejection error to the dApp', async ({ wallet, dapp }) => {
+    test('@allure.id=10134 Rejecting a signData request returns a user-rejection error to the dApp', async ({
+        wallet,
+        dapp,
+    }) => {
         const url = await dapp.connectUrl();
         await wallet.connectBy(url, false, true);
         await dapp.isConnected();

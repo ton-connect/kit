@@ -21,47 +21,46 @@ test.describe('Dashboard smoke (mocked wallet API)', () => {
         await createWalletOnDashboard(page);
     });
 
-    test('Renders the fiat total once balance and rates load', async ({ page }) => {
+    test('@allure.id=10107 Renders the fiat total once balance and rates load', async ({ page }) => {
         // BalanceTotal shows "$<int>.<frac>" only when balance !== undefined && ratesUpdated > 0.
         // With a 12.5 GRAM balance @ $5.20 plus jettons, the integer part is non-zero.
         //
         // Scope to the balance-total widget itself, not the whole page — a bare page `$` + integer
-        // regex can match unrelated copy (asset rows, swap fields, etc.). BalanceTotal renders no
-        // testid, but the styled total lives in a single `font-display` container whose first span
-        // is the `$` sign and whose `text-gray-900` span is the integer part (balance-total.tsx).
-        const totalWidget = page.locator('div.font-display').first();
+        // regex can match unrelated copy (asset rows, swap fields, etc.). The widget renders "$" +
+        // integer + "." + fraction as separate spans; `balance-total` wraps them and
+        // `balance-total-int` is the integer span (balance-total.tsx).
+        const totalWidget = page.getByTestId('balance-total');
         await expect(totalWidget).toBeVisible();
-        // The widget renders "$" + integer + "." + fraction as separate spans. Assert the `$` span
-        // and the INTEGER part (the `text-gray-900` span — distinct from the gray fraction span,
-        // which a bare digit regex would also match). Integer part is non-zero (>= 1 digit group).
+        // Assert the `$` span and the INTEGER part (non-zero, >= 1 digit group — distinct from the
+        // fraction span a bare digit regex would also match).
         await expect(totalWidget.getByText('$', { exact: true })).toBeVisible();
-        await expect(totalWidget.locator('span.text-gray-900')).toHaveText(/^\d{1,3}(,\d{3})*$/);
+        await expect(page.getByTestId('balance-total-int')).toHaveText(/^\d{1,3}(,\d{3})*$/);
     });
 
-    test('Native row is labelled GRAM with the /gram.svg icon', async ({ page }) => {
+    test('@allure.id=10123 Native row is labelled GRAM with the /gram.svg icon', async ({ page }) => {
         // The TON/GRAM asset row renders name "Gram" + symbol "GRAM" with icon /gram.svg.
         await expect(page.getByText('Gram', { exact: true }).first()).toBeVisible();
         await expect(page.locator('img[src="/gram.svg"]').first()).toBeVisible();
     });
 
-    test('Send / Swap / Stake actions are present', async ({ page }) => {
+    test('@allure.id=10097 Send / Swap / Stake actions are present', async ({ page }) => {
         await expect(page.getByTestId('send-button')).toBeVisible();
         await expect(page.getByTestId('swap-button')).toBeVisible();
         await expect(page.getByTestId('stake-button')).toBeVisible();
     });
 
-    test('Assets preview shows held jettons', async ({ page }) => {
+    test('@allure.id=10125 Assets preview shows held jettons', async ({ page }) => {
         // The "Assets" section header and the mocked USDT holding both render.
         await expect(page.getByRole('heading', { name: 'Assets' })).toBeVisible();
         await expect(page.getByText('Tether USD', { exact: true }).first()).toBeVisible();
     });
 
-    test('Navigates to the Assets page', async ({ page }) => {
+    test('@allure.id=10106 Navigates to the Assets page', async ({ page }) => {
         await page.getByRole('button', { name: 'View all assets' }).click();
         await expect(page).toHaveURL(/\/wallet\/assets$/);
     });
 
-    test('Navigates to the NFT page', async ({ page }) => {
+    test('@allure.id=10117 Navigates to the NFT page', async ({ page }) => {
         // NftsCard only renders its header/link when the wallet holds NFTs (mocked: 2).
         await page.getByRole('button', { name: 'View all NFTs' }).click();
         await expect(page).toHaveURL(/\/wallet\/nft$/);
@@ -69,7 +68,7 @@ test.describe('Dashboard smoke (mocked wallet API)', () => {
         await expect(page.getByText('Test NFT One', { exact: true }).first()).toBeVisible();
     });
 
-    test('Navigates to the History page', async ({ page }) => {
+    test('@allure.id=10094 Navigates to the History page', async ({ page }) => {
         // Now that the traces mock shapes real transfer rows, the dashboard History section renders
         // its "View all transactions" link (empty-section-hides otherwise); following it lands on
         // the full history page with the mocked rows.

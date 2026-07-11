@@ -47,7 +47,7 @@ const REQUEST_MODALS = ['sign-data-request', 'sign-message-request'];
 const test = mockDappFixture({ mockWalletApi: { balanceNano: '100000000000' } });
 
 test.describe('TON Connect mock-dApp — request queue (two-tab)', () => {
-    test('Two concurrent requests are shown one modal at a time', async ({ wallet, dapp }) => {
+    test('@allure.id=10169 Two concurrent requests are shown one modal at a time', async ({ wallet, dapp }) => {
         const url = await dapp.connectUrl();
         await wallet.connectBy(url, false, true);
         await dapp.isConnected();

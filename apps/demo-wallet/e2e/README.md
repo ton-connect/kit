@@ -60,12 +60,20 @@ guard).
 
 ## Allure / TestOps
 
-- The reporter is `allure-playwright`. Cases are matched to TestOps by a **stable `historyId`**
-  (the describe chain + test title, set in a shared `beforeEach`), so there is no manual
-  `@allureId` pinning: new tests auto-create a case on launch close and survive line shifts and
-  file moves.
+- The reporter is `allure-playwright`. Every test is bound to its TestOps case by a pinned
+  **`@allure.id=<N>` title token** — a DB-level id the adapter parses into the `ALLURE_ID` label
+  and strips from the display name. That id takes precedence over the derived path+title hash, so
+  the case survives a test **rename, file move, or describe change** — none of which the default
+  hash binding survives. (This replaces the earlier `historyId` override, which only groups the
+  History/Retries timeline and does **not** affect which case a result attaches to.)
+- New test with no case yet: the first upload auto-creates the case and TestOps assigns an id; pin
+  that id back into the title (`@allure.id=<N>`) before any rename/move so the case is never
+  orphaned.
+- The authored suite tree (`parentSuite` / `suite` / `subSuite` / `feature`) and the `automated`
+  tag are set as labels in code (the fixtures' `beforeEach`), not by hand in the TMS.
 - Wrap logical operations in `allure.step('…')` (see `DemoWallet.ts`) so the TestOps execution
-  reads as named steps rather than raw Playwright actions.
+  reads as named steps rather than raw Playwright actions. The reporter runs with `detail: false`,
+  so only these authored steps show (Playwright hook/fixture noise is dropped).
 - Upload runs in CI only, via secrets — no TestOps endpoint or token lives in this repo.
 
 ## Quarantined specs

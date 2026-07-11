@@ -29,7 +29,10 @@ import { mockDappFixture } from '../ton-connect/mockDappFixture';
 const test = mockDappFixture();
 
 test.describe('TON Connect mock-dApp — global paste routing (two-tab)', () => {
-    test('A real tc:// link pasted globally auto-routes to the connect-request modal', async ({ wallet, dapp }) => {
+    test('@allure.id=10211 A real tc:// link pasted globally auto-routes to the connect-request modal', async ({
+        wallet,
+        dapp,
+    }) => {
         const url = await dapp.connectUrl();
         expect(url.startsWith('tc://')).toBe(true);
 
@@ -43,7 +46,9 @@ test.describe('TON Connect mock-dApp — global paste routing (two-tab)', () => 
         await wallet.connect(false);
     });
 
-    test('Global paste is suppressed while the Connect-to-dApp paste modal is open', async ({ wallet }) => {
+    test('@allure.id=10210 Global paste is suppressed while the Connect-to-dApp paste modal is open', async ({
+        wallet,
+    }) => {
         // Open the paste modal — this sets isConnectOpen=true → the global paste handler unsubscribes.
         await wallet.openPasteModal();
 
@@ -53,7 +58,7 @@ test.describe('TON Connect mock-dApp — global paste routing (two-tab)', () => 
         await wallet.expectNoRequestModal(['connect-request']);
     });
 
-    test('Non-TON clipboard text pasted globally is ignored', async ({ wallet }) => {
+    test('@allure.id=10212 Non-TON clipboard text pasted globally is ignored', async ({ wallet }) => {
         // Random garbage that matches none of the tc:// / ton:// / http(s):// prefixes.
         await wallet.pasteIntoDocument('just some random clipboard noise — not a TON Connect link');
         await wallet.expectNoRequestModal(['connect-request']);

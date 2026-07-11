@@ -9,7 +9,7 @@
 import { config } from 'dotenv';
 import type { BrowserContext, Page } from '@playwright/test';
 import { test as base } from '@playwright/test';
-import { historyId } from 'allure-js-commons';
+import { feature, parentSuite, subSuite, suite, tags } from 'allure-js-commons';
 
 import { launchPersistentContext } from '../qa';
 import { DemoWallet } from '../demo-wallet';
@@ -97,13 +97,21 @@ export function mockDappFixture(cfg: MockDappConfig = {}) {
         },
     });
 
-    // Pin a stable Allure historyId per test (same as UITestFixture) so TestOps linking is
-    // zero-manual and survives refactors. Key = the describe chain + test title
-    // (testInfo.titlePath without the leading file-path element).
+    // Authored suite tree (same scheme as UITestFixture): every two-tab test lands under
+    // Demo Wallet ▸ TON Connect ▸ <describe>, overriding the adapter default parent-suite
+    // (the Playwright project name), and is tagged automated. Case identity is pinned per
+    // test via the @allure.id=<N> title token, so this hook carries no binding responsibility.
     // eslint-disable-next-line no-empty-pattern
     extended.beforeEach(async ({}, testInfo) => {
-        const semanticKey = testInfo.titlePath.slice(1).join(' > ');
-        await historyId(semanticKey);
+        await parentSuite('Demo Wallet');
+        await suite('TON Connect');
+        const fileIdx = testInfo.titlePath.findIndex((segment) => segment.endsWith('.spec.ts'));
+        const describes = fileIdx >= 0 ? testInfo.titlePath.slice(fileIdx + 1, -1) : [];
+        if (describes.length > 0) {
+            await subSuite(describes.join(' > '));
+            await feature(describes[0]);
+        }
+        await tags('automated');
     });
 
     return extended;

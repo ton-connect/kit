@@ -27,7 +27,7 @@ test.describe('New Wallet Flow', () => {
         });
     });
 
-    test('Create new wallet on Mainnet', async ({ page }) => {
+    test('@allure.id=8954 Create new wallet on Mainnet', async ({ page }) => {
         const setupWallet = new SetupWalletPage(page);
 
         await step('Reveal the recovery phrase (Mainnet, selected by default)', async () => {
@@ -49,7 +49,7 @@ test.describe('New Wallet Flow', () => {
         });
     });
 
-    test('Create new wallet on Testnet', async ({ page }) => {
+    test('@allure.id=8882 Create new wallet on Testnet', async ({ page }) => {
         const setupWallet = new SetupWalletPage(page);
 
         await step('Select Testnet', async () => {
@@ -71,7 +71,7 @@ test.describe('New Wallet Flow', () => {
         });
     });
 
-    test('Cannot proceed without saving confirmation', async ({ page }) => {
+    test('@allure.id=8940 Cannot proceed without saving confirmation', async ({ page }) => {
         const setupWallet = new SetupWalletPage(page);
 
         await step('Verify Continue is disabled before the phrase is revealed', async () => {

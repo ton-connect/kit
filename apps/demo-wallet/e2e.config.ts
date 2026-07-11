@@ -44,8 +44,8 @@ export default defineConfig({
     },
     fullyParallel: true,
     reporter: process.env.CI
-        ? [['list'], ['html'], ['allure-playwright']]
-        : [['list'], ['html'], ['allure-playwright']],
+        ? [['list'], ['html'], ['allure-playwright', { detail: false }]]
+        : [['list'], ['html'], ['allure-playwright', { detail: false }]],
     workers: workersCount,
     use: {
         screenshot: 'only-on-failure',

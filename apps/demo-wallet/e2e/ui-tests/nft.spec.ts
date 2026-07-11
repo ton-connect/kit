@@ -16,7 +16,7 @@ import { mockWalletApi } from '../mocks/walletApi';
 const test = testWithUIFixture();
 
 test.describe('NFT page (mocked wallet API)', () => {
-    test('Renders the grid of held NFTs', async ({ webOnly: _webOnly, page }) => {
+    test('@allure.id=10127 Renders the grid of held NFTs', async ({ webOnly: _webOnly, page }) => {
         // Default mock: 2 NFTs. The dashboard NftsCard renders its "View all NFTs" link only when
         // the wallet holds NFTs; following it lands on the 2-column grid showing the same items.
         await mockWalletApi(page);
@@ -30,7 +30,10 @@ test.describe('NFT page (mocked wallet API)', () => {
         await expect(nft.tile('Test NFT Two')).toBeVisible();
     });
 
-    test('Hides the dashboard NFTs entry when the wallet holds no NFTs', async ({ webOnly: _webOnly, page }) => {
+    test('@allure.id=10104 Hides the dashboard NFTs entry when the wallet holds no NFTs', async ({
+        webOnly: _webOnly,
+        page,
+    }) => {
         // empty-section-hides: with 0 NFTs the NftsCard renders nothing, so there is no
         // "View all NFTs" link — the only entry point to /wallet/nft is removed.
         await mockWalletApi(page, { nfts: [] });

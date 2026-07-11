@@ -69,9 +69,12 @@ export class DemoWallet extends WalletApp {
     async connectBy(url: string, shouldSkipConnect: boolean = false, confirm: boolean = true): Promise<void> {
         await step('Paste the TON Connect link into the wallet', async () => {
             const app = await this.open();
-            await delay(500);
-            // Open the "Connect to dApp" modal, then paste the TON Connect link.
-            await app.getByTestId('connect-dapp-button').click();
+            // Open the "Connect to dApp" modal, then paste the TON Connect link. Wait for the
+            // dashboard's connect entry to be actionable (the real signal) rather than a fixed
+            // pause — clicking right after the tab (re)opens otherwise races the dashboard render.
+            const connectDappButton = app.getByTestId('connect-dapp-button');
+            await connectDappButton.waitFor({ state: 'visible' });
+            await connectDappButton.click();
             await app.getByTestId('tonconnect-url').fill(url);
             await app.getByTestId('tonconnect-process').click();
 

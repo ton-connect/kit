@@ -23,7 +23,7 @@ import { mockDappFixture } from '../ton-connect/mockDappFixture';
 const test = mockDappFixture();
 
 test.describe('TON Connect mock-dApp — connect (two-tab)', () => {
-    test('Approving the connect request connects the wallet to the dApp', async ({ wallet, dapp }) => {
+    test('@allure.id=10135 Approving the connect request connects the wallet to the dApp', async ({ wallet, dapp }) => {
         const url = await dapp.connectUrl();
         // Bring the modal up (skip the atomic approve), assert the redesigned copy + buttons, then approve.
         await wallet.connectBy(url, /* shouldSkipConnect */ true);
@@ -34,7 +34,7 @@ test.describe('TON Connect mock-dApp — connect (two-tab)', () => {
         await expect(await dapp.isConnected()).toBe(true);
     });
 
-    test('Rejecting the connect request leaves the dApp disconnected', async ({ wallet, dapp }) => {
+    test('@allure.id=10131 Rejecting the connect request leaves the dApp disconnected', async ({ wallet, dapp }) => {
         const url = await dapp.connectUrl();
         await wallet.connectBy(url, /* shouldSkipConnect */ true);
         await wallet.expectConnectModal();

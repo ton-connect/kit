@@ -83,7 +83,7 @@ export default defineConfig({
     // bridge/timing hiccups (same retry policy as the appkit-minter gasless two-tab gate).
     retries: process.env.CI ? 2 : 0,
     workers: workersCount ?? 1,
-    reporter: [['list'], ['allure-playwright']],
+    reporter: [['list'], ['allure-playwright', { detail: false }]],
     use: {
         baseURL: APP_URL,
         screenshot: 'only-on-failure',

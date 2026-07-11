@@ -26,7 +26,10 @@ import { mockDappFixture } from '../ton-connect/mockDappFixture';
 const test = mockDappFixture({ mockWalletApi: { balanceNano: '100000000000' } });
 
 test.describe('TON Connect mock-dApp — sendTransaction (two-tab)', () => {
-    test('Approving a transaction returns a signed BoC to the dApp (no broadcast)', async ({ wallet, dapp }) => {
+    test('@allure.id=10133 Approving a transaction returns a signed BoC to the dApp (no broadcast)', async ({
+        wallet,
+        dapp,
+    }) => {
         const url = await dapp.connectUrl();
         await wallet.connectBy(url, false, true);
         await dapp.isConnected();
@@ -41,7 +44,10 @@ test.describe('TON Connect mock-dApp — sendTransaction (two-tab)', () => {
         expect(result).toContain('boc');
     });
 
-    test('Rejecting a transaction returns a user-rejection error to the dApp', async ({ wallet, dapp }) => {
+    test('@allure.id=10136 Rejecting a transaction returns a user-rejection error to the dApp', async ({
+        wallet,
+        dapp,
+    }) => {
         const url = await dapp.connectUrl();
         await wallet.connectBy(url, false, true);
         await dapp.isConnected();

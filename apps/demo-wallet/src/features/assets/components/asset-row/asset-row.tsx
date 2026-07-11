@@ -32,7 +32,7 @@ export const AssetRow: React.FC<AssetRowData> = ({ icon, fallbackText, name, sym
     const hasFiat = fiat !== undefined;
 
     return (
-        <div className="flex items-center gap-3 py-2">
+        <div data-testid="asset-row" className="flex items-center gap-3 py-2">
             <span className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-gray-100 flex items-center justify-center">
                 <FallbackImage
                     src={icon}
@@ -54,7 +54,7 @@ export const AssetRow: React.FC<AssetRowData> = ({ icon, fallbackText, name, sym
             </div>
             {hasFiat && (
                 <div className="text-right flex-shrink-0 tabular-nums">
-                    <div className="text-sm font-semibold text-gray-900">
+                    <div data-testid="asset-fiat" className="text-sm font-semibold text-gray-900">
                         ${formatLargeValue(String(animatedFiat), 2, 2)}
                     </div>
                 </div>

@@ -10,8 +10,8 @@ import type { Page } from '@playwright/test';
 
 /**
  * The `/wallet/assets` screen — the full token list (GRAM row first, then jettons
- * sorted by fiat desc). Rows render without data-testids (see `asset-row.tsx`), so
- * locators key on the visible name / symbol / role.
+ * sorted by fiat desc). Each row is an `asset-row` testid with an `asset-fiat` cell
+ * (see `asset-row.tsx`); name/symbol locators key on the visible text.
  */
 export class AssetsPage {
     constructor(private readonly page: Page) {}
@@ -24,6 +24,16 @@ export class AssetsPage {
     /** The native GRAM row's name cell ("Gram"). */
     get gramName() {
         return this.page.getByText('Gram', { exact: true }).first();
+    }
+
+    /** The native GRAM asset row (the row whose name reads "Gram"). */
+    get gramRow() {
+        return this.page.getByTestId('asset-row').filter({ hasText: 'Gram' });
+    }
+
+    /** The fiat value cell of the GRAM row. */
+    get gramFiat() {
+        return this.gramRow.getByTestId('asset-fiat');
     }
 
     /** The GRAM row icon (`/gram.svg`). */

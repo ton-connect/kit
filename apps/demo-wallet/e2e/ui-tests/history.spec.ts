@@ -20,7 +20,7 @@ const test = testWithUIFixture();
 const traceId = (i: number): string => Buffer.alloc(32, i + 1).toString('base64');
 
 test.describe('History page (mocked wallet API)', () => {
-    test('Renders sent/received GRAM rows with status', async ({ webOnly: _webOnly, page }) => {
+    test('@allure.id=10096 Renders sent/received GRAM rows with status', async ({ webOnly: _webOnly, page }) => {
         // Default mock shapes one outgoing 5 GRAM + one incoming 2.5 GRAM transfer; both succeed,
         // so each row shows its "Sent/Received N GRAM" title (see map-transaction-row.ts).
         await mockWalletApi(page);
@@ -34,7 +34,7 @@ test.describe('History page (mocked wallet API)', () => {
         await expect(history.rowByTitle('Received 2.5 GRAM')).toBeVisible();
     });
 
-    test('A confirmed row links to the explorer in a new tab', async ({ webOnly: _webOnly, page }) => {
+    test('@allure.id=10119 A confirmed row links to the explorer in a new tab', async ({ webOnly: _webOnly, page }) => {
         // A confirmed row is an <a target="_blank"> to the network's tonviewer host. The wallet was
         // created on mainnet, so the host is tonviewer.com (testnet/tetra switch the host).
         await mockWalletApi(page);
@@ -53,7 +53,7 @@ test.describe('History page (mocked wallet API)', () => {
         expect(new URL(href!).pathname).toContain('/transaction/');
     });
 
-    test('Shows "Load more" when more pages remain', async ({ webOnly: _webOnly, page }) => {
+    test('@allure.id=10118 Shows "Load more" when more pages remain', async ({ webOnly: _webOnly, page }) => {
         // hasNext is true when a page returns >= limit traces (PAGE_SIZE 25). Shape 25 sent rows so
         // the first page is full and the pager appears.
         const events: MockEvent[] = Array.from({ length: 25 }, (_value, i) => ({
