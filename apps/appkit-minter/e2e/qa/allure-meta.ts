@@ -9,10 +9,9 @@
 import { feature, label } from 'allure-js-commons';
 
 /**
- * Attach grouping metadata to the current test, mirroring the demo-wallet e2e
- * convention (`feature` + `sub-suite`). The top-level `Suite` custom field is left
- * to allure-playwright's file-path default, so the gasless specs sit in the TestOps
- * tree the same way the existing minter specs do.
+ * Attach grouping metadata to the current test (`feature` + `sub-suite` labels),
+ * matching the demo-wallet e2e convention. The top-level `Suite` custom field is
+ * left to allure-playwright's file-path default.
  *
  * @param subSuite  area name, e.g. "Transfer", "Mint", "Relayer errors".
  */

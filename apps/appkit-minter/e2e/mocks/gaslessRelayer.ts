@@ -15,8 +15,7 @@ import type { Page, Route } from '@playwright/test';
  * them — the wallet tab is never touched.
  *
  * The point of mocking `/send` is twofold:
- *   1. nothing is broadcast on-chain, so the test spends no funds (the lead's CI
- *      constraint), and
+ *   1. nothing is broadcast on-chain, so the gate spends no funds, and
  *   2. the captured request body lets a test assert the minter formed the gasless
  *      message correctly — i.e. tx-formation is verified without a real send.
  *

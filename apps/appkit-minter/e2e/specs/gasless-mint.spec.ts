@@ -20,7 +20,7 @@ import { gaslessMeta } from '../qa/allure-meta';
  *  - two-tab wallet + mocked relayer: enabling gasless surfaces the Provider /
  *    Fee asset / Gas fee rows in the Confirm dialog; rejecting the signature
  *    recovers cleanly. Nothing is broadcast.
- *  - @real-send (monitor only): a real gasless mint lands on mainnet.
+ *  - @real-send: a real gasless mint is broadcast to mainnet (manual run only).
  */
 
 // --- no wallet: gasless toggle is disabled with a reason ---
@@ -106,7 +106,7 @@ test.describe('Gasless mint (two-tab wallet, mocked relayer)', () => {
     });
 });
 
-// --- real on-chain mint (mainnet) — monitor only, broadcasts funds ---
+// --- real on-chain mint (mainnet) — manual run only, broadcasts funds ---
 test.describe('Gasless mint (real send)', { tag: '@real-send' }, () => {
     test('Successful Gasless mint lands on-chain', async ({ app, minter, widget, wallet }) => {
         await gaslessMeta('Mint');
