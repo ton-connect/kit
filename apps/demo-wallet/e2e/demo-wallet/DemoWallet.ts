@@ -26,44 +26,45 @@ export class DemoWallet extends WalletApp {
     }
 
     async importWallet(mnemonic: string): Promise<void> {
-        await step('Import wallet from recovery phrase', async () => {
-            if (mnemonic === '') {
-                throw new Error('[importWallet] mnemonic is required setup WALLET_MNEMONIC');
-            }
-            const app = await this.open();
+        // Fixture precondition (intentionally NOT wrapped in an allure.step, so it does not surface
+        // as a "Before Hooks" node in the report): import `mnemonic`, land on the dashboard, then
+        // turn OFF auto-lock and hold-to-sign so the per-type approve testids are present.
+        if (mnemonic === '') {
+            throw new Error('[importWallet] mnemonic is required setup WALLET_MNEMONIC');
+        }
+        const app = await this.open();
 
-            // Welcome → "Add an existing wallet" → "Recovery phrase". Wait for the welcome action to
-            // render — the app shows a loader until WalletKit initializes, so clicking immediately
-            // after navigation races that boot. Likewise wait for the picker option to mount/animate.
-            await app.getByTestId('welcome-add-existing').waitFor({ state: 'visible' });
-            await app.getByTestId('welcome-add-existing').click();
-            await app.getByTestId('add-wallet-import').waitFor({ state: 'visible' });
-            await app.getByTestId('add-wallet-import').click();
+        // Welcome → "Add an existing wallet" → "Recovery phrase". Wait for the welcome action to
+        // render — the app shows a loader until WalletKit initializes, so clicking immediately
+        // after navigation races that boot. Likewise wait for the picker option to mount/animate.
+        await app.getByTestId('welcome-add-existing').waitFor({ state: 'visible' });
+        await app.getByTestId('welcome-add-existing').click();
+        await app.getByTestId('add-wallet-import').waitFor({ state: 'visible' });
+        await app.getByTestId('add-wallet-import').click();
 
-            // Setup password
-            await app.getByTestId('password').fill(this.password);
-            await app.getByTestId('password-confirm').fill(this.password);
-            await app.getByTestId('password-submit').click();
+        // Setup password
+        await app.getByTestId('password').fill(this.password);
+        await app.getByTestId('password-confirm').fill(this.password);
+        await app.getByTestId('password-submit').click();
 
-            // Import wallet screen: select mainnet, paste the phrase, continue
-            await app.getByTestId('network-select-mainnet').click();
-            await app.evaluate(async (m) => {
-                await navigator.clipboard.writeText(m);
-            }, mnemonic);
-            await app.getByTestId('paste-mnemonic').click();
-            await app.getByTestId('import-wallet-process').click();
+        // Import wallet screen: select mainnet, paste the phrase, continue
+        await app.getByTestId('network-select-mainnet').click();
+        await app.evaluate(async (m) => {
+            await navigator.clipboard.writeText(m);
+        }, mnemonic);
+        await app.getByTestId('paste-mnemonic').click();
+        await app.getByTestId('import-wallet-process').click();
 
-            // Wait for the dashboard (the settings button only exists there)
-            await app.getByTestId('wallet-menu').waitFor({ state: 'visible' });
+        // Wait for the dashboard (the settings button only exists there)
+        await app.getByTestId('wallet-menu').waitFor({ state: 'visible' });
 
-            // Disable auto-lock and hold-to-sign for e2e tests
-            await app.getByTestId('wallet-menu').click();
-            await app.getByTestId('auto-lock').waitFor({ state: 'attached' });
-            await app.getByTestId('auto-lock').click();
-            await app.getByTestId('hold-to-sign').waitFor({ state: 'attached' });
-            await app.getByTestId('hold-to-sign').click();
-            await this.close();
-        });
+        // Disable auto-lock and hold-to-sign for e2e tests
+        await app.getByTestId('wallet-menu').click();
+        await app.getByTestId('auto-lock').waitFor({ state: 'attached' });
+        await app.getByTestId('auto-lock').click();
+        await app.getByTestId('hold-to-sign').waitFor({ state: 'attached' });
+        await app.getByTestId('hold-to-sign').click();
+        await this.close();
     }
 
     async connectBy(url: string, shouldSkipConnect: boolean = false, confirm: boolean = true): Promise<void> {

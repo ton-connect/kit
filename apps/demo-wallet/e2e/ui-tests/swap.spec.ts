@@ -17,12 +17,12 @@ const test = testWithUIFixture();
 test.describe('Swap page form (mocked wallet API, no network send)', () => {
     test.beforeEach(async ({ webOnly: _webOnly, page }) => {
         await mockWalletApi(page);
-        await createWalletOnDashboard(page);
-        await page.getByTestId('swap-button').click();
-        await expect(page.getByRole('heading', { name: 'Swap' })).toBeVisible();
     });
 
     test('@allure.id=10103 Shows From / To sides with their balances and a direction toggle', async ({ page }) => {
+        await createWalletOnDashboard(page);
+        await page.getByTestId('swap-button').click();
+        await expect(page.getByRole('heading', { name: 'Swap' })).toBeVisible();
         // Defaults: From = GRAM, To = USDT. Each side shows a "Balance:" line and there is a
         // "Swap direction" button between them.
         await expect(page.getByText('From', { exact: true })).toBeVisible();
@@ -32,6 +32,9 @@ test.describe('Swap page form (mocked wallet API, no network send)', () => {
     });
 
     test('@allure.id=10122 Max fills the From amount keeping a gas reserve', async ({ page }) => {
+        await createWalletOnDashboard(page);
+        await page.getByTestId('swap-button').click();
+        await expect(page.getByRole('heading', { name: 'Swap' })).toBeVisible();
         // The From side is the native GRAM (balance 12.5). Max writes (balance − TON_GAS_RESERVE):
         // with the component's 0.1 GRAM reserve (swap-interface.tsx TON_GAS_RESERVE) handleMaxFrom
         // sets `(12.5 - 0.1).toString()` = "12.4". The point of this test is that Max KEEPS A
@@ -47,11 +50,17 @@ test.describe('Swap page form (mocked wallet API, no network send)', () => {
     });
 
     test('@allure.id=10114 Primary action reads "Get Quote" before a quote exists', async ({ page }) => {
+        await createWalletOnDashboard(page);
+        await page.getByTestId('swap-button').click();
+        await expect(page.getByRole('heading', { name: 'Swap' })).toBeVisible();
         // With no quote yet, the primary button fetches a quote and is labelled "Get Quote".
         await expect(page.getByRole('button', { name: 'Get Quote' })).toBeVisible();
     });
 
     test('@allure.id=10126 Reveals the custom recipient field when enabled', async ({ page }) => {
+        await createWalletOnDashboard(page);
+        await page.getByTestId('swap-button').click();
+        await expect(page.getByRole('heading', { name: 'Swap' })).toBeVisible();
         // The "Send to a different address" checkbox reveals a recipient input (placeholder "Recipient address (EQ…)").
         await page.getByText('Send to a different address', { exact: true }).click();
         await expect(page.getByPlaceholder('Recipient address (EQ…)')).toBeVisible();

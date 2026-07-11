@@ -18,10 +18,10 @@ test.describe('Dashboard smoke (mocked wallet API)', () => {
     test.beforeEach(async ({ webOnly: _webOnly, page }) => {
         // Routes MUST be installed before the dashboard loads its data.
         await mockWalletApi(page);
-        await createWalletOnDashboard(page);
     });
 
     test('@allure.id=10107 Renders the fiat total once balance and rates load', async ({ page }) => {
+        await createWalletOnDashboard(page);
         // BalanceTotal shows "$<int>.<frac>" only when balance !== undefined && ratesUpdated > 0.
         // With a 12.5 GRAM balance @ $5.20 plus jettons, the integer part is non-zero.
         //
@@ -38,29 +38,34 @@ test.describe('Dashboard smoke (mocked wallet API)', () => {
     });
 
     test('@allure.id=10123 Native row is labelled GRAM with the /gram.svg icon', async ({ page }) => {
+        await createWalletOnDashboard(page);
         // The TON/GRAM asset row renders name "Gram" + symbol "GRAM" with icon /gram.svg.
         await expect(page.getByText('Gram', { exact: true }).first()).toBeVisible();
         await expect(page.locator('img[src="/gram.svg"]').first()).toBeVisible();
     });
 
     test('@allure.id=10097 Send / Swap / Stake actions are present', async ({ page }) => {
+        await createWalletOnDashboard(page);
         await expect(page.getByTestId('send-button')).toBeVisible();
         await expect(page.getByTestId('swap-button')).toBeVisible();
         await expect(page.getByTestId('stake-button')).toBeVisible();
     });
 
     test('@allure.id=10125 Assets preview shows held jettons', async ({ page }) => {
+        await createWalletOnDashboard(page);
         // The "Assets" section header and the mocked USDT holding both render.
         await expect(page.getByRole('heading', { name: 'Assets' })).toBeVisible();
         await expect(page.getByText('Tether USD', { exact: true }).first()).toBeVisible();
     });
 
     test('@allure.id=10106 Navigates to the Assets page', async ({ page }) => {
+        await createWalletOnDashboard(page);
         await page.getByRole('button', { name: 'View all assets' }).click();
         await expect(page).toHaveURL(/\/wallet\/assets$/);
     });
 
     test('@allure.id=10117 Navigates to the NFT page', async ({ page }) => {
+        await createWalletOnDashboard(page);
         // NftsCard only renders its header/link when the wallet holds NFTs (mocked: 2).
         await page.getByRole('button', { name: 'View all NFTs' }).click();
         await expect(page).toHaveURL(/\/wallet\/nft$/);
@@ -69,6 +74,7 @@ test.describe('Dashboard smoke (mocked wallet API)', () => {
     });
 
     test('@allure.id=10094 Navigates to the History page', async ({ page }) => {
+        await createWalletOnDashboard(page);
         // Now that the traces mock shapes real transfer rows, the dashboard History section renders
         // its "View all transactions" link (empty-section-hides otherwise); following it lands on
         // the full history page with the mocked rows.

@@ -17,14 +17,13 @@ const test = testWithUIFixture();
 
 test.describe('New Wallet Flow', () => {
     test.beforeEach(async ({ page }) => {
-        await step('Open the recovery-phrase screen', async () => {
-            // Welcome → "Create a new wallet" → set a password → land on the Recovery phrase screen.
-            await page.getByTestId('welcome-create').click();
-            await page.getByTestId('password').fill(TEST_PASSWORD);
-            await page.getByTestId('password-confirm').fill(TEST_PASSWORD);
-            await page.getByTestId('password-submit').click();
-            await page.getByTestId('reveal-mnemonic').waitFor({ state: 'visible' });
-        });
+        // Precondition (not a reported step): Welcome → "Create a new wallet" → set a password →
+        // land on the Recovery phrase screen.
+        await page.getByTestId('welcome-create').click();
+        await page.getByTestId('password').fill(TEST_PASSWORD);
+        await page.getByTestId('password-confirm').fill(TEST_PASSWORD);
+        await page.getByTestId('password-submit').click();
+        await page.getByTestId('reveal-mnemonic').waitFor({ state: 'visible' });
     });
 
     test('@allure.id=8954 Create new wallet on Mainnet', async ({ page }) => {

@@ -45,14 +45,14 @@ const testMatrix: ImportWalletTestCase[] = [
 
 /** Welcome → "Add an existing wallet" → "Recovery phrase" → set a password → land on the import screen. */
 async function openImportScreen(page: Page): Promise<void> {
-    await step('Open the import screen', async () => {
-        await page.getByTestId('welcome-add-existing').click();
-        await page.getByTestId('add-wallet-import').click();
-        await page.getByTestId('password').fill(TEST_PASSWORD);
-        await page.getByTestId('password-confirm').fill(TEST_PASSWORD);
-        await page.getByTestId('password-submit').click();
-        await page.getByTestId('paste-mnemonic').waitFor({ state: 'visible' });
-    });
+    // Precondition (not a reported step): Welcome → "Add an existing wallet" → "Recovery phrase" →
+    // set a password → land on the import screen.
+    await page.getByTestId('welcome-add-existing').click();
+    await page.getByTestId('add-wallet-import').click();
+    await page.getByTestId('password').fill(TEST_PASSWORD);
+    await page.getByTestId('password-confirm').fill(TEST_PASSWORD);
+    await page.getByTestId('password-submit').click();
+    await page.getByTestId('paste-mnemonic').waitFor({ state: 'visible' });
 }
 
 test.describe('Import Wallet Flow', () => {
