@@ -12,6 +12,7 @@ import type { ConfigFixture, TestFixture } from '../qa';
 import { launchPersistentContext, TonConnectWidget, testWith } from '../qa';
 import { captureConsole, attachConsoleOnFailure } from '../qa/diagnostics';
 import { MinterPage } from '../pages/MinterPage';
+import { mockTonBalances } from '../mocks/tonBalances';
 import { DemoWallet } from '../wallet';
 
 const DEFAULT_WALLET_SOURCE = process.env.E2E_WALLET_SOURCE ?? 'http://localhost:5173/';
@@ -40,6 +41,12 @@ export function gaslessFixture(config: ConfigFixture, slowMo = 0) {
         },
         app: async ({ context }, use, testInfo) => {
             const app = await context.newPage();
+            // Hermetic account/jetton balances so the mocked gate needs no funded
+            // wallet. `@real-send` specs broadcast on-chain and must read the wallet's
+            // real balances, so they opt out.
+            if (!testInfo.tags.includes('@real-send')) {
+                await mockTonBalances(app);
+            }
             const logs = captureConsole(app);
             await app.goto(config.appUrl, { waitUntil: 'load' });
             await use(app);
