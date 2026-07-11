@@ -19,14 +19,33 @@ const headless =
 
 export default defineConfig({
     testDir: './e2e',
+    // Specs that need their own Playwright config (extra webServer tabs) or an external backend
+    // must NOT run under this default single-server config — otherwise they hang/fail and, with
+    // `--retries=3`, blow the 30-min CI budget. After these exclusions the default run is the
+    // mock-first `e2e/ui-tests/**` suite only.
+    testIgnore: [
+        // The mock-first two-tab TON Connect suite runs via its dedicated config, which starts
+        // the extra dApp tab itself: e2e.mockdapp.config.ts (mock-dApp :5175). See e2e_web.yml
+        // for the mock-dApp suite's CI step. (`e2e/ton-connect/` holds only the suite's driver
+        // files — MockDapp.ts / mockDappFixture.ts — which aren't *.spec.ts, so nothing is
+        // collected from there under this default config.)
+        '**/mock-dapp-tests/**',
+        // QUARANTINED (temporary): these drive the external allure-test-runner backend, which is
+        // currently returning 500 on every case lookup → 3× retries × ~1 min each → CI timeout.
+        // Re-enable once the runner backend is restored.
+        '**/e2e/connect.spec.ts',
+        '**/e2e/signData.spec.ts',
+        '**/e2e/localSendTransaction.spec.ts',
+        '**/e2e/sendTransaction/**',
+    ],
     timeout: timeout,
     expect: {
         timeout: timeout,
     },
     fullyParallel: true,
     reporter: process.env.CI
-        ? [['list'], ['html'], ['allure-playwright']]
-        : [['list'], ['html'], ['allure-playwright']],
+        ? [['list'], ['html'], ['allure-playwright', { detail: false }]]
+        : [['list'], ['html'], ['allure-playwright', { detail: false }]],
     workers: workersCount,
     use: {
         screenshot: 'only-on-failure',

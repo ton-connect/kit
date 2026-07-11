@@ -6,5 +6,9 @@
  *
  */
 
+export { AssetsPage } from './AssetsPage';
+export { HistoryPage } from './HistoryPage';
+export { NftPage } from './NftPage';
 export { SetupPasswordPage } from './SetupPasswordPage';
 export { SetupWalletPage } from './SetupWalletPage';
+export { UnlockWalletPage } from './UnlockWalletPage';

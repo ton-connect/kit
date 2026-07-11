@@ -11,6 +11,7 @@ import { fileURLToPath } from 'url';
 
 import type { BrowserContext, Page } from '@playwright/test';
 import { test } from '@playwright/test';
+import { feature, parentSuite, subSuite, suite, tags } from 'allure-js-commons';
 
 import { getExtensionId, launchPersistentContext, testWith } from '../qa';
 import { isExtensionWalletSource } from '../qa/WalletApp';
@@ -41,7 +42,7 @@ export function uiTestFixture(config: UITestConfig = {}, slowMo = 0) {
     const walletSource = config.walletSource ?? detectWalletSource();
     const isExtension = isExtensionWalletSource(walletSource);
 
-    return test.extend<UITestFixture>({
+    const extended = test.extend<UITestFixture>({
         webOnly: [
             // eslint-disable-next-line no-empty-pattern
             async ({}, use) => {
@@ -69,6 +70,26 @@ export function uiTestFixture(config: UITestConfig = {}, slowMo = 0) {
             await use(page);
         },
     });
+
+    // Authored suite tree (labels in code, not set by hand in the TMS): every ui-test lands
+    // under Demo Wallet ▸ UI ▸ <describe>. Overrides the adapter default parent-suite, which
+    // is the Playwright project name ("chromium"), and tags the run as automated so it is
+    // selectable/reportable. Case identity is pinned per test via the @allure.id=<N> title
+    // token, so this hook carries no binding responsibility.
+    // eslint-disable-next-line no-empty-pattern
+    extended.beforeEach(async ({}, testInfo) => {
+        await parentSuite('Demo Wallet');
+        await suite('UI');
+        const fileIdx = testInfo.titlePath.findIndex((segment) => segment.endsWith('.spec.ts'));
+        const describes = fileIdx >= 0 ? testInfo.titlePath.slice(fileIdx + 1, -1) : [];
+        if (describes.length > 0) {
+            await subSuite(describes.join(' > '));
+            await feature(describes[0]);
+        }
+        await tags('automated');
+    });
+
+    return extended;
 }
 
 export function testWithUIFixture(config: UITestConfig = {}, slowMo = 0) {

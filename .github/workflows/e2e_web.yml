@@ -87,7 +87,14 @@ jobs:
       run: |
         pnpm build
         cd apps/demo-wallet
-        xvfb-run pnpm e2e
+        # 1) Default config: mock-first ui-tests only (see e2e.config.ts testIgnore).
+        # 2) Self-contained two-tab TON Connect mock-dApp suite (starts mock-dApp :5175 +
+        #    demo-wallet :5173 with broadcast/manifest checks disabled). Aggregate exit codes
+        #    so both runs execute and both report into allure-results.
+        set +e
+        xvfb-run pnpm e2e; r1=$?
+        xvfb-run pnpm exec playwright test --config e2e.mockdapp.config.ts; r2=$?
+        exit $(( r1 || r2 ))
       env:
         WALLET_MNEMONIC: ${{ secrets.WALLET_MNEMONIC }}
         # VITE_BRIDGE_URL: 'http://localhost:8081/bridge'

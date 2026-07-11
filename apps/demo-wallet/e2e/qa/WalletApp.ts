@@ -42,11 +42,48 @@ export abstract class WalletApp {
     async open(): Promise<Page> {
         if (!this.current) {
             this.current = await this.context.newPage();
+            // `domcontentloaded` (not `load`): the app opens long-lived connections (HMR / the
+            // TON Connect bridge SSE) that can keep the `load` event from settling under two-tab
+            // server contention. The React mount is gated separately by `recoverIfBlank`.
             await this.current.goto(this.onboardingPage, {
-                waitUntil: 'load',
+                waitUntil: 'domcontentloaded',
             });
+            await this.recoverIfBlank(this.current);
         }
         return this.current;
+    }
+
+    /**
+     * Reload once if the React app didn't mount. The Vite dev server occasionally serves an
+     * empty shell on the very first navigation of a fresh context (its dependency optimizer is
+     * still pre-bundling, especially when a sibling dev server starts at the same time), leaving
+     * `#root` childless. A single reload deterministically recovers it. Best-effort: never throws,
+     * so a non-dev (preview/extension) build that mounts immediately is unaffected.
+     */
+    private async recoverIfBlank(page: Page): Promise<void> {
+        const hasContent = async (): Promise<boolean> => {
+            try {
+                return await page.locator('#root').evaluate((el) => el.childElementCount > 0);
+            } catch {
+                return false;
+            }
+        };
+        try {
+            await page.locator('#root > *').first().waitFor({ state: 'attached', timeout: 4000 });
+        } catch {
+            if (!(await hasContent())) {
+                await page.reload({ waitUntil: 'domcontentloaded' });
+                // `domcontentloaded` only means the shell HTML parsed — React hasn't necessarily
+                // mounted yet. Wait for `#root` to actually have child content before returning, so
+                // callers never receive an unmounted page (mirrors the first-load mount gate above).
+                // Best-effort: swallow a timeout so a non-dev build that mounts instantly is unaffected.
+                try {
+                    await page.locator('#root > *').first().waitFor({ state: 'attached', timeout: 4000 });
+                } catch {
+                    // leave the page as-is; the caller's own first interaction will surface any failure
+                }
+            }
+        }
     }
 
     async close(): Promise<void> {

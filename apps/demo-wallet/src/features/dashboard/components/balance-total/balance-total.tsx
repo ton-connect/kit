@@ -64,9 +64,14 @@ export const BalanceTotal: React.FC = () => {
     return (
         <section className="flex flex-col items-center pt-6 pb-6">
             {ready ? (
-                <div className="font-display font-bold tabular-nums leading-none tracking-[-2%]">
+                <div
+                    data-testid="balance-total"
+                    className="font-display font-bold tabular-nums leading-none tracking-[-2%]"
+                >
                     <span className="text-5xl text-gray-400 mr-0.5">$</span>
-                    <span className="text-5xl text-gray-900">{intPart}</span>
+                    <span data-testid="balance-total-int" className="text-5xl text-gray-900">
+                        {intPart}
+                    </span>
                     <span className="text-5xl text-gray-400">.</span>
                     <span className="text-3xl text-gray-400">{fracPart}</span>
                 </div>

@@ -1,0 +1,49 @@
+<!doctype html>
+<!--
+  Copyright (c) TonTech.
+
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
+-->
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>QA Mock dApp</title>
+    </head>
+    <body>
+        <!--
+          Minimal, self-contained TON Connect dApp used as the driver tab for the
+          two-tab demo-wallet e2e suite. It is a TEST FIXTURE (not product code):
+          a raw `@tonconnect/sdk` connector wired to a handful of buttons + result
+          elements with stable test ids the MockDapp page-object reads/clicks.
+        -->
+        <h1>QA Mock dApp</h1>
+
+        <button data-testid="dapp-connect" id="dapp-connect">Connect</button>
+        <button data-testid="dapp-send-tx" id="dapp-send-tx">Send transaction</button>
+        <button data-testid="dapp-sign-data" id="dapp-sign-data">Sign data</button>
+        <button data-testid="dapp-sign-message" id="dapp-sign-message">Sign message</button>
+        <!-- Fires signData + signMessage back-to-back WITHOUT awaiting the first, to exercise the
+             wallet's request queue (one modal at a time). Each settles independently; the count of
+             settled requests is surfaced into #dapp-settled-count. -->
+        <button data-testid="dapp-two-requests" id="dapp-two-requests">Two requests</button>
+
+        <!-- Universal link returned by connector.connect(...): the wallet tab pastes this
+             so the test never has to scrape a connect modal. -->
+        <pre data-testid="dapp-connect-url" id="dapp-connect-url"></pre>
+        <!-- 'true' once the connector reports a connected wallet, '' otherwise. -->
+        <pre data-testid="dapp-connected" id="dapp-connected"></pre>
+        <!-- Last successful response (JSON) or 'ok'. -->
+        <pre data-testid="dapp-result" id="dapp-result"></pre>
+        <!-- Last error message. -->
+        <pre data-testid="dapp-error" id="dapp-error"></pre>
+        <!-- Number of requests that have settled (resolved OR rejected) since "Two requests" was
+             clicked — lets the queue test assert the second request only settles after the first
+             is resolved in the wallet. -->
+        <pre data-testid="dapp-settled-count" id="dapp-settled-count">0</pre>
+
+        <script type="module" src="/main.ts"></script>
+    </body>
+</html>

@@ -33,7 +33,7 @@ test.describe('SetupPassword', () => {
     });
 
     test.describe('display', () => {
-        test('page renders correctly', async ({ setupPassword }) => {
+        test('@allure.id=8949 page renders correctly', async ({ setupPassword }) => {
             await step('Verify subtitle contains "Create a password"', async () => {
                 await expect(setupPassword.subtitle).toHaveText('Create a password');
             });
@@ -45,19 +45,19 @@ test.describe('SetupPassword', () => {
             });
         });
 
-        test('continue button is disabled on load', async ({ setupPassword }) => {
+        test('@allure.id=8870 continue button is disabled on load', async ({ setupPassword }) => {
             await step('Verify submit button is disabled', async () => {
                 await expect(setupPassword.submitButton).toBeDisabled();
             });
         });
 
-        test('helper text is visible', async ({ setupPassword }) => {
+        test('@allure.id=8800 helper text is visible', async ({ setupPassword }) => {
             await step('Verify the "remember your password" helper is visible', async () => {
                 await expect(setupPassword.helperText).toBeVisible();
             });
         });
 
-        test('password fields have type password', async ({ setupPassword }) => {
+        test('@allure.id=8947 password fields have type password', async ({ setupPassword }) => {
             await step('Verify password input has type="password"', async () => {
                 await expect(setupPassword.passwordInput).toHaveAttribute('type', 'password');
             });
@@ -66,7 +66,7 @@ test.describe('SetupPassword', () => {
             });
         });
 
-        test('page reload stays on /setup-password when no password is set', async ({
+        test('@allure.id=8939 page reload stays on /setup-password when no password is set', async ({
             webOnly: _webOnly,
             setupPassword,
             page,
@@ -81,7 +81,7 @@ test.describe('SetupPassword', () => {
     });
 
     test.describe('disabled state', () => {
-        test('button disabled when only password is filled', async ({ setupPassword }) => {
+        test('@allure.id=8798 button disabled when only password is filled', async ({ setupPassword }) => {
             await step('Fill only the password field', async () => {
                 await setupPassword.fillPassword(TEST_PASSWORD);
             });
@@ -90,7 +90,7 @@ test.describe('SetupPassword', () => {
             });
         });
 
-        test('button disabled when only confirm is filled', async ({ setupPassword }) => {
+        test('@allure.id=8860 button disabled when only confirm is filled', async ({ setupPassword }) => {
             await step('Fill only the confirm field', async () => {
                 await setupPassword.fillConfirm(TEST_PASSWORD);
             });
@@ -101,7 +101,7 @@ test.describe('SetupPassword', () => {
     });
 
     test.describe('validation errors', () => {
-        test('error when password is less than 4 characters', async ({ setupPassword, page }) => {
+        test('@allure.id=8824 error when password is less than 4 characters', async ({ setupPassword, page }) => {
             // Submit stays disabled for an invalid password, so the hint shows on input (no click).
             await step('Type a password shorter than 4 characters', async () => {
                 await setupPassword.fillPassword('ab');
@@ -111,7 +111,7 @@ test.describe('SetupPassword', () => {
             });
         });
 
-        test('error when passwords do not match', async ({ setupPassword, page }) => {
+        test('@allure.id=8953 error when passwords do not match', async ({ setupPassword, page }) => {
             await step('Type mismatched passwords', async () => {
                 await setupPassword.fillPassword(TEST_PASSWORD);
                 await setupPassword.fillConfirm('diff');
@@ -121,7 +121,7 @@ test.describe('SetupPassword', () => {
             });
         });
 
-        test('fields retain values after error', async ({ setupPassword }) => {
+        test('@allure.id=8875 fields retain values after error', async ({ setupPassword }) => {
             await step('Type a password shorter than 4 characters', async () => {
                 await setupPassword.fillPassword('ab');
                 await setupPassword.fillConfirm('ab');
@@ -136,7 +136,10 @@ test.describe('SetupPassword', () => {
     });
 
     test.describe('positive', () => {
-        test('valid password redirects to the recovery-phrase screen', async ({ setupPassword, setupWallet }) => {
+        test('@allure.id=9950 valid password redirects to the recovery-phrase screen', async ({
+            setupPassword,
+            setupWallet,
+        }) => {
             await step('Submit valid password', async () => {
                 await setupPassword.submit(TEST_PASSWORD);
             });
@@ -147,7 +150,10 @@ test.describe('SetupPassword', () => {
     });
 
     test.describe('localStorage', () => {
-        test('auth state is persisted correctly after submit', async ({ setupPassword, setupWallet }) => {
+        test('@allure.id=8922 auth state is persisted correctly after submit', async ({
+            setupPassword,
+            setupWallet,
+        }) => {
             await step('Submit valid password', async () => {
                 await setupPassword.submit(TEST_PASSWORD);
             });
@@ -170,7 +176,7 @@ test.describe('SetupPassword', () => {
     });
 
     test.describe('edge cases', () => {
-        test('very long password (500 chars) is accepted', async ({ setupPassword, setupWallet }) => {
+        test('@allure.id=8854 very long password (500 chars) is accepted', async ({ setupPassword, setupWallet }) => {
             await step('Submit 500-character password', async () => {
                 await setupPassword.submit(LONG_PASSWORD);
             });
@@ -179,7 +185,11 @@ test.describe('SetupPassword', () => {
             });
         });
 
-        test('pasted password is validated correctly', async ({ setupPassword, setupWallet, context }) => {
+        test('@allure.id=8795 pasted password is validated correctly', async ({
+            setupPassword,
+            setupWallet,
+            context,
+        }) => {
             await step('Grant clipboard permissions', async () => {
                 await context.grantPermissions(['clipboard-read', 'clipboard-write']);
             });
@@ -191,7 +201,11 @@ test.describe('SetupPassword', () => {
             });
         });
 
-        test('XSS attempt in password field is treated as plain text', async ({ setupPassword, setupWallet, page }) => {
+        test('@allure.id=8903 XSS attempt in password field is treated as plain text', async ({
+            setupPassword,
+            setupWallet,
+            page,
+        }) => {
             // React escapes HTML in input values, so <script> tags are rendered as plain text.
             // If XSS were executed, the browser would fire a native alert() dialog.
             // page.on('dialog') intercepts any browser-level dialog — if it triggers, the test fails.
