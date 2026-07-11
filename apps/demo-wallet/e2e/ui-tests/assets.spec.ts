@@ -7,6 +7,7 @@
  */
 
 import { expect } from '@playwright/test';
+import { step } from 'allure-js-commons';
 
 import { testWithUIFixture } from './UITestFixture';
 import { createWalletOnDashboard } from './helpers';
@@ -23,21 +24,26 @@ test.describe('Assets page (mocked wallet API)', () => {
         await createWalletOnDashboard(page);
 
         const assets = new AssetsPage(page);
-        await page.getByRole('button', { name: 'View all assets' }).click();
-        await assets.waitForPage();
 
-        await expect(assets.gramName).toBeVisible();
-        await expect(assets.gramIcon).toBeVisible();
-        await expect(assets.nameCell('Tether USD')).toBeVisible();
-        await expect(assets.nameCell('Tether Gold')).toBeVisible();
+        await step('Open the assets page', async () => {
+            await page.getByRole('button', { name: 'View all assets' }).click();
+            await assets.waitForPage();
+        });
 
-        // Native GRAM row precedes both jettons; XAUT (higher fiat) precedes USDT.
-        const gramY = await assets.gramName.boundingBox();
-        const xautY = await assets.nameCell('Tether Gold').boundingBox();
-        const usdtY = await assets.nameCell('Tether USD').boundingBox();
-        expect(gramY && xautY && usdtY).toBeTruthy();
-        expect(gramY!.y).toBeLessThan(xautY!.y);
-        expect(xautY!.y).toBeLessThan(usdtY!.y);
+        await step('Verify GRAM lists first, then jettons sorted by fiat desc', async () => {
+            await expect(assets.gramName).toBeVisible();
+            await expect(assets.gramIcon).toBeVisible();
+            await expect(assets.nameCell('Tether USD')).toBeVisible();
+            await expect(assets.nameCell('Tether Gold')).toBeVisible();
+
+            // Native GRAM row precedes both jettons; XAUT (higher fiat) precedes USDT.
+            const gramY = await assets.gramName.boundingBox();
+            const xautY = await assets.nameCell('Tether Gold').boundingBox();
+            const usdtY = await assets.nameCell('Tether USD').boundingBox();
+            expect(gramY && xautY && usdtY).toBeTruthy();
+            expect(gramY!.y).toBeLessThan(xautY!.y);
+            expect(xautY!.y).toBeLessThan(usdtY!.y);
+        });
     });
 
     test('@allure.id=10124 Renders the fallback two-letter icon when every image URL fails', async ({
@@ -62,11 +68,16 @@ test.describe('Assets page (mocked wallet API)', () => {
         await createWalletOnDashboard(page);
 
         const assets = new AssetsPage(page);
-        await page.getByRole('button', { name: 'View all assets' }).click();
-        await assets.waitForPage();
 
-        await expect(assets.nameCell('Broken Icon Token')).toBeVisible();
-        await expect(assets.fallbackText('BR')).toBeVisible();
+        await step('Open the assets page', async () => {
+            await page.getByRole('button', { name: 'View all assets' }).click();
+            await assets.waitForPage();
+        });
+
+        await step('Verify the fallback two-letter icon is rendered', async () => {
+            await expect(assets.nameCell('Broken Icon Token')).toBeVisible();
+            await expect(assets.fallbackText('BR')).toBeVisible();
+        });
     });
 
     test('@allure.id=10109 Shows the fiat value for an asset that has a rate', async ({ webOnly: _webOnly, page }) => {
@@ -77,14 +88,19 @@ test.describe('Assets page (mocked wallet API)', () => {
         await createWalletOnDashboard(page);
 
         const assets = new AssetsPage(page);
-        await page.getByRole('button', { name: 'View all assets' }).click();
-        await assets.waitForPage();
 
-        await expect(assets.gramName).toBeVisible();
-        // Scope the fiat assertion to the GRAM row itself (the asset under test), not page-wide —
-        // a bare page `$` match would pass on any unrelated dollar amount. `gramFiat` is the
-        // `asset-fiat` cell of the GRAM `asset-row` (asset-row.tsx); its `$<amount>` is the GRAM
-        // holding's fiat value (≈$65 here).
-        await expect(assets.gramFiat).toContainText('$');
+        await step('Open the assets page', async () => {
+            await page.getByRole('button', { name: 'View all assets' }).click();
+            await assets.waitForPage();
+        });
+
+        await step('Verify the fiat value is shown for an asset that has a rate', async () => {
+            await expect(assets.gramName).toBeVisible();
+            // Scope the fiat assertion to the GRAM row itself (the asset under test), not page-wide —
+            // a bare page `$` match would pass on any unrelated dollar amount. `gramFiat` is the
+            // `asset-fiat` cell of the GRAM `asset-row` (asset-row.tsx); its `$<amount>` is the GRAM
+            // holding's fiat value (≈$65 here).
+            await expect(assets.gramFiat).toContainText('$');
+        });
     });
 });

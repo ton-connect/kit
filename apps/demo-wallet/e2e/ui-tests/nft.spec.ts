@@ -7,6 +7,7 @@
  */
 
 import { expect } from '@playwright/test';
+import { step } from 'allure-js-commons';
 
 import { testWithUIFixture } from './UITestFixture';
 import { createWalletOnDashboard } from './helpers';
@@ -23,11 +24,15 @@ test.describe('NFT page (mocked wallet API)', () => {
         await createWalletOnDashboard(page);
 
         const nft = new NftPage(page);
-        await page.getByRole('button', { name: 'View all NFTs' }).click();
-        await nft.waitForPage();
+        await step('Open the NFTs grid', async () => {
+            await page.getByRole('button', { name: 'View all NFTs' }).click();
+            await nft.waitForPage();
+        });
 
-        await expect(nft.tile('Test NFT One')).toBeVisible();
-        await expect(nft.tile('Test NFT Two')).toBeVisible();
+        await step('Verify the held NFTs are rendered in the grid', async () => {
+            await expect(nft.tile('Test NFT One')).toBeVisible();
+            await expect(nft.tile('Test NFT Two')).toBeVisible();
+        });
     });
 
     test('@allure.id=10104 Hides the dashboard NFTs entry when the wallet holds no NFTs', async ({
@@ -39,7 +44,9 @@ test.describe('NFT page (mocked wallet API)', () => {
         await mockWalletApi(page, { nfts: [] });
         await createWalletOnDashboard(page);
 
-        await expect(page.getByRole('button', { name: 'View all NFTs' })).toBeHidden();
-        await expect(page.getByRole('heading', { name: 'NFTs' })).toBeHidden();
+        await step('Verify the dashboard NFTs entry is hidden', async () => {
+            await expect(page.getByRole('button', { name: 'View all NFTs' })).toBeHidden();
+            await expect(page.getByRole('heading', { name: 'NFTs' })).toBeHidden();
+        });
     });
 });

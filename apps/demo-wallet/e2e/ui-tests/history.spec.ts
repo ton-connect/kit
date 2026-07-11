@@ -7,6 +7,7 @@
  */
 
 import { expect } from '@playwright/test';
+import { step } from 'allure-js-commons';
 
 import { testWithUIFixture } from './UITestFixture';
 import { createWalletOnDashboard } from './helpers';
@@ -27,11 +28,15 @@ test.describe('History page (mocked wallet API)', () => {
         await createWalletOnDashboard(page);
 
         const history = new HistoryPage(page);
-        await page.getByRole('button', { name: 'View all transactions' }).click();
-        await history.waitForPage();
+        await step('Open the transaction history', async () => {
+            await page.getByRole('button', { name: 'View all transactions' }).click();
+            await history.waitForPage();
+        });
 
-        await expect(history.rowByTitle('Sent 5 GRAM')).toBeVisible();
-        await expect(history.rowByTitle('Received 2.5 GRAM')).toBeVisible();
+        await step('Verify sent/received GRAM rows render with status', async () => {
+            await expect(history.rowByTitle('Sent 5 GRAM')).toBeVisible();
+            await expect(history.rowByTitle('Received 2.5 GRAM')).toBeVisible();
+        });
     });
 
     test('@allure.id=10119 A confirmed row links to the explorer in a new tab', async ({ webOnly: _webOnly, page }) => {
@@ -41,16 +46,20 @@ test.describe('History page (mocked wallet API)', () => {
         await createWalletOnDashboard(page);
 
         const history = new HistoryPage(page);
-        await page.getByRole('button', { name: 'View all transactions' }).click();
-        await history.waitForPage();
+        await step('Open the transaction history', async () => {
+            await page.getByRole('button', { name: 'View all transactions' }).click();
+            await history.waitForPage();
+        });
 
-        const link = history.explorerLinkByTitle('Sent 5 GRAM');
-        await expect(link).toBeVisible();
-        await expect(link).toHaveAttribute('target', '_blank');
-        const href = await link.getAttribute('href');
-        expect(href).toBeTruthy();
-        expect(new URL(href!).host).toBe('tonviewer.com');
-        expect(new URL(href!).pathname).toContain('/transaction/');
+        await step('Verify a confirmed row links to the explorer in a new tab', async () => {
+            const link = history.explorerLinkByTitle('Sent 5 GRAM');
+            await expect(link).toBeVisible();
+            await expect(link).toHaveAttribute('target', '_blank');
+            const href = await link.getAttribute('href');
+            expect(href).toBeTruthy();
+            expect(new URL(href!).host).toBe('tonviewer.com');
+            expect(new URL(href!).pathname).toContain('/transaction/');
+        });
     });
 
     test('@allure.id=10118 Shows "Load more" when more pages remain', async ({ webOnly: _webOnly, page }) => {
@@ -66,9 +75,13 @@ test.describe('History page (mocked wallet API)', () => {
         await createWalletOnDashboard(page);
 
         const history = new HistoryPage(page);
-        await page.getByRole('button', { name: 'View all transactions' }).click();
-        await history.waitForPage();
+        await step('Open the transaction history', async () => {
+            await page.getByRole('button', { name: 'View all transactions' }).click();
+            await history.waitForPage();
+        });
 
-        await expect(history.loadMore).toBeVisible();
+        await step('Verify "Load more" is shown when more pages remain', async () => {
+            await expect(history.loadMore).toBeVisible();
+        });
     });
 });

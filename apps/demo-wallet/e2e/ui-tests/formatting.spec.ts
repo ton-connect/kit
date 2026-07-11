@@ -7,6 +7,7 @@
  */
 
 import { expect } from '@playwright/test';
+import { step } from 'allure-js-commons';
 
 import { testWithUIFixture } from './UITestFixture';
 import { createWalletOnDashboard } from './helpers';
@@ -32,11 +33,15 @@ test.describe('Amount formatting on the Assets list', () => {
         await createWalletOnDashboard(page);
 
         const assets = new AssetsPage(page);
-        await page.getByRole('button', { name: 'View all assets' }).click();
-        await assets.waitForPage();
+        await step('Open the assets list', async () => {
+            await page.getByRole('button', { name: 'View all assets' }).click();
+            await assets.waitForPage();
+        });
 
-        await expect(assets.gramName).toBeVisible();
-        await expect(page.getByText('1.23M GRAM', { exact: false }).first()).toBeVisible();
+        await step('Verify the ≥1M GRAM balance is abbreviated to "M" with 2 digits, floored', async () => {
+            await expect(assets.gramName).toBeVisible();
+            await expect(page.getByText('1.23M GRAM', { exact: false }).first()).toBeVisible();
+        });
     });
 
     test('@allure.id=10208 Accepts a 0-decimals jetton (not rejected) and lists it', async ({
@@ -51,11 +56,15 @@ test.describe('Amount formatting on the Assets list', () => {
         await createWalletOnDashboard(page);
 
         const assets = new AssetsPage(page);
-        await page.getByRole('button', { name: 'View all assets' }).click();
-        await assets.waitForPage();
+        await step('Open the assets list', async () => {
+            await page.getByRole('button', { name: 'View all assets' }).click();
+            await assets.waitForPage();
+        });
 
-        await expect(assets.nameCell('Points Token')).toBeVisible();
-        // 500 base units at 0 decimals = 500 whole tokens.
-        await expect(page.getByText('500 PTS', { exact: false }).first()).toBeVisible();
+        await step('Verify the 0-decimals jetton is accepted and listed', async () => {
+            await expect(assets.nameCell('Points Token')).toBeVisible();
+            // 500 base units at 0 decimals = 500 whole tokens.
+            await expect(page.getByText('500 PTS', { exact: false }).first()).toBeVisible();
+        });
     });
 });
