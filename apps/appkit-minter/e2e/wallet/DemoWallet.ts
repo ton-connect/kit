@@ -8,8 +8,6 @@
 
 import { WalletApp } from '../qa';
 
-// const timeout = 20_000;
-
 function delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }

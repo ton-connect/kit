@@ -35,7 +35,7 @@ export async function launchPersistentContext(extensionPath: string, slowMo = 0)
         args.push('--headless=new');
     }
 
-    slowMo = isCi ? 0 : (parseInt(process.env.E2E_SLOW_MO || '0') ?? slowMo);
+    slowMo = isCi ? 0 : parseInt(process.env.E2E_SLOW_MO || '0', 10) || slowMo;
     const browserContext = await chromium.launchPersistentContext('', {
         args,
         headless: false,
