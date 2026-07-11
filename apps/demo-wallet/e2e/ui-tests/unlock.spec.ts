@@ -8,6 +8,7 @@
 
 import { expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { step } from 'allure-js-commons';
 
 import { testWithUIFixture } from './UITestFixture';
 import { TEST_PASSWORD } from '../constants';
@@ -47,41 +48,55 @@ test.describe('Unlock Wallet Flow', () => {
 
     test('@allure.id=10121 Locked wallet shows the unlock screen after reload', async ({ page }) => {
         const unlock = new UnlockWalletPage(page);
-        await unlock.waitForPage();
-        await expect(page).toHaveURL(/\/unlock$/);
-        await expect(page.getByTestId('subtitle')).toHaveText('Enter your password');
+        await step('Verify the unlock screen is shown', async () => {
+            await unlock.waitForPage();
+            await expect(page).toHaveURL(/\/unlock$/);
+            await expect(page.getByTestId('subtitle')).toHaveText('Enter your password');
+        });
     });
 
     test('@allure.id=10101 Wrong password shows "Incorrect password" and stays locked', async ({ page }) => {
         const unlock = new UnlockWalletPage(page);
         await unlock.waitForPage();
 
-        await unlock.unlock('wrong-password');
+        await step('Submit a wrong password', async () => {
+            await unlock.unlock('wrong-password');
+        });
 
-        await expect(unlock.errorMessage).toBeVisible();
-        // Still on the unlock screen — the dashboard is not reachable.
-        await expect(page).toHaveURL(/\/unlock$/);
-        await expect(page.getByTestId('wallet-menu')).toBeHidden();
+        await step('Verify an error is shown and the wallet stays locked', async () => {
+            await expect(unlock.errorMessage).toBeVisible();
+            // Still on the unlock screen — the dashboard is not reachable.
+            await expect(page).toHaveURL(/\/unlock$/);
+            await expect(page.getByTestId('wallet-menu')).toBeHidden();
+        });
     });
 
     test('@allure.id=10128 Correct password unlocks and lands on the dashboard', async ({ page }) => {
         const unlock = new UnlockWalletPage(page);
         await unlock.waitForPage();
 
-        await unlock.unlock(TEST_PASSWORD);
+        await step('Unlock with the correct password', async () => {
+            await unlock.unlock(TEST_PASSWORD);
+        });
 
-        // The settings button only exists on the wallet dashboard.
-        await expect(page.getByTestId('wallet-menu')).toBeVisible();
-        await expect(page).toHaveURL(/\/wallet$/);
+        await step('Verify the wallet dashboard is shown', async () => {
+            // The settings button only exists on the wallet dashboard.
+            await expect(page.getByTestId('wallet-menu')).toBeVisible();
+            await expect(page).toHaveURL(/\/wallet$/);
+        });
     });
 
     test('@allure.id=10110 Reset Wallet → confirm navigates to /welcome', async ({ page }) => {
         const unlock = new UnlockWalletPage(page);
         await unlock.waitForPage();
 
-        await unlock.resetWallet();
+        await step('Reset the wallet from the unlock screen', async () => {
+            await unlock.resetWallet();
+        });
 
-        await expect(page).toHaveURL(/\/welcome$/);
-        await expect(page.getByTestId('welcome-create')).toBeVisible();
+        await step('Verify we land back on the Welcome screen', async () => {
+            await expect(page).toHaveURL(/\/welcome$/);
+            await expect(page.getByTestId('welcome-create')).toBeVisible();
+        });
     });
 });
