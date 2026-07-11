@@ -23,7 +23,7 @@ test.describe('Relayer error rendering (no wallet)', () => {
     // Load-time facet of hostile config handling: a hostile config response must not
     // crash the app or execute script on boot. The render-sink facet (relayer error
     // shown as escaped text) is covered with a connected wallet in gasless-security.spec.ts.
-    test('Hostile config response (HTTP 400) does not crash the app or execute script (load without wallet)', async ({
+    test('Hostile config response (HTTP 400) does not crash the app or execute script (load without wallet) @allure.id=9856', async ({
         page,
     }) => {
         await gaslessMeta('Config errors');
@@ -61,7 +61,7 @@ test.describe('Relayer error rendering (no wallet)', () => {
         });
     });
 
-    test('App loads with a config that has no supported assets (no crash)', async ({ page }) => {
+    test('App loads with a config that has no supported assets (no crash) @allure.id=9859', async ({ page }) => {
         await gaslessMeta('Config errors');
         await test.step('Mock config with a valid relay address and empty gas_jettons', async () => {
             // NB: relay_address must be a checksum-valid friendly address, else the

@@ -25,7 +25,7 @@ const test = testWithGaslessFixture({
 });
 
 test.describe('Gasless jetton transfer', () => {
-    test('USDT is selected automatically, quote loads, Send Gasless button is enabled', async ({
+    test('USDT is selected automatically, quote loads, Send Gasless button is enabled @allure.id=9878', async ({
         app,
         minter,
         widget,
@@ -47,7 +47,7 @@ test.describe('Gasless jetton transfer', () => {
         });
     });
 
-    test('Relayer request is built correctly (without a real send)', async ({ app, minter, widget, wallet }) => {
+    test('Relayer request is built correctly (without a real send) @allure.id=9850', async ({ app, minter, widget, wallet }) => {
         await gaslessMeta('Transfer');
         const capture: SendCapture = { requests: [] };
         await mockGaslessConfig(app, { assets: [USDT_MASTER] });
@@ -72,7 +72,7 @@ test.describe('Gasless jetton transfer', () => {
         });
     });
 
-    test('Sign rejection in the wallet — form recovers, error is shown', async ({ app, minter, widget, wallet }) => {
+    test('Sign rejection in the wallet — form recovers, error is shown @allure.id=9872', async ({ app, minter, widget, wallet }) => {
         await gaslessMeta('Transfer');
         await mockGaslessConfig(app, { assets: [USDT_MASTER] });
         await mockGaslessEstimateOk(app);

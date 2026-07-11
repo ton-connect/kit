@@ -22,7 +22,7 @@ const test = testWithGaslessFixture({
 });
 
 test.describe('Transfer-form input edge cases (two-tab wallet, mocked relayer)', () => {
-    test('Invalid recipient address is rejected — error shown, send blocked', async ({
+    test('Invalid recipient address is rejected — error shown, send blocked @allure.id=9873', async ({
         app,
         minter,
         widget,
@@ -46,7 +46,7 @@ test.describe('Transfer-form input edge cases (two-tab wallet, mocked relayer)',
         });
     });
 
-    test('Empty amount blocks Send; filling a valid amount unblocks it (comment with special characters does not interfere)', async ({
+    test('Empty amount blocks Send; filling a valid amount unblocks it (comment with special characters does not interfere) @allure.id=9857', async ({
         app,
         minter,
         widget,

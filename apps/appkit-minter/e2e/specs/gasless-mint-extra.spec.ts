@@ -23,7 +23,7 @@ const test = testWithGaslessFixture({
 });
 
 test.describe('Gasless Mint — additional states', () => {
-    test('With Gasless disabled the Confirm dialog shows only the Owner row', async ({
+    test('With Gasless disabled the Confirm dialog shows only the Owner row @allure.id=9852', async ({
         app,
         minter,
         widget,
@@ -43,7 +43,7 @@ test.describe('Gasless Mint — additional states', () => {
         });
     });
 
-    test('Gasless setting persists when mint settings are reopened', async ({ app, minter, widget, wallet }) => {
+    test('Gasless setting persists when mint settings are reopened @allure.id=9866', async ({ app, minter, widget, wallet }) => {
         await gaslessMeta('Mint');
         await mockGaslessConfig(app, { assets: [USDT_MASTER] });
         await mockGaslessEstimateOk(app);
@@ -58,7 +58,7 @@ test.describe('Gasless Mint — additional states', () => {
         });
     });
 
-    test('Changing the fee asset in Confirm updates the selected value', async ({ app, minter, widget, wallet }) => {
+    test('Changing the fee asset in Confirm updates the selected value @allure.id=9847', async ({ app, minter, widget, wallet }) => {
         await gaslessMeta('Mint');
         await mockGaslessConfig(app, { assets: [USDT_MASTER, NOT_MASTER] });
         await mockGaslessEstimateOk(app);
@@ -75,7 +75,7 @@ test.describe('Gasless Mint — additional states', () => {
         });
     });
 
-    test('Cancelling Mint settings without Save keeps the previous state', async ({ app, minter, widget, wallet }) => {
+    test('Cancelling Mint settings without Save keeps the previous state @allure.id=9917', async ({ app, minter, widget, wallet }) => {
         await gaslessMeta('Mint');
         await mockGaslessConfig(app, { assets: [USDT_MASTER] });
         await test.step('Connect wallet, generate card, open Mint settings', async () => {
@@ -94,7 +94,7 @@ test.describe('Gasless Mint — additional states', () => {
         });
     });
 
-    test('Confirm is blocked while the gas-fee quote is loading', async ({ app, minter, widget, wallet }) => {
+    test('Confirm is blocked while the gas-fee quote is loading @allure.id=9913', async ({ app, minter, widget, wallet }) => {
         await gaslessMeta('Mint');
         await mockGaslessConfig(app, { assets: [USDT_MASTER] });
         await mockGaslessEstimateOk(app, { delayMs: 4000 }); // slow quote → confirm stays disabled while loading

@@ -25,7 +25,7 @@ import { gaslessMeta } from '../qa/allure-meta';
 
 // --- no wallet: gasless toggle is disabled with a reason ---
 base.describe('Mint settings (no wallet)', () => {
-    base('Without a SignMessage wallet the Gasless toggle is disabled and a reason is shown', async ({ page }) => {
+    base('Without a SignMessage wallet the Gasless toggle is disabled and a reason is shown @allure.id=9876', async ({ page }) => {
         await gaslessMeta('Mint');
         const minter = new MinterPage(page);
         await base.step('Generate a card and open Mint settings', async () => {
@@ -47,7 +47,7 @@ const test = testWithGaslessFixture({
 });
 
 test.describe('Gasless mint (two-tab wallet, mocked relayer)', () => {
-    test('Enabling Gasless shows Provider / Fee asset / Gas fee in the Confirm dialog', async ({
+    test('Enabling Gasless shows Provider / Fee asset / Gas fee in the Confirm dialog @allure.id=9877', async ({
         app,
         minter,
         widget,
@@ -75,7 +75,7 @@ test.describe('Gasless mint (two-tab wallet, mocked relayer)', () => {
         });
     });
 
-    test('Rejecting in the wallet keeps the mint recoverable (error shown, does not hang)', async ({
+    test('Rejecting in the wallet keeps the mint recoverable (error shown, does not hang) @allure.id=9862', async ({
         app,
         minter,
         widget,
