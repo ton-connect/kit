@@ -98,7 +98,7 @@ test.describe('Gasless jetton transfer', () => {
 });
 
 // --- real on-chain send (mainnet) — manual run only, broadcasts funds ---
-test.describe('Gasless jetton transfer (real send) @real-send', () => {
+test.describe('Gasless jetton transfer (real send)', { tag: '@real-send' }, () => {
     test('Successful gasless send goes through on-chain', async ({ app, minter, widget, wallet }) => {
         await gaslessMeta('Transfer');
         await test.step('Connect wallet and fill the gasless transfer', async () => {

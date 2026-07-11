@@ -107,7 +107,7 @@ test.describe('Gasless mint (two-tab wallet, mocked relayer)', () => {
 });
 
 // --- real on-chain mint (mainnet) — monitor only, broadcasts funds ---
-test.describe('Gasless mint (real send) @real-send', () => {
+test.describe('Gasless mint (real send)', { tag: '@real-send' }, () => {
     test('Successful Gasless mint lands on-chain', async ({ app, minter, widget, wallet }) => {
         await gaslessMeta('Mint');
         await test.step('Connect Wallet, generate a card and open Confirm with Gasless', async () => {
