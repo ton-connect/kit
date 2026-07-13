@@ -6,11 +6,12 @@
  *
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTonConnect } from '@demo/wallet-core';
 
 import { Button } from '@/core/components/ui/button';
 import { Modal } from '@/core/components/ui/modal';
+import { isIOS } from '@/core/lib/is-ios';
 
 interface ConnectDappModalProps {
     isOpen: boolean;
@@ -21,6 +22,27 @@ export const ConnectDappModal: React.FC<ConnectDappModalProps> = ({ isOpen, onCl
     const { handleTonConnectUrl } = useTonConnect();
     const [url, setUrl] = useState('');
     const [isConnecting, setIsConnecting] = useState(false);
+    // iOS-only safety net: the software keyboard mutates the visual viewport
+    // while the sheet's body scroll-lock is active, so the page scroll offset
+    // can be restored to the wrong place on close. Snapshot it on open and
+    // restore it after the close animation settles so the dashboard doesn't jump.
+    const scrollYRef = useRef(0);
+
+    useEffect(() => {
+        if (!isIOS()) return;
+        if (isOpen) {
+            scrollYRef.current = window.scrollY;
+            return;
+        }
+        const savedY = scrollYRef.current;
+        // Run after vaul finishes its own teardown / restore.
+        const timer = window.setTimeout(() => {
+            if (Math.abs(window.scrollY - savedY) > 1) {
+                window.scrollTo(0, savedY);
+            }
+        }, 350);
+        return () => window.clearTimeout(timer);
+    }, [isOpen]);
 
     const handleConnect = useCallback(async () => {
         const trimmed = url.trim();
@@ -39,7 +61,7 @@ export const ConnectDappModal: React.FC<ConnectDappModalProps> = ({ isOpen, onCl
     }, [url, handleTonConnectUrl, onClose]);
 
     return (
-        <Modal.Container isOpened={isOpen} onOpenChange={(open) => !open && onClose()} className="px-2">
+        <Modal.Container isOpened={isOpen} onOpenChange={(open) => !open && onClose()} keyboardSafe className="px-2">
             <Modal.Header onClose={onClose}>
                 <Modal.Title>Connect to dApp</Modal.Title>
             </Modal.Header>
