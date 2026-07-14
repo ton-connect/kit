@@ -10,6 +10,7 @@ import React from 'react';
 import type { NFT } from '@ton/walletkit';
 
 import { FallbackImage } from '@/core/components/ui/fallback-image';
+import { Skeleton } from '@/core/components/ui/skeleton';
 import { tokenImageUrls } from '@/core/utils';
 
 const getNftImageSources = (nft: NFT): string[] => {
@@ -53,3 +54,14 @@ export const NftTile: React.FC<NftTileProps> = ({ nft, formatNftIndex }) => {
         </article>
     );
 };
+
+/** Loading placeholder mirroring {@link NftTile}: square image area + name/index lines. */
+export const NftTileSkeleton: React.FC = () => (
+    <article className="bg-gray-100 rounded-2xl overflow-hidden">
+        <Skeleton className="aspect-square w-full rounded-none" />
+        <div className="p-2 space-y-1.5">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-3 w-10" />
+        </div>
+    </article>
+);

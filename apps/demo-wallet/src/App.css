@@ -51,6 +51,38 @@
   }
 }
 
+/* Loading skeleton shimmer. A gray band sweeps left→right across a gray base.
+   Stays within the app's gray palette (gray-100 base, gray-200 highlight). */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 150% 0;
+  }
+  100% {
+    background-position: -50% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background-color: #f3f4f6; /* gray-100 — matches existing animate-pulse skeletons */
+  background-image: linear-gradient(
+    90deg,
+    rgba(229, 231, 235, 0) 0%,
+    rgba(229, 231, 235, 0.9) 50%,
+    rgba(229, 231, 235, 0) 100%
+  ); /* gray-200 highlight band */
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+/* Respect reduced-motion: fall back to a gentle static gray (no sweep). */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer {
+    background-image: none;
+    animation: none;
+  }
+}
+
 .card {
   padding: 2em;
 }

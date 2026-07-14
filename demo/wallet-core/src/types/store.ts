@@ -32,6 +32,7 @@ import type {
     GaslessQuote,
     GaslessSupportedAsset,
     SendTransactionResponse,
+    AccountStatus,
 } from '@ton/walletkit';
 
 import type { PendingTransaction } from './streaming';
@@ -84,6 +85,18 @@ export interface WalletManagementSlice {
         // Event history for active wallet
         events: unknown[];
         hasNextEvents: boolean;
+        /** True while a getEvents (traces) request is in flight. Drives the history shimmer. */
+        isLoadingEvents: boolean;
+        /** True once at least one getEvents request has completed (success or error) for the active wallet. */
+        eventsLoaded: boolean;
+        /** True when the last getEvents request failed (e.g. toncenter timeout) — used to keep showing a shimmer instead of a false "no transactions". */
+        eventsError: boolean;
+        /**
+         * On-chain status of the active account ('active' | 'uninitialized' | 'frozen' | 'non-existing'),
+         * from /api/v3/addressInformation. A brand-new/uninit account (no on-chain transactions) reports
+         * 'uninitialized' or 'non-existing' — used to decide when "No transactions yet" is truthful.
+         */
+        accountStatus?: AccountStatus;
 
         /** Pending transactions from WebSocket streaming */
         pendingTransactions: PendingTransaction[];
